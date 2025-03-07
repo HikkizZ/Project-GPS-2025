@@ -1,0 +1,16 @@
+[
+    {
+        "name": "Nombre Apellido",
+        "rut": "Rut del usuario",
+        "email": "Correo del usuario",
+        "password": "Contraseña del usuario",
+        "role": "Rol"
+    },
+    {
+        "name": "Nombre Apellido",
+        "rut": "Rut del usuario",
+        "email": "Correo del usuario",
+        "password": "Contraseña del usuario",
+        "role": "Rol"
+    }
+]
