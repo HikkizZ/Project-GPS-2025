@@ -1,7 +1,8 @@
 "use strict";
 
-import { Entity, PrimaryGeneratedColumn, Column, Index, ManyToOne, In } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, Index, ManyToOne, ManyToMany } from "typeorm";
 import { User } from "./user.entity.js";
+import { Label } from "./label.entity.js";
 import { taskPriority, taskStatus } from "../../types.js";
 
 @Index(["status", "createdAt"]) // Index for the status and createdAt columns
@@ -30,5 +31,9 @@ export class Task {
 
     /* User relation */
     @ManyToOne(() => User, (user) => user.tasks)
-    user!: User;    
+    user!: User;
+    
+    /* Label relation */
+    @ManyToMany(() => Label, (label) => label.tasks)
+    labels!: Label[];
 }
