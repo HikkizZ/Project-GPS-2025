@@ -2,6 +2,7 @@
 
 import { Entity, PrimaryGeneratedColumn, Column, Index, OneToMany } from "typeorm";
 import { Task } from "./task.entity.js";
+import { Label } from "./label.entity.js";
 import { userRole } from "../../types.js";
 
 @Entity("userauth") // Table name
@@ -34,5 +35,9 @@ export class User {
 
     /* Task relation */
     @OneToMany(() => Task, (task) => task.user)
-    tasks!: Task[];   
+    tasks!: Task[];
+
+    /* Label relation */
+    @OneToMany(() => Label, (label) => label.user)
+    labels!: Label[];
 }
