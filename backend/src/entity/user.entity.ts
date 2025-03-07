@@ -1,6 +1,7 @@
 "use strict";
 
-import { Entity, PrimaryGeneratedColumn, Column, Index } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, Index, OneToMany } from "typeorm";
+import { Task } from "./task.entity.js";
 import { userRole } from "../../types.js";
 
 @Entity("userauth") // Table name
@@ -30,4 +31,8 @@ export class User {
 
     @Column({ type: "timestamp with time zone", default: () => "CURRENT_TIMESTAMP", onUpdate:"CURRENT_TIMESTAMP", nullable: false })
     updateAt!: Date;
+
+    /* Task relation */
+    @OneToMany(() => Task, (task) => task.user)
+    tasks!: Task[];   
 }
