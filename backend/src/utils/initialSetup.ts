@@ -1,38 +1,46 @@
 "use strict";
 
-import { User } from "../entity/user.entity.js";
-import { AppDataSource } from "../config/configDB.js";
+import fs from "fs"; // File system module
+import path from "path"; // Path module
 import { encryptPassword } from "../helpers/bcrypt.helper.js";
+import { AppDataSource } from "../config/configDB.js";
+import { User } from "../entity/user.entity.js";
 
-export async function createUsers(): Promise<void> {
+export async function initialSetup(): Promise<void> {
     try {
+        console.log("=> Initial setup started");
+
         const userRepository = AppDataSource.getRepository(User);
 
-        const count: number = await userRepository.count();
-        if (count > 0) return;
+        // Check if there are users in the database
+        const usersCount = await userRepository.count();
+        if (usersCount > 0) {
+            console.log("✅ There are already users in the database. The initial configuration has been skipped.");
+            return;
+        }
 
-        await Promise.all([
-            userRepository.save(
-                userRepository.create({
-                    name: "Admin",
-                    rut: "11111111-1",
-                    email: "user.admin@gmail.cl",
-                    password: await encryptPassword("admin2025"),
-                    role: "admin"
-                })
-            ),
-            userRepository.save(
-                userRepository.create({
-                    name: "Felipe Miranda",
-                    rut: "20.903.783-1",
-                    email: "felipe.miranda@gmail.cl",
-                    password: await encryptPassword("felipe2025"),
-                    role: "user"
-                })
-            ),
-        ]);
-        console.log("=> Users created successfully.");
+        // Read the initial data from the JSON file
+        const userFilePath = path.resolve("src/data/users.json");
+        if (!fs.existsSync(userFilePath)) {
+            console.error("❌ The file users.json does not exist.");
+            return;
+        }
+
+        const usersData = JSON.parse(fs.readFileSync(userFilePath, "utf-8"));
+
+        // Encrypt the password of the users
+        const usersToSave = await Promise.all(
+            usersData.map(async (user: { name: string; rut: string; email: string; role: string; password: string }) => ({
+                ...user,
+                password: await encryptPassword(user.password)
+            }))
+        );
+
+        // Save the users in the database
+        await userRepository.save(usersToSave);
+
+        console.log("✅ The initial configuration has been completed successfully.");
     } catch (error) {
-        console.error("=> Error creating users: ", error);
+        console.error("❌ Error in the initial configuration: ", error);
     }
 }
