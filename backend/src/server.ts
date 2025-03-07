@@ -12,7 +12,7 @@ import indexRoutes from "./routes/index.routes.js";
 import { connectDB } from "./config/configDB.js";
 import { cookieKey, PORT, HOST } from "./config/configEnv.js";
 import { passportJWTSetup } from "./auth/passport.auth.js";
-import { createUsers } from "./utils/initialSetup.js";
+import { initialSetup } from "./utils/initialSetup.js";
 
 async function setupServer(): Promise<void> {
     try {
@@ -58,10 +58,10 @@ async function setupServer(): Promise<void> {
         app.use("/api", indexRoutes);
 
         app.listen(PORT, () => {
-            console.log(`=> Server running on http://${HOST}:${PORT}/api`);
+            console.log(`✅ Server running on http://${HOST}:${PORT}/api`);
         });
     } catch (error) {
-        console.error("=> Error starting the server: -> setupServer(). Error: ", error);
+        console.error("❌ Error starting the server: -> setupServer(). Error: ", error);
     }
 }
 
@@ -69,12 +69,12 @@ async function setupAPI(): Promise<void> {
     try {
         await connectDB();
         await setupServer();
-        await createUsers();
+        await initialSetup();
     } catch (error) {
-        console.error("=> Error setting up the API: -> setupAPI(). Error: ", error);
+        console.error("❌ Error setting up the API: -> setupAPI(). Error: ", error);
     }
 }
 
 setupAPI()
-    .then(() => console.log("=> API started successfully."))
-    .catch((error) => console.error("=> Error starting the API: ", error));
+    .then(() => console.log("✅ API started successfully."))
+    .catch((error) => console.error("❌ Error starting the API: ", error));
