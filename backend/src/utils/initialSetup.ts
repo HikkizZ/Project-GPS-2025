@@ -5,6 +5,7 @@ import path from "path"; // Path module
 import { encryptPassword } from "../helpers/bcrypt.helper.js";
 import { AppDataSource } from "../config/configDB.js";
 import { User } from "../entity/user.entity.js";
+import { userRole } from "../../types.js";
 
 export async function initialSetup(): Promise<void> {
     try {
@@ -30,7 +31,7 @@ export async function initialSetup(): Promise<void> {
 
         // Encrypt the password of the users
         const usersToSave = await Promise.all(
-            usersData.map(async (user: { name: string; rut: string; email: string; role: string; password: string }) => ({
+            usersData.map(async (user: { name: string; rut: string; email: string; role: userRole; password: string }) => ({
                 ...user,
                 password: await encryptPassword(user.password)
             }))

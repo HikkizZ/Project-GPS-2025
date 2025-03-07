@@ -1,6 +1,7 @@
 "use strict";
 
 import { Entity, PrimaryGeneratedColumn, Column, Index } from "typeorm";
+import { userRole } from "../../types.js";
 
 @Entity("userauth") // Table name
 export class User {
@@ -19,7 +20,7 @@ export class User {
     email!: string;
 
     @Column({ type: "varchar", length: 50, nullable: false })
-    role!: string;
+    role!: userRole;
 
     @Column({ type: "varchar", length: 255, nullable: false })
     password!: string;
