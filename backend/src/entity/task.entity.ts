@@ -5,7 +5,7 @@ import { User } from "./user.entity.js";
 import { Label } from "./label.entity.js";
 import { taskPriority, taskStatus } from "../../types.js";
 
-@Index(["status", "createdAt"]) // Index for the status and createdAt columns
+@Index(["status", "createAt"]) // Index for the status and createdAt columns
 @Entity("task") // Table name
 export class Task {
     @PrimaryGeneratedColumn()
