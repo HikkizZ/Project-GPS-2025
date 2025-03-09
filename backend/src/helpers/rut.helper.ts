@@ -31,3 +31,14 @@ export function validateRut(rut: string): boolean {
 
     return dv === dvCalculated;
 }
+
+export function formatRut(rut: string): string {
+    const cleanRut = rut.replace(/\./g, "").replace(/-/g, "").trim().toUpperCase();
+
+    const num = cleanRut.slice(0, -1);
+    const dv = cleanRut.slice(-1);
+
+    const numFormatted = num.replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1."); // Add periods every 3 digits
+
+    return `${numFormatted}-${dv}`;
+}
