@@ -64,7 +64,7 @@ export async function register(req: Request, res: Response): Promise<void> {
 }
 
 /* Logout controller */
-export async function logout(req: Request, res: Response): Promise<void> {
+export async function logout(_req: Request, res: Response): Promise<void> {
     try {
         res.clearCookie("jwt", { httpOnly: true });
 
