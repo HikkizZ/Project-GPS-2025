@@ -6,6 +6,7 @@ import { AppDataSource } from "../config/configDB.js";
 import { comparePassword, encryptPassword } from "../helpers/bcrypt.helper.js";
 import { ACCESS_TOKEN_SECRET } from "../config/configEnv.js";
 import { formatToLocalTime } from "../utils/formatDate.js";
+import { UserResponse } from "../../types.d.js";
 
 /* Interface for the user data */
 interface LoginData {
@@ -75,7 +76,7 @@ export async function loginService(user: LoginData): Promise<[string | null, aut
     }
 }
 
-export async function registerService(user: RegisterData): Promise<[Partial<User> | null, authError | string | null]> {
+export async function registerService(user: RegisterData): Promise<[UserResponse | null, authError | string | null]> {
     try {
         const userRepository = AppDataSource.getRepository(User);
         const { name, rut, email, password } = user;
@@ -99,13 +100,18 @@ export async function registerService(user: RegisterData): Promise<[Partial<User
         /* Remove the password from the returned data */
         const { password: _, ...userData } = newUser;
 
-        const formattedUserData = {
-            ...userData,
-            formattedCreateAt: formatToLocalTime(userData.createAt),
-            formattedUpdateAt: formatToLocalTime(userData.updateAt)
-        }
+        /* Interface for formattedDate */
+        const userResponse: UserResponse = {
+            id: userData.id,
+            name: userData.name,
+            rut: userData.rut,
+            email: userData.email,
+            role: userData.role,
+            createAt: formatToLocalTime(userData.createAt),
+            updateAt: formatToLocalTime(userData.updateAt)
+        };
 
-        return [formattedUserData, null];
+        return [userResponse, null];
     } catch (error) {
         console.error("Error registering user: ", error);
         return [null, "Error interno del servidor."];
