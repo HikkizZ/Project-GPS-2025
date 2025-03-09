@@ -1,8 +1,15 @@
 import Joi, { CustomHelpers } from 'joi';
+import { validateRut } from '../helpers/rut.helper.js';
 
 /* Custom validator for email domains */
 const domainEmailValidator = (value: string, helper: CustomHelpers) => {
     if (!value.endsWith("@gmail.com")) return helper.message({ custom: "El email debe ser de dominio gmail.com." });
+    return value;
+}
+
+/* Custom validator for RUT */
+const rutValidator = (value: string, helper: CustomHelpers) => {
+    if (!validateRut(value)) return helper.message({ custom: "El RUT ingresado no es válido." });
     return value;
 }
 
@@ -60,14 +67,14 @@ export const registerValidation = Joi.object({
         .min(8)
         .max(12)
         .optional()
-        .pattern(/^\d{1,2}(\.\d{3}){2}-[\dkK]$|^\d{7,8}-[\dkK]$/)
+        .custom(rutValidator, "rut validation")
         .messages({
             "string.base": "El RUT debe ser de tipo texto.",
             "string.empty": "El campo del RUT no puede estar vacío.",
             "string.min": "El RUT debe tener al menos 8 caracteres.",
             "string.max": "El RUT debe tener menos de 12 caracteres.",
-            "string.pattern.base": "El RUT ingresado no es válido.",
-            "any.required": "El RUT es requerido."
+            "any.required": "El RUT es requerido.",
+            "any.custom": "El RUT ingresado no es válido."
         }),
 
     email: Joi.string()
