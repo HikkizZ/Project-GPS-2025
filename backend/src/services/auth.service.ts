@@ -7,6 +7,7 @@ import { comparePassword, encryptPassword } from "../helpers/bcrypt.helper.js";
 import { ACCESS_TOKEN_SECRET } from "../config/configEnv.js";
 import { formatToLocalTime } from "../utils/formatDate.js";
 import { UserResponse } from "../../types.d.js";
+import { formatRut } from "../helpers/rut.helper.js";
 
 /* Interface for the user data */
 interface LoginData {
@@ -89,9 +90,11 @@ export async function registerService(user: RegisterData): Promise<[UserResponse
         if (existingEmailUser) return [null, createErrorMessage({ email }, "El email ingresado ya está registrado.")];
         if (existingRutUser) return [null, createErrorMessage({ rut }, "El rut ingresado ya está registrado.")];
 
+        const rutFormat = formatRut(rut);
+
         const newUser = userRepository.create({
             name,
-            rut,
+            rut: rutFormat,
             email,
             password: await encryptPassword(password),
             role: "Usuario"
