@@ -2,7 +2,7 @@ import Joi, { CustomHelpers } from 'joi';
 
 /* Custom validator for email domains */
 const domainEmailValidator = (value: string, helper: CustomHelpers) => {
-    if (!value.endsWith("@gmail.com")) return helper.message({ custom: "vEl email debe ser de dominio gmail.com." });
+    if (!value.endsWith("@gmail.com")) return helper.message({ custom: "El email debe ser de dominio gmail.com." });
     return value;
 }
 
