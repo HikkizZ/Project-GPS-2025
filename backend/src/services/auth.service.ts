@@ -63,8 +63,8 @@ export async function loginService(user: LoginData): Promise<[string | null, aut
 
         /* Verify if the secret key is defined */
         if (!ACCESS_TOKEN_SECRET) {
-            throw new Error("Missing ACCESS_TOKEN_SECRET in environment variables");
-        }
+            return [null, "Error interno del servidor. Falta la clave secreta."];
+        }        
 
         /* 🔐 Generate token with duration of 1 day */
         const accessToken = jwt.sign(payload, ACCESS_TOKEN_SECRET, { expiresIn: "1d" });
@@ -81,10 +81,12 @@ export async function registerService(user: RegisterData): Promise<[UserResponse
         const userRepository = AppDataSource.getRepository(User);
         const { name, rut, email, password } = user;
 
-        const existingEmailUser = await userRepository.findOne({ where: { email } });
-        if (existingEmailUser) return [null, createErrorMessage({ email }, "El email ingresado ya está registrado.")];
+        const [existingEmailUser, existingRutUser] = await Promise.all([
+            userRepository.findOne({ where: { email } }),
+            userRepository.findOne({ where: { rut } })
+        ]);
 
-        const existingRutUser = await userRepository.findOne({ where: { rut } });
+        if (existingEmailUser) return [null, createErrorMessage({ email }, "El email ingresado ya está registrado.")];
         if (existingRutUser) return [null, createErrorMessage({ rut }, "El rut ingresado ya está registrado.")];
 
         const newUser = userRepository.create({
