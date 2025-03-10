@@ -2,3 +2,4 @@
 /build
 /src/config/.env
 /src/data/users.json
+/mochawesome-report
