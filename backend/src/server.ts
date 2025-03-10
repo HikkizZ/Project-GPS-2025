@@ -65,6 +65,61 @@ async function setupServer(): Promise<void> {
     }
 }
 
+export async function setupTestServer(): Promise<Application> {
+    try {
+        const app: Application = express();
+
+        app.disable("x-powered-by");
+
+        app.use(cors({
+            origin: true,
+            credentials: true
+        }));
+
+        app.use(urlencoded({
+            extended: true,
+            limit: "1mb"
+        }));
+
+        app.use(json({
+            limit: "1mb"
+        }));
+
+        app.use(cookieParser());
+
+        app.use(morgan("dev"));
+
+        app.use(session({
+            secret: cookieKey as string,
+            resave: false,
+            saveUninitialized: false,
+            cookie: {
+                secure: false,
+                httpOnly: true,
+                sameSite: "strict",
+            }
+        }));
+
+        app.use(passport.initialize());
+
+        app.use(passport.session());
+
+        passportJWTSetup();
+
+        app.use("/api", indexRoutes);
+
+        await connectDB();
+        await initialSetup();
+
+        console.log("✅ Test server running. DB connected, initial setup done.");
+
+        return app;
+    } catch (error) {
+        console.error("❌ Error starting the test server: -> setupTestServer(). Error: ", error);
+        throw error;
+    }
+}
+
 async function setupAPI(): Promise<void> {
     try {
         await connectDB();
