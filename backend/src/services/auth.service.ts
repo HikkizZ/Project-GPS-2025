@@ -88,7 +88,7 @@ export async function registerService(user: RegisterData): Promise<[UserResponse
         ]);
 
         if (existingEmailUser) return [null, createErrorMessage({ email }, "El email ingresado ya está registrado.")];
-        if (existingRutUser) return [null, createErrorMessage({ rut }, "El rut ingresado ya está registrado.")];
+        if (existingRutUser) return [null, createErrorMessage({ rut }, "El RUT ingresado ya está registrado.")];
 
         const rutFormat = formatRut(rut);
 
