@@ -7,7 +7,7 @@
     "build": "tsc",
     "start": "node build/server.js",
     "dev": "nodemon --exec tsx src/server.ts",
-    "test": "mocha --require tsx --reporter mochawesome --timeout 5000 --reporter-options reportFilename \"src/test/**/*.ts\""
+    "test": "mocha --require tsx --reporter mochawesome --timeout 5000 \"src/test/**/*.ts\""
   },
   "keywords": [],
   "author": "HikkizZ",
