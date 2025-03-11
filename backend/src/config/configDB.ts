@@ -1,5 +1,3 @@
-"use strict";
-
 /* Import the required modules. */
 import { DataSource } from "typeorm";
 

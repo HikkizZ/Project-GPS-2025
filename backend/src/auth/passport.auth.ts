@@ -1,5 +1,3 @@
-"use strict";
-
 import passport from "passport";
 import { ExtractJwt, Strategy as JwtStrategy, StrategyOptions } from "passport-jwt";
 import { Repository } from "typeorm";

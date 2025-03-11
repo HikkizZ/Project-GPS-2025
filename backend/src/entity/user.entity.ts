@@ -1,5 +1,3 @@
-"use strict";
-
 import { Entity, PrimaryGeneratedColumn, Column, Index, OneToMany } from "typeorm";
 import { Task } from "./task.entity.js";
 import { Label } from "./label.entity.js";

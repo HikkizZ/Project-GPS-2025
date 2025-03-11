@@ -1,5 +1,3 @@
-"use strict";
-
 import fs from "fs"; // File system module
 import path from "path"; // Path module
 import { encryptPassword } from "../helpers/bcrypt.helper.js";

@@ -1,5 +1,3 @@
-"use strict";
-
 import jwt from "jsonwebtoken";
 import { User } from "../entity/user.entity.js";
 import { AppDataSource } from "../config/configDB.js";

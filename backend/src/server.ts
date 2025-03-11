@@ -1,5 +1,3 @@
-"use strict";
-
 /* Import the required modules. */
 import express, { json, urlencoded, Application} from "express";
 import cors from "cors";

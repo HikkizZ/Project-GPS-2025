@@ -1,5 +1,3 @@
-"use strict";
-
 import bcrypt from "bcryptjs";
 
 export async function encryptPassword(password: string): Promise<string> {

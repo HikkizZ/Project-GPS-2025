@@ -1,5 +1,3 @@
-"use strict";
-
 import { Entity, PrimaryGeneratedColumn, Column, ManyToMany, ManyToOne, JoinTable } from "typeorm";
 import { User } from "./user.entity.js";
 import { Task } from "./task.entity.js";
