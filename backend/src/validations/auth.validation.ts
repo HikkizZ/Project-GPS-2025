@@ -66,7 +66,7 @@ export const registerValidation = Joi.object({
     rut: Joi.string()
         .min(8)
         .max(12)
-        .optional()
+        .required()
         .custom(rutValidator, "rut validation")
         .messages({
             "string.base": "El RUT debe ser de tipo texto.",
