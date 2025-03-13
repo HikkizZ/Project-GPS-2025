@@ -555,6 +555,222 @@ describe("🔒 Auth API - Pruebas de autenticación", () => {
         expect(res.body).to.have.property("message").to.equal("La contraseña es requerida.");
     });
 
+    /* Pruebas de login */
+    /* Usuario correcto */
+    it("🔑 Debe iniciar sesión correctamente", async () => {
+        const res = await request(app)
+            .post("/api/auth/login")
+            .send({
+                email: "test.user@gmail.com",
+                password: "testpassword"
+            });
+
+        expect(res.status).to.equal(200);
+        expect(res.body).to.have.property("status").to.equal("success");
+        expect(res.body).to.have.property("message").to.equal("Usuario autenticado.");
+        expect(res.body).to.have.property("data");
+        expect(res.body.data).to.have.property("token");
+    });
+
+    /* Usuario no registrado */
+    it("🚫 No debe iniciar sesión con un email no registrado", async () => {
+        const res = await request(app)
+            .post("/api/auth/login")
+            .send({
+                email: "test.noEmailRegistered@gmail.com",
+                password: "testpassword"
+            });
+
+        expect(res.status).to.equal(401);
+        expect(res.body).to.have.property("status").to.equal("error");
+        expect(res.body).to.have.property("message").to.equal("El email ingresado no está registrado.");
+    });
+
+    /* Contraseña incorrecta */
+    it("🚫 No debe iniciar sesión con una contraseña incorrecta", async () => {
+        const res = await request(app)
+            .post("/api/auth/login")
+            .send({
+                email: "test.user@gmail.com",
+                password: "testpassword123"
+            });
+
+        expect(res.status).to.equal(401);
+        expect(res.body).to.have.property("status").to.equal("error");
+        expect(res.body).to.have.property("message").to.equal("La contraseña ingresada es incorrecta.");
+    });
+
+    /* Pruebas con el email */
+    it("🚫 No debe iniciar sesión con un email vacío", async () => {
+        const res = await request(app)
+            .post("/api/auth/login")
+            .send({
+                email: "",
+                password: "testpassword"
+            });
+
+        expect(res.status).to.equal(400);
+        expect(res.body).to.have.property("status").to.equal("error");
+        expect(res.body).to.have.property("message").to.equal("El campo del email no puede estar vacío.");
+    });
+
+    it("🚫 No debe iniciar sesión con un email inválido", async () => {
+        const res = await request(app)
+            .post("/api/auth/login")
+            .send({
+                email: "test.invalidEmail",
+                password: "testpassword"
+            });
+
+        expect(res.status).to.equal(400);
+        expect(res.body).to.have.property("status").to.equal("error");
+        expect(res.body).to.have.property("message").to.equal("El email ingresado no es válido.");
+    });
+
+    it("🚫 No debe iniciar sesión con un email menor a 15 caracteres", async () => {
+        const res = await request(app)
+            .post("/api/auth/login")
+            .send({
+                email: "test@gmail.com",
+                password: "testpassword"
+            });
+
+        expect(res.status).to.equal(400);
+        expect(res.body).to.have.property("status").to.equal("error");
+        expect(res.body).to.have.property("message").to.equal("El email debe tener al menos 15 caracteres.");
+    });
+
+    it("🚫 No debe iniciar sesión con un email mayor a 50 caracteres", async () => {
+        const res = await request(app)
+            .post("/api/auth/login")
+            .send({
+                email: "testing.emailMayorALos50MaximosDeCaracteres@gmail.com",
+                password: "testpassword"
+            });
+
+        expect(res.status).to.equal(400);
+        expect(res.body).to.have.property("status").to.equal("error");
+        expect(res.body).to.have.property("message").to.equal("El email debe tener menos de 50 caracteres.");
+    });
+
+    it("🔤 Al iniciar sesión el email debe ser de tipo texto", async () => {
+        const res = await request(app)
+            .post("/api/auth/login")
+            .send({
+                email: 123,
+                password: "testpassword"
+            });
+
+        expect(res.status).to.equal(400);
+        expect(res.body).to.have.property("status").to.equal("error");
+        expect(res.body).to.have.property("message").to.equal("El email debe ser de tipo texto.");
+    });
+
+    it("⚠️ Al iniciar sesión el email es requerido", async () => {
+        const res = await request(app)
+            .post("/api/auth/login")
+            .send({
+                password: "testpassword"
+            });
+
+        expect(res.status).to.equal(400);
+        expect(res.body).to.have.property("status").to.equal("error");
+        expect(res.body).to.have.property("message").to.equal("El email es requerido.");
+    });
+
+    it("🔑 Debe iniciar sesión un email de dominio gmail.com", async () => {
+        const res = await request(app)
+            .post("/api/auth/login")
+            .send({
+                email: "test.email@gmail.cl",
+                password: "testpassword"
+            });
+
+        expect(res.status).to.equal(400);
+        expect(res.body).to.have.property("status").to.equal("error");
+        expect(res.body).to.have.property("message").to.equal("El email debe ser de dominio gmail.com.");
+    });
+
+    /* Pruebas con la contraseña */
+    it("🚫 No debe inciar sesión con una contraseña vacía", async () => {
+        const res = await request(app)
+            .post("/api/auth/login")
+            .send({
+                email: "test.passwordEmpty@gmail.com",
+                password: ""
+            });
+
+        expect(res.status).to.equal(400);
+        expect(res.body).to.have.property("status").to.equal("error");
+        expect(res.body).to.have.property("message").to.equal("El campo de la contraseña no puede estar vacío.");
+    });
+
+    it("🚫 No debe iniciar sesión con una contraseña menor a 8 caracteres", async () => {
+        const res = await request(app)
+            .post("/api/auth/login")
+            .send({
+                email: "test.passwordMin@gmail.com",
+                password: "test"
+            });
+
+        expect(res.status).to.equal(400);
+        expect(res.body).to.have.property("status").to.equal("error");
+        expect(res.body).to.have.property("message").to.equal("La contraseña debe tener al menos 8 caracteres.");
+    });
+
+    it("🚫 No debe iniciar sesión con una contraseña mayor a 16 caracteres", async () => {
+        const res = await request(app)
+            .post("/api/auth/login")
+            .send({
+                email: "test.passwordMax@gmail.com",
+                password: "testpassword123456789"
+            });
+
+        expect(res.status).to.equal(400);
+        expect(res.body).to.have.property("status").to.equal("error");
+        expect(res.body).to.have.property("message").to.equal("La contraseña debe tener menos de 16 caracteres.");
+    });
+
+    it("🚫 No debe iniciar sesión con una contraseña que contenga caracteres especiales", async () => {
+        const res = await request(app)
+            .post("/api/auth/login")
+            .send({
+                name: "Test User Special Characters Password",
+                rut: "14.532.721-0",
+                email: "test.passwordSpecial@gmail.com",
+                password: "password$%&/()="
+            });
+
+        expect(res.status).to.equal(400);
+        expect(res.body).to.have.property("status").to.equal("error");
+        expect(res.body).to.have.property("message").to.equal("La contraseña solo puede contener letras y números.");
+    });
+
+    it("🔤 Al iniciar sesión la contraseña debe ser de tipo texto", async () => {
+        const res = await request(app)
+            .post("/api/auth/login")
+            .send({
+                email: "test.number@gmail.com",
+                password: 123456789
+            });
+
+        expect(res.status).to.equal(400);
+        expect(res.body).to.have.property("status").to.equal("error");
+        expect(res.body).to.have.property("message").to.equal("La contraseña debe ser de tipo texto.");
+    });
+
+    it("⚠️ Al iniciar sesión la contraseña es requerida", async () => {
+        const res = await request(app)
+            .post("/api/auth/login")
+            .send({
+                email: "test.userWithoutPassword@gmail.com",
+            });
+
+        expect(res.status).to.equal(400);
+        expect(res.body).to.have.property("status").to.equal("error");
+        expect(res.body).to.have.property("message").to.equal("La contraseña es requerida.");
+    });
+
     after(async () => {
         console.log("🔑 Fin de las pruebas de autenticación. Cerrando la base de datos...");
         await AppDataSource.destroy();
