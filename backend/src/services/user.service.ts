@@ -1,31 +1,16 @@
 import { User } from "../entity/user.entity.js";
 import { AppDataSource } from "../config/configDB.js";
 import { comparePassword, encryptPassword } from "../helpers/bcrypt.helper.js";
-import { userRole } from "../../types.js";
+import { userRole, ServiceResponse, QueryParams, UpdateUserData, SafeUser } from "../../types.js";
+import { Not } from "typeorm";
 
-type QueryParams = {
-    id?: number;
-    email?: string;
-    rut?: string;
-}
-
-type UpdateBody = {
-    name?: string;
-    email?: string;
-    rut?: string;
-    password?: string;
-    newPassword?: string;
-    role?: string;
-}
-
-type UserWithoutPassword = Omit<User, 'password'>; // Exclude the password field from the User type
-
-export async function getUserService(query: QueryParams): Promise<[UserWithoutPassword | null, string | null]> {
+/* Obtener usuario por ID, RUT o Email */
+export async function getUserService(query: QueryParams): Promise<ServiceResponse<SafeUser>> {
     try {
         const { id, email, rut } = query;
         const userRepository = AppDataSource.getRepository(User);
 
-        const userFound = await userRepository.findOne({ where: { id, email, rut } });
+        const userFound = await userRepository.findOne({ where: [{ id } , { email }, { rut }] });
 
         if (!userFound) return [null, "El usuario no existe."];
 
@@ -38,12 +23,13 @@ export async function getUserService(query: QueryParams): Promise<[UserWithoutPa
     }
 }
 
-export async function getUsersService(): Promise<[UserWithoutPassword[] | null, string | null]> {
+/* Obtener todos los usuarios */
+export async function getUsersService(): Promise<ServiceResponse<SafeUser[]>> {
     try {
         const userRepository = AppDataSource.getRepository(User);
         const users = await userRepository.find();
 
-        if (!users) return [null, "No se encontraron usuarios."];
+        if (!users || users.length === 0) return [null, "No se encontraron usuarios."];
 
         const usersData = users.map(({ password, ...user }) => user); // Exclude the password field from each user
         return [usersData, null];
@@ -53,7 +39,8 @@ export async function getUsersService(): Promise<[UserWithoutPassword[] | null, 
     }
 }
 
-export async function updateUserService(query: QueryParams, body: UpdateBody): Promise<[UserWithoutPassword | null, string | null]> {
+/* Actualizar datos de usuario */
+export async function updateUserService(query: QueryParams, body: UpdateUserData): Promise<ServiceResponse<SafeUser>> {
   try {
     const { id, rut, email } = query;
     const userRepository = AppDataSource.getRepository(User);
@@ -65,7 +52,10 @@ export async function updateUserService(query: QueryParams, body: UpdateBody): P
     if (!userFound) return [null, "Usuario no encontrado"];
 
     const existingUser = await userRepository.findOne({
-      where: [{ rut: body.rut }, { email: body.email }],
+      where: [
+        { rut: body.rut, id: Not(userFound.id) },
+        { email: body.email, id: Not(userFound.id) },
+        ],
     });
 
     if (existingUser && existingUser.id !== userFound.id) {
@@ -81,7 +71,7 @@ export async function updateUserService(query: QueryParams, body: UpdateBody): P
       name: body.name,
       rut: body.rut,
       email: body.email,
-      role: body.role as userRole,
+      role: body.role,
       updateAt: new Date(),
     };
 
@@ -103,7 +93,8 @@ export async function updateUserService(query: QueryParams, body: UpdateBody): P
   }
 }
 
-export async function deleteUserService(query: QueryParams, requester: User): Promise<[UserWithoutPassword | null, string | null]> {
+/* Eliminar un usuario, validando el rol del solicitante */
+export async function deleteUserService(query: QueryParams, requester: User): Promise<ServiceResponse<SafeUser>> {
   try {
     const { id, rut, email } = query;
     const userRepository = AppDataSource.getRepository(User);
