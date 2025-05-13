@@ -1,6 +1,4 @@
 import { Entity, PrimaryGeneratedColumn, Column, Index, OneToMany } from "typeorm";
-import { Task } from "./task.entity.js";
-import { Label } from "./label.entity.js";
 import { userRole } from "../../types.js";
 
 @Entity("userauth") // Table name
@@ -30,12 +28,4 @@ export class User {
 
     @Column({ type: "timestamp with time zone", default: () => "CURRENT_TIMESTAMP", onUpdate:"CURRENT_TIMESTAMP", nullable: false })
     updateAt!: Date;
-
-    /* Task relation */
-    @OneToMany(() => Task, (task) => task.user)
-    tasks!: Task[];
-
-    /* Label relation */
-    @OneToMany(() => Label, (label) => label.user)
-    labels!: Label[];
 }
