@@ -72,7 +72,6 @@ export const userBodyValidation: ObjectSchema = Joi.object({
         .min(15)
         .max(50)
         .email()
-        .required()
         .custom(domainEmailValidator, "domain email validation")
         .messages({
             "string.base": "El email debe ser de tipo texto.",
@@ -85,7 +84,6 @@ export const userBodyValidation: ObjectSchema = Joi.object({
     rut: Joi.string()
         .min(8)
         .max(12)
-        .required()
         .custom(rutValidator, "rut validation")
         .messages({
             "string.base": "El RUT debe ser de tipo texto.",
