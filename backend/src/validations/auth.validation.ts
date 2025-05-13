@@ -1,10 +1,11 @@
 import Joi, { CustomHelpers } from 'joi';
 import { validateRut } from '../helpers/rut.helper.js';
 
+const allowedEmailDomains = ["gmail.com", "outlook.com", "hotmail.com", "gmail.cl", "outlook.cl", "hotmail.cl"];
 /* Custom validator for email domains */
 const domainEmailValidator = (value: string, helper: CustomHelpers) => {
-    if (!value.endsWith("@gmail.com")) return helper.message({ custom: "El email debe ser de dominio gmail.com." });
-    return value;
+    const isValid = allowedEmailDomains.some(domain => value.endsWith(domain));
+    if (!isValid) return helper.message({ custom: "El dominio del email no es válido." });
 }
 
 /* Custom validator for RUT */
