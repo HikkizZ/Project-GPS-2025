@@ -17,3 +17,12 @@ export interface UserResponse {
     createAt: string;
     updateAt: string; 
 }
+
+import { User } from '../entity/user.entity.js';
+import { Request } from 'express';
+
+declare module 'express' {
+    export interface Request {
+        user?: User;
+    }
+}
