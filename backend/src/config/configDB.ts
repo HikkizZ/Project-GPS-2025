@@ -4,6 +4,14 @@ import { DataSource } from "typeorm";
 /* Import custom modules. */
 import { PORT, HOST, DATABASE, DB_USERNAME, DB_PASSWORD } from "./configEnv.js";
 
+/* Environment */
+const isProduction = process.env.NODE_ENV === "production";
+
+/* Dynamic route for the entities according to the environment */
+const entitiesPath = isProduction
+    ? "build/entity/**/*.js" // For production
+    : "src/entity/**/*.ts"; // For development
+
 export const AppDataSource = new DataSource({
     type: "postgres",
     host: HOST as string,
@@ -14,7 +22,7 @@ export const AppDataSource = new DataSource({
     synchronize: true,
     logging: false,
     entities: [
-        "src/entity/**/*.ts"
+        entitiesPath
     ],
 });
 
