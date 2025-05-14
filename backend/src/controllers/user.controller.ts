@@ -10,6 +10,8 @@ import { handleSuccess, handleErrorClient, handleErrorServer } from '../handlers
 
 import { userQueryValidation, userBodyValidation } from '../validations/user.validation.js';
 
+import { User } from '../entity/user.entity.js';
+
 / * Get user controller */
 export async function getUser(req: Request, res: Response): Promise<void> {
     try {
@@ -71,7 +73,10 @@ export async function updateUser(req: Request, res: Response): Promise<void> {
         const rut = req.query.rut as string | undefined;
         const email = req.query.email as string | undefined;
         const id = req.query.id ? Number(req.query.id) : undefined;
+
         const { body } = req;
+
+        const requester = req.user as User;
 
         const { error: errorQuery } = userQueryValidation.validate({ rut, email, id });
 
@@ -89,7 +94,7 @@ export async function updateUser(req: Request, res: Response): Promise<void> {
             return;
         }
 
-        const [updatedUser, errorUpdate] = await updateUserService({ rut, email, id }, body);
+        const [updatedUser, errorUpdate] = await updateUserService({ rut, email, id }, body, requester);
 
         if (errorUpdate) {
             const message = typeof errorUpdate === 'string' ? errorUpdate : errorUpdate.message;
