@@ -450,19 +450,19 @@ describe("🔒 Auth API - Pruebas de autenticación", () => {
         expect(res.body).to.have.property("message").to.equal("El email es requerido.");
     });
 
-    it("🔑 Debe registrar un usuario con un email de dominio gmail.com", async () => {
+    it("🔑 Debe registrar un usuario con un email con dominio valido", async () => {
         const res = await request(app)
             .post("/api/auth/register")
             .send({
-                name: "Test User Gmail",
+                name: "Test User gamil",
                 rut: "14.532.721-0",
-                email: "test.email@gmail.cl",
+                email: "test.email@gamil.cl",
                 password: "testpassword"
             });
 
         expect(res.status).to.equal(400);
         expect(res.body).to.have.property("status").to.equal("error");
-        expect(res.body).to.have.property("message").to.equal("El email debe ser de dominio gmail.com.");
+        expect(res.body).to.have.property("message").to.equal("El dominio del email no es válido.");
     });
 
     /* Pruebas con la contraseña */
@@ -678,7 +678,7 @@ describe("🔒 Auth API - Pruebas de autenticación", () => {
         expect(res.body).to.have.property("message").to.equal("El email es requerido.");
     });
 
-    it("🔑 Debe iniciar sesión un email de dominio gmail.com", async () => {
+    it("🔑 Debe iniciar sesión un email con dominio válido", async () => {
         const res = await request(app)
             .post("/api/auth/login")
             .send({
@@ -688,7 +688,7 @@ describe("🔒 Auth API - Pruebas de autenticación", () => {
 
         expect(res.status).to.equal(400);
         expect(res.body).to.have.property("status").to.equal("error");
-        expect(res.body).to.have.property("message").to.equal("El email debe ser de dominio gmail.com.");
+        expect(res.body).to.have.property("message").to.equal("El dominio del email no es válido.");
     });
 
     /* Pruebas con la contraseña */
