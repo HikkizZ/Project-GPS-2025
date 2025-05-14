@@ -46,6 +46,8 @@ export async function loginService(user: LoginData): Promise<[string | null, aut
 
         if (!userFound) return [null, createErrorMessage({ email }, "El email ingresado no está registrado.")];
 
+        if (!userFound || !userFound.password) return [null, createErrorMessage({ email }, "El usuario no existe o datos incompletos.")];
+
         const isMatch = await comparePassword(password, userFound.password);
         if (!isMatch) return [null, createErrorMessage({ email }, "La contraseña ingresada es incorrecta.")];
 
