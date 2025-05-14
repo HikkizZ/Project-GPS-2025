@@ -40,16 +40,26 @@ export async function getUsersService(): Promise<ServiceResponse<SafeUser[]>> {
 }
 
 /* Actualizar datos de usuario */
-export async function updateUserService(query: QueryParams, body: UpdateUserData): Promise<ServiceResponse<SafeUser>> {
+export async function updateUserService(query: QueryParams, body: UpdateUserData, requester: User): Promise<ServiceResponse<SafeUser>> {
   try {
     const { id, rut, email } = query;
     const userRepository = AppDataSource.getRepository(User);
-
+    
     const userFound = await userRepository.findOne({
       where: [{ id }, { rut }, { email }],
     });
 
     if (!userFound) return [null, "Usuario no encontrado"];
+
+    /* Only the user or an admin can make changes */
+    if (requester.role !== "Admin" && requester.id !== userFound.id) {
+      return [null, "No tienes permisos para modificar a otros usuarios"];
+    }
+
+    /* If an attempt is made to change the role, it must be admin */
+    if (body.role && requester.role !== "Admin") {
+      return [null, "No tienes permisos para modificar el rol del usuario"];
+    }
 
     const existingUser = await userRepository.findOne({
       where: [
@@ -105,6 +115,11 @@ export async function deleteUserService(query: QueryParams, requester: User): Pr
 
     if (!userFound) return [null, "Usuario no encontrado"];
 
+    /* Prohibit if the requester is not admin */
+    if (requester.role !== "Admin") {
+      return [null, "No tienes permisos para eliminar usuarios"];
+    }
+    /* Prohibit if the user to be deleted is admin */
     if (userFound.role === "Admin" && requester.role !== "Admin") {
       return [null, "No tienes permisos para eliminar este usuario"];
     }
