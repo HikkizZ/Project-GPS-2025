@@ -52,12 +52,12 @@ export async function updateUserService(query: QueryParams, body: UpdateUserData
     if (!userFound) return [null, "Usuario no encontrado"];
 
     /* Only the user or an admin can make changes */
-    if (requester.role !== "Admin" && requester.id !== userFound.id) {
+    if (requester.role !== "Administrador" && requester.id !== userFound.id) {
       return [null, "No tienes permisos para modificar a otros usuarios"];
     }
 
     /* If an attempt is made to change the role, it must be admin */
-    if (body.role && requester.role !== "Admin") {
+    if (body.role && requester.role !== "Administrador") {
       return [null, "No tienes permisos para modificar el rol del usuario"];
     }
 
@@ -116,11 +116,11 @@ export async function deleteUserService(query: QueryParams, requester: User): Pr
     if (!userFound) return [null, "Usuario no encontrado"];
 
     /* Prohibit if the requester is not admin */
-    if (requester.role !== "Admin") {
+    if (requester.role !== "Administrador") {
       return [null, "No tienes permisos para eliminar usuarios"];
     }
     /* Prohibit if the user to be deleted is admin */
-    if (userFound.role === "Admin" && requester.role !== "Admin") {
+    if (userFound.role === "Administrador" && requester.role !== "Administrador") {
       return [null, "No tienes permisos para eliminar este usuario"];
     }
 
