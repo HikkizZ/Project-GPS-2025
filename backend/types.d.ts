@@ -1,6 +1,18 @@
 /* Role Types */
 export type userRole = 'Administrador' | 'Usuario' | 'RecursosHumanos' | 'Gerencia' |'Ventas' | 'Arriendo' | 'Finanzas';
 
+/* Product Types */
+export enum ProductType {
+    BASE_ESTABILIZADA = 'BASE_ESTABILIZADA',
+    GRAVILLA = 'GRAVILLA',
+    MAICILLO = 'MAICILLO',
+    BOLON = 'BOLON',
+    ARENA = 'ARENA',
+    GRAVA = 'GRAVA',
+    RIPIO = 'RIPIO',
+    RELLENO = 'RELLENO'
+}
+
 /* userResponse Interface */
 export interface UserResponse {
     id: number;
