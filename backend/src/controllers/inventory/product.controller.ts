@@ -1,10 +1,10 @@
 import { Request, Response } from 'express';
 import {
-    getAllProducts,
-    getProductById,
-    createProduct,
-    updateProduct,
-    deleteProduct
+    getAllProductsService,
+    getProductByIdService,
+    createProductService,
+    updateProductService,
+    deleteProductService
 } from '../../services/inventory/product.service.js';
 
 import { handleErrorClient, handleErrorServer, handleSuccess } from '../../handlers/responseHandlers.js';
@@ -12,7 +12,7 @@ import { createProductValidation, updateProductValidation } from '../../validati
 
 export async function getProducts(_req: Request, res: Response): Promise<void> {
     try {
-        const [products, error] = await getAllProducts();
+        const [products, error] = await getAllProductsService();
 
         if (error) {
             handleErrorServer(res, 404, typeof error === 'string' ? error : error.message);
@@ -39,7 +39,7 @@ export async function getProduct(req: Request, res: Response): Promise<void> {
             return;
         }
 
-        const [product, error] = await getProductById(id);
+        const [product, error] = await getProductByIdService(id);
 
         if (error) {
             handleErrorServer(res, 404, typeof error === 'string' ? error : error.message);
@@ -57,7 +57,7 @@ export async function getProduct(req: Request, res: Response): Promise<void> {
     }
 }
 
-export async function createNewProduct(req: Request, res: Response): Promise<void> {
+export async function createProduct(req: Request, res: Response): Promise<void> {
     try {
         const { error } = createProductValidation.validate(req.body);
 
@@ -66,7 +66,7 @@ export async function createNewProduct(req: Request, res: Response): Promise<voi
             return;
         }
 
-        const [product, errorProduct] = await createProduct(req.body);
+        const [product, errorProduct] = await createProductService(req.body);
 
         if (errorProduct) {
             handleErrorServer(res, 400, typeof errorProduct === 'string' ? errorProduct : errorProduct.message);
@@ -84,7 +84,7 @@ export async function createNewProduct(req: Request, res: Response): Promise<voi
     }
 }
 
-export async function updateExistingProduct(req: Request, res: Response): Promise<void> {
+export async function updateProduct(req: Request, res: Response): Promise<void> {
     try {
         const id = Number(req.params.id);
         if (isNaN(id)) {
@@ -99,7 +99,7 @@ export async function updateExistingProduct(req: Request, res: Response): Promis
             return;
         }
 
-        const [updatedProduct, errorProduct] = await updateProduct(id, req.body);
+        const [updatedProduct, errorProduct] = await updateProductService(id, req.body);
 
         if (errorProduct) {
             handleErrorServer(res, 404, typeof errorProduct === 'string' ? errorProduct : errorProduct.message);
@@ -115,7 +115,7 @@ export async function updateExistingProduct(req: Request, res: Response): Promis
     }
 }
 
-export async function deleteExistingProduct(req: Request, res: Response): Promise<void> {
+export async function deleteProduct(req: Request, res: Response): Promise<void> {
     try {
         const id = Number(req.params.id);
         if (isNaN(id)) {
@@ -123,7 +123,7 @@ export async function deleteExistingProduct(req: Request, res: Response): Promis
             return;
         }
 
-        const [deletedProduct, errorProduct] = await deleteProduct(id);
+        const [deletedProduct, errorProduct] = await deleteProductService(id);
 
         if (errorProduct) {
             handleErrorServer(res, 404, typeof errorProduct === 'string' ? errorProduct : errorProduct.message);
