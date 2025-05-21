@@ -2,7 +2,7 @@ import { AppDataSource } from "../../config/configDB.js";
 import { Product } from "../../entity/inventory/product.entity.js";
 import { ProductType, ServiceResponse, CreateProductDTO, UpdateProductDTO } from "../../../types.js";
 
-export async function getAllProducts(): Promise<ServiceResponse<Product[]>> {
+export async function getAllProductsService(): Promise<ServiceResponse<Product[]>> {
     try {
         const productRepository = AppDataSource.getRepository(Product);
 
@@ -19,7 +19,7 @@ export async function getAllProducts(): Promise<ServiceResponse<Product[]>> {
     }
 }
 
-export async function getProductById(id: number): Promise<ServiceResponse<Product>> {
+export async function getProductByIdService(id: number): Promise<ServiceResponse<Product>> {
     try {
         const productRepository = AppDataSource.getRepository(Product);
 
@@ -36,7 +36,7 @@ export async function getProductById(id: number): Promise<ServiceResponse<Produc
     }
 }
 
-export async function createProduct(productData: CreateProductDTO): Promise<ServiceResponse<Product>> {
+export async function createProductService(productData: CreateProductDTO): Promise<ServiceResponse<Product>> {
     try {
         const productRepository = AppDataSource.getRepository(Product);
 
@@ -53,7 +53,7 @@ export async function createProduct(productData: CreateProductDTO): Promise<Serv
     }
 }
 
-export async function updateProduct(id: number, productData: UpdateProductDTO): Promise<ServiceResponse<Product>> {
+export async function updateProductService(id: number, productData: UpdateProductDTO): Promise<ServiceResponse<Product>> {
     try {
         const productRepository = AppDataSource.getRepository(Product);
 
@@ -72,7 +72,7 @@ export async function updateProduct(id: number, productData: UpdateProductDTO): 
     }
 }
 
-export async function deleteProduct(id: number): Promise<ServiceResponse<Product>> {
+export async function deleteProductService(id: number): Promise<ServiceResponse<Product>> {
     try {
         const productRepository = AppDataSource.getRepository(Product);
 
