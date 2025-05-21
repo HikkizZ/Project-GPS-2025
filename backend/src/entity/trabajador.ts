@@ -45,4 +45,8 @@ export class Trabajador {
 
   @Column({ type: "enum", enum: EstadoTrabajador, default: EstadoTrabajador.ACTIVO })
   estado!: EstadoTrabajador;
+
+  // COLUMNA PARA ELIMINACIÓN LÓGICA
+  @Column({ type: "boolean", default: true })
+  activo!: boolean;
 }
