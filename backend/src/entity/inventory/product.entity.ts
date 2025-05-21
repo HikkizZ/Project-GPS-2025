@@ -1,5 +1,5 @@
 import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
-import { ProductType } from '../../../types.js';
+import { ProductType } from '../../types/index.js';
 
 @Entity("products")
 export class Product {
