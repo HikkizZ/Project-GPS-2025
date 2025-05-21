@@ -52,3 +52,10 @@ export type UpdateUserData = {
 }
 
 export type SafeUser = Omit<User, 'password'>; // Exclude the password field from the User type
+
+export type CreateProductDTO = {
+  product: ProductType;
+  salePrice: number;
+};
+
+export type UpdateProductDTO = Partial<CreateProductDTO>;
