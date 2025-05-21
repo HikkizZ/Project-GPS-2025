@@ -16,7 +16,7 @@ router.use(authenticateJWT);
 
 router
     .get("/", getProducts)
-    .get("/", getProduct)
+    .get("/:id", getProduct)
     .post("/", createProduct)
-    .patch("/", updateProduct)
-    .delete("/", deleteProduct);
+    .patch("/:id", updateProduct)
+    .delete("/:id", deleteProduct);
