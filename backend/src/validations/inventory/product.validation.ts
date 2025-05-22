@@ -46,3 +46,17 @@ export const updateProductValidation = Joi.object({
     "object.empty": "El cuerpo de la solicitud no puede estar vacío.",
     "object.missing": "Se requiere al menos una propiedad para actualizar."
 });
+
+export const productQueryValidation = Joi.object({
+    id: Joi.number()
+        .integer()
+        .positive()
+        .required()
+        .messages({
+            "number.base": "El ID del producto debe ser un número.",
+            "number.integer": "El ID del producto debe ser un número entero.",
+            "number.positive": "El ID del producto debe ser mayor a cero.",
+        }),
+}).or("id").messages({
+    "object.unknown": "No se permiten propiedades adicionales."
+});
