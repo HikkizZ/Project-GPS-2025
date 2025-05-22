@@ -10,9 +10,21 @@ export enum ProductType {
     RELLENO = 'RELLENO'
 }
 
+/* Product DTOs (Data Transfer Objects) */
 export type CreateProductDTO = {
   product: ProductType;
   salePrice: number;
 };
 
 export type UpdateProductDTO = Partial<CreateProductDTO>;
+
+/* Customer DTOs */
+export type CreateCustomerDTO = {
+    name: string;
+    rut: string;
+    address: string;
+    phone: string;
+    email: string;
+};
+
+export type UpdateCustomerDTO = Partial<CreateCustomerDTO>;
