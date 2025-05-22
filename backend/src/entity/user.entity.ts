@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, Index, OneToMany } from "typeorm";
-import { userRole } from '../types/index.js';
+import { userRole } from '../../types.js'; // Assuming userRole is defined in types.js
 
 @Entity("userauth") // Table name
 export class User {

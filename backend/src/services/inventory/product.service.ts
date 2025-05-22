@@ -1,6 +1,7 @@
 import { AppDataSource } from "../../config/configDB.js";
 import { Product } from "../../entity/inventory/product.entity.js";
-import { ProductType, ServiceResponse, CreateProductDTO, UpdateProductDTO } from '../../types/index.js';
+import { ProductType, CreateProductDTO, UpdateProductDTO } from '../../types/index.js';
+import { ServiceResponse } from "../../../types.js";
 
 export async function getAllProductsService(): Promise<ServiceResponse<Product[]>> {
     try {

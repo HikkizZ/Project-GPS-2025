@@ -8,7 +8,7 @@ export class Customer {
     @Column({ type: "varchar", length: 255, nullable: false })
     name!: string;
 
-    @Index("IDX_SUPPLIERS_RUT", { unique: true }) // Unique index for the rut column
+    @Index("IDX_CUSTOMERS_RUT", { unique: true }) // Unique index for the rut column
     @Column({ type: "varchar", length: 12, nullable: false })
     rut!: string;
 
@@ -18,7 +18,7 @@ export class Customer {
     @Column({ type: "varchar", length: 12, nullable: false })
     phone!: string;
 
-    @Index("IDX_SUPPLIERS_EMAIL", { unique: true }) // Unique index for the email column
+    @Index("IDX_CUSTOMERS_EMAIL", { unique: true }) // Unique index for the email column
     @Column({ type: "varchar", length: 255, nullable: false })
     email!: string;
 }
