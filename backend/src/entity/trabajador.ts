@@ -16,8 +16,15 @@ export class Trabajador {
   @Column({ type: "varchar", length: 12, nullable: false })
   rut!: string;
 
-  @Column({ type: "varchar", length: 255, nullable: false })
-  nombre!: string;
+  // Nombres y Apellidos
+  @Column({ type: "varchar", length: 100, nullable: false })
+  nombres!: string;
+
+  @Column({ type: "varchar", length: 100, nullable: false })
+  apellidoPaterno!: string;
+
+  @Column({ type: "varchar", length: 100, nullable: false })
+  apellidoMaterno!: string;
 
   // Datos personales
   @Column({ type: "date", nullable: true })
@@ -62,4 +69,5 @@ export class Trabajador {
 
   @Column({ type: "boolean", default: true })
   enSistema!: boolean;
+
 }

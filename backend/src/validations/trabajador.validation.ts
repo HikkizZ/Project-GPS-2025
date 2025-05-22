@@ -12,18 +12,6 @@ const rutValidator = (value: string, helper: CustomHelpers) => {
 
 export const trabajadorValidation = Joi.object({
   // Identificación
-  nombre: Joi.string()
-    .min(3)
-    .max(255)
-    .required()
-    .messages({
-      "string.base": "El nombre debe ser texto.",
-      "string.empty": "El nombre es obligatorio.",
-      "string.min": "El nombre debe tener al menos 3 caracteres.",
-      "string.max": "El nombre debe tener como máximo 255 caracteres.",
-      "any.required": "El nombre es requerido."
-    }),
-
   rut: Joi.string()
     .min(8)
     .max(12)
@@ -35,6 +23,34 @@ export const trabajadorValidation = Joi.object({
       "string.min": "El RUT debe tener al menos 8 caracteres.",
       "string.max": "El RUT debe tener menos de 12 caracteres.",
       "any.required": "El RUT es requerido."
+    }),
+
+  // Nombres y Apellidos
+  nombres: Joi.string()
+    .min(2)
+    .max(100)
+    .required()
+    .messages({
+      "string.empty": "Los nombres son obligatorios.",
+      "string.min": "Los nombres deben tener al menos 2 caracteres."
+    }),
+
+  apellidoPaterno: Joi.string()
+    .min(2)
+    .max(100)
+    .required()
+    .messages({
+      "string.empty": "El apellido paterno es obligatorio.",
+      "string.min": "El apellido paterno debe tener al menos 2 caracteres."
+    }),
+
+  apellidoMaterno: Joi.string()
+    .min(2)
+    .max(100)
+    .required()
+    .messages({
+      "string.empty": "El apellido materno es obligatorio.",
+      "string.min": "El apellido materno debe tener al menos 2 caracteres."
     }),
 
   // Datos personales
@@ -64,7 +80,7 @@ export const trabajadorValidation = Joi.object({
   numeroEmergencia: Joi.string()
     .min(8)
     .max(12)
-    .allow(null, '')
+    .allow(null, "")
     .messages({
       "string.min": "El número de emergencia debe tener al menos 8 caracteres.",
       "string.max": "El número de emergencia debe tener como máximo 12 caracteres."
