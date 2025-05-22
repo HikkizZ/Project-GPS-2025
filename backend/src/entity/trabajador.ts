@@ -8,24 +8,20 @@ export enum EstadoTrabajador {
 
 @Entity("trabajadores")
 export class Trabajador {
+  // Identificación
   @PrimaryGeneratedColumn()
   id!: number;
-
-  @Column({ type: "varchar", length: 255, nullable: false })
-  nombre!: string;
 
   @Index("IDX_TRABAJADORES_RUT", { unique: true })
   @Column({ type: "varchar", length: 12, nullable: false })
   rut!: string;
 
-  @Column({ type: "varchar", length: 100, nullable: false })
-  cargo!: string;
-
-  @Column({ type: "varchar", length: 100, nullable: false })
-  area!: string;
-
   @Column({ type: "varchar", length: 255, nullable: false })
-  direccion!: string;
+  nombre!: string;
+
+  // Datos personales
+  @Column({ type: "date", nullable: true })
+  fechaNacimiento!: Date;
 
   @Column({ type: "varchar", length: 12, nullable: false })
   telefono!: string;
@@ -34,8 +30,25 @@ export class Trabajador {
   @Column({ type: "varchar", length: 255, nullable: false })
   correo!: string;
 
+  @Column({ type: "varchar", length: 12, nullable: true })
+  numeroEmergencia!: string;
+
+  @Column({ type: "varchar", length: 255, nullable: false })
+  direccion!: string;
+
+  // Información laboral
+  @Column({ type: "varchar", length: 100, nullable: false })
+  cargo!: string;
+
+  @Column({ type: "varchar", length: 100, nullable: false })
+  area!: string;
+
+  // Contrato
   @Column({ type: "date", nullable: false })
-  fechaIngreso!: Date;
+  fechaInicioContrato!: Date;
+
+  @Column({ type: "date", nullable: true })
+  fechaFinContrato!: Date;
 
   @Column({ type: "varchar", length: 50, nullable: false })
   tipoContrato!: string;
@@ -43,10 +56,10 @@ export class Trabajador {
   @Column({ type: "decimal", precision: 10, scale: 2, nullable: false })
   sueldoBase!: number;
 
+  // Estado y control
   @Column({ type: "enum", enum: EstadoTrabajador, default: EstadoTrabajador.ACTIVO })
   estado!: EstadoTrabajador;
 
-  // COLUMNA PARA ELIMINACIÓN LÓGICA
   @Column({ type: "boolean", default: true })
-  activo!: boolean;
+  enSistema!: boolean;
 }
