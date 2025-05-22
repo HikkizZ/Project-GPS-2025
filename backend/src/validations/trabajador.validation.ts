@@ -11,6 +11,7 @@ const rutValidator = (value: string, helper: CustomHelpers) => {
 };
 
 export const trabajadorValidation = Joi.object({
+  // Identificación
   nombre: Joi.string()
     .min(3)
     .max(255)
@@ -36,28 +37,12 @@ export const trabajadorValidation = Joi.object({
       "any.required": "El RUT es requerido."
     }),
 
-  cargo: Joi.string()
-    .min(2)
-    .max(100)
-    .required()
+  // Datos personales
+  fechaNacimiento: Joi.date()
+    .iso()
+    .allow(null)
     .messages({
-      "string.empty": "El cargo es obligatorio."
-    }),
-
-  area: Joi.string()
-    .min(2)
-    .max(100)
-    .required()
-    .messages({
-      "string.empty": "El área es obligatoria."
-    }),
-
-  direccion: Joi.string()
-    .min(5)
-    .max(255)
-    .required()
-    .messages({
-      "string.empty": "La dirección es obligatoria."
+      "date.base": "La fecha de nacimiento debe ser válida (ISO)."
     }),
 
   telefono: Joi.string()
@@ -76,11 +61,54 @@ export const trabajadorValidation = Joi.object({
       "any.required": "El correo es obligatorio."
     }),
 
-  fechaIngreso: Joi.date()
+  numeroEmergencia: Joi.string()
+    .min(8)
+    .max(12)
+    .allow(null, '')
+    .messages({
+      "string.min": "El número de emergencia debe tener al menos 8 caracteres.",
+      "string.max": "El número de emergencia debe tener como máximo 12 caracteres."
+    }),
+
+  direccion: Joi.string()
+    .min(5)
+    .max(255)
+    .required()
+    .messages({
+      "string.empty": "La dirección es obligatoria."
+    }),
+
+  // Información laboral
+  cargo: Joi.string()
+    .min(2)
+    .max(100)
+    .required()
+    .messages({
+      "string.empty": "El cargo es obligatorio."
+    }),
+
+  area: Joi.string()
+    .min(2)
+    .max(100)
+    .required()
+    .messages({
+      "string.empty": "El área es obligatoria."
+    }),
+
+  // Contrato
+  fechaInicioContrato: Joi.date()
     .iso()
     .required()
     .messages({
-      "date.base": "La fecha de ingreso debe ser válida (ISO)."
+      "date.base": "La fecha de inicio de contrato debe ser válida (ISO).",
+      "any.required": "La fecha de inicio de contrato es obligatoria."
+    }),
+
+  fechaFinContrato: Joi.date()
+    .iso()
+    .allow(null)
+    .messages({
+      "date.base": "La fecha de fin de contrato debe ser válida (ISO)."
     }),
 
   tipoContrato: Joi.string()
