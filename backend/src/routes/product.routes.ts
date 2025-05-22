@@ -15,8 +15,10 @@ const router: Router = Router();
 router.use(authenticateJWT);
 
 router
-    .get("/", getProducts)
-    .get("/:id", getProduct)
+    .get("/all", getProducts)
+    .get("/", getProduct)
     .post("/", createProduct)
-    .patch("/:id", updateProduct)
-    .delete("/:id", deleteProduct);
+    .patch("/", updateProduct)
+    .delete("/", deleteProduct);
+
+export default router;
