@@ -56,6 +56,7 @@ export const productQueryValidation = Joi.object({
             "number.base": "El ID del producto debe ser un número.",
             "number.integer": "El ID del producto debe ser un número entero.",
             "number.positive": "El ID del producto debe ser mayor a cero.",
+            "any.required": "El ID del producto es obligatorio.",
         }),
 }).or("id").messages({
     "object.unknown": "No se permiten propiedades adicionales."
