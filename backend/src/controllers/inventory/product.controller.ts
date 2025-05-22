@@ -8,7 +8,7 @@ import {
 } from '../../services/inventory/product.service.js';
 
 import { handleErrorClient, handleErrorServer, handleSuccess } from '../../handlers/responseHandlers.js';
-import { createProductValidation, updateProductValidation } from '../../validations/inventory/product.validation.js';
+import { createProductValidation, updateProductValidation, productQueryValidation } from '../../validations/inventory/product.validation.js';
 
 export async function getProducts(_req: Request, res: Response): Promise<void> {
     try {
@@ -32,17 +32,21 @@ export async function getProducts(_req: Request, res: Response): Promise<void> {
 
 export async function getProduct(req: Request, res: Response): Promise<void> {
     try {
-        const id = Number(req.params.id);
+        const { id } = req.query;
 
-        if (isNaN(id)) {
-            handleErrorClient(res, 400, "El ID proporcionado no es válido.");
+        const parsedId = id ? Number(id) : undefined;
+        
+        const { error } = productQueryValidation.validate({ id: parsedId });
+
+        if (error || parsedId === undefined) {
+            handleErrorClient(res, 400, error?.message ?? "El parámetro 'id' es obligatorio");
             return;
         }
 
-        const [product, error] = await getProductByIdService(id);
+        const [product, errorProduct] = await getProductByIdService(parsedId);
 
-        if (error) {
-            handleErrorServer(res, 404, typeof error === 'string' ? error : error.message);
+        if (errorProduct) {
+            handleErrorServer(res, 404, typeof errorProduct === 'string' ? errorProduct : errorProduct.message);
             return;
         }
 
@@ -86,20 +90,26 @@ export async function createProduct(req: Request, res: Response): Promise<void> 
 
 export async function updateProduct(req: Request, res: Response): Promise<void> {
     try {
-        const id = Number(req.params.id);
-        if (isNaN(id)) {
-            handleErrorClient(res, 400, "El ID proporcionado no es válido.");
+
+        const { id } = req.query;
+
+        const parsedId = id ? Number(id) : undefined;
+
+        const { error: queryError } = productQueryValidation.validate({ id: parsedId });
+
+        if (queryError || parsedId === undefined) {
+            handleErrorClient(res, 400, queryError?.message ?? "El parámetro 'id' es obligatorio");
             return;
         }
 
-        const { error } = updateProductValidation.validate(req.body);
+        const { error: bodyError } = updateProductValidation.validate(req.body);
 
-        if (error) {
-            handleErrorClient(res, 400, error.message);
+        if (bodyError) {
+            handleErrorClient(res, 400, bodyError.message);
             return;
         }
 
-        const [updatedProduct, errorProduct] = await updateProductService(id, req.body);
+        const [updatedProduct, errorProduct] = await updateProductService(parsedId, req.body);
 
         if (errorProduct) {
             handleErrorServer(res, 404, typeof errorProduct === 'string' ? errorProduct : errorProduct.message);
@@ -110,6 +120,8 @@ export async function updateProduct(req: Request, res: Response): Promise<void> 
             handleErrorClient(res, 404, "No se pudo actualizar el producto.");
             return;
         }
+
+        handleSuccess(res, 200, "Producto actualizado correctamente", updatedProduct!);
     } catch (error) {
         handleErrorServer(res, 500, (error as Error).message);
     }
@@ -117,13 +129,18 @@ export async function updateProduct(req: Request, res: Response): Promise<void> 
 
 export async function deleteProduct(req: Request, res: Response): Promise<void> {
     try {
-        const id = Number(req.params.id);
-        if (isNaN(id)) {
-            handleErrorClient(res, 400, "El ID proporcionado no es válido.");
+        const { id } = req.query;
+
+        const parsedId = id ? Number(id) : undefined;
+
+        const { error } = productQueryValidation.validate({ id: parsedId });
+
+        if (error || parsedId === undefined) {
+            handleErrorClient(res, 400, error?.message ?? "El parámetro 'id' es obligatorio");
             return;
         }
 
-        const [deletedProduct, errorProduct] = await deleteProductService(id);
+        const [deletedProduct, errorProduct] = await deleteProductService(parsedId);
 
         if (errorProduct) {
             handleErrorServer(res, 404, typeof errorProduct === 'string' ? errorProduct : errorProduct.message);
