@@ -60,8 +60,8 @@ export class Trabajador {
   historialLaboral!: HistorialLaboral[];
 
   // Relación 1:N con licencias/permiso
-  @OneToMany(() => LicenciaPermiso, licencia => licenciaPermiso.trabajador)
-  licenciaspermisos!: LicenciaPermiso[];
+  @OneToMany(() => LicenciaPermiso, licenciaPermiso => licenciaPermiso.trabajador)
+  licenciasPermisos!: LicenciaPermiso[];
 
   // Relación 1:N con capacitaciones
   @OneToMany(() => Capacitacion, capacitacion => capacitacion.trabajador)
