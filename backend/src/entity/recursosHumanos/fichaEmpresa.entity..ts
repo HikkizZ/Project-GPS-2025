@@ -5,7 +5,7 @@ import {
   OneToOne,
   JoinColumn
 } from "typeorm";
-import { Trabajador } from "./trabajador.js";
+import { Trabajador } from "./trabajador.entity.js";
 
 export enum EstadoLaboral {
   ACTIVO = "Activo",
@@ -19,7 +19,7 @@ export class FichaEmpresa {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @OneToOne(() => Trabajador)
+  @OneToOne(() => Trabajador, trabajador => trabajador.fichaEmpresa)
   @JoinColumn()
   trabajador!: Trabajador;
 
