@@ -3,7 +3,7 @@ import path from "path"; // Path module
 import { encryptPassword } from "../helpers/bcrypt.helper.js";
 import { AppDataSource } from "../config/configDB.js";
 import { User } from "../entity/user.entity.js";
-import { userRole } from "../../types.js";
+import { userRole } from '../../types.js';
 
 export async function initialSetup(): Promise<void> {
     try {

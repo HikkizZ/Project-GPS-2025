@@ -1,7 +1,7 @@
 import { User } from "../entity/user.entity.js";
 import { AppDataSource } from "../config/configDB.js";
 import { comparePassword, encryptPassword } from "../helpers/bcrypt.helper.js";
-import { userRole, ServiceResponse, QueryParams, UpdateUserData, SafeUser } from "../../types.js";
+import { userRole, ServiceResponse, QueryParams, UpdateUserData, SafeUser } from '../../types.js';
 import { Not } from "typeorm";
 
 /* Obtener usuario por ID, RUT o Email */
