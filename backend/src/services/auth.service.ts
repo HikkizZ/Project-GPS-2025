@@ -4,7 +4,7 @@ import { AppDataSource } from "../config/configDB.js";
 import { comparePassword, encryptPassword } from "../helpers/bcrypt.helper.js";
 import { ACCESS_TOKEN_SECRET } from "../config/configEnv.js";
 import { formatToLocalTime } from "../utils/formatDate.js";
-import { UserResponse } from "../../types.d.js";
+import { UserResponse } from '../../types.js';
 import { formatRut } from "../helpers/rut.helper.js";
 
 /* Interface for the user data */
