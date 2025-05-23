@@ -11,8 +11,6 @@ import { handleSuccess, handleErrorClient, handleErrorServer } from '../handlers
 
 import { personQueryValidation, personBodyValidation } from '../validations/person.validation.js';
 
-import { formatRut } from '../helpers/rut.helper.js';
-
 export async function getCustomers(_req: Request, res: Response): Promise<void> {
     try {
         const [customers, error] = await getAllCustomersService();
@@ -35,7 +33,7 @@ export async function getCustomers(_req: Request, res: Response): Promise<void> 
 
 export async function getCustomer(req: Request, res: Response): Promise<void> {
     try {
-        const rut = req.query.rut as string | undefined;
+        const rut = req.query.rut as string  | undefined;
         const email = req.query.email as string | undefined;
         const id = req.query.id ? Number(req.query.id) : undefined;
 
