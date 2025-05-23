@@ -1,8 +1,8 @@
-import { EstadoSolicitud } from "../../entity/recursosHumanos/licenciaPermiso.entity.js";
+import { EstadoSolicitud, TipoSolicitud } from "../../entity/recursosHumanos/licenciaPermiso.entity.js";
 
 export type CreateLicenciaPermisoDTO = {
   trabajadorId: number;
-  tipo: "Licencia médica" | "Permiso administrativo";
+  tipo: TipoSolicitud;
   fechaInicio: string; // formato YYYY-MM-DD
   fechaFin: string;    // formato YYYY-MM-DD
   motivo: string;
