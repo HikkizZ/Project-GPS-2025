@@ -1,11 +1,10 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne} from "typeorm"
 import { Maquinaria } from "../maquinaria/maquinaria.entity.js"
 
-//? Historial de Mantenciones: Su función es que tenga un registro de las cantidad de veces que ha estado en
-//? Mantención la maquinaría, junto con las fechas el cuál a estado, el costo, el nombre del mecánico y una breve descripción
+//? Historial de Repostaje: Se deja un registro de las veces que se ha recaragado de combustible
 
-@Entity("maintenance_history")
-export class MaintenanceHistory{
+@Entity("refueling_records")
+export class RefuelingRecord{
 
     @PrimaryGeneratedColumn()
     id!: number
@@ -17,26 +16,34 @@ export class MaintenanceHistory{
     date!: Date
 
     @Column({
-        type: "text",
-        nullable: false
-    })
-    description!: string
 
-    @Column({
         type: "decimal",
         precision: 10,
         scale: 2,
-        nullable: false,
+        nullable: false
+
     })
-    cost!: number
+    liters!: number
 
     @Column({
-        type: "varchar",
-        length: 200,
-        nullable: false,
+
+        type: "decimal",
+        precision: 10,
+        scale: 2,
+        nullable: false
+
     })
-    responsibleMechanic!: string
+    price!: number
+ 
+    @Column({
+
+        type: "varchar",
+        length: 255,
+        nullable: false
+    })
+    operator!: string
 
     @ManyToOne(() => Maquinaria)
     maquinaria!: Maquinaria
+
 }
