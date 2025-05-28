@@ -1,5 +1,5 @@
 /* Role Types */
-export type userRole = 'Administrador' | 'Usuario' | 'RecursosHumanos' | 'Gerencia' |'Ventas' | 'Arriendo' | 'Finanzas';
+export type userRole = 'Administrador' | 'Usuario' | 'RecursosHumanos' | 'Gerencia' | 'Ventas' | 'Arriendo' | 'Finanzas';
 
 /* userResponse Interface */
 export interface UserResponse {

@@ -1,3 +1,5 @@
+import "reflect-metadata"; // Import reflect-metadata for TypeORM decorators
+
 /* Import the required modules. */
 import express, { json, urlencoded, Application} from "express";
 import cors from "cors";

@@ -11,13 +11,15 @@ export function verifyRole(requiredRoles: string | string[]) {
         const user = req.user as { role: string } | undefined;
 
         if (!user) {
-            return res.status(401).json({ message: "No tienes permisos para acceder a esta ruta." });
+            res.status(401).json({ message: "No tienes permisos para acceder a esta ruta." });
+            return;
         }
 
         const roles = Array.isArray(requiredRoles) ? requiredRoles : [requiredRoles];
 
         if (!roles.includes(user.role)) {
-            return res.status(403).json({ message: "No tienes permisos para acceder a esta ruta." });
+            res.status(403).json({ message: "No tienes permisos para acceder a esta ruta." });
+            return;
         }
 
         next();
