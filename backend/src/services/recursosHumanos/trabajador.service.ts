@@ -80,7 +80,7 @@ export async function getTrabajadoresService(): Promise<ServiceResponse<Trabajad
     try {
         const trabajadorRepo = AppDataSource.getRepository(Trabajador);
         const trabajadores = await trabajadorRepo.find({
-            relations: ["fichaEmpresa"],
+            relations: ["fichaEmpresa", "historialLaboral", "licenciasPermisos", "capacitaciones"],
             where: { enSistema: true }
         });
 
