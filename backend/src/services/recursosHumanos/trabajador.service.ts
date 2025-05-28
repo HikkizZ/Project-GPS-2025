@@ -2,7 +2,8 @@ import { AppDataSource } from "../../config/configDB.js";
 import { Trabajador } from "../../entity/recursosHumanos/trabajador.entity.js";
 import { FichaEmpresa, EstadoLaboral } from "../../entity/recursosHumanos/fichaEmpresa.entity.js";
 import { ServiceResponse } from "../../../types.js";
-import { Not } from "typeorm";
+import { Not, DeepPartial } from "typeorm";
+import { validateRut } from "../../helpers/rut.helper.js";
 
 export async function createTrabajadorService(trabajadorData: Partial<Trabajador>): Promise<ServiceResponse<Trabajador>> {
     try {
@@ -16,9 +17,8 @@ export async function createTrabajadorService(trabajadorData: Partial<Trabajador
             return [null, new Error("Faltan campos requeridos")];
         }
 
-        // Validar formato de RUT (XX.XXX.XXX-X)
-        const rutRegex = /^\d{1,2}\.\d{3}\.\d{3}-[\dkK]$/;
-        if (!rutRegex.test(trabajadorData.rut)) {
+        // Validar formato de RUT usando el helper
+        if (!validateRut(trabajadorData.rut)) {
             return [null, new Error("Formato de RUT inválido")];
         }
 
@@ -52,18 +52,20 @@ export async function createTrabajadorService(trabajadorData: Partial<Trabajador
         const trabajadorGuardado = await trabajadorRepo.save(trabajador);
 
         // Crear la ficha de empresa asociada
-        const ficha = fichaRepo.create({
-            cargo: fichaEmpresa?.cargo || "Sin cargo",
-            area: fichaEmpresa?.area || "Sin área",
-            empresa: fichaEmpresa?.empresa,
-            tipoContrato: fichaEmpresa?.tipoContrato || "Indefinido",
-            jornadaLaboral: fichaEmpresa?.jornadaLaboral,
-            sueldoBase: fichaEmpresa?.sueldoBase || 0,
+        const fichaData: DeepPartial<FichaEmpresa> = {
+            cargo: fichaEmpresa?.cargo ?? "Sin cargo",
+            area: fichaEmpresa?.area ?? "Sin área",
+            empresa: fichaEmpresa?.empresa ?? undefined,
+            tipoContrato: fichaEmpresa?.tipoContrato ?? "Indefinido",
+            jornadaLaboral: fichaEmpresa?.jornadaLaboral ?? undefined,
+            sueldoBase: fichaEmpresa?.sueldoBase ?? 0,
             trabajador: trabajadorGuardado,
             estado: EstadoLaboral.ACTIVO,
             fechaInicioContrato: trabajadorGuardado.fechaIngreso,
-            contratoURL: fichaEmpresa?.contratoURL || null
-        });
+            contratoURL: fichaEmpresa?.contratoURL ?? undefined
+        };
+
+        const ficha = fichaRepo.create(fichaData);
         await fichaRepo.save(ficha);
 
         return [trabajadorGuardado, null];
