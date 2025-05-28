@@ -50,30 +50,32 @@ export async function getTrabajadores(req: Request, res: Response): Promise<void
 }
 
 export async function searchTrabajadores(req: Request, res: Response): Promise<void> {
-    try {
-        const { error } = TrabajadorQueryValidation.validate(req.query);
-        if (error) {
-            handleErrorClient(res, 400, "Validation Error", error.message);
-            return;
-        }
-
-        const [trabajadores, serviceError] = await searchTrabajadoresService(req.query);
-
-        if (serviceError) {
-            handleErrorServer(res, 500, serviceError.message);
-            return;
-        }
-
-        if (!trabajadores || trabajadores.length === 0) {
-            handleSuccess(res, 204, "No se encontraron trabajadores");
-            return;
-        }
-
-        handleSuccess(res, 200, "Trabajadores encontrados", trabajadores);
-    } catch (error) {
-        console.error("Error en searchTrabajadores:", error);
-        handleErrorServer(res, 500, "Error interno del servidor");
+  try {
+    const { error } = TrabajadorQueryValidation.validate(req.query);
+    if (error) {
+      handleErrorClient(res, 400, error.message);
+      return;
     }
+
+    // Convertir valores string a boolean en query
+    const query = {
+      ...req.query,
+      enSistema: req.query.enSistema === "true" ? true : req.query.enSistema === "false" ? false : undefined,
+      todos: req.query.todos === "true" ? true : undefined
+    };
+
+    const [trabajadores, serviceError] = await searchTrabajadoresService(query);
+
+    if (serviceError) {
+      handleErrorClient(res, 404, serviceError.message);
+      return;
+    }
+
+    handleSuccess(res, 200, "Trabajadores encontrados exitosamente", trabajadores);
+  } catch (error) {
+    console.error("Error en searchTrabajadores:", error);
+    handleErrorServer(res, 500, "Error interno del servidor");
+  }
 }
 
 export async function updateTrabajador(req: Request, res: Response): Promise<void> {

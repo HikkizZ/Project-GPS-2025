@@ -5,6 +5,7 @@ import { ServiceResponse } from "../../../types.js";
 import { Not, DeepPartial } from "typeorm";
 import { validateRut } from "../../helpers/rut.helper.js";
 import { ILike } from "typeorm";
+import { FindOptionsWhere } from "typeorm";
 
 export async function createTrabajadorService(trabajadorData: Partial<Trabajador>): Promise<ServiceResponse<Trabajador>> {
     try {
@@ -99,33 +100,46 @@ export async function searchTrabajadoresService(query: any): Promise<ServiceResp
     try {
         const trabajadorRepo = AppDataSource.getRepository(Trabajador);
 
-        const where: any = {
-            ...(query.id && { id: Number(query.id) }),
-            ...(query.rut && { rut: ILike(`%${query.rut}%`) }),
-            ...(query.nombres && { nombres: ILike(`%${query.nombres}%`) }),
-            ...(query.apellidoPaterno && { apellidoPaterno: ILike(`%${query.apellidoPaterno}%`) }),
-            ...(query.apellidoMaterno && { apellidoMaterno: ILike(`%${query.apellidoMaterno}%`) }),
-            ...(query.fechaNacimiento && { fechaNacimiento: query.fechaNacimiento }),
-            ...(query.telefono && { telefono: ILike(`%${query.telefono}%`) }),
-            ...(query.correo && { correo: ILike(`%${query.correo}%`) }),
-            ...(query.numeroEmergencia && { numeroEmergencia: ILike(`%${query.numeroEmergencia}%`) }),
-            ...(query.direccion && { direccion: ILike(`%${query.direccion}%`) }),
-            ...(query.fechaIngreso && { fechaIngreso: query.fechaIngreso }),
-        };
+        const whereClause: FindOptionsWhere<Trabajador> = {};
 
-        // Manejo especial para enSistema
-        if (query.enSistema !== undefined) {
-            if (typeof query.enSistema === "string") {
-                where.enSistema = query.enSistema === "true";
-            } else if (typeof query.enSistema === "boolean") {
-                where.enSistema = query.enSistema;
-            }
+        // Solo agregar filtro enSistema si NO viene el parámetro todos=true
+        if (query.todos !== true) {
+            whereClause.enSistema = query.enSistema !== undefined ? query.enSistema : true;
+        }
+
+        if (query.rut) {
+            whereClause.rut = ILike(`%${query.rut}%`);
+        }
+
+        if (query.nombres) {
+            whereClause.nombres = ILike(`%${query.nombres}%`);
+        }
+
+        if (query.apellidoPaterno) {
+            whereClause.apellidoPaterno = ILike(`%${query.apellidoPaterno}%`);
+        }
+
+        if (query.apellidoMaterno) {
+            whereClause.apellidoMaterno = ILike(`%${query.apellidoMaterno}%`);
+        }
+
+        if (query.correo) {
+            whereClause.correo = ILike(`%${query.correo}%`);
+        }
+
+        if (query.telefono) {
+            whereClause.telefono = ILike(`%${query.telefono}%`);
         }
 
         const trabajadores = await trabajadorRepo.find({
-            where,
+            where: whereClause,
             relations: ["fichaEmpresa", "historialLaboral", "licenciasPermisos", "capacitaciones"],
+            order: { id: "ASC" }
         });
+
+        if (!trabajadores.length) {
+            return [null, new Error("No hay trabajadores que coincidan con los criterios de búsqueda")];
+        }
 
         return [trabajadores, null];
     } catch (error) {

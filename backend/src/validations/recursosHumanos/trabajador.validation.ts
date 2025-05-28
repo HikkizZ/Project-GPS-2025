@@ -95,7 +95,14 @@ export const TrabajadorQueryValidation = Joi.object({
         .try(Joi.boolean(), Joi.string().valid("true", "false"))
         .messages({
             "alternatives.types": "El campo enSistema debe ser booleano (true o false)."
-        })
+        }),
+
+    todos: Joi.boolean()
+        .optional()
+        .messages({
+            "boolean.base": "El campo 'todos' debe ser true o false."
+    }),
+
 });
 
 export const TrabajadorBodyValidation = Joi.object({
