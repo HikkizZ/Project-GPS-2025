@@ -116,3 +116,90 @@ export const TrabajadorBodyValidation = Joi.object({
         contratoURL: Joi.string().optional()
     }).optional()
 }); 
+
+export const TrabajadorUpdateValidation = Joi.object({
+    nombres: Joi.string()
+        .min(3)
+        .max(200)
+        .messages({
+            "string.base": "Los nombres deben ser una cadena de texto.",
+            "string.min": "Los nombres deben tener al menos 3 caracteres.",
+            "string.max": "Los nombres no pueden exceder los 200 caracteres."
+        }),
+
+    apellidoPaterno: Joi.string()
+        .min(3)
+        .max(100)
+        .messages({
+            "string.base": "El apellido paterno debe ser una cadena de texto.",
+            "string.min": "El apellido paterno debe tener al menos 3 caracteres.",
+            "string.max": "El apellido paterno no puede exceder los 100 caracteres."
+        }),
+
+    apellidoMaterno: Joi.string()
+        .min(3)
+        .max(100)
+        .messages({
+            "string.base": "El apellido materno debe ser una cadena de texto.",
+            "string.min": "El apellido materno debe tener al menos 3 caracteres.",
+            "string.max": "El apellido materno no puede exceder los 100 caracteres."
+        }),
+
+    rut: Joi.string()
+        .custom((value, helpers) => {
+            if (!validateRut(value)) {
+                return helpers.error("any.invalid");
+            }
+            return value;
+        })
+        .messages({
+            "string.base": "El RUT debe ser una cadena de texto.",
+            "any.invalid": "El RUT no es válido."
+        }),
+
+    correo: Joi.string()
+        .email()
+        .messages({
+            "string.base": "El correo debe ser una cadena de texto.",
+            "string.email": "El correo debe tener un formato válido."
+        }),
+
+    telefono: Joi.string()
+        .pattern(/^\+?[\d]{9,12}$/)
+        .messages({
+            "string.base": "El teléfono debe ser una cadena de texto.",
+            "string.pattern.base": "El teléfono debe tener entre 9 y 12 dígitos y puede incluir el símbolo +."
+        }),
+
+    numeroEmergencia: Joi.string()
+        .pattern(/^\+?[\d]{9,12}$/)
+        .messages({
+            "string.base": "El número de emergencia debe ser una cadena de texto.",
+            "string.pattern.base": "El número de emergencia debe tener entre 9 y 12 dígitos y puede incluir el símbolo +."
+        }),
+
+    fechaNacimiento: Joi.date()
+        .iso()
+        .max('now')
+        .messages({
+            "date.base": "La fecha de nacimiento debe ser una fecha válida.",
+            "date.format": "La fecha de nacimiento debe estar en formato YYYY-MM-DD",
+            "date.max": "La fecha de nacimiento no puede ser futura."
+        }),
+
+    fechaIngreso: Joi.date()
+        .iso()
+        .messages({
+            "date.base": "La fecha de ingreso debe ser una fecha válida.",
+            "date.format": "La fecha de ingreso debe estar en formato YYYY-MM-DD"
+        }),
+
+    direccion: Joi.string()
+        .min(5)
+        .max(200)
+        .messages({
+            "string.base": "La dirección debe ser una cadena de texto.",
+            "string.min": "La dirección debe tener al menos 5 caracteres.",
+            "string.max": "La dirección no puede exceder los 200 caracteres."
+        })
+});

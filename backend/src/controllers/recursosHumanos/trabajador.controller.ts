@@ -7,13 +7,22 @@ import {
     updateTrabajadorService,
     deleteTrabajadorService
 } from "../../services/recursosHumanos/trabajador.service.js";
+import { TrabajadorBodyValidation } from "../../validations/recursosHumanos/trabajador.validation.js";
+import { TrabajadorUpdateValidation } from "../../validations/recursosHumanos/trabajador.validation.js";
 
 export async function createTrabajador(req: Request, res: Response): Promise<void> {
     try {
-        const [trabajador, error] = await createTrabajadorService(req.body);
+        // Validar el cuerpo de la petición
+        const validationResult = TrabajadorBodyValidation.validate(req.body);
+        if (validationResult.error) {
+            handleErrorClient(res, 400, validationResult.error.message);
+            return;
+        }
+
+        const [trabajador, serviceError] = await createTrabajadorService(req.body);
         
-        if (error) {
-            handleErrorClient(res, 400, error.message);
+        if (serviceError) {
+            handleErrorClient(res, 400, serviceError.message);
             return;
         }
 
@@ -26,10 +35,10 @@ export async function createTrabajador(req: Request, res: Response): Promise<voi
 
 export async function getTrabajadores(req: Request, res: Response): Promise<void> {
     try {
-        const [trabajadores, error] = await getTrabajadoresService();
+        const [trabajadores, serviceError] = await getTrabajadoresService();
         
-        if (error) {
-            handleErrorServer(res, 500, error.message);
+        if (serviceError) {
+            handleErrorServer(res, 500, serviceError.message);
             return;
         }
 
@@ -42,10 +51,10 @@ export async function getTrabajadores(req: Request, res: Response): Promise<void
 
 export async function getTrabajadorById(req: Request, res: Response): Promise<void> {
     try {
-        const [trabajador, error] = await getTrabajadorByIdService(parseInt(req.params.id));
+        const [trabajador, serviceError] = await getTrabajadorByIdService(parseInt(req.params.id));
         
-        if (error) {
-            handleErrorClient(res, 404, error.message);
+        if (serviceError) {
+            handleErrorClient(res, 404, serviceError.message);
             return;
         }
 
@@ -58,10 +67,17 @@ export async function getTrabajadorById(req: Request, res: Response): Promise<vo
 
 export async function updateTrabajador(req: Request, res: Response): Promise<void> {
     try {
-        const [trabajador, error] = await updateTrabajadorService(parseInt(req.params.id), req.body);
-        
-        if (error) {
-            handleErrorClient(res, error.message.includes("no encontrado") ? 404 : 400, error.message);
+        const validationResult = TrabajadorUpdateValidation.validate(req.body, { allowUnknown: false, stripUnknown: true });
+
+        if (validationResult.error) {
+            handleErrorClient(res, 400, validationResult.error.message);
+            return;
+        }
+
+        const [trabajador, serviceError] = await updateTrabajadorService(parseInt(req.params.id), validationResult.value);
+
+        if (serviceError) {
+            handleErrorClient(res, serviceError.message.includes("no encontrado") ? 404 : 400, serviceError.message);
             return;
         }
 
@@ -74,10 +90,10 @@ export async function updateTrabajador(req: Request, res: Response): Promise<voi
 
 export async function deleteTrabajador(req: Request, res: Response): Promise<void> {
     try {
-        const [success, error] = await deleteTrabajadorService(parseInt(req.params.id));
+        const [success, serviceError] = await deleteTrabajadorService(parseInt(req.params.id));
         
-        if (error) {
-            handleErrorClient(res, 404, error.message);
+        if (serviceError) {
+            handleErrorClient(res, 404, serviceError.message);
             return;
         }
 
