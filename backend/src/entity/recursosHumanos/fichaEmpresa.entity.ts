@@ -53,4 +53,7 @@ export class FichaEmpresa {
     default: EstadoLaboral.ACTIVO
   })
   estado!: EstadoLaboral;
+
+  @Column({ type: "varchar", length: 255, nullable: true })
+  contratoURL!: string;
 }

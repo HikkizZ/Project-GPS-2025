@@ -113,5 +113,13 @@ export const FichaEmpresaBodyValidation = Joi.object({
         .messages({
             "any.only": "El estado laboral no es válido.",
             "string.base": "El estado laboral debe ser una cadena de texto."
+        }),
+
+    contratoURL: Joi.string()
+        .uri()
+        .allow(null, '')
+        .messages({
+            "string.uri": "La URL del contrato debe ser una URL válida",
+            "string.base": "La URL del contrato debe ser una cadena de texto"
         })
 }); 
