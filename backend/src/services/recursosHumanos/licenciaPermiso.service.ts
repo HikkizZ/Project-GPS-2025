@@ -1,8 +1,10 @@
 import { AppDataSource } from "../../config/configDB.js";
-import { LicenciaPermiso, EstadoSolicitud } from "../../entity/recursosHumanos/licenciaPermiso.entity.js";
+import { LicenciaPermiso, EstadoSolicitud, TipoSolicitud } from "../../entity/recursosHumanos/licenciaPermiso.entity.js";
 import { Trabajador } from "../../entity/recursosHumanos/trabajador.entity.js";
 import { CreateLicenciaPermisoDTO, UpdateLicenciaPermisoDTO } from "../../types/recursosHumanos/licenciaPermiso.dto.js";
 import { ServiceResponse } from "../../../types.js";
+import { EstadoLaboral } from "../../entity/recursosHumanos/fichaEmpresa.entity.js";
+import { actualizarEstadoFichaService } from "./fichaEmpresa.service.js";
 
 export async function createLicenciaPermisoService(data: CreateLicenciaPermisoDTO): Promise<ServiceResponse<LicenciaPermiso>> {
   try {
@@ -33,7 +35,12 @@ export async function createLicenciaPermisoService(data: CreateLicenciaPermisoDT
 export async function getAllLicenciasPermisosService(): Promise<ServiceResponse<LicenciaPermiso[]>> {
   try {
     const licenciaRepo = AppDataSource.getRepository(LicenciaPermiso);
-    const licencias = await licenciaRepo.find({ relations: ["trabajador"] });
+    const licencias = await licenciaRepo.find({ 
+      relations: ["trabajador", "revisadoPor"],
+      order: {
+        fechaSolicitud: "DESC"
+      }
+    });
 
     if (!licencias.length) return [null, "No hay solicitudes registradas."];
     return [licencias, null];
@@ -48,7 +55,7 @@ export async function getLicenciaPermisoByIdService(id: number): Promise<Service
     const licenciaRepo = AppDataSource.getRepository(LicenciaPermiso);
     const licencia = await licenciaRepo.findOne({
       where: { id },
-      relations: ["trabajador"]
+      relations: ["trabajador", "revisadoPor"]
     });
 
     if (!licencia) return [null, "Solicitud no encontrada."];
@@ -62,12 +69,38 @@ export async function getLicenciaPermisoByIdService(id: number): Promise<Service
 export async function updateLicenciaPermisoService(id: number, data: UpdateLicenciaPermisoDTO): Promise<ServiceResponse<LicenciaPermiso>> {
   try {
     const licenciaRepo = AppDataSource.getRepository(LicenciaPermiso);
-    const licencia = await licenciaRepo.findOneBy({ id });
+    const licencia = await licenciaRepo.findOne({
+      where: { id },
+      relations: ["trabajador", "revisadoPor"]
+    });
 
     if (!licencia) return [null, "Solicitud no encontrada."];
 
+    // Si el estado está cambiando a APROBADA
+    if (data.estadoSolicitud === EstadoSolicitud.APROBADA && licencia.estado !== EstadoSolicitud.APROBADA) {
+      // Determinar el estado laboral según el tipo de solicitud
+      const estadoLaboral = licencia.tipo === TipoSolicitud.LICENCIA ? 
+        EstadoLaboral.LICENCIA : EstadoLaboral.PERMISO;
+
+      // Actualizar el estado en la ficha de empresa
+      const [fichaActualizada, errorFicha] = await actualizarEstadoFichaService(
+        licencia.trabajador.id,
+        estadoLaboral,
+        licencia.fechaInicio,
+        licencia.fechaFin
+      );
+
+      if (errorFicha) {
+        return [null, errorFicha];
+      }
+    }
+
+    // Actualizar la licencia/permiso
     licencia.estado = data.estadoSolicitud;
     licencia.respuestaEncargado = data.respuestaEncargado ?? "";
+    if (data.revisadoPor) {
+      licencia.revisadoPor = data.revisadoPor;
+    }
 
     await licenciaRepo.save(licencia);
     return [licencia, null];
@@ -80,9 +113,25 @@ export async function updateLicenciaPermisoService(id: number, data: UpdateLicen
 export async function deleteLicenciaPermisoService(id: number): Promise<ServiceResponse<LicenciaPermiso>> {
   try {
     const licenciaRepo = AppDataSource.getRepository(LicenciaPermiso);
-    const licencia = await licenciaRepo.findOneBy({ id });
+    const licencia = await licenciaRepo.findOne({
+      where: { id },
+      relations: ["trabajador", "revisadoPor"]
+    });
 
     if (!licencia) return [null, "Solicitud no encontrada."];
+
+    // Si la licencia estaba aprobada, volver el estado a ACTIVO
+    if (licencia.estado === EstadoSolicitud.APROBADA) {
+      const [fichaActualizada, errorFicha] = await actualizarEstadoFichaService(
+        licencia.trabajador.id,
+        EstadoLaboral.ACTIVO,
+        new Date()
+      );
+
+      if (errorFicha) {
+        return [null, errorFicha];
+      }
+    }
 
     await licenciaRepo.remove(licencia);
     return [licencia, null];

@@ -1,4 +1,5 @@
 import { EstadoSolicitud, TipoSolicitud } from "../../entity/recursosHumanos/licenciaPermiso.entity.js";
+import { User } from "../../entity/user.entity.js";
 
 export type CreateLicenciaPermisoDTO = {
   trabajadorId: number;
@@ -12,4 +13,5 @@ export type CreateLicenciaPermisoDTO = {
 export type UpdateLicenciaPermisoDTO = {
   estadoSolicitud: EstadoSolicitud;
   respuestaEncargado?: string;
+  revisadoPor?: User;
 };
