@@ -19,7 +19,7 @@ router.use(verifyRole(["RecursosHumanos"]));
 
 router
     .post("/", createTrabajador)
-    .get("/", getTrabajadores)
+    .get("/all", getTrabajadores)
     .get("/:id", getTrabajadorById)
     .put("/:id", updateTrabajador)
     .delete("/:id", deleteTrabajador);
