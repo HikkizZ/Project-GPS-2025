@@ -9,6 +9,10 @@ import {
 import { User } from "../../entity/user.entity.js";
 import { handleSuccess, handleErrorClient, handleErrorServer } from "../../handlers/responseHandlers.js";
 import { LicenciaPermisoQueryValidation, CreateLicenciaPermisoValidation, UpdateLicenciaPermisoValidation } from "../../validations/recursosHumanos/licenciaPermiso.validation.js";
+import { AppDataSource } from "../../config/configDB.js";
+import { LicenciaPermiso } from "../../entity/recursosHumanos/licenciaPermiso.entity.js";
+import path from "path";
+import fs from "fs";
 
 export async function createLicenciaPermiso(req: Request, res: Response): Promise<void> {
   try {
@@ -171,4 +175,55 @@ export async function deleteLicenciaPermiso(req: Request, res: Response): Promis
     console.error("Error al eliminar licencia/permiso:", error);
     handleErrorServer(res, 500, "Error interno del servidor");
   }
+}
+
+export async function descargarArchivoLicencia(req: Request, res: Response): Promise<void> {
+    try {
+        const licenciaRepo = AppDataSource.getRepository(LicenciaPermiso);
+        const licencia = await licenciaRepo.findOne({
+            where: { id: parseInt(req.params.id) },
+            relations: ["trabajador"]
+        });
+
+        if (!licencia) {
+            handleErrorClient(res, 404, "Licencia o permiso no encontrado");
+            return;
+        }
+
+        if (!licencia.archivoAdjuntoURL) {
+            handleErrorClient(res, 404, "No hay archivo adjunto para esta licencia o permiso");
+            return;
+        }
+
+        // Verificar que el usuario solo pueda ver su propio archivo o sea de RRHH
+        if (req.user?.role !== "RecursosHumanos" && licencia.trabajador.id !== req.user?.id) {
+            handleErrorClient(res, 403, "No tienes permiso para ver este archivo");
+            return;
+        }
+
+        try {
+            // Asumiendo que archivoAdjuntoURL es una ruta relativa al directorio de uploads
+            const filePath = path.join(process.cwd(), "uploads", licencia.archivoAdjuntoURL);
+            
+            // Verificar si el archivo existe
+            if (!fs.existsSync(filePath)) {
+                handleErrorClient(res, 404, "Archivo no encontrado en el servidor");
+                return;
+            }
+
+            // Configurar headers para la descarga
+            res.setHeader('Content-Type', 'application/pdf');
+            res.setHeader('Content-Disposition', `attachment; filename="licencia_${licencia.trabajador.rut}_${licencia.tipo}.pdf"`);
+
+            // Enviar el archivo
+            const fileStream = fs.createReadStream(filePath);
+            fileStream.pipe(res);
+        } catch (error) {
+            console.error("Error al leer el archivo:", error);
+            handleErrorServer(res, 500, "Error al descargar el archivo");
+        }
+    } catch (error) {
+        console.error("Error al descargar archivo de licencia:", error);
+        handleErrorServer(res, 500, "Error interno del servidor");
+    }
 }
