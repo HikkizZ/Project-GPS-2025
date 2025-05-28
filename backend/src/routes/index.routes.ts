@@ -4,6 +4,9 @@ import userRoutes from './user.routes.js';
 import productRoutes from './product.routes.js';
 import customerRoutes from './customer.routes.js';
 import supplierRoutes from './supplier.routes.js';
+import fichaEmpresaRoutes from './recursosHumanos/fichaEmpresa.routes.js';
+import licenciaPermisoRoutes from './recursosHumanos/licenciaPermiso.routes.js';
+import trabajadorRoutes from './recursosHumanos/trabajador.routes.js';
 
 const router: Router = Router();
 
@@ -18,5 +21,8 @@ router.use('/user', userRoutes);
 router.use('/product', productRoutes);
 router.use('/customer', customerRoutes);
 router.use('/supplier', supplierRoutes);
+router.use('/ficha-empresa', fichaEmpresaRoutes);
+router.use('/licencia-permiso', licenciaPermisoRoutes);
+router.use('/trabajador', trabajadorRoutes);
 
 export default router;
