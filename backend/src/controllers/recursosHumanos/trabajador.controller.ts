@@ -37,7 +37,8 @@ export async function getTrabajadores(req: Request, res: Response): Promise<void
         const [trabajadores, serviceError] = await getTrabajadoresService();
         
         if (serviceError) {
-            handleErrorServer(res, 500, serviceError.message);
+            const isNotFound = serviceError.message.includes("No hay trabajadores");
+            handleErrorClient(res, isNotFound ? 404 : 500, serviceError.message);
             return;
         }
 

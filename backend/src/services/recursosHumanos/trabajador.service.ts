@@ -84,6 +84,10 @@ export async function getTrabajadoresService(): Promise<ServiceResponse<Trabajad
             where: { enSistema: true }
         });
 
+        if (!trabajadores.length) {
+            return [null, new Error("No hay trabajadores registrados")];
+        }
+
         return [trabajadores, null];
     } catch (error) {
         console.error("Error en getTrabajadoresService:", error);
