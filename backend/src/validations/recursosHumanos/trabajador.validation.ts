@@ -1,6 +1,103 @@
 import Joi from "joi";
 import { validateRut } from "../../helpers/rut.helper.js";
 
+export const TrabajadorQueryValidation = Joi.object({
+    id: Joi.number()
+        .integer()
+        .positive()
+        .messages({
+            "number.base": "El ID debe ser un número.",
+            "number.integer": "El ID debe ser un número entero.",
+            "number.positive": "El ID debe ser un número positivo."
+        }),
+
+    rut: Joi.string()
+        .min(7)
+        .max(12)
+        .messages({
+            "string.base": "El RUT debe ser una cadena de texto.",
+            "string.min": "El RUT debe tener al menos 7 caracteres.",
+            "string.max": "El RUT no puede exceder los 12 caracteres."
+        }),
+
+    nombres: Joi.string()
+        .min(1)
+        .max(100)
+        .messages({
+            "string.base": "Los nombres deben ser una cadena de texto.",
+            "string.min": "Los nombres deben tener al menos 1 carácter.",
+            "string.max": "Los nombres no pueden exceder los 100 caracteres."
+        }),
+
+    apellidoPaterno: Joi.string()
+        .min(1)
+        .max(100)
+        .messages({
+            "string.base": "El apellido paterno debe ser una cadena de texto.",
+            "string.min": "El apellido paterno debe tener al menos 1 carácter.",
+            "string.max": "El apellido paterno no puede exceder los 100 caracteres."
+        }),
+
+    apellidoMaterno: Joi.string()
+        .min(1)
+        .max(100)
+        .messages({
+            "string.base": "El apellido materno debe ser una cadena de texto.",
+            "string.min": "El apellido materno debe tener al menos 1 carácter.",
+            "string.max": "El apellido materno no puede exceder los 100 caracteres."
+        }),
+
+    fechaNacimiento: Joi.date()
+        .iso()
+        .messages({
+            "date.base": "La fecha de nacimiento debe ser una fecha válida.",
+            "date.format": "La fecha de nacimiento debe estar en formato YYYY-MM-DD."
+        }),
+
+    telefono: Joi.string()
+        .pattern(/^\+?[\d]{9,12}$/)
+        .messages({
+            "string.base": "El teléfono debe ser una cadena de texto.",
+            "string.pattern.base": "El teléfono debe tener entre 9 y 12 dígitos y puede incluir el símbolo +."
+        }),
+
+    correo: Joi.string()
+        .email()
+        .messages({
+            "string.base": "El correo debe ser una cadena de texto.",
+            "string.email": "El correo debe tener un formato válido."
+        }),
+
+    numeroEmergencia: Joi.string()
+        .pattern(/^\+?[\d]{9,12}$/)
+        .messages({
+            "string.base": "El número de emergencia debe ser una cadena de texto.",
+            "string.pattern.base": "El número de emergencia debe tener entre 9 y 12 dígitos y puede incluir el símbolo +."
+        }),
+
+    direccion: Joi.string()
+        .min(5)
+        .max(200)
+        .messages({
+            "string.base": "La dirección debe ser una cadena de texto.",
+            "string.min": "La dirección debe tener al menos 5 caracteres.",
+            "string.max": "La dirección no puede exceder los 200 caracteres."
+        }),
+
+    fechaIngreso: Joi.date()
+        .iso()
+        .messages({
+            "date.base": "La fecha de ingreso debe ser una fecha válida.",
+            "date.format": "La fecha de ingreso debe estar en formato YYYY-MM-DD."
+        }),
+
+    enSistema: Joi.alternatives()
+        .try(Joi.boolean(), Joi.string().valid("true", "false"))
+        .messages({
+            "alternatives.types": "El campo enSistema debe ser booleano (true o false)."
+        })
+});
+
 export const TrabajadorBodyValidation = Joi.object({
     nombres: Joi.string()
         .min(3)

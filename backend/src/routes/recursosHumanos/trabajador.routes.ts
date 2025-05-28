@@ -4,7 +4,7 @@ import { verifyRole } from "../../middlewares/authorization.middleware.js";
 import {
     createTrabajador,
     getTrabajadores,
-    getTrabajadorById,
+    searchTrabajadores,
     updateTrabajador,
     deleteTrabajador
 } from "../../controllers/recursosHumanos/trabajador.controller.js";
@@ -20,7 +20,7 @@ router.use(verifyRole(["RecursosHumanos"]));
 router
     .post("/", createTrabajador)
     .get("/all", getTrabajadores)
-    .get("/:id", getTrabajadorById)
+    .get("/detail/", searchTrabajadores)
     .put("/:id", updateTrabajador)
     .delete("/:id", deleteTrabajador);
 

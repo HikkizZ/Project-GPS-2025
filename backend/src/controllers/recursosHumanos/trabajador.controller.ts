@@ -3,12 +3,11 @@ import { handleSuccess, handleErrorClient, handleErrorServer } from "../../handl
 import {
     createTrabajadorService,
     getTrabajadoresService,
-    getTrabajadorByIdService,
+    searchTrabajadoresService,
     updateTrabajadorService,
     deleteTrabajadorService
 } from "../../services/recursosHumanos/trabajador.service.js";
-import { TrabajadorBodyValidation } from "../../validations/recursosHumanos/trabajador.validation.js";
-import { TrabajadorUpdateValidation } from "../../validations/recursosHumanos/trabajador.validation.js";
+import { TrabajadorBodyValidation, TrabajadorQueryValidation, TrabajadorUpdateValidation } from "../../validations/recursosHumanos/trabajador.validation.js";
 
 export async function createTrabajador(req: Request, res: Response): Promise<void> {
     try {
@@ -49,18 +48,29 @@ export async function getTrabajadores(req: Request, res: Response): Promise<void
     }
 }
 
-export async function getTrabajadorById(req: Request, res: Response): Promise<void> {
+export async function searchTrabajadores(req: Request, res: Response): Promise<void> {
     try {
-        const [trabajador, serviceError] = await getTrabajadorByIdService(parseInt(req.params.id));
-        
-        if (serviceError) {
-            handleErrorClient(res, 404, serviceError.message);
+        const { error } = TrabajadorQueryValidation.validate(req.query);
+        if (error) {
+            handleErrorClient(res, 400, "Validation Error", error.message);
             return;
         }
 
-        handleSuccess(res, 200, "Trabajador recuperado exitosamente", trabajador);
+        const [trabajadores, serviceError] = await searchTrabajadoresService(req.query);
+
+        if (serviceError) {
+            handleErrorServer(res, 500, serviceError.message);
+            return;
+        }
+
+        if (!trabajadores || trabajadores.length === 0) {
+            handleSuccess(res, 204, "No se encontraron trabajadores");
+            return;
+        }
+
+        handleSuccess(res, 200, "Trabajadores encontrados", trabajadores);
     } catch (error) {
-        console.error("Error al obtener trabajador:", error);
+        console.error("Error en searchTrabajadores:", error);
         handleErrorServer(res, 500, "Error interno del servidor");
     }
 }

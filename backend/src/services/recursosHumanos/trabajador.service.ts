@@ -4,6 +4,7 @@ import { FichaEmpresa, EstadoLaboral } from "../../entity/recursosHumanos/fichaE
 import { ServiceResponse } from "../../../types.js";
 import { Not, DeepPartial } from "typeorm";
 import { validateRut } from "../../helpers/rut.helper.js";
+import { ILike } from "typeorm";
 
 export async function createTrabajadorService(trabajadorData: Partial<Trabajador>): Promise<ServiceResponse<Trabajador>> {
     try {
@@ -90,21 +91,41 @@ export async function getTrabajadoresService(): Promise<ServiceResponse<Trabajad
     }
 }
 
-export async function getTrabajadorByIdService(id: number): Promise<ServiceResponse<Trabajador>> {
+export async function searchTrabajadoresService(query: any): Promise<ServiceResponse<Trabajador[]>> {
     try {
         const trabajadorRepo = AppDataSource.getRepository(Trabajador);
-        const trabajador = await trabajadorRepo.findOne({
-            where: { id, enSistema: true },
-            relations: ["fichaEmpresa", "historialLaboral", "licenciasPermisos", "capacitaciones"]
-        });
 
-        if (!trabajador) {
-            return [null, new Error("Trabajador no encontrado")];
+        const where: any = {
+            ...(query.id && { id: Number(query.id) }),
+            ...(query.rut && { rut: ILike(`%${query.rut}%`) }),
+            ...(query.nombres && { nombres: ILike(`%${query.nombres}%`) }),
+            ...(query.apellidoPaterno && { apellidoPaterno: ILike(`%${query.apellidoPaterno}%`) }),
+            ...(query.apellidoMaterno && { apellidoMaterno: ILike(`%${query.apellidoMaterno}%`) }),
+            ...(query.fechaNacimiento && { fechaNacimiento: query.fechaNacimiento }),
+            ...(query.telefono && { telefono: ILike(`%${query.telefono}%`) }),
+            ...(query.correo && { correo: ILike(`%${query.correo}%`) }),
+            ...(query.numeroEmergencia && { numeroEmergencia: ILike(`%${query.numeroEmergencia}%`) }),
+            ...(query.direccion && { direccion: ILike(`%${query.direccion}%`) }),
+            ...(query.fechaIngreso && { fechaIngreso: query.fechaIngreso }),
+        };
+
+        // Manejo especial para enSistema
+        if (query.enSistema !== undefined) {
+            if (typeof query.enSistema === "string") {
+                where.enSistema = query.enSistema === "true";
+            } else if (typeof query.enSistema === "boolean") {
+                where.enSistema = query.enSistema;
+            }
         }
 
-        return [trabajador, null];
+        const trabajadores = await trabajadorRepo.find({
+            where,
+            relations: ["fichaEmpresa", "historialLaboral", "licenciasPermisos", "capacitaciones"],
+        });
+
+        return [trabajadores, null];
     } catch (error) {
-        console.error("Error en getTrabajadorByIdService:", error);
+        console.error("Error en searchTrabajadoresService:", error);
         return [null, error as Error];
     }
 }
