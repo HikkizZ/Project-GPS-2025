@@ -39,63 +39,57 @@ export const LicenciaPermisoQueryValidation = Joi.object({
     "object.missing": "Se requiere al menos uno de los siguientes campos: id, trabajadorId, tipo o estado."
 });
 
-/* Body validation para creación y actualización de licencias/permisos */
-export const LicenciaPermisoBodyValidation = Joi.object({
+/* Body validation para creación de licencias/permisos */
+export const CreateLicenciaPermisoValidation = Joi.object({
     trabajadorId: Joi.number()
         .integer()
         .positive()
+        .required()
         .messages({
             "number.base": "El ID del trabajador debe ser un número.",
             "number.integer": "El ID del trabajador debe ser un número entero.",
-            "number.positive": "El ID del trabajador debe ser un número positivo."
+            "number.positive": "El ID del trabajador debe ser un número positivo.",
+            "any.required": "El ID del trabajador es requerido."
         }),
 
     tipo: Joi.string()
         .valid(...Object.values(TipoSolicitud))
+        .required()
         .messages({
             "any.only": "El tipo de solicitud no es válido.",
-            "string.base": "El tipo de solicitud debe ser una cadena de texto."
+            "string.base": "El tipo de solicitud debe ser una cadena de texto.",
+            "any.required": "El tipo de solicitud es requerido."
         }),
 
     fechaInicio: Joi.date()
         .iso()
+        .required()
         .messages({
             "date.base": "La fecha de inicio debe ser una fecha válida.",
-            "date.format": "La fecha de inicio debe estar en formato YYYY-MM-DD"
+            "date.format": "La fecha de inicio debe estar en formato YYYY-MM-DD",
+            "any.required": "La fecha de inicio es requerida."
         }),
 
     fechaFin: Joi.date()
         .iso()
         .min(Joi.ref('fechaInicio'))
+        .required()
         .messages({
             "date.base": "La fecha de fin debe ser una fecha válida.",
             "date.format": "La fecha de fin debe estar en formato YYYY-MM-DD",
-            "date.min": "La fecha de fin debe ser posterior a la fecha de inicio"
+            "date.min": "La fecha de fin debe ser posterior a la fecha de inicio",
+            "any.required": "La fecha de fin es requerida."
         }),
 
     motivoSolicitud: Joi.string()
         .min(10)
         .max(500)
+        .required()
         .messages({
             "string.base": "El motivo debe ser una cadena de texto.",
             "string.min": "El motivo debe tener al menos 10 caracteres.",
-            "string.max": "El motivo no puede exceder los 500 caracteres."
-        }),
-
-    estado: Joi.string()
-        .valid(...Object.values(EstadoSolicitud))
-        .messages({
-            "any.only": "El estado de la solicitud no es válido.",
-            "string.base": "El estado de la solicitud debe ser una cadena de texto."
-        }),
-
-    respuestaEncargado: Joi.string()
-        .min(10)
-        .max(500)
-        .messages({
-            "string.base": "La respuesta debe ser una cadena de texto.",
-            "string.min": "La respuesta debe tener al menos 10 caracteres.",
-            "string.max": "La respuesta no puede exceder los 500 caracteres."
+            "string.max": "El motivo no puede exceder los 500 caracteres.",
+            "any.required": "El motivo es requerido."
         }),
 
     archivoAdjuntoURL: Joi.string()
@@ -105,16 +99,27 @@ export const LicenciaPermisoBodyValidation = Joi.object({
         .messages({
             "string.uri": "La URL del archivo adjunto no es válida."
         })
-})
-.when('.', {
-    is: Joi.object().unknown(true),
-    then: Joi.object({
-        trabajadorId: Joi.required(),
-        tipo: Joi.required(),
-        fechaInicio: Joi.required(),
-        fechaFin: Joi.required(),
-        motivoSolicitud: Joi.required()
-    }).messages({
-        'any.required': 'Los campos trabajadorId, tipo, fechaInicio, fechaFin y motivoSolicitud son obligatorios para crear una solicitud.'
-    })
+});
+
+/* Body validation para actualización de licencias/permisos */
+export const UpdateLicenciaPermisoValidation = Joi.object({
+    estadoSolicitud: Joi.string()
+        .valid(...Object.values(EstadoSolicitud))
+        .required()
+        .messages({
+            "any.only": "El estado de la solicitud no es válido.",
+            "string.base": "El estado de la solicitud debe ser una cadena de texto.",
+            "any.required": "El estado de la solicitud es requerido."
+        }),
+
+    respuestaEncargado: Joi.string()
+        .min(10)
+        .max(500)
+        .required()
+        .messages({
+            "string.base": "La respuesta debe ser una cadena de texto.",
+            "string.min": "La respuesta debe tener al menos 10 caracteres.",
+            "string.max": "La respuesta no puede exceder los 500 caracteres.",
+            "any.required": "La respuesta del encargado es requerida."
+        })
 }); 

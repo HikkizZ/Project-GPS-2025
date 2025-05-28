@@ -6,7 +6,7 @@ export type CreateLicenciaPermisoDTO = {
   tipo: TipoSolicitud;
   fechaInicio: string; // formato YYYY-MM-DD
   fechaFin: string;    // formato YYYY-MM-DD
-  motivo: string;
+  motivoSolicitud: string;
   archivoAdjuntoURL?: string;
 };
 

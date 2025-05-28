@@ -18,7 +18,7 @@ export async function createLicenciaPermisoService(data: CreateLicenciaPermisoDT
         tipo: data.tipo,
         fechaInicio: new Date(data.fechaInicio),
         fechaFin: new Date(data.fechaFin),
-        motivoSolicitud: data.motivo,
+        motivoSolicitud: data.motivoSolicitud,
         archivoAdjuntoURL: data.archivoAdjuntoURL ?? "",
         trabajador,
         estado: EstadoSolicitud.PENDIENTE,
