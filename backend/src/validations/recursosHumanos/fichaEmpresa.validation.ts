@@ -122,4 +122,126 @@ export const FichaEmpresaBodyValidation = Joi.object({
             "string.uri": "La URL del contrato debe ser una URL válida",
             "string.base": "La URL del contrato debe ser una cadena de texto"
         })
+});
+
+export const FichaEmpresaUpdateValidation = Joi.object({
+    cargo: Joi.string()
+        .min(3)
+        .max(100)
+        .messages({
+            "string.base": "El cargo debe ser una cadena de texto",
+            "string.min": "El cargo debe tener al menos 3 caracteres",
+            "string.max": "El cargo no puede exceder los 100 caracteres"
+        }),
+
+    area: Joi.string()
+        .min(2)
+        .max(100)
+        .messages({
+            "string.base": "El área debe ser una cadena de texto",
+            "string.min": "El área debe tener al menos 2 caracteres",
+            "string.max": "El área no puede exceder los 100 caracteres"
+        }),
+
+    empresa: Joi.string()
+        .min(2)
+        .max(100)
+        .messages({
+            "string.base": "La empresa debe ser una cadena de texto",
+            "string.min": "La empresa debe tener al menos 2 caracteres",
+            "string.max": "La empresa no puede exceder los 100 caracteres"
+        }),
+
+    tipoContrato: Joi.string()
+        .valid("Indefinido", "Plazo Fijo", "Por Obra", "Part-Time")
+        .messages({
+            "string.base": "El tipo de contrato debe ser una cadena de texto",
+            "any.only": "El tipo de contrato debe ser uno de los siguientes: Indefinido, Plazo Fijo, Por Obra, Part-Time"
+        }),
+
+    jornadaLaboral: Joi.string()
+        .valid("Completa", "Media", "Part-Time")
+        .messages({
+            "string.base": "La jornada laboral debe ser una cadena de texto",
+            "any.only": "La jornada laboral debe ser una de las siguientes: Completa, Media, Part-Time"
+        }),
+
+    sueldoBase: Joi.number()
+        .min(1)
+        .max(100000000)
+        .messages({
+            "number.base": "El sueldo base debe ser un número",
+            "number.min": "El sueldo base debe ser mayor a 0",
+            "number.max": "El sueldo base no puede exceder los 100,000,000"
+        }),
+
+    fechaInicioContrato: Joi.any().forbidden()
+        .messages({
+            "any.unknown": "No se puede modificar la fecha de inicio del contrato"
+        }),
+
+    fechaFinContrato: Joi.date()
+        .iso()
+        .min('now')
+        .messages({
+            "date.base": "La fecha de fin de contrato debe ser una fecha válida",
+            "date.format": "La fecha de fin de contrato debe estar en formato YYYY-MM-DD",
+            "date.min": "La fecha de fin de contrato no puede ser anterior a hoy"
+        })
+}).min(1).messages({
+    "object.min": "Debe proporcionar al menos un campo para actualizar"
+});
+
+export const EstadoFichaValidation = Joi.object({
+    estado: Joi.string()
+        .valid(...Object.values(EstadoLaboral))
+        .required()
+        .messages({
+            "string.base": "El estado debe ser una cadena de texto",
+            "any.only": "El estado debe ser uno válido",
+            "any.required": "El estado es requerido"
+        }),
+
+    fechaInicio: Joi.date()
+        .iso()
+        .when('estado', {
+            is: Joi.string().valid(EstadoLaboral.LICENCIA, EstadoLaboral.PERMISO),
+            then: Joi.required(),
+            otherwise: Joi.forbidden()
+        })
+        .messages({
+            "date.base": "La fecha de inicio debe ser una fecha válida",
+            "date.format": "La fecha de inicio debe estar en formato YYYY-MM-DD",
+            "any.required": "La fecha de inicio es requerida para licencias y permisos",
+            "any.unknown": "La fecha de inicio solo aplica para licencias y permisos"
+        }),
+
+    fechaFin: Joi.date()
+        .iso()
+        .when('fechaInicio', {
+            is: Joi.exist(),
+            then: Joi.date().greater(Joi.ref('fechaInicio')),
+            otherwise: Joi.forbidden()
+        })
+        .messages({
+            "date.base": "La fecha de fin debe ser una fecha válida",
+            "date.format": "La fecha de fin debe estar en formato YYYY-MM-DD",
+            "date.greater": "La fecha de fin debe ser posterior a la fecha de inicio",
+            "any.unknown": "La fecha de fin solo aplica cuando hay fecha de inicio"
+        }),
+
+    motivo: Joi.string()
+        .min(10)
+        .max(500)
+        .when('estado', {
+            is: Joi.string().valid(EstadoLaboral.LICENCIA, EstadoLaboral.PERMISO, EstadoLaboral.DESVINCULADO),
+            then: Joi.required(),
+            otherwise: Joi.forbidden()
+        })
+        .messages({
+            "string.base": "El motivo debe ser una cadena de texto",
+            "string.min": "El motivo debe tener al menos 10 caracteres",
+            "string.max": "El motivo no puede exceder los 500 caracteres",
+            "any.required": "El motivo es requerido para licencias, permisos y desvinculaciones"
+        })
 }); 

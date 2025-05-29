@@ -76,7 +76,23 @@ export async function createTrabajadorService(trabajadorData: Partial<Trabajador
             };
 
             const ficha = fichaRepo.create(fichaData);
-            await fichaRepo.save(ficha);
+            const fichaGuardada = await fichaRepo.save(ficha);
+
+            // Actualizar el trabajador con la referencia a la ficha
+            trabajadorGuardado.fichaEmpresa = fichaGuardada;
+            await trabajadorRepo.save(trabajadorGuardado);
+
+            // Recargar el trabajador con todas sus relaciones
+            const trabajadorCompleto = await trabajadorRepo.findOne({
+                where: { id: trabajadorGuardado.id },
+                relations: ["fichaEmpresa"]
+            });
+
+            if (!trabajadorCompleto) {
+                throw new Error("No se pudo recargar el trabajador después de crear la ficha");
+            }
+
+            return [trabajadorCompleto, null];
         }
 
         return [trabajadorGuardado, null];
