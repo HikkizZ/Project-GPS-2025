@@ -16,24 +16,24 @@ export async function createTrabajadorService(trabajadorData: Partial<Trabajador
         if (!trabajadorData.rut || !trabajadorData.nombres || !trabajadorData.apellidoPaterno || 
             !trabajadorData.apellidoMaterno || !trabajadorData.telefono || !trabajadorData.correo || 
             !trabajadorData.direccion || !trabajadorData.fechaIngreso) {
-            return [null, new Error("Faltan campos requeridos")];
+            return [null, "Faltan campos requeridos"];
         }
 
         // Validar formato de RUT usando el helper
         if (!validateRut(trabajadorData.rut)) {
-            return [null, new Error("Formato de RUT inválido")];
+            return [null, "Formato de RUT inválido"];
         }
 
         // Validar formato de correo
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(trabajadorData.correo)) {
-            return [null, new Error("Formato de correo inválido")];
+            return [null, "Formato de correo inválido"];
         }
 
         // Validar formato de teléfono (debe tener entre 9 y 12 dígitos)
         const phoneRegex = /^\+?[\d]{9,12}$/;
         if (!phoneRegex.test(trabajadorData.telefono)) {
-            return [null, new Error("Formato de teléfono inválido")];
+            return [null, "Formato de teléfono inválido"];
         }
 
         // Verificar si ya existe un trabajador con el mismo RUT o correo
@@ -46,10 +46,10 @@ export async function createTrabajadorService(trabajadorData: Partial<Trabajador
 
         if (existingTrabajador) {
             if (existingTrabajador.rut === trabajadorData.rut) {
-                return [null, new Error("Ya existe un trabajador con ese RUT")];
+                return [null, "Ya existe un trabajador con ese RUT"];
             }
             if (existingTrabajador.correo === trabajadorData.correo) {
-                return [null, new Error("Ya existe un trabajador con ese correo")];
+                return [null, "Ya existe un trabajador con ese correo"];
             }
         }
 
@@ -82,7 +82,7 @@ export async function createTrabajadorService(trabajadorData: Partial<Trabajador
         return [trabajadorGuardado, null];
     } catch (error) {
         console.error("Error en createTrabajadorService:", error);
-        return [null, error as Error];
+        return [null, "Error interno del servidor"];
     }
 }
 
@@ -95,13 +95,13 @@ export async function getTrabajadoresService(): Promise<ServiceResponse<Trabajad
         });
 
         if (!trabajadores.length) {
-            return [null, new Error("No hay trabajadores registrados")];
+            return [null, "No hay trabajadores registrados"];
         }
 
         return [trabajadores, null];
     } catch (error) {
         console.error("Error en getTrabajadoresService:", error);
-        return [null, error as Error];
+        return [null, "Error interno del servidor"];
     }
 }
 
@@ -147,13 +147,13 @@ export async function searchTrabajadoresService(query: any): Promise<ServiceResp
         });
 
         if (!trabajadores.length) {
-            return [null, new Error("No hay trabajadores que coincidan con los criterios de búsqueda")];
+            return [null, "No hay trabajadores que coincidan con los criterios de búsqueda"];
         }
 
         return [trabajadores, null];
     } catch (error) {
         console.error("Error en searchTrabajadoresService:", error);
-        return [null, error as Error];
+        return [null, "Error interno del servidor"];
     }
 }
 
@@ -167,7 +167,7 @@ export async function updateTrabajadorService(id: number, trabajadorData: Partia
         });
 
         if (!trabajador) {
-            return [null, new Error("Trabajador no encontrado")];
+            return [null, "Trabajador no encontrado"];
         }
 
         // Si se está actualizando el RUT o correo, verificar que no exista otro trabajador con esos datos
@@ -180,7 +180,7 @@ export async function updateTrabajadorService(id: number, trabajadorData: Partia
             });
 
             if (existingTrabajador) {
-                return [null, new Error("Ya existe un trabajador con ese RUT o correo")];
+                return [null, "Ya existe un trabajador con ese RUT o correo"];
             }
         }
 
@@ -191,7 +191,7 @@ export async function updateTrabajadorService(id: number, trabajadorData: Partia
         return [trabajadorActualizado, null];
     } catch (error) {
         console.error("Error en updateTrabajadorService:", error);
-        return [null, error as Error];
+        return [null, "Error interno del servidor"];
     }
 }
 
@@ -203,7 +203,7 @@ export async function deleteTrabajadorService(id: number): Promise<ServiceRespon
         });
 
         if (!trabajador) {
-            return [null, new Error("Trabajador no encontrado")];
+            return [null, "Trabajador no encontrado"];
         }
 
         // En lugar de eliminar, marcamos como inactivo
@@ -213,6 +213,6 @@ export async function deleteTrabajadorService(id: number): Promise<ServiceRespon
         return [true, null];
     } catch (error) {
         console.error("Error en deleteTrabajadorService:", error);
-        return [null, error as Error];
+        return [null, "Error interno del servidor"];
     }
 } 

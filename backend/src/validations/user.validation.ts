@@ -45,13 +45,29 @@ export const userQueryValidation: ObjectSchema = Joi.object({
             "string.empty": "El campo del RUT no puede estar vacío.",
             "string.min": "El RUT debe tener al menos 8 caracteres.",
             "string.max": "El RUT debe tener menos de 12 caracteres."
+        }),
+    role: Joi.string()
+        .valid("Administrador", "RecursosHumanos", "Usuario")
+        .messages({
+            "string.base": "El rol debe ser de tipo texto.",
+            "any.only": "El rol debe ser uno de los roles permitidos."
+        }),
+    name: Joi.string()
+        .min(3)
+        .max(70)
+        .pattern(/^[a-zA-Z\s]+$/)
+        .messages({
+            "string.base": "El nombre debe ser de tipo texto.",
+            "string.min": "El nombre debe tener al menos 3 caracteres.",
+            "string.max": "El nombre debe tener menos de 70 caracteres.",
+            "string.pattern.base": "El nombre solo puede contener letras y espacios."
         })
 })
-    .or('id', 'email', 'rut')
+    .or('id', 'email', 'rut', 'role', 'name')
     .unknown(false)
     .messages({
         "object.unknown": "El objeto contiene campos no permitidos.",
-        "object.missing": "Se requiere al menos uno de los siguientes campos: id, email o rut."
+        "object.missing": "Se requiere al menos uno de los siguientes campos: id, email, rut, role o name."
     });
 
 /* Validation of the body for creation or update */

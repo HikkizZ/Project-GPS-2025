@@ -1,7 +1,7 @@
 import { User } from "../entity/user.entity.js";
 import { AppDataSource } from "../config/configDB.js";
 import { comparePassword, encryptPassword } from "../helpers/bcrypt.helper.js";
-import { userRole, ServiceResponse, QueryParams, UpdateUserData, SafeUser } from '../../types.js';
+import { userRole, ServiceResponse, QueryParams, UpdateUserData, SafeUser } from '../../types.d.js';
 import { Not, ILike, FindOptionsWhere } from "typeorm";
 
 /* Validar formato de RUT */
@@ -53,7 +53,7 @@ export async function searchUsersService(query: QueryParams): Promise<ServiceRes
             if (!isValidRole(query.role)) {
                 return [null, "Rol inválido"];
             }
-            whereClause.role = query.role;
+            whereClause.role = query.role as userRole;
         }
 
         if (query.name) {

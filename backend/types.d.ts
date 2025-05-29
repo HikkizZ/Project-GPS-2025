@@ -26,6 +26,8 @@ export type QueryParams = {
     id?: number;
     email?: string;
     rut?: string;
+    role?: userRole;
+    name?: string;
 }
 
 export type UpdateUserData = {
