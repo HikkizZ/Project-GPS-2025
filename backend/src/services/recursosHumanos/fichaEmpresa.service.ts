@@ -185,6 +185,7 @@ export async function actualizarEstadoFichaService(
         });
 
         if (!ficha) {
+            await queryRunner.rollbackTransaction();
             await queryRunner.release();
             return [null, { message: "Ficha no encontrada" }];
         }
@@ -194,12 +195,14 @@ export async function actualizarEstadoFichaService(
             const userRepo = queryRunner.manager.getRepository(User);
             const user = await userRepo.findOne({ where: { id: userId } });
             if (!user || user.role !== "RecursosHumanos") {
+                await queryRunner.rollbackTransaction();
                 await queryRunner.release();
                 return [null, { message: "No tiene permiso para cambiar el estado de la ficha" }];
             }
 
             // Si es RRHH, solo permitir cambiar a estado DESVINCULADO
             if (estado !== EstadoLaboral.DESVINCULADO) {
+                await queryRunner.rollbackTransaction();
                 await queryRunner.release();
                 return [null, { message: "RRHH solo puede cambiar el estado a DESVINCULADO. Los estados de LICENCIA y PERMISO se actualizan automáticamente al aprobar solicitudes." }];
             }
@@ -208,11 +211,13 @@ export async function actualizarEstadoFichaService(
         // Si es una actualización automática (desde licenciaPermiso.service)
         if (!userId && (estado === EstadoLaboral.LICENCIA || estado === EstadoLaboral.PERMISO)) {
             if (!fechaInicioDate || !fechaFinDate || !motivo) {
+                await queryRunner.rollbackTransaction();
                 await queryRunner.release();
                 return [null, { message: "Se requieren fechas de inicio, fin y motivo para licencias y permisos" }];
             }
 
             if (fechaFinDate < fechaInicioDate) {
+                await queryRunner.rollbackTransaction();
                 await queryRunner.release();
                 return [null, { message: "La fecha de fin debe ser posterior a la fecha de inicio" }];
             }
@@ -221,16 +226,20 @@ export async function actualizarEstadoFichaService(
         // Manejar desvinculación
         if (estado === EstadoLaboral.DESVINCULADO) {
             if (!motivo) {
+                await queryRunner.rollbackTransaction();
                 await queryRunner.release();
                 return [null, { message: "Se requiere especificar el motivo de la desvinculación" }];
             }
             ficha.fechaFinContrato = new Date();
         }
 
+        // Actualizar el estado
         ficha.estado = estado;
-        const fichaActualizada = await queryRunner.manager.save(FichaEmpresa, ficha);
 
+        // Guardar los cambios
+        const fichaActualizada = await queryRunner.manager.save(FichaEmpresa, ficha);
         await queryRunner.commitTransaction();
+        
         return [fichaActualizada, null];
     } catch (error) {
         await queryRunner.rollbackTransaction();

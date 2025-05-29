@@ -7,7 +7,8 @@ import {
     createLicenciaPermiso,
     updateLicenciaPermiso,
     deleteLicenciaPermiso,
-    descargarArchivoLicencia
+    descargarArchivoLicencia,
+    verificarLicenciasVencidas
 } from "../../controllers/recursosHumanos/licenciaPermiso.controller.js";
 
 const router: Router = Router();
@@ -15,7 +16,7 @@ const router: Router = Router();
 // Rutas protegidas - requieren autenticación
 router.use(authenticateJWT);
 
-// Rutas para trabajadores
+// Rutas para usuarios
 router.post("/", createLicenciaPermiso); // Crear solicitud
 router.get("/mis-solicitudes", getAllLicenciasPermisos); // Ver propias solicitudes
 
@@ -25,5 +26,6 @@ router.get("/:id", getLicenciaPermisoById); // Ver una solicitud específica
 router.put("/:id", verifyRole(["RecursosHumanos"]), updateLicenciaPermiso); // Aprobar/Rechazar solicitud (solo RRHH)
 router.delete("/:id", verifyRole(["RecursosHumanos"]), deleteLicenciaPermiso); // Eliminar solicitud (solo RRHH)
 router.get("/:id/archivo", descargarArchivoLicencia);
+router.post("/verificar-vencimientos", verifyRole(["RecursosHumanos"]), verificarLicenciasVencidas);
 
 export default router; 

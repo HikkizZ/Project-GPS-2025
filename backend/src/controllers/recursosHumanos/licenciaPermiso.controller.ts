@@ -14,10 +14,32 @@ import { AppDataSource } from "../../config/configDB.js";
 import { LicenciaPermiso } from "../../entity/recursosHumanos/licenciaPermiso.entity.js";
 import path from "path";
 import fs from "fs";
+import { Trabajador } from "../../entity/recursosHumanos/trabajador.entity.js";
 
 export async function createLicenciaPermiso(req: Request, res: Response): Promise<void> {
   try {
-    const validationResult = CreateLicenciaPermisoValidation.validate(req.body, { abortEarly: false });
+    // Verificar que el usuario esté autenticado
+    if (!req.user?.id) {
+      handleErrorClient(res, 401, "Usuario no autenticado");
+      return;
+    }
+
+    // Buscar el trabajador asociado al usuario
+    const trabajadorRepo = AppDataSource.getRepository(Trabajador);
+    const trabajador = await trabajadorRepo.findOne({ where: { rut: req.user.rut } });
+
+    if (!trabajador) {
+      handleErrorClient(res, 400, "Trabajador no encontrado");
+      return;
+    }
+
+    // Asignar el trabajadorId encontrado
+    const requestData = {
+      ...req.body,
+      trabajadorId: trabajador.id
+    };
+
+    const validationResult = CreateLicenciaPermisoValidation.validate(requestData, { abortEarly: false });
     if (validationResult.error) {
       handleErrorClient(res, 400, "Error de validación", {
         errors: validationResult.error.details.map(error => ({
@@ -101,50 +123,50 @@ export async function getLicenciaPermisoById(req: Request, res: Response): Promi
 
 export async function updateLicenciaPermiso(req: Request, res: Response): Promise<void> {
   try {
-    // Validar ID
-    const idValidation = LicenciaPermisoQueryValidation.validate({ id: req.params.id }, { abortEarly: false });
-    if (idValidation.error) {
-      handleErrorClient(res, 400, "Error de validación", {
-        errors: idValidation.error.details.map(error => ({
-          field: error.path.join('.'),
-          message: error.message
-        }))
-      });
-      return;
-    }
-
-    // Validar body
-    const bodyValidation = UpdateLicenciaPermisoValidation.validate(req.body, { abortEarly: false });
-    if (bodyValidation.error) {
-      handleErrorClient(res, 400, "Error de validación", {
-        errors: bodyValidation.error.details.map(error => ({
-          field: error.path.join('.'),
-          message: error.message
-        }))
-      });
-      return;
-    }
-
-    // Obtener el usuario que está realizando la actualización (desde el middleware de autenticación)
-    const user = req.user as User;
-    if (!user) {
+    if (!req.user?.id) {
       handleErrorClient(res, 401, "Usuario no autenticado");
       return;
     }
 
-    const updateData = {
-      ...bodyValidation.value,
-      revisadoPor: user
-    };
-
-    const [licenciaPermiso, error] = await updateLicenciaPermisoService(parseInt(req.params.id), updateData);
-
-    if (error) {
-      handleErrorClient(res, 404, error as string);
+    const licenciaId = parseInt(req.params.id);
+    if (isNaN(licenciaId)) {
+      handleErrorClient(res, 400, "ID de licencia inválido");
       return;
     }
 
-    handleSuccess(res, 200, "Solicitud actualizada exitosamente", licenciaPermiso || {});
+    const validationResult = UpdateLicenciaPermisoValidation.validate(req.body, { abortEarly: false });
+    if (validationResult.error) {
+      handleErrorClient(res, 400, "Error de validación", {
+        errors: validationResult.error.details.map(error => ({
+          field: error.path.join('.'),
+          message: error.message
+        }))
+      });
+      return;
+    }
+
+    // Buscar el usuario que está revisando la solicitud
+    const userRepo = AppDataSource.getRepository(User);
+    const revisadoPor = await userRepo.findOne({ where: { id: req.user.id } });
+
+    if (!revisadoPor) {
+      handleErrorClient(res, 400, "Usuario revisor no encontrado");
+      return;
+    }
+
+    const updateData = {
+      ...validationResult.value,
+      revisadoPor
+    };
+
+    const [licenciaActualizada, error] = await updateLicenciaPermisoService(licenciaId, updateData);
+
+    if (error) {
+      handleErrorClient(res, 400, error);
+      return;
+    }
+
+    handleSuccess(res, 200, "Solicitud actualizada exitosamente", licenciaActualizada || {});
   } catch (error) {
     console.error("Error al actualizar licencia/permiso:", error);
     handleErrorServer(res, 500, "Error interno del servidor");
@@ -230,17 +252,28 @@ export async function descargarArchivoLicencia(req: Request, res: Response): Pro
 }
 
 export async function verificarLicenciasVencidas(req: Request, res: Response): Promise<void> {
-  try {
-    const [actualizaciones, error] = await verificarLicenciasVencidasService();
+    try {
+        if (!req.user?.id) {
+            handleErrorClient(res, 401, "Usuario no autenticado");
+            return;
+        }
 
-    if (error) {
-      handleErrorServer(res, 500, error);
-      return;
+        // Solo RRHH puede ejecutar la verificación
+        if (req.user.role !== "RecursosHumanos") {
+            handleErrorClient(res, 403, "No tiene permiso para ejecutar esta acción");
+            return;
+        }
+
+        const [actualizaciones, error] = await verificarLicenciasVencidasService();
+
+        if (error) {
+            handleErrorServer(res, 500, error);
+            return;
+        }
+
+        handleSuccess(res, 200, `Se actualizaron ${actualizaciones} registros`, { actualizaciones });
+    } catch (error) {
+        console.error("Error en verificarLicenciasVencidas:", error);
+        handleErrorServer(res, 500, "Error interno del servidor");
     }
-
-    handleSuccess(res, 200, `Se actualizaron ${actualizaciones} estados de trabajadores a Activo`, { actualizaciones });
-  } catch (error) {
-    console.error("Error al verificar licencias vencidas:", error);
-    handleErrorServer(res, 500, "Error interno del servidor");
-  }
 }
