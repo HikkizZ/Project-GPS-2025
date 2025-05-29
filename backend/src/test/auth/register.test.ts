@@ -94,6 +94,27 @@ describe('🔒 Auth API - Registro y Login', () => {
         }
     });
 
+    afterEach(async () => {
+        try {
+            // Primero eliminar el usuario de prueba si existe
+            await AppDataSource.getRepository(User)
+                .createQueryBuilder()
+                .delete()
+                .where("rut = :rut", { rut: '12.345.678-9' })
+                .execute();
+
+            // Luego eliminar el trabajador de prueba
+            await AppDataSource.getRepository(Trabajador)
+                .createQueryBuilder()
+                .delete()
+                .where("rut = :rut", { rut: '12.345.678-9' })
+                .execute();
+        } catch (error) {
+            console.error("❌ Error en afterEach:", error);
+            throw error;
+        }
+    });
+
     after(async () => {
         try {
             await closeTestApp();

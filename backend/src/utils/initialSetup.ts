@@ -38,12 +38,12 @@ export async function initialSetup(): Promise<void> {
             console.log("✅ Trabajador admin creado con RUT:", adminRut);
 
             // Crear el usuario admin
-            const hashedAdminPassword = await encryptPassword("Admin2024");
+            const hashedPassword = await encryptPassword("Admin2024");
             const userAdmin = userRepo.create({
                 name: "Administrador Principal",
                 rut: adminRut,
                 email: "admin.principal@gmail.com",
-                password: hashedAdminPassword,
+                password: hashedPassword,
                 role: "Administrador" as userRole
             });
 
