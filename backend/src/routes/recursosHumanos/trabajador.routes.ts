@@ -15,7 +15,7 @@ const router: Router = Router();
 router.use(authenticateJWT);
 
 // Todas las rutas requieren rol de RRHH
-router.use(verifyRole(["RecursosHumanos"]));
+router.use(verifyRole(["RecursosHumanos", "Administrador"]));
 
 router
     .post("/", createTrabajador)

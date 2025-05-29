@@ -14,16 +14,15 @@ const entitiesPath = isProduction
 
 export const AppDataSource = new DataSource({
     type: "postgres",
-    host: HOST as string,
+    host: "127.0.0.1",
     port: 5432,
     username: DB_USERNAME as string,
     password: DB_PASSWORD as string,
     database: DATABASE as string,
     synchronize: true,
+    dropSchema: true,
     logging: false,
-    entities: [
-        entitiesPath
-    ],
+    entities: [entitiesPath]
 });
 
 export async function connectDB(): Promise<void> {

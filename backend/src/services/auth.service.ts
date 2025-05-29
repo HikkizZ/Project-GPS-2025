@@ -4,8 +4,9 @@ import { AppDataSource } from "../config/configDB.js";
 import { comparePassword, encryptPassword } from "../helpers/bcrypt.helper.js";
 import { ACCESS_TOKEN_SECRET } from "../config/configEnv.js";
 import { formatToLocalTime } from "../utils/formatDate.js";
-import { UserResponse } from '../../types.js';
+import { UserResponse, userRole } from '../../types.js';
 import { formatRut } from "../helpers/rut.helper.js";
+import { Trabajador } from "../entity/recursosHumanos/trabajador.entity.js";
 
 /* Interface for the user data */
 interface LoginData {
@@ -18,6 +19,7 @@ interface RegisterData {
     rut: string;
     email: string;
     password: string;
+    role: userRole;
 }
 
 /* Interface for JWT Payload */
@@ -80,8 +82,10 @@ export async function loginService(user: LoginData): Promise<[string | null, aut
 export async function registerService(user: RegisterData): Promise<[UserResponse | null, authError | string | null]> {
     try {
         const userRepository = AppDataSource.getRepository(User);
-        const { name, rut, email, password } = user;
+        const trabajadorRepository = AppDataSource.getRepository(Trabajador);
+        const { name, rut, email, password, role } = user;
 
+        // Verificar si ya existe un usuario con el mismo email o RUT
         const [existingEmailUser, existingRutUser] = await Promise.all([
             userRepository.findOne({ where: { email } }),
             userRepository.findOne({ where: { rut } })
@@ -90,14 +94,23 @@ export async function registerService(user: RegisterData): Promise<[UserResponse
         if (existingEmailUser) return [null, createErrorMessage({ email }, "El email ingresado ya está registrado.")];
         if (existingRutUser) return [null, createErrorMessage({ rut }, "El RUT ingresado ya está registrado.")];
 
-        const rutFormat = formatRut(rut);
+        // Verificar si existe el trabajador
+        const trabajador = await trabajadorRepository.findOne({ where: { rut: formatRut(rut) } });
+        if (!trabajador) {
+            return [null, createErrorMessage({ rut }, "No existe un trabajador con este RUT.")];
+        }
+
+        // Verificar que el email coincida con el del trabajador
+        if (trabajador.correo !== email) {
+            return [null, createErrorMessage({ email }, "El email debe coincidir con el registrado para el trabajador.")];
+        }
 
         const newUser = userRepository.create({
             name,
-            rut: rutFormat,
+            rut: formatRut(rut),
             email,
             password: await encryptPassword(password),
-            role: "Usuario"
+            role
         });
 
         await userRepository.save(newUser);

@@ -123,8 +123,8 @@ export async function setupTestServer(): Promise<Application> {
 async function setupAPI(): Promise<void> {
     try {
         await connectDB();
-        await setupServer();
         await initialSetup();
+        await setupServer();
     } catch (error) {
         console.error("❌ Error setting up the API: -> setupAPI(). Error: ", error);
     }

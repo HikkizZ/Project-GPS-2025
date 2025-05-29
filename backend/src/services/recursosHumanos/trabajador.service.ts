@@ -45,30 +45,39 @@ export async function createTrabajadorService(trabajadorData: Partial<Trabajador
         });
 
         if (existingTrabajador) {
-            return [null, new Error("Ya existe un trabajador con ese RUT o correo")];
+            if (existingTrabajador.rut === trabajadorData.rut) {
+                return [null, new Error("Ya existe un trabajador con ese RUT")];
+            }
+            if (existingTrabajador.correo === trabajadorData.correo) {
+                return [null, new Error("Ya existe un trabajador con ese correo")];
+            }
         }
 
         // Crear el trabajador
-        const { fichaEmpresa, ...trabajadorInfo } = trabajadorData;
-        const trabajador = trabajadorRepo.create(trabajadorInfo);
+        const trabajador = trabajadorRepo.create({
+            ...trabajadorData,
+            enSistema: true
+        });
         const trabajadorGuardado = await trabajadorRepo.save(trabajador);
 
-        // Crear la ficha de empresa asociada
-        const fichaData: DeepPartial<FichaEmpresa> = {
-            cargo: fichaEmpresa?.cargo ?? "Sin cargo",
-            area: fichaEmpresa?.area ?? "Sin área",
-            empresa: fichaEmpresa?.empresa ?? undefined,
-            tipoContrato: fichaEmpresa?.tipoContrato ?? "Indefinido",
-            jornadaLaboral: fichaEmpresa?.jornadaLaboral ?? undefined,
-            sueldoBase: fichaEmpresa?.sueldoBase ?? 0,
-            trabajador: trabajadorGuardado,
-            estado: EstadoLaboral.ACTIVO,
-            fechaInicioContrato: trabajadorGuardado.fechaIngreso,
-            contratoURL: fichaEmpresa?.contratoURL ?? undefined
-        };
+        // Crear la ficha de empresa asociada si se proporcionaron datos
+        if (trabajadorData.fichaEmpresa) {
+            const fichaData: DeepPartial<FichaEmpresa> = {
+                cargo: trabajadorData.fichaEmpresa.cargo ?? "Sin cargo",
+                area: trabajadorData.fichaEmpresa.area ?? "Sin área",
+                empresa: trabajadorData.fichaEmpresa.empresa,
+                tipoContrato: trabajadorData.fichaEmpresa.tipoContrato ?? "Indefinido",
+                jornadaLaboral: trabajadorData.fichaEmpresa.jornadaLaboral,
+                sueldoBase: trabajadorData.fichaEmpresa.sueldoBase ?? 0,
+                trabajador: trabajadorGuardado,
+                estado: EstadoLaboral.ACTIVO,
+                fechaInicioContrato: trabajadorGuardado.fechaIngreso,
+                contratoURL: trabajadorData.fichaEmpresa.contratoURL
+            };
 
-        const ficha = fichaRepo.create(fichaData);
-        await fichaRepo.save(ficha);
+            const ficha = fichaRepo.create(fichaData);
+            await fichaRepo.save(ficha);
+        }
 
         return [trabajadorGuardado, null];
     } catch (error) {

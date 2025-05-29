@@ -2,40 +2,144 @@ import request from 'supertest';
 import { expect } from 'chai';
 import { setupTestServer } from '../server.js';
 import { AppDataSource } from '../config/configDB.js';
+import { User } from '../entity/user.entity.js';
+import { Trabajador } from '../entity/recursosHumanos/trabajador.entity.js';
 
 let app: any;
+let adminToken: string;
+let rrhhToken: string;
 
 describe("🔒 Auth API - Pruebas de autenticación", () => {
     before(async () => {
         app = await setupTestServer();
+
+        // Limpiar la base de datos
+        await AppDataSource.getRepository(User).delete({});
+        await AppDataSource.getRepository(Trabajador).delete({});
+
+        // Crear admin inicial
+        const adminUser = await AppDataSource.getRepository(User).save({
+            name: "Admin Principal",
+            rut: "11.111.111-1",
+            email: "admin.principal@gmail.com",
+            password: "Admin2024",
+            role: "Administrador"
+        });
+
+        // Crear usuario RRHH
+        const rrhhUser = await AppDataSource.getRepository(User).save({
+            name: "RRHH Principal",
+            rut: "22.222.222-2",
+            email: "recursoshumanos@gmail.com",
+            password: "RRHH2024",
+            role: "RecursosHumanos"
+        });
+
+        // Crear trabajador para pruebas
+        await AppDataSource.getRepository(Trabajador).save({
+            nombre_completo: "Pedro Martinez",
+            rut: "11.222.333-4",
+            correo_electronico: "pedro.martinez@gmail.com",
+            cargo: "Desarrollador"
+        });
+
+        // Obtener tokens
+        const adminLogin = await request(app)
+            .post("/api/auth/login")
+            .send({
+                email: "admin.principal@gmail.com",
+                password: "Admin2024"
+            });
+        adminToken = adminLogin.body.data.token;
+
+        const rrhhLogin = await request(app)
+            .post("/api/auth/login")
+            .send({
+                email: "recursoshumanos@gmail.com",
+                password: "RRHH2024"
+            });
+        rrhhToken = rrhhLogin.body.data.token;
+    });
+
+    beforeEach(async () => {
+        // Limpiar usuarios excepto los iniciales antes de cada prueba
+        await AppDataSource.getRepository(User)
+            .createQueryBuilder()
+            .delete()
+            .where("email NOT IN (:...emails)", { 
+                emails: ['admin.principal@gmail.com', 'recursoshumanos@gmail.com'] 
+            })
+            .execute();
+
+        // Limpiar trabajadores excepto los iniciales
+        await AppDataSource.getRepository(Trabajador)
+            .createQueryBuilder()
+            .delete()
+            .where("rut NOT IN (:...ruts)", {
+                ruts: ['11.111.111-1', '22.222.222-2', '11.222.333-4']
+            })
+            .execute();
     });
 
     /* Pruebas de register */
     /* Usuario correcto */
     it("🔑 Debe registrar un usuario correctamente", async () =>{
+        // Crear trabajador para la prueba
+        await AppDataSource.getRepository(Trabajador).save({
+            nombre_completo: "Test User",
+            rut: "22.675.050-9",
+            correo_electronico: "test.user@gmail.com",
+            cargo: "Analista"
+        });
+
         const res = await request(app)
             .post("/api/auth/register")
+            .set("Authorization", `Bearer ${adminToken}`)
             .send({
                 name: "Test User",
                 rut: "22.675.050-9",
                 email: "test.user@gmail.com",
-                password: "testpassword"
+                password: "testpassword",
+                role: "Usuario"
             });
 
         expect(res.status).to.equal(201);
         expect(res.body).to.have.property("status").to.equal("success");
-        expect(res.body).to.have.property("message").to.equal("Usuario registrado.");
+        expect(res.body).to.have.property("message").to.equal("Usuario registrado exitosamente.");
     });
 
     /* Correo o rut ya registrado */
     it("🚫 No debe registrar un usuario con un email ya registrado", async () => {
-        const res = await request(app)
+        // Crear trabajador para la prueba
+        await AppDataSource.getRepository(Trabajador).save({
+            nombre_completo: "Test User Same Email",
+            rut: "22.786.355-2",
+            correo_electronico: "test.duplicate@gmail.com",
+            cargo: "Analista"
+        });
+
+        // Primer registro
+        await request(app)
             .post("/api/auth/register")
+            .set("Authorization", `Bearer ${adminToken}`)
             .send({
                 name: "Test User Same Email",
                 rut: "22.786.355-2",
-                email: "test.user@gmail.com",
-                password: "testpassword"
+                email: "test.duplicate@gmail.com",
+                password: "testpassword",
+                role: "Usuario"
+            });
+
+        // Intento de registro duplicado
+        const res = await request(app)
+            .post("/api/auth/register")
+            .set("Authorization", `Bearer ${adminToken}`)
+            .send({
+                name: "Test User Same Email Two",
+                rut: "22.786.355-2",
+                email: "test.duplicate@gmail.com",
+                password: "testpassword",
+                role: "Usuario"
             });
 
         expect(res.status).to.equal(400);
@@ -44,13 +148,44 @@ describe("🔒 Auth API - Pruebas de autenticación", () => {
     });
 
     it("🚫 No debe registrar un usuario con un RUT ya registrado", async () => {
+        // Crear trabajador para la prueba
+        await AppDataSource.getRepository(Trabajador).save({
+            nombre_completo: "Test User RUT",
+            rut: "22.675.050-9",
+            correo_electronico: "test.rut@gmail.com",
+            cargo: "Analista"
+        });
+
+        // Primer registro
+        await request(app)
+            .post("/api/auth/register")
+            .set("Authorization", `Bearer ${adminToken}`)
+            .send({
+                name: "Test User RUT",
+                rut: "22.675.050-9",
+                email: "test.rut@gmail.com",
+                password: "testpassword",
+                role: "Usuario"
+            });
+
+        // Crear segundo trabajador con mismo RUT
+        await AppDataSource.getRepository(Trabajador).save({
+            nombre_completo: "Test User Same RUT",
+            rut: "22.675.050-9",
+            correo_electronico: "test.userTwo@gmail.com",
+            cargo: "Analista"
+        });
+
+        // Intento de registro con RUT duplicado
         const res = await request(app)
             .post("/api/auth/register")
+            .set("Authorization", `Bearer ${adminToken}`)
             .send({
-                name: "Test User Same Rut",
+                name: "Test User Same RUT",
                 rut: "22.675.050-9",
                 email: "test.userTwo@gmail.com",
-                password: "testpassword"
+                password: "testpassword",
+                role: "Usuario"
             });
 
         expect(res.status).to.equal(400);
@@ -60,13 +195,23 @@ describe("🔒 Auth API - Pruebas de autenticación", () => {
 
     /* Rut inválido o email inválido */
     it("🚫 No debe registrar un usuario con un email inválido", async () => {
+        // Crear trabajador para la prueba
+        await AppDataSource.getRepository(Trabajador).save({
+            nombre_completo: "Test User Invalid Email",
+            rut: "24.863.526-6",
+            correo_electronico: "test.invalidEmail",
+            cargo: "Analista"
+        });
+
         const res = await request(app)
             .post("/api/auth/register")
+            .set("Authorization", `Bearer ${adminToken}`)
             .send({
                 name: "Test User Invalid Email",
                 rut: "24.863.526-6",
                 email: "test.invalidEmail",
-                password: "testpassword"
+                password: "testpassword",
+                role: "Usuario"
             });
 
         expect(res.status).to.equal(400);
@@ -769,6 +914,141 @@ describe("🔒 Auth API - Pruebas de autenticación", () => {
         expect(res.status).to.equal(400);
         expect(res.body).to.have.property("status").to.equal("error");
         expect(res.body).to.have.property("message").to.equal("La contraseña es requerida.");
+    });
+
+    /* Nuevas pruebas de validación de roles y trabajador */
+    describe("🔐 Validaciones de roles y trabajador", () => {
+        it("✅ Admin puede registrar usuario con trabajador existente", async () => {
+            const userData = {
+                name: "Pedro Martinez",
+                rut: "11.222.333-4",
+                email: "pedro.martinez@gmail.com",
+                password: "Test2024",
+                role: "Usuario"
+            };
+
+            const res = await request(app)
+                .post("/api/auth/register")
+                .set("Authorization", `Bearer ${adminToken}`)
+                .send(userData);
+
+            expect(res.status).to.equal(201);
+            expect(res.body.status).to.equal("success");
+            expect(res.body.message).to.equal("Usuario registrado exitosamente.");
+        });
+
+        it("✅ RRHH puede registrar usuario con trabajador existente", async () => {
+            const userData = {
+                name: "Pedro Martinez",
+                rut: "11.222.333-4",
+                email: "pedro.martinez@gmail.com",
+                password: "Test2024",
+                role: "Usuario"
+            };
+
+            const res = await request(app)
+                .post("/api/auth/register")
+                .set("Authorization", `Bearer ${rrhhToken}`)
+                .send(userData);
+
+            expect(res.status).to.equal(201);
+            expect(res.body.status).to.equal("success");
+            expect(res.body.message).to.equal("Usuario registrado exitosamente.");
+        });
+
+        it("❌ No se puede registrar un usuario sin trabajador existente", async () => {
+            const userData = {
+                name: "Usuario Sin Trabajador",
+                rut: "33.333.333-3",
+                email: "noexiste@gmail.com",
+                password: "Test2024",
+                role: "Usuario"
+            };
+
+            const res = await request(app)
+                .post("/api/auth/register")
+                .set("Authorization", `Bearer ${adminToken}`)
+                .send(userData);
+
+            expect(res.status).to.equal(400);
+            expect(res.body.status).to.equal("error");
+            expect(res.body.message).to.equal("No existe un trabajador con este RUT.");
+        });
+
+        it("❌ No se puede registrar un usuario con email diferente al del trabajador", async () => {
+            const userData = {
+                name: "Pedro Martinez",
+                rut: "11.222.333-4",
+                email: "email.diferente@gmail.com",
+                password: "Test2024",
+                role: "Usuario"
+            };
+
+            const res = await request(app)
+                .post("/api/auth/register")
+                .set("Authorization", `Bearer ${adminToken}`)
+                .send(userData);
+
+            expect(res.status).to.equal(400);
+            expect(res.body.status).to.equal("error");
+            expect(res.body.message).to.equal("El email debe coincidir con el email del trabajador.");
+        });
+
+        it("❌ No se puede registrar un usuario con rol inválido", async () => {
+            const userData = {
+                name: "Pedro Martinez",
+                rut: "11.222.333-4",
+                email: "pedro.martinez@gmail.com",
+                password: "Test2024",
+                role: "RolInvalido"
+            };
+
+            const res = await request(app)
+                .post("/api/auth/register")
+                .set("Authorization", `Bearer ${adminToken}`)
+                .send(userData);
+
+            expect(res.status).to.equal(400);
+            expect(res.body.status).to.equal("error");
+            expect(res.body.message).to.equal("Rol no válido.");
+        });
+
+        it("❌ Usuario normal no puede registrar otros usuarios", async () => {
+            // Primero creamos un usuario normal
+            const normalUser = await AppDataSource.getRepository(User).save({
+                name: "Usuario Normal",
+                rut: "44.444.444-4",
+                email: "usuario.normal@gmail.com",
+                password: "Usuario2024",
+                role: "Usuario"
+            });
+
+            const loginRes = await request(app)
+                .post("/api/auth/login")
+                .send({
+                    email: "usuario.normal@gmail.com",
+                    password: "Usuario2024"
+                });
+
+            const normalUserToken = loginRes.body.data.token;
+
+            const userData = {
+                name: "Pedro Martinez",
+                rut: "11.222.333-4",
+                email: "pedro.martinez@gmail.com",
+                password: "Test2024",
+                role: "Usuario"
+            };
+
+            const res = await request(app)
+                .post("/api/auth/register")
+                .set("Authorization", `Bearer ${normalUserToken}`)
+                .send(userData);
+
+            expect(res.status).to.equal(403);
+            expect(res.body.status).to.equal("error");
+            expect(res.body.message).to.equal("No tienes permisos para realizar esta acción.");
+        });
     });
 
     after(async () => {

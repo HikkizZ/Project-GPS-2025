@@ -2,6 +2,8 @@ import Joi, { CustomHelpers } from 'joi';
 import { validateRut } from '../helpers/rut.helper.js';
 
 const allowedEmailDomains = ["gmail.com", "outlook.com", "hotmail.com", "gmail.cl", "outlook.cl", "hotmail.cl"];
+const allowedRoles = ["Administrador", "Usuario", "RecursosHumanos", "Gerencia", "Ventas", "Arriendo", "Finanzas"];
+
 /* Custom validator for email domains */
 const domainEmailValidator = (value: string, helper: CustomHelpers) => {
     const isValid = allowedEmailDomains.some(domain => value.endsWith(domain));
@@ -105,6 +107,16 @@ export const registerValidation = Joi.object({
             "string.max": "La contraseña debe tener menos de 16 caracteres.",
             "any.required": "La contraseña es requerida.",
             "string.pattern.base": "La contraseña solo puede contener letras y números."
+        }),
+
+    role: Joi.string()
+        .valid(...allowedRoles)
+        .required()
+        .messages({
+            "string.base": "El rol debe ser de tipo texto.",
+            "string.empty": "El campo del rol no puede estar vacío.",
+            "any.required": "El rol es requerido.",
+            "any.only": "El rol debe ser uno de los roles permitidos."
         })
 }).messages({
     "object.unknown": "El objeto contiene campos no permitidos."

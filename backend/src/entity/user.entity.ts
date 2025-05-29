@@ -1,31 +1,36 @@
-import { Entity, PrimaryGeneratedColumn, Column, Index, OneToMany } from "typeorm";
-import { userRole } from '../../types.js'; // Assuming userRole is defined in types.js
+import { Entity, PrimaryGeneratedColumn, Column, Index, OneToOne, JoinColumn, CreateDateColumn, UpdateDateColumn } from "typeorm";
+import { userRole } from "../../types.js";
+import { Trabajador } from "./recursosHumanos/trabajador.entity.js";
 
 @Entity("userauth") // Table name
 export class User {
     @PrimaryGeneratedColumn()
-    id!: number;
+    id: number;
 
     @Column({ type: "varchar", length: 255, nullable: false })
-    name!: string;
+    name: string;
 
     @Index("IDX_USER_RUT", { unique: true }) // Unique index for the rut column
     @Column({ type: "varchar", length: 12, unique: true, nullable: false })
-    rut!: string;
+    rut: string;
 
     @Index("IDX_USER_EMAIL", { unique: true }) // Unique index for the email column
     @Column({ type: "varchar", length: 255, unique: true, nullable: false })
-    email!: string;
+    email: string;
 
     @Column({ type: "varchar", length: 50, nullable: false })
-    role!: userRole;
+    role: userRole;
 
     @Column({ type: "varchar", length: 255, nullable: false })
-    password!: string;
+    password: string;
 
-    @Column({ type: "timestamp with time zone", default: () => "CURRENT_TIMESTAMP", nullable: false })
-    createAt!: Date;
+    @CreateDateColumn({ type: "timestamp with time zone" })
+    createAt: Date;
 
-    @Column({ type: "timestamp with time zone", default: () => "CURRENT_TIMESTAMP", onUpdate:"CURRENT_TIMESTAMP", nullable: false })
-    updateAt!: Date;
+    @UpdateDateColumn({ type: "timestamp with time zone" })
+    updateAt: Date;
+
+    @OneToOne(() => Trabajador)
+    @JoinColumn({ name: "rut", referencedColumnName: "rut" })
+    trabajador: Trabajador;
 }

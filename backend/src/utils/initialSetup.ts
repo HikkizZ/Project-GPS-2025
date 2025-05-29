@@ -1,45 +1,85 @@
-import fs from "fs"; // File system module
-import path from "path"; // Path module
-import { encryptPassword } from "../helpers/bcrypt.helper.js";
 import { AppDataSource } from "../config/configDB.js";
 import { User } from "../entity/user.entity.js";
-import { userRole } from '../../types.js';
+import { Trabajador } from "../entity/recursosHumanos/trabajador.entity.js";
+import { encryptPassword } from "../helpers/bcrypt.helper.js";
+import { userRole } from "../../types.js";
 
 export async function initialSetup(): Promise<void> {
     try {
-        console.log("=> Initial setup started");
+        console.log("=> Iniciando configuración inicial");
 
-        const userRepository = AppDataSource.getRepository(User);
+        const userRepo = AppDataSource.getRepository(User);
+        const trabajadorRepo = AppDataSource.getRepository(Trabajador);
 
-        // Check if there are users in the database
-        const usersCount = await userRepository.count();
-        if (usersCount > 0) {
-            console.log("✅ There are already users in the database. The initial configuration has been skipped.");
+        // Verificar si ya existe el trabajador admin
+        const trabajadorExists = await trabajadorRepo.findOne({
+            where: { rut: "11.111.111-1" }
+        });
+
+        if (trabajadorExists) {
+            console.log("✅ El trabajador admin ya existe");
+            
+            // Verificar si existe el usuario admin
+            const adminExists = await userRepo.findOne({
+                where: { rut: trabajadorExists.rut }
+            });
+
+            if (adminExists) {
+                console.log("✅ El usuario admin ya existe");
+                return;
+            }
+
+            // Si existe el trabajador pero no el usuario, crear solo el usuario
+            const hashedPassword = await encryptPassword("Admin2024");
+            const userAdmin = userRepo.create({
+                name: "Administrador Principal",
+                rut: trabajadorExists.rut,
+                email: trabajadorExists.correo,
+                password: hashedPassword,
+                role: "Administrador" as userRole
+            });
+
+            await userRepo.save(userAdmin);
+            console.log("✅ Usuario admin creado");
             return;
         }
 
-        // Read the initial data from the JSON file
-        const userFilePath = path.resolve("src/data/users.json");
-        if (!fs.existsSync(userFilePath)) {
-            console.error("❌ The file users.json does not exist.");
-            return;
-        }
+        // Crear el trabajador admin
+        console.log("=> Creando trabajador admin...");
+        const trabajadorAdmin = trabajadorRepo.create({
+            rut: "11.111.111-1",
+            nombres: "Administrador",
+            apellidoPaterno: "Principal",
+            apellidoMaterno: "Sistema",
+            fechaNacimiento: new Date("1990-01-01"),
+            telefono: "+56911111111",
+            correo: "admin.principal@gmail.com",
+            numeroEmergencia: "+56911111111",
+            direccion: "Dirección Principal 123",
+            fechaIngreso: new Date(),
+            enSistema: true
+        });
 
-        const usersData = JSON.parse(fs.readFileSync(userFilePath, "utf-8"));
+        const savedTrabajador = await trabajadorRepo.save(trabajadorAdmin);
+        console.log("✅ Trabajador admin creado con RUT:", savedTrabajador.rut);
 
-        // Encrypt the password of the users
-        const usersToSave = await Promise.all(
-            usersData.map(async (user: { name: string; rut: string; email: string; role: userRole; password: string }) => ({
-                ...user,
-                password: await encryptPassword(user.password)
-            }))
-        );
+        // Crear el usuario admin
+        console.log("=> Creando usuario admin...");
+        const hashedPassword = await encryptPassword("Admin2024");
+        const userAdmin = userRepo.create({
+            name: "Administrador Principal",
+            rut: savedTrabajador.rut,
+            email: savedTrabajador.correo,
+            password: hashedPassword,
+            role: "Administrador" as userRole
+        });
 
-        // Save the users in the database
-        await userRepository.save(usersToSave);
+        const savedUser = await userRepo.save(userAdmin);
+        console.log("✅ Usuario admin creado con RUT:", savedUser.rut);
 
-        console.log("✅ The initial configuration has been completed successfully.");
+        console.log("✅ Configuración inicial completada con éxito");
     } catch (error) {
-        console.error("❌ Error in the initial configuration: ", error);
+        console.error("❌ Error en la configuración inicial:", error);
+        throw error;
     }
 }
