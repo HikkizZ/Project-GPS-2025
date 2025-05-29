@@ -61,9 +61,6 @@ async function setupServer(): Promise<void> {
         // Rutas públicas (sin autenticación)
         app.use("/api/auth", indexRoutes);
 
-        // Middleware de autenticación para rutas protegidas
-        app.use("/api/*", authenticateJWT);
-
         // Resto de rutas (protegidas)
         app.use("/api", indexRoutes);
 

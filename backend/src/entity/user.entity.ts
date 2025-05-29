@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, Index, OneToOne, JoinColumn, CreateDateColumn, UpdateDateColumn } from "typeorm";
-import { userRole } from "../../types.js";
+import { userRole } from "../types/auth.types.js";
 import { Trabajador } from "./recursosHumanos/trabajador.entity.js";
 
 @Entity("userauth") // Table name

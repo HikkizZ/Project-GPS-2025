@@ -15,7 +15,10 @@ router.post('/register',
     register
 );
 
-// Ruta para logout
-router.post('/logout', logout);
+// Ruta protegida para logout
+router.post('/logout',
+    authenticateJWT,
+    logout
+);
 
 export default router;

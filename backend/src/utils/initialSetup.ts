@@ -11,47 +11,56 @@ export async function initialSetup(): Promise<void> {
         const userRepo = AppDataSource.getRepository(User);
         const trabajadorRepo = AppDataSource.getRepository(Trabajador);
 
-        // Crear trabajador y usuario admin si no existen
+        // Eliminar usuario y trabajador admin si existen
         const adminRut = "11.111.111-1";
-        const trabajadorAdminExists = await trabajadorRepo.findOne({
-            where: { rut: adminRut }
+        const adminEmail = "admin.principal@gmail.com";
+        
+        console.log("=> Eliminando usuario admin existente si existe...");
+        await userRepo.delete({ email: adminEmail });
+        
+        console.log("=> Eliminando trabajador admin existente si existe...");
+        await trabajadorRepo.delete({ rut: adminRut });
+
+        // Crear el trabajador admin
+        console.log("=> Creando trabajador admin...");
+        const trabajadorAdmin = trabajadorRepo.create({
+            rut: adminRut,
+            nombres: "Administrador",
+            apellidoPaterno: "Principal",
+            apellidoMaterno: "Sistema",
+            fechaNacimiento: new Date("1990-01-01"),
+            telefono: "+56911111111",
+            correo: adminEmail,
+            numeroEmergencia: "+56911111111",
+            direccion: "Dirección Principal 123",
+            fechaIngreso: new Date(),
+            enSistema: true
         });
 
-        if (!trabajadorAdminExists) {
-            // Crear el trabajador admin
-            console.log("=> Creando trabajador admin...");
-            const trabajadorAdmin = trabajadorRepo.create({
-                rut: adminRut,
-                nombres: "Administrador",
-                apellidoPaterno: "Principal",
-                apellidoMaterno: "Sistema",
-                fechaNacimiento: new Date("1990-01-01"),
-                telefono: "+56911111111",
-                correo: "admin.principal@gmail.com",
-                numeroEmergencia: "+56911111111",
-                direccion: "Dirección Principal 123",
-                fechaIngreso: new Date(),
-                enSistema: true
-            });
+        const savedTrabajador = await trabajadorRepo.save(trabajadorAdmin);
+        console.log("✅ Trabajador admin creado con RUT:", adminRut);
 
-            await trabajadorRepo.save(trabajadorAdmin);
-            console.log("✅ Trabajador admin creado con RUT:", adminRut);
+        // Crear el usuario admin
+        const hashedPassword = await encryptPassword("Admin2024");
+        const userAdmin = userRepo.create({
+            name: "Administrador Principal",
+            rut: adminRut,
+            email: adminEmail,
+            password: hashedPassword,
+            role: "Administrador" as userRole,
+            trabajador: savedTrabajador
+        });
 
-            // Crear el usuario admin
-            const hashedPassword = await encryptPassword("Admin2024");
-            const userAdmin = userRepo.create({
-                name: "Administrador Principal",
-                rut: adminRut,
-                email: "admin.principal@gmail.com",
-                password: hashedPassword,
-                role: "Administrador" as userRole
-            });
+        const savedUser = await userRepo.save(userAdmin);
+        console.log("✅ Usuario admin creado:", {
+            email: savedUser.email,
+            role: savedUser.role,
+            rut: savedUser.rut
+        });
 
-            await userRepo.save(userAdmin);
-            console.log("✅ Usuario admin creado con RUT:", adminRut);
-        } else {
-            console.log("✅ El trabajador y usuario admin ya existen");
-        }
+        // Actualizar la referencia en el trabajador
+        savedTrabajador.usuario = savedUser;
+        await trabajadorRepo.save(savedTrabajador);
 
         // Crear trabajador y usuario RRHH si no existen
         const rrhhRut = "22.222.222-2";

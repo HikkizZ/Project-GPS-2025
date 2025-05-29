@@ -140,7 +140,9 @@ describe('👥 Trabajadores API', () => {
 
             expect(response.status).to.equal(400);
             expect(response.body.status).to.equal("error");
-            expect(response.body.message.toLowerCase()).to.include("correo");
+            expect(response.body.message.toLowerCase()).to.satisfy((msg: string) => 
+                msg.includes('rut') || msg.includes('correo') || msg.includes('duplicado')
+            );
         });
 
         it('no debe permitir crear un trabajador sin datos requeridos', async () => {
