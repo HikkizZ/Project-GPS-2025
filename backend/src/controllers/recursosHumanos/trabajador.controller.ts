@@ -21,7 +21,7 @@ export async function createTrabajador(req: Request, res: Response): Promise<voi
         const [trabajador, serviceError] = await createTrabajadorService(req.body);
         
         if (serviceError) {
-            handleErrorClient(res, 400, serviceError.message);
+            handleErrorClient(res, 400, serviceError);
             return;
         }
 
@@ -90,7 +90,7 @@ export async function updateTrabajador(req: Request, res: Response): Promise<voi
         const [trabajador, serviceError] = await updateTrabajadorService(parseInt(req.params.id), validationResult.value);
 
         if (serviceError) {
-            handleErrorClient(res, serviceError.message.includes("no encontrado") ? 404 : 400, serviceError.message);
+            handleErrorClient(res, serviceError.includes("no encontrado") ? 404 : 400, serviceError);
             return;
         }
 

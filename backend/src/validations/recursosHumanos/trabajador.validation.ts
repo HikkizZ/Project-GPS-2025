@@ -249,25 +249,6 @@ export const TrabajadorUpdateValidation = Joi.object({
             "string.max": "El apellido materno no puede exceder los 100 caracteres."
         }),
 
-    rut: Joi.string()
-        .custom((value, helpers) => {
-            if (!validateRut(value)) {
-                return helpers.error("any.invalid");
-            }
-            return value;
-        })
-        .messages({
-            "string.base": "El RUT debe ser una cadena de texto.",
-            "any.invalid": "El RUT no es válido."
-        }),
-
-    correo: Joi.string()
-        .email()
-        .messages({
-            "string.base": "El correo debe ser una cadena de texto.",
-            "string.email": "El correo debe tener un formato válido."
-        }),
-
     telefono: Joi.string()
         .pattern(/^\+?[\d]{9,12}$/)
         .messages({
@@ -282,22 +263,6 @@ export const TrabajadorUpdateValidation = Joi.object({
             "string.pattern.base": "El número de emergencia debe tener entre 9 y 12 dígitos y puede incluir el símbolo +."
         }),
 
-    fechaNacimiento: Joi.date()
-        .iso()
-        .max('now')
-        .messages({
-            "date.base": "La fecha de nacimiento debe ser una fecha válida.",
-            "date.format": "La fecha de nacimiento debe estar en formato YYYY-MM-DD",
-            "date.max": "La fecha de nacimiento no puede ser futura."
-        }),
-
-    fechaIngreso: Joi.date()
-        .iso()
-        .messages({
-            "date.base": "La fecha de ingreso debe ser una fecha válida.",
-            "date.format": "La fecha de ingreso debe estar en formato YYYY-MM-DD"
-        }),
-
     direccion: Joi.string()
         .min(5)
         .max(200)
@@ -305,5 +270,23 @@ export const TrabajadorUpdateValidation = Joi.object({
             "string.base": "La dirección debe ser una cadena de texto.",
             "string.min": "La dirección debe tener al menos 5 caracteres.",
             "string.max": "La dirección no puede exceder los 200 caracteres."
-        })
+        }),
+
+    rut: Joi.any().forbidden().messages({
+        "any.unknown": "No se puede modificar el RUT"
+    }),
+
+    correo: Joi.any().forbidden().messages({
+        "any.unknown": "No se puede modificar el correo"
+    }),
+
+    fechaIngreso: Joi.any().forbidden().messages({
+        "any.unknown": "No se puede modificar la fecha de ingreso"
+    }),
+
+    fechaNacimiento: Joi.any().forbidden().messages({
+        "any.unknown": "No se puede modificar la fecha de nacimiento"
+    })
+}).min(1).messages({
+    "object.min": "Debe proporcionar al menos un campo para actualizar"
 });
