@@ -9,7 +9,11 @@
     "dev": "nodemon --exec tsx src/server.ts",
     "test": "cross-env NODE_ENV=test mocha --require tsx \"src/test/**/*.test.ts\" --timeout 5000 --exit",
     "test:users": "cross-env NODE_ENV=test mocha --require tsx src/test/users/users.test.ts --timeout 5000 --exit",
-    "cleanup": "tsx src/scripts/cleanupTestData.ts"
+    "cleanup": "tsx src/scripts/cleanupTestData.ts",
+    "verificar-licencias": "tsx src/scripts/verificarLicenciasVencidas.ts",
+    "verificar-licencias:prod": "pm2 start src/scripts/verificarLicenciasVencidas.ts --name=\"verificar-licencias\" --interpreter=\"tsx\"",
+    "verificar-licencias:stop": "pm2 stop verificar-licencias",
+    "verificar-licencias:status": "pm2 status verificar-licencias"
   },
   "keywords": [],
   "author": "HikkizZ",
@@ -32,6 +36,7 @@
     "jsonwebtoken": "9.0.2",
     "morgan": "1.10.0",
     "multer": "2.0.0",
+    "node-cron": "^3.0.3",
     "nodemailer": "6.10.0",
     "passport": "0.7.0",
     "passport-jwt": "4.0.1",

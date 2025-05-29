@@ -4,7 +4,8 @@ import {
   getAllLicenciasPermisosService,
   getLicenciaPermisoByIdService,
   updateLicenciaPermisoService,
-  deleteLicenciaPermisoService
+  deleteLicenciaPermisoService,
+  verificarLicenciasVencidasService
 } from "../../services/recursosHumanos/licenciaPermiso.service.js";
 import { User } from "../../entity/user.entity.js";
 import { handleSuccess, handleErrorClient, handleErrorServer } from "../../handlers/responseHandlers.js";
@@ -226,4 +227,20 @@ export async function descargarArchivoLicencia(req: Request, res: Response): Pro
         console.error("Error al descargar archivo de licencia:", error);
         handleErrorServer(res, 500, "Error interno del servidor");
     }
+}
+
+export async function verificarLicenciasVencidas(req: Request, res: Response): Promise<void> {
+  try {
+    const [actualizaciones, error] = await verificarLicenciasVencidasService();
+
+    if (error) {
+      handleErrorServer(res, 500, error);
+      return;
+    }
+
+    handleSuccess(res, 200, `Se actualizaron ${actualizaciones} estados de trabajadores a Activo`, { actualizaciones });
+  } catch (error) {
+    console.error("Error al verificar licencias vencidas:", error);
+    handleErrorServer(res, 500, "Error interno del servidor");
+  }
 }

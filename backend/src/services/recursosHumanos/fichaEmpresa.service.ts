@@ -197,9 +197,16 @@ export async function actualizarEstadoFichaService(
                 await queryRunner.release();
                 return [null, { message: "No tiene permiso para cambiar el estado de la ficha" }];
             }
+
+            // Si es RRHH, solo permitir cambiar a estado DESVINCULADO
+            if (estado !== EstadoLaboral.DESVINCULADO) {
+                await queryRunner.release();
+                return [null, { message: "RRHH solo puede cambiar el estado a DESVINCULADO. Los estados de LICENCIA y PERMISO se actualizan automáticamente al aprobar solicitudes." }];
+            }
         }
 
-        if (estado === EstadoLaboral.LICENCIA || estado === EstadoLaboral.PERMISO) {
+        // Si es una actualización automática (desde licenciaPermiso.service)
+        if (!userId && (estado === EstadoLaboral.LICENCIA || estado === EstadoLaboral.PERMISO)) {
             if (!fechaInicioDate || !fechaFinDate || !motivo) {
                 await queryRunner.release();
                 return [null, { message: "Se requieren fechas de inicio, fin y motivo para licencias y permisos" }];
@@ -209,48 +216,9 @@ export async function actualizarEstadoFichaService(
                 await queryRunner.release();
                 return [null, { message: "La fecha de fin debe ser posterior a la fecha de inicio" }];
             }
-
-            const hoy = new Date();
-            hoy.setHours(0, 0, 0, 0);
-            if (fechaInicioDate < hoy) {
-                await queryRunner.release();
-                return [null, { message: "La fecha de inicio no puede ser anterior a hoy" }];
-            }
-
-            const licenciaPermisoRepo = queryRunner.manager.getRepository(LicenciaPermiso);
-            const solapamiento = await licenciaPermisoRepo.findOne({
-                where: [
-                    {
-                        trabajador: { id: ficha.trabajador.id },
-                        estado: EstadoSolicitud.APROBADA,
-                        fechaInicio: LessThanOrEqual(fechaFinDate),
-                        fechaFin: MoreThanOrEqual(fechaInicioDate)
-                    }
-                ]
-            });
-
-            if (solapamiento) {
-                await queryRunner.release();
-                return [null, { message: "Las fechas se solapan con otra licencia o permiso existente" }];
-            }
-
-            const nuevaLicenciaPermiso = new LicenciaPermiso();
-            nuevaLicenciaPermiso.trabajador = ficha.trabajador;
-            nuevaLicenciaPermiso.tipo = estado === EstadoLaboral.LICENCIA ? TipoSolicitud.LICENCIA : TipoSolicitud.PERMISO;
-            nuevaLicenciaPermiso.fechaInicio = fechaInicioDate;
-            nuevaLicenciaPermiso.fechaFin = fechaFinDate;
-            nuevaLicenciaPermiso.motivoSolicitud = motivo;
-            nuevaLicenciaPermiso.estado = EstadoSolicitud.APROBADA;
-            if (userId) {
-                const user = await queryRunner.manager.getRepository(User).findOne({ where: { id: userId } });
-                if (user) {
-                    nuevaLicenciaPermiso.revisadoPor = user;
-                }
-            }
-
-            await queryRunner.manager.save(LicenciaPermiso, nuevaLicenciaPermiso);
         }
 
+        // Manejar desvinculación
         if (estado === EstadoLaboral.DESVINCULADO) {
             if (!motivo) {
                 await queryRunner.release();

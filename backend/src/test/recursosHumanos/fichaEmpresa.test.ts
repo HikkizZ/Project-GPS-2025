@@ -211,7 +211,21 @@ describe('📋 Ficha Empresa API', () => {
     });
 
     describe('📊 Estados de Ficha', () => {
-        it('debe permitir a RRHH cambiar el estado de una ficha', async () => {
+        it('debe permitir a RRHH cambiar el estado a DESVINCULADO', async () => {
+            const response = await request(app)
+                .put(`/api/ficha-empresa/${fichaId}/estado`)
+                .set('Authorization', `Bearer ${rrhToken}`)
+                .send({
+                    estado: EstadoLaboral.DESVINCULADO,
+                    motivo: "Término de contrato por bajo rendimiento"
+                });
+
+            expect(response.status).to.equal(200);
+            expect(response.body.status).to.equal("success");
+            expect(response.body.data.estado).to.equal(EstadoLaboral.DESVINCULADO);
+        });
+
+        it('no debe permitir a RRHH cambiar manualmente a estado LICENCIA', async () => {
             const response = await request(app)
                 .put(`/api/ficha-empresa/${fichaId}/estado`)
                 .set('Authorization', `Bearer ${rrhToken}`)
@@ -222,36 +236,39 @@ describe('📋 Ficha Empresa API', () => {
                     motivo: "Licencia médica"
                 });
 
-            expect(response.status).to.equal(200);
-            expect(response.body.status).to.equal("success");
-            expect(response.body.data.estado).to.equal(EstadoLaboral.LICENCIA);
+            expect(response.status).to.equal(400);
+            expect(response.body.status).to.equal("error");
+            expect(response.body.message).to.include("RRHH solo puede cambiar el estado a DESVINCULADO");
         });
 
-        it('debe validar las fechas al cambiar estado', async () => {
+        it('no debe permitir a RRHH cambiar manualmente a estado PERMISO', async () => {
             const response = await request(app)
                 .put(`/api/ficha-empresa/${fichaId}/estado`)
                 .set('Authorization', `Bearer ${rrhToken}`)
                 .send({
                     estado: EstadoLaboral.PERMISO,
-                    fechaInicio: "2024-03-15",
-                    fechaFin: "2024-03-01" // Fecha fin anterior a inicio
+                    fechaInicio: "2024-03-01",
+                    fechaFin: "2024-03-02",
+                    motivo: "Permiso administrativo"
                 });
 
             expect(response.status).to.equal(400);
             expect(response.body.status).to.equal("error");
+            expect(response.body.message).to.include("RRHH solo puede cambiar el estado a DESVINCULADO");
         });
 
-        it('debe requerir fechas para estados temporales', async () => {
+        it('debe requerir motivo para la desvinculación', async () => {
             const response = await request(app)
                 .put(`/api/ficha-empresa/${fichaId}/estado`)
                 .set('Authorization', `Bearer ${rrhToken}`)
                 .send({
-                    estado: EstadoLaboral.PERMISO
-                    // Sin fechas
+                    estado: EstadoLaboral.DESVINCULADO
+                    // Sin motivo
                 });
 
             expect(response.status).to.equal(400);
             expect(response.body.status).to.equal("error");
+            expect(response.body.message).to.include("motivo es requerido");
         });
     });
 
