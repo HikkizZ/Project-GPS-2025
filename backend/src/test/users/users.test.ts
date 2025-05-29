@@ -83,6 +83,11 @@ describe("👥 Users API", () => {
             ]);
         }
         await closeTestApp();
+        // Cerramos la conexión aquí ya que es el último conjunto de pruebas
+        if (AppDataSource.isInitialized) {
+            await AppDataSource.destroy();
+        }
+        console.log("🔒 Fin de todas las pruebas. Base de datos cerrada.");
     });
 
     describe("🔍 Búsqueda y Filtrado", () => {
@@ -112,7 +117,7 @@ describe("👥 Users API", () => {
 
             // Verificar búsqueda por rol
             expect(roleSearch.status).to.equal(200);
-            expect(roleSearch.body.data.some(user => user.role === "Usuario")).to.be.true;
+            expect(roleSearch.body.data.some((user: { role: string }) => user.role === "Usuario")).to.be.true;
         });
 
         it("debe manejar búsquedas sin resultados correctamente", async () => {

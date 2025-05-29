@@ -118,10 +118,8 @@ describe('🔒 Auth API - Registro y Login', () => {
     after(async () => {
         try {
             await closeTestApp();
-            if (AppDataSource.isInitialized) {
-                await AppDataSource.destroy();
-            }
-            console.log("🔒 Fin de las pruebas. Base de datos cerrada.");
+            // No cerramos la conexión aquí para permitir que otras pruebas la usen
+            console.log("🔒 Fin de las pruebas de autenticación.");
         } catch (error) {
             console.error("❌ Error en el cleanup de las pruebas:", error);
         }
