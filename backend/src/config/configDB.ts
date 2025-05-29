@@ -20,7 +20,7 @@ export const AppDataSource = new DataSource({
     password: DB_PASSWORD as string,
     database: DATABASE as string,
     synchronize: true,
-    dropSchema: true,
+    dropSchema: false,
     logging: false,
     entities: [entitiesPath]
 });

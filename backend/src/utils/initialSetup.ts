@@ -11,71 +11,122 @@ export async function initialSetup(): Promise<void> {
         const userRepo = AppDataSource.getRepository(User);
         const trabajadorRepo = AppDataSource.getRepository(Trabajador);
 
-        // Verificar si ya existe el trabajador admin
-        const trabajadorExists = await trabajadorRepo.findOne({
-            where: { rut: "11.111.111-1" }
+        // Crear trabajador y usuario admin si no existen
+        const adminRut = "11.111.111-1";
+        const trabajadorAdminExists = await trabajadorRepo.findOne({
+            where: { rut: adminRut }
         });
 
-        if (trabajadorExists) {
-            console.log("✅ El trabajador admin ya existe");
-            
-            // Verificar si existe el usuario admin
-            const adminExists = await userRepo.findOne({
-                where: { rut: trabajadorExists.rut }
+        if (!trabajadorAdminExists) {
+            // Crear el trabajador admin
+            console.log("=> Creando trabajador admin...");
+            const trabajadorAdmin = trabajadorRepo.create({
+                rut: adminRut,
+                nombres: "Administrador",
+                apellidoPaterno: "Principal",
+                apellidoMaterno: "Sistema",
+                fechaNacimiento: new Date("1990-01-01"),
+                telefono: "+56911111111",
+                correo: "admin.principal@gmail.com",
+                numeroEmergencia: "+56911111111",
+                direccion: "Dirección Principal 123",
+                fechaIngreso: new Date(),
+                enSistema: true
             });
 
-            if (adminExists) {
-                console.log("✅ El usuario admin ya existe");
-                return;
-            }
+            await trabajadorRepo.save(trabajadorAdmin);
+            console.log("✅ Trabajador admin creado con RUT:", adminRut);
 
-            // Si existe el trabajador pero no el usuario, crear solo el usuario
-            const hashedPassword = await encryptPassword("Admin2024");
+            // Crear el usuario admin
+            const hashedAdminPassword = await encryptPassword("Admin2024");
             const userAdmin = userRepo.create({
                 name: "Administrador Principal",
-                rut: trabajadorExists.rut,
-                email: trabajadorExists.correo,
-                password: hashedPassword,
+                rut: adminRut,
+                email: "admin.principal@gmail.com",
+                password: hashedAdminPassword,
                 role: "Administrador" as userRole
             });
 
             await userRepo.save(userAdmin);
-            console.log("✅ Usuario admin creado");
-            return;
+            console.log("✅ Usuario admin creado con RUT:", adminRut);
+        } else {
+            console.log("✅ El trabajador y usuario admin ya existen");
         }
 
-        // Crear el trabajador admin
-        console.log("=> Creando trabajador admin...");
-        const trabajadorAdmin = trabajadorRepo.create({
-            rut: "11.111.111-1",
-            nombres: "Administrador",
-            apellidoPaterno: "Principal",
-            apellidoMaterno: "Sistema",
-            fechaNacimiento: new Date("1990-01-01"),
-            telefono: "+56911111111",
-            correo: "admin.principal@gmail.com",
-            numeroEmergencia: "+56911111111",
-            direccion: "Dirección Principal 123",
-            fechaIngreso: new Date(),
-            enSistema: true
+        // Crear trabajador y usuario RRHH si no existen
+        const rrhhRut = "22.222.222-2";
+        const trabajadorRRHHExists = await trabajadorRepo.findOne({
+            where: { rut: rrhhRut }
         });
 
-        const savedTrabajador = await trabajadorRepo.save(trabajadorAdmin);
-        console.log("✅ Trabajador admin creado con RUT:", savedTrabajador.rut);
+        if (!trabajadorRRHHExists) {
+            // Crear el trabajador RRHH
+            console.log("=> Creando trabajador RRHH...");
+            const trabajadorRRHH = trabajadorRepo.create({
+                rut: rrhhRut,
+                nombres: "Recursos",
+                apellidoPaterno: "Humanos",
+                apellidoMaterno: "Principal",
+                fechaNacimiento: new Date("1990-01-01"),
+                telefono: "+56922222222",
+                correo: "recursoshumanos@gmail.com",
+                numeroEmergencia: "+56922222222",
+                direccion: "Dirección RRHH 123",
+                fechaIngreso: new Date(),
+                enSistema: true
+            });
 
-        // Crear el usuario admin
-        console.log("=> Creando usuario admin...");
-        const hashedPassword = await encryptPassword("Admin2024");
-        const userAdmin = userRepo.create({
-            name: "Administrador Principal",
-            rut: savedTrabajador.rut,
-            email: savedTrabajador.correo,
-            password: hashedPassword,
-            role: "Administrador" as userRole
-        });
+            await trabajadorRepo.save(trabajadorRRHH);
+            console.log("✅ Trabajador RRHH creado con RUT:", rrhhRut);
 
-        const savedUser = await userRepo.save(userAdmin);
-        console.log("✅ Usuario admin creado con RUT:", savedUser.rut);
+            // Crear el usuario RRHH
+            console.log("=> Creando usuario RRHH...");
+            const hashedRRHHPassword = await encryptPassword("RRHH2024");
+            const userRRHH = userRepo.create({
+                name: "Recursos Humanos Principal",
+                rut: rrhhRut,
+                email: "recursoshumanos@gmail.com",
+                password: hashedRRHHPassword,
+                role: "RecursosHumanos" as userRole
+            });
+
+            await userRepo.save(userRRHH);
+            console.log("✅ Usuario RRHH creado:", {
+                email: userRRHH.email,
+                role: userRRHH.role,
+                rut: userRRHH.rut
+            });
+        } else {
+            // Verificar si existe el usuario RRHH
+            const userRRHHExists = await userRepo.findOne({
+                where: { rut: rrhhRut }
+            });
+
+            if (!userRRHHExists) {
+                console.log("=> Creando usuario RRHH (trabajador ya existe)...");
+                const hashedRRHHPassword = await encryptPassword("RRHH2024");
+                const userRRHH = userRepo.create({
+                    name: "Recursos Humanos Principal",
+                    rut: rrhhRut,
+                    email: "recursoshumanos@gmail.com",
+                    password: hashedRRHHPassword,
+                    role: "RecursosHumanos" as userRole
+                });
+
+                await userRepo.save(userRRHH);
+                console.log("✅ Usuario RRHH creado:", {
+                    email: userRRHH.email,
+                    role: userRRHH.role,
+                    rut: userRRHH.rut
+                });
+            } else {
+                console.log("✅ Usuario RRHH ya existe:", {
+                    email: userRRHHExists.email,
+                    role: userRRHHExists.role,
+                    rut: userRRHHExists.rut
+                });
+            }
+        }
 
         console.log("✅ Configuración inicial completada con éxito");
     } catch (error) {

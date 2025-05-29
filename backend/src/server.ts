@@ -13,11 +13,14 @@ import { connectDB } from "./config/configDB.js";
 import { cookieKey, PORT, HOST } from "./config/configEnv.js";
 import { passportJWTSetup } from "./auth/passport.auth.js";
 import { initialSetup } from "./utils/initialSetup.js";
+import { authenticateJWT } from "./middlewares/authentication.middleware.js";
+
+// Exportar la aplicación y el servidor para las pruebas
+export const app: Application = express();
+export let server: any;
 
 async function setupServer(): Promise<void> {
     try {
-        const app: Application = express();
-
         app.disable("x-powered-by");
 
         app.use(cors({
@@ -55,9 +58,16 @@ async function setupServer(): Promise<void> {
 
         passportJWTSetup();
 
+        // Rutas públicas (sin autenticación)
+        app.use("/api/auth", indexRoutes);
+
+        // Middleware de autenticación para rutas protegidas
+        app.use("/api/*", authenticateJWT);
+
+        // Resto de rutas (protegidas)
         app.use("/api", indexRoutes);
 
-        app.listen(PORT, () => {
+        server = app.listen(PORT, () => {
             console.log(`✅ Server running on http://${HOST}:${PORT}/api`);
         });
     } catch (error) {
@@ -65,10 +75,8 @@ async function setupServer(): Promise<void> {
     }
 }
 
-export async function setupTestServer(): Promise<Application> {
+export async function setupTestServer(): Promise<{ app: Application; server: any }> {
     try {
-        const app: Application = express();
-
         app.disable("x-powered-by");
 
         app.use(cors({
@@ -106,14 +114,23 @@ export async function setupTestServer(): Promise<Application> {
 
         passportJWTSetup();
 
+        // Rutas públicas (sin autenticación)
+        app.use("/api/auth", indexRoutes);
+
+        // Middleware de autenticación para rutas protegidas
+        app.use("/api/*", authenticateJWT);
+
+        // Resto de rutas (protegidas)
         app.use("/api", indexRoutes);
 
         await connectDB();
         await initialSetup();
 
+        server = app.listen(0); // Usar puerto aleatorio para pruebas
+
         console.log("✅ Test server running. DB connected, initial setup done.");
 
-        return app;
+        return { app, server };
     } catch (error) {
         console.error("❌ Error starting the test server: -> setupTestServer(). Error: ", error);
         throw error;
@@ -130,6 +147,9 @@ async function setupAPI(): Promise<void> {
     }
 }
 
-setupAPI()
-    .then(() => console.log("✅ API started successfully."))
-    .catch((error) => console.error("❌ Error starting the API: ", error));
+// Solo iniciar el servidor si no estamos en modo de prueba
+if (process.env.NODE_ENV !== 'test') {
+    setupAPI()
+        .then(() => console.log("✅ API started successfully."))
+        .catch((error) => console.error("❌ Error starting the API: ", error));
+}
