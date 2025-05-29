@@ -5,7 +5,7 @@ import { authValidation, registerValidation } from "../validations/auth.validati
 
 /* Login controller */
 export async function login(req: Request, res: Response): Promise<void> {
-    try {
+  try {
         const { body } = req;
 
         // Validaciones básicas
@@ -14,8 +14,8 @@ export async function login(req: Request, res: Response): Promise<void> {
                 status: "error",
                 message: "El email es requerido."
             });
-            return;
-        }
+      return;
+    }
 
         if (typeof body.email !== "string") {
             res.status(400).json({
@@ -30,8 +30,8 @@ export async function login(req: Request, res: Response): Promise<void> {
                 status: "error",
                 message: "La contraseña es requerida."
             });
-            return;
-        }
+      return;
+    }
 
         if (typeof body.password !== "string") {
             res.status(400).json({
@@ -69,13 +69,13 @@ export async function login(req: Request, res: Response): Promise<void> {
                 token: accessToken
             }
         });
-    } catch (error) {
+  } catch (error) {
         console.error("❌ Error en login controller:", error);
         res.status(500).json({
             status: "error",
             message: "Error interno del servidor."
         });
-    }
+  }
 }
 
 /* Register controller */
@@ -186,10 +186,10 @@ export async function register(req: Request, res: Response): Promise<void> {
 
 /* Logout controller */
 export async function logout(_req: Request, res: Response): Promise<void> {
-    try {
-        res.clearCookie("jwt", { httpOnly: true });
+  try {
+    res.clearCookie("jwt", { httpOnly: true });
         handleSuccess(res, 200, "Sesión cerrada exitosamente.", {});
-    } catch (error) {
-        handleErrorServer(res, 500, (error as Error).message);
-    }
+  } catch (error) {
+    handleErrorServer(res, 500, (error as Error).message);
+  }
 }

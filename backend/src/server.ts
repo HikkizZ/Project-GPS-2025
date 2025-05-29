@@ -149,7 +149,7 @@ async function setupAPI(): Promise<void> {
 
 // Solo iniciar el servidor si no estamos en modo de prueba
 if (process.env.NODE_ENV !== 'test') {
-    setupAPI()
-        .then(() => console.log("✅ API started successfully."))
-        .catch((error) => console.error("❌ Error starting the API: ", error));
+setupAPI()
+    .then(() => console.log("✅ API started successfully."))
+    .catch((error) => console.error("❌ Error starting the API: ", error));
 }

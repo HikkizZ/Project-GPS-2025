@@ -10,30 +10,30 @@ import { Trabajador } from "../entity/recursosHumanos/trabajador.entity.js";
 
 /* Interface for the user data */
 interface LoginData {
-    email: string;
-    password: string;
+  email: string;
+  password: string;
 }
 
 interface RegisterData {
-    name: string;
-    rut: string;
-    email: string;
-    password: string;
-    role: userRole;
+  name: string;
+  rut: string;
+  email: string;
+  password: string;
+  role: userRole;
 }
 
 /* Interface for JWT Payload */
 interface JWTPayload {
-    name: string;
-    email: string;
+  name: string;
+  email: string;
     role: string;
-    rut: string;
+  rut: string;
 }
 
 /* Interface for error messages */
 interface authError {
-    dataInfo: Partial<LoginData | RegisterData>;
-    message: string;
+  dataInfo: Partial<LoginData | RegisterData>;
+  message: string;
 }
 
 /* Definición de roles permitidos */
@@ -43,9 +43,9 @@ const allowedRoles = ["Administrador", "RecursosHumanos", "Usuario"];
 const createErrorMessage = (dataInfo: Partial<LoginData | RegisterData>, message: string): authError => ({ dataInfo, message });
 
 export async function loginService(user: LoginData): Promise<[string | null, authError | string | null]> {
-    try {
+  try {
         const userRepository = AppDataSource.getRepository(User);
-        const { email, password } = user;
+    const { email, password } = user;
 
         // Validaciones básicas
         if (!email || email.trim() === "") {
@@ -89,17 +89,17 @@ export async function loginService(user: LoginData): Promise<[string | null, aut
             return [null, createErrorMessage({ email }, "El email ingresado no está registrado.")];
         }
 
-        const isMatch = await comparePassword(password, userFound.password);
+    const isMatch = await comparePassword(password, userFound.password);
         if (!isMatch) {
             return [null, createErrorMessage({ password }, "La contraseña ingresada es incorrecta.")];
         }
 
-        const payload: JWTPayload = {
-            name: userFound.name,
-            email: userFound.email,
+    const payload: JWTPayload = {
+      name: userFound.name,
+      email: userFound.email,
             role: userFound.role,
-            rut: userFound.rut
-        };
+      rut: userFound.rut
+    };
 
         if (!ACCESS_TOKEN_SECRET) {
             return [null, "Error interno del servidor. Falta la clave secreta."];
@@ -107,17 +107,17 @@ export async function loginService(user: LoginData): Promise<[string | null, aut
 
         const accessToken = jwt.sign(payload, ACCESS_TOKEN_SECRET, { expiresIn: "1d" });
         return [accessToken, null];
-    } catch (error) {
+  } catch (error) {
         console.error("❌ Error en login: ", error);
-        return [null, "Error interno del servidor."];
-    }
+    return [null, "Error interno del servidor."];
+  }
 }
 
 export async function registerService(user: RegisterData, userRole: string): Promise<[UserResponse | null, authError | string | null]> {
-    try {
+  try {
         const userRepository = AppDataSource.getRepository(User);
         const trabajadorRepository = AppDataSource.getRepository(Trabajador);
-        const { name, rut, email, password, role } = user;
+    const { name, rut, email, password, role } = user;
 
         // Validaciones básicas
         if (!name || name.trim() === "") {
@@ -218,18 +218,18 @@ export async function registerService(user: RegisterData, userRole: string): Pro
         }
 
         const newUser = userRepository.create({
-            name,
-            rut,
-            email,
+      name,
+      rut,
+      email,
             password: await encryptPassword(password),
             role
-        });
+    });
 
         await userRepository.save(newUser);
 
         const { password: _, ...userData } = newUser;
 
-        const userResponse: UserResponse = {
+    const userResponse: UserResponse = {
             id: userData.id,
             name: userData.name,
             rut: userData.rut,
@@ -237,11 +237,11 @@ export async function registerService(user: RegisterData, userRole: string): Pro
             role: userData.role,
             createAt: formatToLocalTime(userData.createAt),
             updateAt: formatToLocalTime(userData.updateAt)
-        };
+    };
 
-        return [userResponse, null];
-    } catch (error) {
+    return [userResponse, null];
+  } catch (error) {
         console.error("❌ Error registering user: ", error);
         return [null, "Error interno del servidor."];
-    }
+  }
 }

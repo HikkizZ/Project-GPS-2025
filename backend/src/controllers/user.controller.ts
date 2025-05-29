@@ -20,7 +20,7 @@ export async function searchUsers(req: Request, res: Response): Promise<void> {
         const [users, error] = await searchUsersService(query);
 
         if (error) {
-            handleErrorClient(res, 404, error);
+            handleErrorClient(res, 500, "Error interno del servidor", error);
             return;
         }
 
@@ -40,13 +40,17 @@ export async function getUser(req: Request, res: Response): Promise<void> {
         const [users, error] = await getUserService(query);
 
         if (error) {
+            if (error.includes("inválido") || error.includes("formato")) {
+                handleErrorClient(res, 400, error);
+                return;
+            }
             handleErrorClient(res, 404, error);
             return;
         }
 
         res.status(200).json({
             status: "success",
-            data: users
+            data: users || []
         });
     } catch (error) {
         handleErrorClient(res, 500, "Error interno del servidor", error);
@@ -78,38 +82,21 @@ export async function updateUser(req: Request, res: Response): Promise<void> {
         const rut = req.query.rut as string | undefined;
         const email = req.query.email as string | undefined;
         const id = req.query.id ? parseInt(req.query.id as string) : undefined;
-
-        // Validar que si se proporciona un ID, sea un número válido
-        if (req.query.id && isNaN(id!)) {
-            handleErrorClient(res, 400, "El ID debe ser un número válido");
-            return;
-        }
-
         const { body } = req;
         const requester = req.user as User;
 
-        const { error: errorQuery } = userQueryValidation.validate({ rut, email, id });
+        const [updatedUser, error] = await updateUserService({ rut, email, id }, body, requester);
 
-        if (errorQuery) {
-            handleErrorClient(res, 400, "Error en la validación de la consulta", { message: errorQuery.message });
-            return;
-        }
-
-        // Solo validar el campo role
-        if (!body.role) {
-            handleErrorClient(res, 400, "El campo role es requerido");
-            return;
-        }
-
-        const [updatedUser, errorUpdate] = await updateUserService({ rut, email, id }, body, requester);
-
-        if (errorUpdate) {
-            handleErrorClient(res, 404, errorUpdate);
-            return;
-        }
-
-        if (!updatedUser) {
-            handleErrorClient(res, 404, "No se encontró el usuario a actualizar");
+        if (error) {
+            if (error.includes("inválido") || error.includes("formato") || error.includes("requerido")) {
+                handleErrorClient(res, 400, error);
+                return;
+            }
+            if (error.includes("No tienes permisos") || error.includes("No se puede modificar")) {
+                handleErrorClient(res, 403, error);
+                return;
+            }
+            handleErrorClient(res, 404, error);
             return;
         }
 
@@ -126,24 +113,18 @@ export async function deleteUser(req: Request, res: Response): Promise<void> {
         const email = req.query.email as string | undefined;
         const id = req.query.id ? Number(req.query.id) : undefined;
 
-        const { error: queryError } = userQueryValidation.validate({ rut, email, id });
+        const [deletedUser, error] = await deleteUserService({ rut, email, id }, req.user!);
 
-        if (queryError) {
-            console.log("Error en la validación de la consulta:");
-            handleErrorClient(res, 400, "Error en la validación de la consulta", { message: queryError.message });
-            return;
-        }
-
-        const [deletedUser, errorDelete] = await deleteUserService({ rut, email, id }, req.user!);
-
-        if (errorDelete) {
-            const message = typeof errorDelete === 'string' ? errorDelete : errorDelete.message;
-            handleErrorClient(res, 404, message);
-            return;
-        }
-
-        if (!deletedUser) {
-            handleErrorClient(res, 404, "No se encontró el usuario a eliminar.");
+        if (error) {
+            if (error.includes("inválido") || error.includes("formato")) {
+                handleErrorClient(res, 400, error);
+                return;
+            }
+            if (error.includes("No tienes permisos") || error.includes("No se puede eliminar")) {
+                handleErrorClient(res, 403, error);
+                return;
+            }
+            handleErrorClient(res, 404, error);
             return;
         }
 
