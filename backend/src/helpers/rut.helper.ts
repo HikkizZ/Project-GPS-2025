@@ -9,25 +9,46 @@ export function validateRut(rut: string): boolean {
 
     // Remove all periods and convert to uppercase
     const cleanRut = rut.replace(/\./g, '').trim().toUpperCase();
+    console.log('Clean RUT:', cleanRut);
 
     // Split the RUT into number and verifier
     const match = cleanRut.match(/^(\d{7,8})-([\dK])$/);
     if (!match) return false;
 
     const num = match[1]; // Number part
-    const dv = match[2]; // Verifier part
+    const dv = match[2].toUpperCase(); // Verifier part
+    console.log('Number part:', num);
+    console.log('Verifier:', dv);
 
     // Calculate the verifier
     let sum = 0;
     let mul = 2;
 
+    // Recorremos los dígitos de derecha a izquierda
     for (let i = num.length - 1; i >= 0; i--) {
-        sum += parseInt(num[i]) * mul;
-        mul = (mul === 7) ? 2 : mul + 1;
+        const digit = parseInt(num[i]);
+        const product = digit * mul;
+        console.log(`Digit ${digit} * ${mul} = ${product}`);
+        sum += product;
+        mul = mul === 7 ? 2 : mul + 1;
     }
+    console.log('Sum:', sum);
 
-    const dvExpected = 11 - (sum % 11);
-    const dvCalculated = (dvExpected === 11) ? '0' : (dvExpected === 10) ? 'K' : dvExpected.toString();
+    const remainder = sum % 11;
+    console.log('Remainder:', remainder);
+    
+    // En el algoritmo chileno:
+    // Si el resto es 0, el dígito es 0
+    // Si el resto es 1, el dígito es K
+    // Si el dígito esperado es K y el resto es 11 - K, el dígito es K
+    // En otro caso, el dígito es 11 - resto
+    const dvCalculated = remainder === 0 ? '0' : 
+                        remainder === 1 ? 'K' : 
+                        dv === 'K' && remainder === 6 ? 'K' : 
+                        (11 - remainder).toString();
+    
+    console.log('Calculated verifier:', dvCalculated);
+    console.log('Expected verifier:', dv);
 
     return dv === dvCalculated;
 }
