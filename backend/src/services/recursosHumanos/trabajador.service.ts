@@ -60,42 +60,38 @@ export async function createTrabajadorService(trabajadorData: Partial<Trabajador
         });
         const trabajadorGuardado = await trabajadorRepo.save(trabajador);
 
-        // Crear la ficha de empresa asociada si se proporcionaron datos
-        if (trabajadorData.fichaEmpresa) {
-            const fichaData: DeepPartial<FichaEmpresa> = {
-                cargo: trabajadorData.fichaEmpresa.cargo ?? "Sin cargo",
-                area: trabajadorData.fichaEmpresa.area ?? "Sin área",
-                empresa: trabajadorData.fichaEmpresa.empresa,
-                tipoContrato: trabajadorData.fichaEmpresa.tipoContrato ?? "Indefinido",
-                jornadaLaboral: trabajadorData.fichaEmpresa.jornadaLaboral,
-                sueldoBase: trabajadorData.fichaEmpresa.sueldoBase ?? 0,
-                trabajador: trabajadorGuardado,
-                estado: EstadoLaboral.ACTIVO,
-                fechaInicioContrato: trabajadorGuardado.fechaIngreso,
-                contratoURL: trabajadorData.fichaEmpresa.contratoURL
-            };
+        // SIEMPRE crear la ficha de empresa con valores por defecto
+        const fichaData: DeepPartial<FichaEmpresa> = {
+            cargo: trabajadorData.fichaEmpresa?.cargo ?? "Sin cargo",
+            area: trabajadorData.fichaEmpresa?.area ?? "Sin área", 
+            empresa: trabajadorData.fichaEmpresa?.empresa ?? "GPS",
+            tipoContrato: trabajadorData.fichaEmpresa?.tipoContrato ?? "Indefinido",
+            jornadaLaboral: trabajadorData.fichaEmpresa?.jornadaLaboral ?? "Por definir",
+            sueldoBase: trabajadorData.fichaEmpresa?.sueldoBase ?? 0,
+            trabajador: trabajadorGuardado,
+            estado: EstadoLaboral.ACTIVO,
+            fechaInicioContrato: trabajadorGuardado.fechaIngreso,
+            contratoURL: trabajadorData.fichaEmpresa?.contratoURL
+        };
 
-            const ficha = fichaRepo.create(fichaData);
-            const fichaGuardada = await fichaRepo.save(ficha);
+        const ficha = fichaRepo.create(fichaData);
+        const fichaGuardada = await fichaRepo.save(ficha);
 
-            // Actualizar el trabajador con la referencia a la ficha
-            trabajadorGuardado.fichaEmpresa = fichaGuardada;
-            await trabajadorRepo.save(trabajadorGuardado);
+        // Actualizar el trabajador con la referencia a la ficha
+        trabajadorGuardado.fichaEmpresa = fichaGuardada;
+        await trabajadorRepo.save(trabajadorGuardado);
 
-            // Recargar el trabajador con todas sus relaciones
-            const trabajadorCompleto = await trabajadorRepo.findOne({
-                where: { id: trabajadorGuardado.id },
-                relations: ["fichaEmpresa"]
-            });
+        // Recargar el trabajador con todas sus relaciones
+        const trabajadorCompleto = await trabajadorRepo.findOne({
+            where: { id: trabajadorGuardado.id },
+            relations: ["fichaEmpresa"]
+        });
 
-            if (!trabajadorCompleto) {
-                throw new Error("No se pudo recargar el trabajador después de crear la ficha");
-            }
-
-            return [trabajadorCompleto, null];
+        if (!trabajadorCompleto) {
+            throw new Error("No se pudo recargar el trabajador después de crear la ficha");
         }
 
-        return [trabajadorGuardado, null];
+        return [trabajadorCompleto, null];
     } catch (error) {
         console.error("Error en createTrabajadorService:", error);
         return [null, "Error interno del servidor"];

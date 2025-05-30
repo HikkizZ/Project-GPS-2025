@@ -9,7 +9,7 @@ describe('👥 Trabajadores API', () => {
     let adminToken: string;
     let rrhToken: string;
     const uniqueTimestamp = Date.now();
-    const validRut = "33.456.789-3";
+    const validRut = `38.${uniqueTimestamp.toString().slice(-6)}-7`;
     const uniqueEmail = `juan.perez.trabajador.${uniqueTimestamp}@gmail.com`;
     let trabajadorId: number;
 

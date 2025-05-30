@@ -151,7 +151,23 @@ async function setupAPI(): Promise<void> {
 
 // Solo iniciar el servidor si no estamos en modo de prueba
 if (process.env.NODE_ENV !== 'test') {
-setupAPI()
-    .then(() => console.log("✅ API started successfully."))
-    .catch((error) => console.error("❌ Error starting the API: ", error));
+    // Protección adicional: verificar que no se esté ejecutando desde un comando de test
+    const isTestCommand = process.argv.some(arg => 
+        arg.includes('mocha') || 
+        arg.includes('test') || 
+        arg.includes('.test.') ||
+        process.env.npm_lifecycle_event?.includes('test')
+    );
+
+    if (isTestCommand) {
+        console.log("⚠️ Detectado comando de test. El servidor NO se iniciará para evitar contaminación de datos.");
+        console.log("   Use 'npm run dev' o 'npm start' para iniciar el servidor.");
+        process.exit(0);
+    }
+
+    setupAPI()
+        .then(() => console.log("✅ API started successfully."))
+        .catch((error) => console.error("❌ Error starting the API: ", error));
+} else {
+    console.log("🧪 Modo TEST detectado. Servidor no iniciado automáticamente.");
 }

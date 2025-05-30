@@ -1,0 +1,68 @@
+export enum EstadoLaboral {
+  ACTIVO = "Activo",
+  LICENCIA = "Licencia", 
+  PERMISO = "Permiso administrativo",
+  DESVINCULADO = "Desvinculado"
+}
+
+export interface FichaEmpresa {
+  id: number;
+  trabajador: {
+    id: number;
+    nombres: string;
+    apellidoPaterno: string;
+    apellidoMaterno: string;
+    rut: string;
+  };
+  cargo: string;
+  area: string;
+  empresa: string;
+  tipoContrato: string;
+  jornadaLaboral: string;
+  sueldoBase: number;
+  fechaInicioContrato: Date | string;
+  fechaFinContrato?: Date | string | null;
+  estado: EstadoLaboral;
+  contratoURL?: string | null;
+}
+
+export interface FichaEmpresaSearchQuery {
+  trabajadorId?: number;
+  rut?: string;
+  estado?: EstadoLaboral;
+  cargo?: string;
+  area?: string;
+  empresa?: string;
+  tipoContrato?: string;
+  jornadaLaboral?: string;
+  sueldoBaseDesde?: number;
+  sueldoBaseHasta?: number;
+  fechaInicioDesde?: Date | string;
+  fechaInicioHasta?: Date | string;
+  fechaFinDesde?: Date | string;
+  fechaFinHasta?: Date | string;
+}
+
+export interface UpdateFichaEmpresaData {
+  cargo?: string;
+  area?: string;
+  empresa?: string;
+  tipoContrato?: string;
+  jornadaLaboral?: string;
+  sueldoBase?: number;
+  fechaFinContrato?: Date | string;
+  contratoURL?: string;
+}
+
+export interface ActualizarEstadoData {
+  estado: EstadoLaboral;
+  fechaInicio?: Date | string;
+  fechaFin?: Date | string;
+  motivo?: string;
+}
+
+export interface FichaEmpresaResponse {
+  fichaEmpresa?: FichaEmpresa;
+  fichas?: FichaEmpresa[];
+  error?: string;
+} 

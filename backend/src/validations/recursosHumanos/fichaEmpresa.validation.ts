@@ -64,22 +64,21 @@ export const FichaEmpresaBodyValidation = Joi.object({
         }),
 
     tipoContrato: Joi.string()
-        .min(3)
+        .min(2)
         .max(50)
         .messages({
-            "string.base": "El tipo de contrato debe ser una cadena de texto.",
-            "string.min": "El tipo de contrato debe tener al menos 3 caracteres.",
-            "string.max": "El tipo de contrato no puede exceder los 50 caracteres."
+            "string.base": "El tipo de contrato debe ser una cadena de texto",
+            "string.min": "El tipo de contrato debe tener al menos 2 caracteres",
+            "string.max": "El tipo de contrato no puede exceder los 50 caracteres"
         }),
 
     jornadaLaboral: Joi.string()
-        .min(3)
+        .min(2)
         .max(50)
-        .allow(null)
         .messages({
-            "string.base": "La jornada laboral debe ser una cadena de texto.",
-            "string.min": "La jornada laboral debe tener al menos 3 caracteres.",
-            "string.max": "La jornada laboral no puede exceder los 50 caracteres."
+            "string.base": "La jornada laboral debe ser una cadena de texto",
+            "string.min": "La jornada laboral debe tener al menos 2 caracteres",
+            "string.max": "La jornada laboral no puede exceder los 50 caracteres"
         }),
 
     sueldoBase: Joi.number()
@@ -101,11 +100,11 @@ export const FichaEmpresaBodyValidation = Joi.object({
     fechaFinContrato: Joi.date()
         .iso()
         .min(Joi.ref('fechaInicioContrato'))
-        .allow(null)
+        .allow(null, '')
         .messages({
-            "date.base": "La fecha de fin debe ser una fecha válida.",
-            "date.format": "La fecha de fin debe estar en formato YYYY-MM-DD",
-            "date.min": "La fecha de fin debe ser posterior a la fecha de inicio"
+            "date.base": "La fecha de fin de contrato debe ser una fecha válida",
+            "date.format": "La fecha de fin de contrato debe estar en formato YYYY-MM-DD",
+            "date.min": "La fecha de fin de contrato no puede ser anterior a la fecha de inicio"
         }),
 
     estado: Joi.string()
@@ -153,17 +152,21 @@ export const FichaEmpresaUpdateValidation = Joi.object({
         }),
 
     tipoContrato: Joi.string()
-        .valid("Indefinido", "Plazo Fijo", "Por Obra", "Part-Time")
+        .min(2)
+        .max(50)
         .messages({
             "string.base": "El tipo de contrato debe ser una cadena de texto",
-            "any.only": "El tipo de contrato debe ser uno de los siguientes: Indefinido, Plazo Fijo, Por Obra, Part-Time"
+            "string.min": "El tipo de contrato debe tener al menos 2 caracteres",
+            "string.max": "El tipo de contrato no puede exceder los 50 caracteres"
         }),
 
     jornadaLaboral: Joi.string()
-        .valid("Completa", "Media", "Part-Time")
+        .min(2)
+        .max(50)
         .messages({
             "string.base": "La jornada laboral debe ser una cadena de texto",
-            "any.only": "La jornada laboral debe ser una de las siguientes: Completa, Media, Part-Time"
+            "string.min": "La jornada laboral debe tener al menos 2 caracteres",
+            "string.max": "La jornada laboral no puede exceder los 50 caracteres"
         }),
 
     sueldoBase: Joi.number()
@@ -182,11 +185,18 @@ export const FichaEmpresaUpdateValidation = Joi.object({
 
     fechaFinContrato: Joi.date()
         .iso()
-        .min('now')
+        .allow(null, '')
         .messages({
             "date.base": "La fecha de fin de contrato debe ser una fecha válida",
-            "date.format": "La fecha de fin de contrato debe estar en formato YYYY-MM-DD",
-            "date.min": "La fecha de fin de contrato no puede ser anterior a hoy"
+            "date.format": "La fecha de fin de contrato debe estar en formato YYYY-MM-DD"
+        }),
+
+    contratoURL: Joi.string()
+        .uri()
+        .allow(null, '')
+        .messages({
+            "string.uri": "La URL del contrato debe ser una URL válida",
+            "string.base": "La URL del contrato debe ser una cadena de texto"
         })
 }).min(1).messages({
     "object.min": "Debe proporcionar al menos un campo para actualizar"

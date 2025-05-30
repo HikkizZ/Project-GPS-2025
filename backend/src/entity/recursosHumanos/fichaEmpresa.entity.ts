@@ -55,5 +55,5 @@ export class FichaEmpresa {
   estado!: EstadoLaboral;
 
   @Column({ type: "varchar", length: 255, nullable: true })
-  contratoURL!: string;
+  contratoURL!: string | null;
 }

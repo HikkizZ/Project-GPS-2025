@@ -7,8 +7,11 @@ import {
     updateFichaEmpresa,
     actualizarEstadoFicha,
     descargarContrato,
-    getMiFicha
+    getMiFicha,
+    uploadContrato,
+    deleteContrato
 } from "../../controllers/recursosHumanos/fichaEmpresa.controller.js";
+import { uploadContrato as uploadMiddleware } from "../../config/fileUpload.config.js";
 
 const router: Router = Router();
 
@@ -19,13 +22,15 @@ router.use(authenticateJWT);
 router.get("/mi-ficha", getMiFicha);
 router.get("/:id/contrato", descargarContrato);
 
-// Rutas protegidas para RRHH
-router.use(verifyRole(["RecursosHumanos"]));
+// Rutas protegidas para RRHH y Admin
+router.use(verifyRole(["RecursosHumanos", "Administrador"]));
 
 router
     .get("/search", getFichasEmpresa)
     .get("/:id", getFichaEmpresa)
     .put("/:id", updateFichaEmpresa)
-    .put("/:id/estado", actualizarEstadoFicha);
+    .put("/:id/estado", actualizarEstadoFicha)
+    .post("/:id/upload-contrato", uploadMiddleware.single('contrato'), uploadContrato)
+    .delete("/:id/delete-contrato", deleteContrato);
 
 export default router; 

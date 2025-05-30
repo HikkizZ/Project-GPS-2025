@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import { Application } from "express";
 import request from "supertest";
-import { setupTestApp, closeTestApp } from "../setup.js";
+import { setupTestApp, closeTestApp, cleanupAllTestData } from "../setup.js";
 import { AppDataSource } from "../../config/configDB.js";
 import { User } from "../../entity/user.entity.js";
 import { Trabajador } from "../../entity/recursosHumanos/trabajador.entity.js";
@@ -76,18 +76,15 @@ describe("👥 Users API", () => {
     });
 
     after(async () => {
-        if (testTrabajador) {
-            await Promise.all([
-                AppDataSource.getRepository(User).delete({ rut: testTrabajador.rut }),
-                AppDataSource.getRepository(Trabajador).delete({ rut: testTrabajador.rut })
-            ]);
-        }
+        // Limpiar TODOS los datos de prueba automáticamente
+        await cleanupAllTestData();
         await closeTestApp();
-        // Cerramos la conexión aquí ya que es el último conjunto de pruebas
+        
+        // Cerrar la conexión de base de datos
         if (AppDataSource.isInitialized) {
             await AppDataSource.destroy();
         }
-        console.log("🔒 Fin de todas las pruebas. Base de datos cerrada.");
+        console.log("🔒 Tests finalizados. Base de datos limpiada y cerrada.");
     });
 
     describe("🔍 Búsqueda y Filtrado", () => {
