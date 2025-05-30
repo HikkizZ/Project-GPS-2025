@@ -8,7 +8,9 @@ describe('👥 Trabajadores API', () => {
     let server: any;
     let adminToken: string;
     let rrhToken: string;
-    const validRut = "33.333.333-3";
+    const uniqueTimestamp = Date.now();
+    const validRut = "33.456.789-3";
+    const uniqueEmail = `juan.perez.trabajador.${uniqueTimestamp}@gmail.com`;
     let trabajadorId: number;
 
     before(async () => {
@@ -60,6 +62,23 @@ describe('👥 Trabajadores API', () => {
 
     describe('✨ Creación de Trabajador', () => {
         it('debe permitir crear un nuevo trabajador con datos válidos', async () => {
+            // Limpiar trabajador existente si existe
+            try {
+                const existingWorker = await request(app)
+                    .get('/api/trabajador/detail')
+                    .set('Authorization', `Bearer ${rrhToken}`)
+                    .query({ rut: validRut });
+                
+                if (existingWorker.status === 200 && existingWorker.body.data && existingWorker.body.data.length > 0) {
+                    await request(app)
+                        .delete(`/api/trabajador/${existingWorker.body.data[0].id}`)
+                        .set('Authorization', `Bearer ${rrhToken}`);
+                    console.log('✅ Trabajador existente eliminado');
+                }
+            } catch (error) {
+                console.log('🔄 No hay trabajador previo para limpiar');
+            }
+
             const response = await request(app)
                 .post('/api/trabajador')
                 .set('Authorization', `Bearer ${rrhToken}`)
@@ -70,7 +89,7 @@ describe('👥 Trabajadores API', () => {
                     rut: validRut,
                     fechaNacimiento: "1990-01-01",
                     telefono: "+56912345678",
-                    correo: "juan.perez@gmail.com",
+                    correo: uniqueEmail,
                     numeroEmergencia: "+56987654321",
                     direccion: "Av. Principal 123",
                     fechaIngreso: "2024-01-01",
@@ -84,6 +103,14 @@ describe('👥 Trabajadores API', () => {
                     }
                 });
 
+            console.log('Response status:', response.status);
+            console.log('Response body:', response.body);
+            
+            if (response.status !== 201) {
+                console.log('❌ Error en creación de trabajador:', response.body);
+                throw new Error(`Creación falló: ${response.body.message}`);
+            }
+            
             expect(response.status).to.equal(201);
             expect(response.body.status).to.equal("success");
             expect(response.body.data).to.have.property("id");
@@ -124,7 +151,7 @@ describe('👥 Trabajadores API', () => {
                     rut: "44.444.444-4",
                     fechaNacimiento: "1992-05-15",
                     telefono: "+56912345678",
-                    correo: "juan.perez@gmail.com", // Correo duplicado
+                    correo: uniqueEmail,
                     numeroEmergencia: "+56987654321",
                     direccion: "Calle Nueva 789",
                     fechaIngreso: "2024-01-01",
@@ -187,7 +214,7 @@ describe('👥 Trabajadores API', () => {
             const response = await request(app)
                 .get('/api/trabajador/detail')
                 .set('Authorization', `Bearer ${rrhToken}`)
-                .query({ rut: "99.999.999-9" });
+                .query({ rut: "98.765.432-1" });
 
             expect(response.status).to.equal(404);
             expect(response.body.status).to.equal("error");

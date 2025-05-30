@@ -5,6 +5,7 @@ import {
   getLicenciaPermisoByIdService,
   updateLicenciaPermisoService,
   deleteLicenciaPermisoService,
+  descargarArchivoLicenciaService,
   verificarLicenciasVencidasService
 } from "../../services/recursosHumanos/licenciaPermiso.service.js";
 import { User } from "../../entity/user.entity.js";
@@ -15,6 +16,7 @@ import { LicenciaPermiso } from "../../entity/recursosHumanos/licenciaPermiso.en
 import path from "path";
 import fs from "fs";
 import { Trabajador } from "../../entity/recursosHumanos/trabajador.entity.js";
+import { FileManagementService } from "../../services/fileManagement.service.js";
 
 export async function createLicenciaPermiso(req: Request, res: Response): Promise<void> {
   try {
@@ -36,11 +38,17 @@ export async function createLicenciaPermiso(req: Request, res: Response): Promis
     // Asignar el trabajadorId encontrado
     const requestData = {
       ...req.body,
-      trabajadorId: trabajador.id
+      trabajadorId: trabajador.id,
+      file: req.file // Agregar archivo si existe
     };
 
     const validationResult = CreateLicenciaPermisoValidation.validate(requestData, { abortEarly: false });
     if (validationResult.error) {
+      // Limpiar archivo en caso de error de validación
+      if (req.file) {
+        FileManagementService.deleteFile(req.file.path);
+      }
+      
       handleErrorClient(res, 400, "Error de validación", {
         errors: validationResult.error.details.map(error => ({
           field: error.path.join('.'),
@@ -53,12 +61,22 @@ export async function createLicenciaPermiso(req: Request, res: Response): Promis
     const [licenciaPermiso, error] = await createLicenciaPermisoService(validationResult.value);
 
     if (error) {
+      // Limpiar archivo en caso de error del servicio
+      if (req.file) {
+        FileManagementService.deleteFile(req.file.path);
+      }
+      
       handleErrorClient(res, 400, error as string);
       return;
     }
 
     handleSuccess(res, 201, "Solicitud creada exitosamente", licenciaPermiso || {});
   } catch (error) {
+    // Limpiar archivo en caso de error inesperado
+    if (req.file) {
+      FileManagementService.deleteFile(req.file.path);
+    }
+    
     console.error("Error al crear licencia/permiso:", error);
     handleErrorServer(res, 500, "Error interno del servidor");
   }
@@ -201,54 +219,54 @@ export async function deleteLicenciaPermiso(req: Request, res: Response): Promis
 }
 
 export async function descargarArchivoLicencia(req: Request, res: Response): Promise<void> {
-    try {
-        const licenciaRepo = AppDataSource.getRepository(LicenciaPermiso);
-        const licencia = await licenciaRepo.findOne({
-            where: { id: parseInt(req.params.id) },
-            relations: ["trabajador"]
-        });
-
-        if (!licencia) {
-            handleErrorClient(res, 404, "Licencia o permiso no encontrado");
-            return;
-        }
-
-        if (!licencia.archivoAdjuntoURL) {
-            handleErrorClient(res, 404, "No hay archivo adjunto para esta licencia o permiso");
-            return;
-        }
-
-        // Verificar que el usuario solo pueda ver su propio archivo o sea de RRHH
-        if (req.user?.role !== "RecursosHumanos" && licencia.trabajador.id !== req.user?.id) {
-            handleErrorClient(res, 403, "No tienes permiso para ver este archivo");
-            return;
-        }
-
-        try {
-            // Asumiendo que archivoAdjuntoURL es una ruta relativa al directorio de uploads
-            const filePath = path.join(process.cwd(), "uploads", licencia.archivoAdjuntoURL);
-            
-            // Verificar si el archivo existe
-            if (!fs.existsSync(filePath)) {
-                handleErrorClient(res, 404, "Archivo no encontrado en el servidor");
-                return;
-            }
-
-            // Configurar headers para la descarga
-            res.setHeader('Content-Type', 'application/pdf');
-            res.setHeader('Content-Disposition', `attachment; filename="licencia_${licencia.trabajador.rut}_${licencia.tipo}.pdf"`);
-
-            // Enviar el archivo
-            const fileStream = fs.createReadStream(filePath);
-            fileStream.pipe(res);
-        } catch (error) {
-            console.error("Error al leer el archivo:", error);
-            handleErrorServer(res, 500, "Error al descargar el archivo");
-        }
-    } catch (error) {
-        console.error("Error al descargar archivo de licencia:", error);
-        handleErrorServer(res, 500, "Error interno del servidor");
+  try {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      handleErrorClient(res, 400, "ID inválido");
+      return;
     }
+
+    if (!req.user) {
+      handleErrorClient(res, 401, "Usuario no autenticado");
+      return;
+    }
+
+    const [archivoURL, error] = await descargarArchivoLicenciaService(id, req.user.rut);
+    
+    if (error) {
+      const statusCode = error.includes("no encontrado") ? 404 : 
+                        error.includes("permisos") ? 403 : 400;
+      handleErrorClient(res, statusCode, error);
+      return;
+    }
+
+    if (!archivoURL) {
+      handleErrorClient(res, 404, "Archivo no encontrado");
+      return;
+    }
+
+    // Obtener información del archivo para descarga
+    const [fileInfo, fileError] = FileManagementService.getFileForDownload(archivoURL);
+    
+    if (fileError || !fileInfo) {
+      handleErrorClient(res, 404, "Archivo no encontrado en el servidor");
+      return;
+    }
+
+    if (!fileInfo.exists) {
+      handleErrorClient(res, 404, "El archivo no existe");
+      return;
+    }
+
+    // Configurar headers y enviar archivo
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${fileInfo.filename}"`);
+    res.sendFile(require('path').resolve(fileInfo.filePath));
+
+  } catch (error) {
+    console.error("Error al descargar archivo:", error);
+    handleErrorServer(res, 500, "Error interno del servidor");
+  }
 }
 
 export async function verificarLicenciasVencidas(req: Request, res: Response): Promise<void> {

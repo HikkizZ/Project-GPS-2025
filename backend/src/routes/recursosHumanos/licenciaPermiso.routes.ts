@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { authenticateJWT } from "../../middlewares/authentication.middleware.js";
 import { verifyRole } from "../../middlewares/authorization.middleware.js";
+import { uploadPdfWithValidation } from "../../middlewares/fileUpload.middleware.js";
 import {
     getLicenciaPermisoById,
     getAllLicenciasPermisos,
@@ -17,7 +18,7 @@ const router: Router = Router();
 router.use(authenticateJWT);
 
 // Rutas para usuarios
-router.post("/", createLicenciaPermiso); // Crear solicitud
+router.post("/", uploadPdfWithValidation, createLicenciaPermiso); // Crear solicitud con subida de archivo
 router.get("/mis-solicitudes", getAllLicenciasPermisos); // Ver propias solicitudes
 
 // Rutas para RRHH y Gerencia

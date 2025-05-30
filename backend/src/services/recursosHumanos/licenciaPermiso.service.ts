@@ -5,9 +5,10 @@ import { CreateLicenciaPermisoDTO, UpdateLicenciaPermisoDTO } from "../../types/
 import { ServiceResponse } from "../../../types.js";
 import { EstadoLaboral } from "../../entity/recursosHumanos/fichaEmpresa.entity.js";
 import { actualizarEstadoFichaService } from "./fichaEmpresa.service.js";
-import { LessThan, Not, LessThanOrEqual, MoreThanOrEqual } from "typeorm";
+import { LessThan, Not, LessThanOrEqual, MoreThanOrEqual, MoreThan } from "typeorm";
+import { FileManagementService } from "../fileManagement.service.js";
 
-export async function createLicenciaPermisoService(data: CreateLicenciaPermisoDTO): Promise<ServiceResponse<LicenciaPermiso>> {
+export async function createLicenciaPermisoService(data: CreateLicenciaPermisoDTO & { file?: Express.Multer.File }): Promise<ServiceResponse<LicenciaPermiso>> {
   const queryRunner = AppDataSource.createQueryRunner();
   await queryRunner.connect();
   await queryRunner.startTransaction();
@@ -22,41 +23,85 @@ export async function createLicenciaPermisoService(data: CreateLicenciaPermisoDT
     });
 
     if (!trabajador) {
+      await queryRunner.rollbackTransaction();
       await queryRunner.release();
-      return [null, "Trabajador no encontrado."];
+      return [null, "Trabajador no encontrado"];
     }
 
-    // Verificar si ya existe una licencia/permiso activo
-    const licenciaActiva = await licenciaRepo.findOne({
-      where: {
-        trabajador: { id: trabajador.id },
-        estado: EstadoSolicitud.APROBADA,
-        fechaFin: MoreThanOrEqual(new Date())
-      }
+    if (!trabajador.enSistema) {
+      await queryRunner.rollbackTransaction();
+      await queryRunner.release();
+      return [null, "No se puede crear solicitud para un trabajador inactivo"];
+    }
+
+    // Validar fechas
+    const fechaInicio = new Date(data.fechaInicio);
+    const fechaFin = new Date(data.fechaFin);
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+
+    if (fechaInicio < hoy) {
+      await queryRunner.rollbackTransaction();
+      await queryRunner.release();
+      return [null, "La fecha de inicio no puede ser en el pasado"];
+    }
+
+    if (fechaFin <= fechaInicio) {
+      await queryRunner.rollbackTransaction();
+      await queryRunner.release();
+      return [null, "La fecha de fin debe ser posterior a la fecha de inicio"];
+    }
+
+    // Validar que no se solapen con otras licencias aprobadas
+    const solapamientos = await licenciaRepo.find({
+      where: [
+        {
+          trabajador: { id: data.trabajadorId },
+          estado: EstadoSolicitud.APROBADA,
+          fechaInicio: LessThanOrEqual(fechaFin),
+          fechaFin: MoreThanOrEqual(fechaInicio)
+        }
+      ]
     });
 
-    if (licenciaActiva) {
+    if (solapamientos.length > 0) {
+      await queryRunner.rollbackTransaction();
       await queryRunner.release();
-      return [null, "Ya existe una licencia o permiso activo para este trabajador."];
+      return [null, "Las fechas se solapan con otra licencia o permiso ya aprobado"];
+    }
+
+    // Procesar archivo adjunto si existe
+    let archivoAdjuntoURL: string | undefined;
+    if (data.file) {
+      const fileInfo = FileManagementService.processUploadedFile(data.file);
+      archivoAdjuntoURL = fileInfo.url;
+    }
+
+    // Validar que las licencias médicas tengan archivo adjunto
+    if (data.tipo === TipoSolicitud.LICENCIA && !archivoAdjuntoURL) {
+      await queryRunner.rollbackTransaction();
+      await queryRunner.release();
+      return [null, "Las licencias médicas requieren un archivo adjunto"];
     }
 
     const nuevaLicencia = licenciaRepo.create({
-      tipo: data.tipo,
-      fechaInicio: new Date(data.fechaInicio),
-      fechaFin: new Date(data.fechaFin),
-      motivoSolicitud: data.motivoSolicitud,
-      archivoAdjuntoURL: data.archivoAdjuntoURL ?? "",
       trabajador,
-      estado: EstadoSolicitud.PENDIENTE,
+      tipo: data.tipo,
+      fechaInicio: fechaInicio,
+      fechaFin: fechaFin,
+      motivoSolicitud: data.motivoSolicitud,
+      archivoAdjuntoURL: archivoAdjuntoURL,
+      estado: EstadoSolicitud.PENDIENTE
     });
 
     await queryRunner.manager.save(nuevaLicencia);
     await queryRunner.commitTransaction();
+
     return [nuevaLicencia, null];
   } catch (error) {
     await queryRunner.rollbackTransaction();
     console.error("Error al crear licencia/permiso:", error);
-    return [null, "Error interno del servidor."];
+    return [null, "Error interno del servidor"];
   } finally {
     await queryRunner.release();
   }
@@ -246,21 +291,18 @@ export async function verificarLicenciasVencidasService(): Promise<ServiceRespon
             // Verificar si la ficha aún está en estado de licencia/permiso
             const fichaEmpresa = licencia.trabajador.fichaEmpresa;
             
-            // Verificar si hay otra licencia vigente
-            const otraLicenciaVigente = await licenciaRepo.findOne({
+            // Verificar si hay alguna licencia vigente
+            const licenciaVigente = await licenciaRepo.findOne({
                 where: {
                     trabajador: { id: licencia.trabajador.id },
                     estado: EstadoSolicitud.APROBADA,
-                    id: Not(licencia.id),
-                    fechaInicio: LessThanOrEqual(hoy),
-                    fechaFin: MoreThanOrEqual(hoy)
+                    tipo: TipoSolicitud.LICENCIA,
+                    fechaFin: MoreThan(new Date())
                 }
             });
 
-            // Solo actualizar si no hay otra licencia vigente
-            if (!otraLicenciaVigente && 
-                (fichaEmpresa.estado === EstadoLaboral.LICENCIA || fichaEmpresa.estado === EstadoLaboral.PERMISO)) {
-                // Actualizar el estado de la ficha a ACTIVO
+            // Solo cambiar a ACTIVO si no hay licencias vigentes
+            if (!licenciaVigente) {
                 const [fichaActualizada, error] = await actualizarEstadoFichaService(
                     fichaEmpresa.id,
                     EstadoLaboral.ACTIVO,
@@ -284,4 +326,43 @@ export async function verificarLicenciasVencidasService(): Promise<ServiceRespon
     } finally {
         await queryRunner.release();
     }
+}
+
+/**
+ * Servicio para descargar archivo de licencia/permiso
+ */
+export async function descargarArchivoLicenciaService(id: number, userRut: string): Promise<ServiceResponse<string>> {
+  try {
+    const licenciaRepo = AppDataSource.getRepository(LicenciaPermiso);
+    const licencia = await licenciaRepo.findOne({
+      where: { id },
+      relations: ["trabajador"]
+    });
+
+    if (!licencia) {
+      return [null, "Licencia/permiso no encontrado"];
+    }
+
+    if (!licencia.archivoAdjuntoURL) {
+      return [null, "No hay archivo adjunto para esta solicitud"];
+    }
+
+    // Validar permisos: solo el trabajador propietario o RRHH pueden descargar
+    const trabajadorRepo = AppDataSource.getRepository(Trabajador);
+    const trabajador = await trabajadorRepo.findOne({ where: { rut: userRut } });
+    
+    if (!trabajador) {
+      return [null, "Trabajador no encontrado"];
+    }
+
+    // Verificar si el usuario es el propietario de la licencia
+    if (licencia.trabajador.id !== trabajador.id) {
+      return [null, "No tiene permisos para descargar este archivo"];
+    }
+
+    return [licencia.archivoAdjuntoURL, null];
+  } catch (error) {
+    console.error("Error al obtener archivo de licencia:", error);
+    return [null, "Error interno del servidor"];
+  }
 }

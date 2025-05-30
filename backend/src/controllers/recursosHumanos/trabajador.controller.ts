@@ -51,8 +51,11 @@ export async function getTrabajadores(req: Request, res: Response): Promise<void
 
 export async function searchTrabajadores(req: Request, res: Response): Promise<void> {
   try {
+    console.log("🔍 Query recibida:", req.query);
+    
     const { error } = TrabajadorQueryValidation.validate(req.query);
     if (error) {
+      console.log("❌ Error de validación:", error.message);
       handleErrorClient(res, 400, error.message);
       return;
     }
@@ -63,17 +66,27 @@ export async function searchTrabajadores(req: Request, res: Response): Promise<v
       enSistema: req.query.enSistema === "true" ? true : req.query.enSistema === "false" ? false : undefined,
       todos: req.query.todos === "true" ? true : undefined
     };
+    console.log("🔄 Query procesada:", query);
 
     const [trabajadores, serviceError] = await searchTrabajadoresService(query);
+    console.log("📊 Resultado del servicio:", { trabajadores: trabajadores?.length || 0, serviceError });
 
-    if (serviceError) {
-      handleErrorClient(res, 404, serviceError.message);
+    if (serviceError || !trabajadores) {
+      console.log("❌ No se encontraron trabajadores");
+      handleErrorClient(res, 404, serviceError || "No se encontraron trabajadores que coincidan con los criterios de búsqueda");
       return;
     }
 
+    if (trabajadores.length === 0) {
+      console.log("❌ No se encontraron trabajadores");
+      handleErrorClient(res, 404, "No se encontraron trabajadores que coincidan con los criterios de búsqueda");
+      return;
+    }
+
+    console.log("✅ Trabajadores encontrados:", trabajadores.length);
     handleSuccess(res, 200, "Trabajadores encontrados exitosamente", trabajadores);
   } catch (error) {
-    console.error("Error en searchTrabajadores:", error);
+    console.error("❌ Error en searchTrabajadores:", error);
     handleErrorServer(res, 500, "Error interno del servidor");
   }
 }

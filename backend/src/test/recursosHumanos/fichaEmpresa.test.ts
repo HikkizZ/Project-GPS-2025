@@ -48,7 +48,7 @@ describe('📋 Ficha Empresa API', () => {
                     nombres: "Juan Test",
                     apellidoPaterno: "Ficha",
                     apellidoMaterno: "Empresa",
-                    rut: "44.444.444-4",
+                    rut: "26.789.456-6",
                     fechaNacimiento: "1990-01-01",
                     telefono: "+56912345678",
                     correo: "juan.ficha.test@gmail.com",
@@ -81,7 +81,7 @@ describe('📋 Ficha Empresa API', () => {
                 .post('/api/auth/register')
                 .set('Authorization', `Bearer ${rrhToken}`)
                 .send({
-                    rut: "44.444.444-4",
+                    rut: "26.789.456-6",
                     email: "juan.ficha.test@gmail.com",
                     password: "Test2024",
                     role: "Usuario",

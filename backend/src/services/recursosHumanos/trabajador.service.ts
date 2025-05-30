@@ -123,19 +123,36 @@ export async function getTrabajadoresService(): Promise<ServiceResponse<Trabajad
 
 export async function searchTrabajadoresService(query: any): Promise<ServiceResponse<Trabajador[]>> {
     try {
+        console.log("🔍 Iniciando búsqueda en servicio con query:", query);
+        
         const trabajadorRepo = AppDataSource.getRepository(Trabajador);
-
-        const whereClause: FindOptionsWhere<Trabajador> = {};
+        let whereClause: any = {};
 
         // Solo agregar filtro enSistema si NO viene el parámetro todos=true
-        if (query.todos !== true) {
-            whereClause.enSistema = query.enSistema !== undefined ? query.enSistema : true;
-        }
+        whereClause.enSistema = query.todos !== true ? true : undefined;
+        console.log("🔒 Estado del sistema:", whereClause.enSistema);
 
+        // Si la búsqueda es por RUT, manejar de forma especial
         if (query.rut) {
-            whereClause.rut = ILike(`%${query.rut}%`);
+            console.log("🔍 Buscando por RUT:", query.rut);
+            const trabajador = await trabajadorRepo.findOne({
+                where: { 
+                    rut: query.rut,
+                    enSistema: whereClause.enSistema
+                },
+                relations: ["fichaEmpresa", "historialLaboral", "licenciasPermisos", "capacitaciones"]
+            });
+
+            if (!trabajador) {
+                console.log("❌ No se encontró trabajador con RUT:", query.rut);
+                return [null, "No se encontró ningún trabajador con el RUT especificado"];
+            }
+
+            console.log("✅ Trabajador encontrado por RUT:", trabajador.rut);
+            return [[trabajador], null];
         }
 
+        // Para otras búsquedas, usar el comportamiento normal
         if (query.nombres) {
             whereClause.nombres = ILike(`%${query.nombres}%`);
         }
@@ -156,20 +173,24 @@ export async function searchTrabajadoresService(query: any): Promise<ServiceResp
             whereClause.telefono = ILike(`%${query.telefono}%`);
         }
 
+        console.log("🔍 Criterios de búsqueda:", whereClause);
+
         const trabajadores = await trabajadorRepo.find({
             where: whereClause,
             relations: ["fichaEmpresa", "historialLaboral", "licenciasPermisos", "capacitaciones"],
             order: { id: "ASC" }
         });
 
-        if (!trabajadores.length) {
-            return [null, "No hay trabajadores que coincidan con los criterios de búsqueda"];
+        console.log("📊 Resultados encontrados:", trabajadores.length);
+
+        if (!trabajadores || trabajadores.length === 0) {
+            return [null, "No se encontraron trabajadores que coincidan con los criterios de búsqueda"];
         }
 
         return [trabajadores, null];
     } catch (error) {
-        console.error("Error en searchTrabajadoresService:", error);
-        return [null, "Error interno del servidor"];
+        console.error("❌ Error en searchTrabajadoresService:", error);
+        return [null, "Error al buscar trabajadores"];
     }
 }
 

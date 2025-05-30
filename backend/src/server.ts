@@ -14,6 +14,7 @@ import { cookieKey, PORT, HOST } from "./config/configEnv.js";
 import { passportJWTSetup } from "./auth/passport.auth.js";
 import { initialSetup } from "./utils/initialSetup.js";
 import { authenticateJWT } from "./middlewares/authentication.middleware.js";
+import { FileManagementService } from "./services/fileManagement.service.js";
 
 // Exportar la aplicación y el servidor para las pruebas
 export const app: Application = express();
@@ -57,6 +58,10 @@ async function setupServer(): Promise<void> {
         app.use(passport.session());
 
         passportJWTSetup();
+
+        // Inicializar directorios de archivos
+        FileManagementService.ensureUploadDirectories();
+        console.log("✅ Directorios de archivos inicializados");
 
         // Rutas públicas (sin autenticación)
         app.use("/api/auth", indexRoutes);
