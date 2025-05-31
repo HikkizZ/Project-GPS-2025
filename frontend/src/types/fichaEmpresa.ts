@@ -1,9 +1,9 @@
 // Enum para el estado laboral
 export enum EstadoLaboral {
-  ACTIVO = 'ACTIVO',
-  LICENCIA = 'LICENCIA', 
-  PERMISO = 'PERMISO',
-  DESVINCULADO = 'DESVINCULADO'
+  ACTIVO = 'Activo',
+  LICENCIA = 'Licencia', 
+  PERMISO = 'Permiso administrativo',
+  DESVINCULADO = 'Desvinculado'
 }
 
 // Interface principal de FichaEmpresa

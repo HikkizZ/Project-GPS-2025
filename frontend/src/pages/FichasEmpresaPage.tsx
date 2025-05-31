@@ -449,12 +449,12 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
             <div className="card-header d-flex justify-content-between align-items-center">
               <h6 className="card-title mb-0">
                 <i className="bi bi-table me-2"></i>
-                Fichas Encontradas ({fichas.length})
+                Fichas Encontradas ({fichas.filter(f => f.estado !== EstadoLaboral.DESVINCULADO).length})
               </h6>
               {fichas.length > 0 && (
                 <small className="text-muted">
                   Activos: {fichas.filter(f => f.estado === EstadoLaboral.ACTIVO).length} • 
-                  Inactivos: {fichas.filter(f => f.estado !== EstadoLaboral.ACTIVO).length}
+                  Inactivos: {fichas.filter(f => (f.estado === EstadoLaboral.LICENCIA || f.estado === EstadoLaboral.PERMISO)).length}
                 </small>
               )}
             </div>
