@@ -31,7 +31,21 @@ export class Trabajador {
   @Column({ type: "varchar", length: 100, nullable: false })
   apellidoMaterno!: string;
 
-  @Column({ type: "date", nullable: true })
+  @Column({ 
+    type: "date", 
+    nullable: true,
+    transformer: {
+      to: (value: Date | string | null): string | null => {
+        if (!value) return null;
+        const date = typeof value === 'string' ? new Date(value) : value;
+        return date.toISOString().split('T')[0];
+      },
+      from: (value: string | Date | null): Date | null => {
+        if (!value) return null;
+        return new Date(value);
+      }
+    }
+  })
   fechaNacimiento!: Date;
 
   @Column({ type: "varchar", length: 12, nullable: false })
@@ -47,7 +61,7 @@ export class Trabajador {
   @Column({ type: "varchar", length: 255, nullable: false })
   direccion!: string;
 
-  @Column({ type: "date", nullable: false })
+  @CreateDateColumn({ type: "date" })
   fechaIngreso!: Date;
 
   @Column({ type: "boolean", default: true })

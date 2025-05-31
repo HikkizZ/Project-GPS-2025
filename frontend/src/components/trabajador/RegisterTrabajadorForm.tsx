@@ -95,14 +95,18 @@ export const RegisterTrabajadorForm: React.FC<RegisterTrabajadorFormProps> = ({
         </Col>
         <Col md={6}>
           <Form.Group>
-            <Form.Label>Fecha de Ingreso: <span className="text-danger">*</span></Form.Label>
+            <Form.Label>Fecha de Ingreso:</Form.Label>
             <Form.Control
               type="date"
               name="fechaIngreso"
               value={formData.fechaIngreso}
-              onChange={handleInputChange}
-              required
+              readOnly
+              disabled
+              className="bg-light"
             />
+            <Form.Text className="text-muted">
+              La fecha de ingreso se establece automáticamente al día de hoy
+            </Form.Text>
           </Form.Group>
         </Col>
       </Row>
@@ -178,6 +182,9 @@ export const RegisterTrabajadorForm: React.FC<RegisterTrabajadorFormProps> = ({
             />
           </Form.Group>
         </Col>
+      </Row>
+
+      <Row className="mb-3">
         <Col md={6}>
           <Form.Group>
             <Form.Label>Teléfono: <span className="text-danger">*</span></Form.Label>
@@ -191,9 +198,6 @@ export const RegisterTrabajadorForm: React.FC<RegisterTrabajadorFormProps> = ({
             />
           </Form.Group>
         </Col>
-      </Row>
-
-      <Row className="mb-3">
         <Col md={6}>
           <Form.Group>
             <Form.Label>Teléfono de Emergencia:</Form.Label>
@@ -206,6 +210,9 @@ export const RegisterTrabajadorForm: React.FC<RegisterTrabajadorFormProps> = ({
             />
           </Form.Group>
         </Col>
+      </Row>
+
+      <Row className="mb-3">
         <Col md={6}>
           <Form.Group>
             <Form.Label>Dirección: <span className="text-danger">*</span></Form.Label>
