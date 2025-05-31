@@ -208,9 +208,14 @@ const EditWorkerModal: React.FC<EditWorkerModalProps> = ({ show, handleClose, wo
       
       const response = await deleteContrato(ficha.id);
       
-      // Siempre mostrar el mensaje de éxito y actualizar la interfaz
+      // Mostrar el mensaje de éxito y actualizar la interfaz
       setSuccess('Contrato eliminado exitosamente');
       setFicha(prev => prev ? { ...prev, contratoURL: null } : null);
+      
+      // Hacer que el mensaje desaparezca después de 3 segundos
+      setTimeout(() => {
+        setSuccess(null);
+      }, 1500);
       
     } catch (error) {
       console.error('Error deleting file:', error);
