@@ -56,13 +56,11 @@ export interface UpdateFichaEmpresaData {
 
 export interface ActualizarEstadoData {
   estado: EstadoLaboral;
-  fechaInicio?: Date | string;
-  fechaFin?: Date | string;
   motivo?: string;
 }
 
 export interface FichaEmpresaResponse {
-  fichaEmpresa?: FichaEmpresa;
-  fichas?: FichaEmpresa[];
-  error?: string;
+  success: boolean;
+  message: string;
+  data: FichaEmpresa;
 } 

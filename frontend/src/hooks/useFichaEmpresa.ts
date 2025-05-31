@@ -1,13 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import type {
   FichaEmpresa,
-  FichaEmpresaSearchParams,
-  PaginatedFichasEmpresa,
-  CreateFichaEmpresaData,
+  FichaEmpresaSearchQuery,
   UpdateFichaEmpresaData,
   EstadoLaboral
-} from '../types/fichaEmpresa';
-import fichaEmpresaService, { FichaEmpresaService } from '../services/fichaEmpresaService';
+} from '../types/fichaEmpresa.types';
+import { fichaEmpresaService } from '../services/fichaEmpresa.service';
 
 interface UseFichaEmpresaState {
   fichas: FichaEmpresa[];
@@ -47,11 +45,11 @@ export const useFichaEmpresa = () => {
   }, [updateState]);
 
   // Función principal para cargar fichas con filtros
-  const loadFichas = useCallback(async (searchParams: FichaEmpresaSearchParams = {}) => {
+  const loadFichas = useCallback(async (searchParams: FichaEmpresaSearchQuery = {}) => {
     updateState({ isLoading: true, error: null });
     
     try {
-      const result: PaginatedFichasEmpresa = await fichaEmpresaService.getFichasEmpresa(searchParams);
+      const result = await fichaEmpresaService.getFichasEmpresa(searchParams);
       
       updateState({
         fichas: result.data,
@@ -80,20 +78,7 @@ export const useFichaEmpresa = () => {
       if (id) {
         ficha = await fichaEmpresaService.getFichaEmpresaById(id);
       } else {
-        // Cargar mi ficha personal usando el endpoint /mi-ficha del otro servicio
-        const response = await fetch('/api/ficha-empresa/mi-ficha', {
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          }
-        });
-        
-        if (!response.ok) {
-          throw new Error('Error al cargar mi ficha');
-        }
-        
-        const result = await response.json();
-        ficha = result.data;
+        ficha = await fichaEmpresaService.getMiFicha();
       }
       
       updateState({
@@ -108,30 +93,6 @@ export const useFichaEmpresa = () => {
     }
   }, [updateState]);
 
-  // Crear nueva ficha
-  const createFicha = useCallback(async (data: CreateFichaEmpresaData) => {
-    updateState({ isLoading: true, error: null });
-    
-    try {
-      const newFicha = await fichaEmpresaService.createFichaEmpresa(data);
-      
-      // Agregar la nueva ficha al estado local
-      setState(prev => ({
-        ...prev,
-        fichas: [newFicha, ...prev.fichas],
-        isLoading: false,
-      }));
-      
-      return newFicha;
-    } catch (error) {
-      updateState({
-        isLoading: false,
-        error: error instanceof Error ? error.message : 'Error al crear ficha',
-      });
-      throw error;
-    }
-  }, [updateState]);
-
   // Actualizar ficha existente
   const updateFicha = useCallback(async (id: number, data: UpdateFichaEmpresaData) => {
     updateState({ isLoading: true, error: null });
@@ -140,7 +101,6 @@ export const useFichaEmpresa = () => {
       const response = await fichaEmpresaService.updateFichaEmpresa(id, data);
       
       if (response.success && response.data) {
-        // Actualizar en el estado local
         setState(prev => ({
           ...prev,
           fichas: prev.fichas.map(ficha => 
@@ -163,33 +123,16 @@ export const useFichaEmpresa = () => {
     }
   }, [updateState]);
 
-  // Eliminar ficha
-  const deleteFicha = useCallback(async (id: number) => {
-    updateState({ isLoading: true, error: null });
-    
+  // Actualizar solo el estado laboral
+  const updateEstadoLaboral = useCallback(async (id: number, estado: EstadoLaboral, motivo?: string) => {
     try {
-      await fichaEmpresaService.deleteFichaEmpresa(id);
-      
-      // Remover del estado local
-      setState(prev => ({
-        ...prev,
-        fichas: prev.fichas.filter(ficha => ficha.id !== id),
-        currentFicha: prev.currentFicha?.id === id ? null : prev.currentFicha,
-        isLoading: false,
-      }));
+      return await fichaEmpresaService.updateEstadoLaboral(id, estado, motivo);
     } catch (error) {
-      updateState({
-        isLoading: false,
-        error: error instanceof Error ? error.message : 'Error al eliminar ficha',
-      });
+      const errorMessage = error instanceof Error ? error.message : 'Error al actualizar estado';
+      updateState({ error: errorMessage });
       throw error;
     }
   }, [updateState]);
-
-  // Actualizar solo el estado laboral
-  const updateEstadoLaboral = useCallback(async (id: number, estadoLaboral: EstadoLaboral) => {
-    return updateFicha(id, { estadoLaboral });
-  }, [updateFicha]);
 
   // Buscar por RUT
   const searchByRUT = useCallback(async (rut: string) => {
@@ -198,7 +141,7 @@ export const useFichaEmpresa = () => {
     try {
       const ficha = await fichaEmpresaService.getFichaByRUT(rut);
       updateState({
-        currentFicha: ficha,
+        currentFicha: ficha || null,
         fichas: ficha ? [ficha] : [],
         isLoading: false,
       });
@@ -213,26 +156,10 @@ export const useFichaEmpresa = () => {
     }
   }, [updateState]);
 
-  // Reset del estado
-  const resetState = useCallback(() => {
-    setState({
-      fichas: [],
-      currentFicha: null,
-      isLoading: false,
-      error: null,
-      pagination: {
-        total: 0,
-        page: 1,
-        limit: 10,
-        totalPages: 0,
-      },
-    });
-  }, []);
-
   // Efecto para cargar fichas iniciales
   useEffect(() => {
     loadFichas();
-  }, []);
+  }, [loadFichas]);
 
   return {
     // Estado
@@ -245,18 +172,15 @@ export const useFichaEmpresa = () => {
     // Acciones
     loadFichas,
     loadFichaById,
-    createFicha,
     updateFicha,
-    deleteFicha,
     updateEstadoLaboral,
     searchByRUT,
     clearError,
-    resetState,
     
     // Utilidades del servicio
-    formatSalario: FichaEmpresaService.formatSalario,
-    formatFecha: FichaEmpresaService.formatFecha,
-    getEstadoLaboralColor: FichaEmpresaService.getEstadoLaboralColor,
-    getEstadoLaboralIcon: FichaEmpresaService.getEstadoLaboralIcon,
+    formatSalario: fichaEmpresaService.formatSalario,
+    formatFecha: fichaEmpresaService.formatFecha,
+    getEstadoLaboralColor: fichaEmpresaService.getEstadoLaboralColor,
+    getEstadoLaboralIcon: fichaEmpresaService.getEstadoLaboralIcon,
   };
 }; 

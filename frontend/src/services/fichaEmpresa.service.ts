@@ -20,137 +20,100 @@ class FichaEmpresaService {
     };
   }
 
-  // Obtener mi ficha personal
-  async getMiFicha(): Promise<FichaEmpresaResponse> {
-    try {
-      const response = await fetch(`${this.baseURL}/mi-ficha`, {
-        method: 'GET',
-        headers: this.getAuthHeaders()
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        return { error: error.message || 'Error al obtener mi ficha' };
-      }
-
-      const data = await response.json();
-      return { fichaEmpresa: data.data };
-    } catch (error) {
-      return { error: 'Error de conexión' };
-    }
-  }
-
-  // Buscar fichas (solo para RRHH/Admin)
-  async searchFichas(query: FichaEmpresaSearchQuery): Promise<FichaEmpresaResponse> {
+  // Obtener todas las fichas con filtros
+  async getFichasEmpresa(searchParams: FichaEmpresaSearchQuery = {}): Promise<any> {
     try {
       const queryParams = new URLSearchParams();
       
-      // Agregar parámetros de búsqueda
-      Object.entries(query).forEach(([key, value]) => {
+      Object.entries(searchParams).forEach(([key, value]) => {
         if (value !== undefined && value !== null && value !== '') {
-          if (value instanceof Date) {
-            queryParams.append(key, value.toISOString().split('T')[0]);
-          } else {
-            queryParams.append(key, value.toString());
-          }
+          queryParams.append(key, value.toString());
         }
       });
 
-      const response = await fetch(`${this.baseURL}/search?${queryParams}`, {
-        method: 'GET',
+      const response = await axios.get(`${this.baseURL}/search?${queryParams}`, {
         headers: this.getAuthHeaders()
       });
 
-      if (!response.ok) {
-        const error = await response.json();
-        return { error: error.message || 'Error al buscar fichas' };
-      }
-
-      const data = await response.json();
-      return { fichas: data.data };
+      return response.data;
     } catch (error) {
-      return { error: 'Error de conexión' };
+      throw new Error('Error al obtener fichas');
     }
   }
 
   // Obtener ficha por ID
-  async getFichaById(id: number): Promise<FichaEmpresaResponse> {
+  async getFichaEmpresaById(id: number): Promise<FichaEmpresa> {
     try {
-      const response = await fetch(`${this.baseURL}/${id}`, {
-        method: 'GET',
+      const response = await axios.get(`${this.baseURL}/${id}`, {
         headers: this.getAuthHeaders()
       });
-
-      if (!response.ok) {
-        const error = await response.json();
-        return { error: error.message || 'Error al obtener ficha' };
-      }
-
-      const data = await response.json();
-      return { fichaEmpresa: data.data };
+      return response.data.data;
     } catch (error) {
-      return { error: 'Error de conexión' };
+      throw new Error('Error al obtener ficha');
+    }
+  }
+
+  // Obtener mi ficha personal
+  async getMiFicha(): Promise<FichaEmpresa> {
+    try {
+      const response = await axios.get(`${this.baseURL}/mi-ficha`, {
+        headers: this.getAuthHeaders()
+      });
+      return response.data.data;
+    } catch (error) {
+      throw new Error('Error al obtener mi ficha');
     }
   }
 
   // Actualizar ficha
-  async updateFicha(id: number, fichaData: UpdateFichaEmpresaData): Promise<FichaEmpresaResponse> {
+  async updateFichaEmpresa(id: number, data: UpdateFichaEmpresaData): Promise<FichaEmpresaResponse> {
     try {
-      const response = await fetch(`${this.baseURL}/${id}`, {
-        method: 'PUT',
-        headers: this.getAuthHeaders(),
-        body: JSON.stringify(fichaData)
+      const response = await axios.put(`${this.baseURL}/${id}`, data, {
+        headers: this.getAuthHeaders()
       });
+      return response.data;
+    } catch (error) {
+      throw new Error('Error al actualizar ficha');
+    }
+  }
 
-      if (!response.ok) {
-        const error = await response.json();
-        return { error: error.message || 'Error al actualizar ficha' };
+  // Actualizar estado
+  async updateEstadoLaboral(id: number, estado: EstadoLaboral, motivo?: string): Promise<FichaEmpresa> {
+    try {
+      const response = await axios.put(
+        `${this.baseURL}/${id}/estado`,
+        { estado, motivo },
+        { headers: this.getAuthHeaders() }
+      );
+
+      if (response.status !== 200) {
+        throw new Error(response.data?.message || 'Error al actualizar estado');
       }
 
-      const data = await response.json();
-      return { fichaEmpresa: data.data };
+      return response.data.data;
     } catch (error) {
-      return { error: 'Error de conexión' };
-    }
-  }
-
-  // Actualizar estado de ficha
-  async actualizarEstado(id: number, estadoData: ActualizarEstadoData): Promise<FichaEmpresaResponse> {
-    try {
-      const response = await fetch(`${this.baseURL}/${id}/estado`, {
-        method: 'PUT',
-        headers: this.getAuthHeaders(),
-        body: JSON.stringify(estadoData)
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        return { error: error.message || 'Error al actualizar estado' };
+      if (axios.isAxiosError(error) && error.response) {
+        throw new Error(error.response.data?.message || 'Error al actualizar estado');
       }
+      throw new Error('Error de conexión al actualizar estado');
+    }
+  }
 
-      const data = await response.json();
-      return { fichaEmpresa: data.data };
+  // Buscar por RUT
+  async getFichaByRUT(rut: string): Promise<FichaEmpresa | null> {
+    try {
+      const response = await axios.get(`${this.baseURL}/search?rut=${rut}`, {
+        headers: this.getAuthHeaders()
+      });
+      const fichas = response.data.data;
+      return fichas.length > 0 ? fichas[0] : null;
     } catch (error) {
-      return { error: 'Error de conexión' };
+      throw new Error('Error al buscar por RUT');
     }
   }
 
-  // Actualizar solo el estado laboral
-  async updateEstadoLaboral(id: number, estadoLaboral: EstadoLaboral, motivo?: string): Promise<FichaEmpresa> {
-    const response = await axios.patch(`${API_CONFIG.BASE_URL}/ficha-empresa/${id}/estado`, { 
-      estadoLaboral,
-      motivo
-    });
-    
-    if (response.status !== 200) {
-      throw new Error(response.data?.message || 'Error al actualizar estado laboral');
-    }
-    
-    return response.data.data;
-  }
-
-  // Formatear valores para mostrar
-  formatSueldo(sueldo: number): string {
+  // Utilidades
+  formatSalario(sueldo: number): string {
     return new Intl.NumberFormat('es-CL', {
       style: 'currency',
       currency: 'CLP',
@@ -163,22 +126,34 @@ class FichaEmpresaService {
     return date.toLocaleDateString('es-CL');
   }
 
-  // Validaciones
-  validateSueldo(sueldo: number): string | null {
-    if (sueldo <= 0) return 'El sueldo debe ser mayor a cero';
-    if (sueldo > 100000000) return 'El sueldo no puede superar los $100.000.000';
-    return null;
+  getEstadoLaboralColor(estado: EstadoLaboral): string {
+    switch (estado) {
+      case EstadoLaboral.ACTIVO:
+        return 'success';
+      case EstadoLaboral.LICENCIA:
+        return 'warning';
+      case EstadoLaboral.PERMISO:
+        return 'info';
+      case EstadoLaboral.DESVINCULADO:
+        return 'danger';
+      default:
+        return 'secondary';
+    }
   }
 
-  validateFecha(fechaInicio: Date | string, fechaFin?: Date | string): string | null {
-    const inicio = new Date(fechaInicio);
-    if (fechaFin) {
-      const fin = new Date(fechaFin);
-      if (fin <= inicio) {
-        return 'La fecha de fin debe ser posterior a la fecha de inicio';
-      }
+  getEstadoLaboralIcon(estado: EstadoLaboral): string {
+    switch (estado) {
+      case EstadoLaboral.ACTIVO:
+        return 'bi-person-check';
+      case EstadoLaboral.LICENCIA:
+        return 'bi-person-dash';
+      case EstadoLaboral.PERMISO:
+        return 'bi-person-lines-fill';
+      case EstadoLaboral.DESVINCULADO:
+        return 'bi-person-x';
+      default:
+        return 'bi-person';
     }
-    return null;
   }
 }
 

@@ -1,7 +1,7 @@
 @Patch(':id/estado')
 async actualizarEstado(
   @Param('id') id: number,
-  @Body() data: { estadoLaboral: EstadoLaboral; motivo?: string }
+  @Body() data: { estado: EstadoLaboral; motivo?: string }
 ): Promise<ApiResponse<FichaEmpresa>> {
   try {
     const ficha = await this.fichaEmpresaService.findOne(id);
@@ -9,13 +9,13 @@ async actualizarEstado(
       throw new NotFoundException('Ficha de empresa no encontrada');
     }
 
-    if (data.estadoLaboral === EstadoLaboral.DESVINCULADO && !data.motivo) {
+    if (data.estado === EstadoLaboral.DESVINCULADO && !data.motivo) {
       throw new BadRequestException('El motivo de desvinculación es requerido');
     }
 
-    ficha.estado = data.estadoLaboral;
+    ficha.estado = data.estado;
     
-    if (data.estadoLaboral === EstadoLaboral.DESVINCULADO) {
+    if (data.estado === EstadoLaboral.DESVINCULADO) {
       ficha.fechaFinContrato = new Date();
       ficha.motivoDesvinculacion = data.motivo;
     }

@@ -580,8 +580,11 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
               } else {
                 handleSearch();
               }
+              // Mostrar mensaje de éxito
+              setSuccessMessage('Estado actualizado exitosamente');
             } catch (error) {
               console.error('Error al actualizar estado:', error);
+              // El error se manejará a través del estado global
             }
           }}
           onClose={() => {
@@ -597,7 +600,7 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
 // Componente Modal de Cambio de Estado
 const EstadoModal: React.FC<{
   ficha: FichaEmpresa;
-  onSave: (estado: EstadoLaboral, motivo?: string) => void;
+  onSave: (estado: EstadoLaboral, motivo: string) => void;
   onClose: () => void;
 }> = ({ ficha, onSave, onClose }) => {
   const [showConfirmation, setShowConfirmation] = useState(false);
