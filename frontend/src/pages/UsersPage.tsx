@@ -81,6 +81,7 @@ export const UsersPage: React.FC = () => {
     
     if (result.success) {
       setSuccess(`Usuario ${newUser.name} creado exitosamente`);
+      setTimeout(() => setSuccess(''), 3000);
       resetNewUser();
       setShowCreateModal(false);
       loadUsers(); // Recargar la lista después de crear
@@ -128,6 +129,7 @@ export const UsersPage: React.FC = () => {
       setError('');
       await userService.updateUser(selectedUser.id, selectedUser.rut, newRole);
       setSuccess(`Rol de ${selectedUser.name} actualizado exitosamente`);
+      setTimeout(() => setSuccess(''), 3000);
       setShowUpdateModal(false);
       loadUsers(); // Recargar la lista después de actualizar
     } catch (err: any) {
@@ -145,6 +147,7 @@ export const UsersPage: React.FC = () => {
       setError('');
       await userService.deleteUser(selectedUser.id, selectedUser.rut);
       setSuccess(`Usuario ${selectedUser.name} eliminado exitosamente`);
+      setTimeout(() => setSuccess(''), 3000);
       setShowDeleteModal(false);
       loadUsers(); // Recargar la lista después de eliminar
     } catch (err: any) {
