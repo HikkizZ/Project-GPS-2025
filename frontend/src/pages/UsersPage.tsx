@@ -105,9 +105,21 @@ export const UsersPage: React.FC = () => {
     loadUsers();
   };
 
-  const handleResetSearch = () => {
+  const handleResetSearch = async () => {
+    // Limpiar los filtros
     setSearchParams({});
-    loadUsers();
+    // Recargar la lista completa de usuarios
+    try {
+      setIsLoading(true);
+      const data = await userService.getAllUsers();
+      setUsers(data);
+      setError('');
+    } catch (err) {
+      setError('Error al cargar la lista de usuarios');
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleCreateUser = async (e: React.FormEvent) => {
