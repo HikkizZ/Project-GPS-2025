@@ -8,7 +8,7 @@ import { Table, Button, Form, Alert, Spinner, Modal } from 'react-bootstrap';
 export const UsersPage: React.FC = () => {
   const { user, register } = useAuth();
   const { formatRUT, validateRUT } = useRut();
-  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
@@ -28,6 +28,16 @@ export const UsersPage: React.FC = () => {
     password: '',
     role: 'Usuario'
   });
+
+  const resetNewUser = () => {
+    setNewUser({
+      name: '',
+      rut: '',
+      email: '',
+      password: '',
+      role: 'Usuario'
+    });
+  };
 
   const availableRoles: UserRole[] = ['Usuario', 'RecursosHumanos', 'Gerencia', 'Ventas', 'Arriendo', 'Finanzas'];
   
@@ -71,14 +81,8 @@ export const UsersPage: React.FC = () => {
     
     if (result.success) {
       setSuccess(`Usuario ${newUser.name} creado exitosamente`);
-      setNewUser({
-        name: '',
-        rut: '',
-        email: '',
-        password: '',
-        role: 'Usuario'
-      });
-      setShowCreateForm(false);
+      resetNewUser();
+      setShowCreateModal(false);
       loadUsers(); // Recargar la lista después de crear
     } else {
       setError(result.error || 'Error al crear usuario');
@@ -170,96 +174,14 @@ export const UsersPage: React.FC = () => {
     <div className="container mt-4">
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h1>Gestión de Usuarios</h1>
-        <Button variant="primary" onClick={() => setShowCreateForm(!showCreateForm)}>
-          {showCreateForm ? 'Cancelar' : 'Registrar Nuevo Usuario'}
+        <Button variant="primary" onClick={() => setShowCreateModal(true)}>
+          <i className="bi bi-person-plus me-2"></i>
+          Registrar Nuevo Usuario
         </Button>
       </div>
 
-      {error && <Alert variant="danger">{error}</Alert>}
-      {success && <Alert variant="success">{success}</Alert>}
-
-      {showCreateForm && (
-        <div className="mb-4">
-          <h3>Registrar Nuevo Usuario</h3>
-          <Form onSubmit={handleCreateUser}>
-            <Form.Group className="mb-3">
-              <Form.Label>Nombre</Form.Label>
-              <Form.Control
-                type="text"
-                name="name"
-                value={newUser.name}
-                onChange={handleInputChange}
-                required
-              />
-            </Form.Group>
-
-            <Form.Group className="mb-3">
-              <Form.Label>RUT</Form.Label>
-              <Form.Control
-                type="text"
-                name="rut"
-                value={newUser.rut}
-                onChange={handleInputChange}
-                required
-              />
-            </Form.Group>
-
-            <Form.Group className="mb-3">
-              <Form.Label>Email</Form.Label>
-              <Form.Control
-                type="email"
-                name="email"
-                value={newUser.email}
-                onChange={handleInputChange}
-                required
-              />
-            </Form.Group>
-
-            <Form.Group className="mb-3">
-              <Form.Label>Contraseña</Form.Label>
-              <Form.Control
-                type="password"
-                name="password"
-                value={newUser.password}
-                onChange={handleInputChange}
-                required
-              />
-            </Form.Group>
-
-            <Form.Group className="mb-3">
-              <Form.Label>Rol</Form.Label>
-              <Form.Select
-                name="role"
-                value={newUser.role}
-                onChange={handleInputChange}
-                required
-              >
-                {availableRoles.map(role => (
-                  <option key={role} value={role}>{role}</option>
-                ))}
-              </Form.Select>
-            </Form.Group>
-
-            <Button type="submit" disabled={isCreating}>
-              {isCreating ? (
-                <>
-                  <Spinner
-                    as="span"
-                    animation="border"
-                    size="sm"
-                    role="status"
-                    aria-hidden="true"
-                    className="me-2"
-                  />
-                  Creando...
-                </>
-              ) : (
-                'Crear Usuario'
-              )}
-            </Button>
-          </Form>
-        </div>
-      )}
+      {error && <Alert variant="danger" dismissible onClose={() => setError('')}>{error}</Alert>}
+      {success && <Alert variant="success" dismissible onClose={() => setSuccess('')}>{success}</Alert>}
 
       <div>
         <h3>Lista de Usuarios</h3>
@@ -300,7 +222,6 @@ export const UsersPage: React.FC = () => {
                           >
                             <i className="bi bi-pencil-square"></i>
                           </Button>
-                          {/* Mostrar botón de eliminar para administradores y RRHH */}
                           <Button
                             variant="outline-danger"
                             size="sm"
@@ -319,6 +240,127 @@ export const UsersPage: React.FC = () => {
           </Table>
         )}
       </div>
+
+      {/* Modal de Registro */}
+      <Modal show={showCreateModal} onHide={() => setShowCreateModal(false)} size="lg">
+        <Modal.Header closeButton>
+          <Modal.Title>
+            <i className="bi bi-person-plus me-2"></i>
+            Registrar Nuevo Usuario
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Alert variant="info">
+            <i className="bi bi-info-circle me-2"></i>
+            <strong>Importante:</strong> El usuario debe estar registrado como trabajador antes de crear su cuenta.
+          </Alert>
+          <Form onSubmit={handleCreateUser}>
+            <Form.Group className="mb-3">
+              <Form.Label>
+                <i className="bi bi-person me-2"></i>
+                Nombre Completo
+              </Form.Label>
+              <Form.Control
+                type="text"
+                name="name"
+                value={newUser.name}
+                onChange={handleInputChange}
+                placeholder="Ej: Juan Pérez González"
+                required
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>
+                <i className="bi bi-credit-card me-2"></i>
+                RUT
+              </Form.Label>
+              <Form.Control
+                type="text"
+                name="rut"
+                value={newUser.rut}
+                onChange={handleInputChange}
+                placeholder="12.345.678-9"
+                required
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>
+                <i className="bi bi-envelope me-2"></i>
+                Email
+              </Form.Label>
+              <Form.Control
+                type="email"
+                name="email"
+                value={newUser.email}
+                onChange={handleInputChange}
+                placeholder="usuario@gmail.com"
+                required
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>
+                <i className="bi bi-key me-2"></i>
+                Contraseña
+              </Form.Label>
+              <Form.Control
+                type="password"
+                name="password"
+                value={newUser.password}
+                onChange={handleInputChange}
+                placeholder="Mínimo 8 caracteres"
+                required
+                minLength={8}
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>
+                <i className="bi bi-shield me-2"></i>
+                Rol
+              </Form.Label>
+              <Form.Select
+                name="role"
+                value={newUser.role}
+                onChange={handleInputChange}
+                required
+              >
+                {availableRoles.map(role => (
+                  <option key={role} value={role}>{role}</option>
+                ))}
+              </Form.Select>
+            </Form.Group>
+          </Form>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowCreateModal(false)}>
+            <i className="bi bi-x-circle me-2"></i>
+            Cancelar
+          </Button>
+          <Button variant="primary" onClick={handleCreateUser} disabled={isCreating}>
+            {isCreating ? (
+              <>
+                <Spinner
+                  as="span"
+                  animation="border"
+                  size="sm"
+                  role="status"
+                  aria-hidden="true"
+                  className="me-2"
+                />
+                Creando...
+              </>
+            ) : (
+              <>
+                <i className="bi bi-check-circle me-2"></i>
+                Crear Usuario
+              </>
+            )}
+          </Button>
+        </Modal.Footer>
+      </Modal>
 
       {/* Modal de Actualización */}
       <Modal show={showUpdateModal} onHide={() => setShowUpdateModal(false)}>
