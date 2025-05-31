@@ -539,7 +539,7 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                                   onClick={() => handleChangeEstado(ficha)}
                                   title="Cambiar estado"
                                 >
-                                  <i className="bi bi-arrow-repeat"></i>
+                                  <i className="bi bi-x"></i>
                                 </button>
                               )}
                             </div>
