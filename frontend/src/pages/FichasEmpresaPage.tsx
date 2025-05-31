@@ -4,10 +4,9 @@ import { useAuth } from '@/context/AuthContext';
 import { 
   FichaEmpresa, 
   FichaEmpresaSearchParams,
-  EstadoLaboral, 
-  UpdateFichaEmpresaData 
-} from '@/types/fichaEmpresa';
-import { Trabajador } from '@/types/trabajador';
+  EstadoLaboral
+} from '@/types/fichaEmpresa.types';
+import { Trabajador } from '@/types/trabajador.types';
 import EditWorkerModal from '@/components/EditWorkerModal';
 
 interface FichasEmpresaPageProps {
@@ -446,19 +445,19 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
       <div className="row">
         <div className="col-12">
           <div className="card">
-            <div className="card-header d-flex justify-content-between align-items-center">
+            <div className="card-header">
               <h6 className="card-title mb-0">
                 <i className="bi bi-table me-2"></i>
                 Fichas Encontradas ({fichas.filter(f => f.estado !== EstadoLaboral.DESVINCULADO).length})
               </h6>
+            </div>
+            <div className="card-body">
               {fichas.length > 0 && (
-                <small className="text-muted">
+                <small className="text-muted mb-3 d-block">
                   Activos: {fichas.filter(f => f.estado === EstadoLaboral.ACTIVO).length} • 
                   Inactivos: {fichas.filter(f => (f.estado === EstadoLaboral.LICENCIA || f.estado === EstadoLaboral.PERMISO)).length}
                 </small>
               )}
-            </div>
-            <div className="card-body">
               {isLoading ? (
                 <div className="text-center py-5">
                   <div className="spinner-border text-primary" role="status">
@@ -533,7 +532,8 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                               >
                                 <i className="bi bi-pencil"></i>
                               </button>
-                              {user?.role === 'RecursosHumanos' && (
+                              {console.log('Role:', user?.role) /* Temporal para debug */}
+                              {user?.role && ['RecursosHumanos', 'Administrador'].includes(user.role) && (
                                 <button
                                   className="btn btn-outline-danger"
                                   onClick={() => handleChangeEstado(ficha)}
@@ -600,11 +600,15 @@ const EstadoModal: React.FC<{
   onSave: (estado: EstadoLaboral) => void;
   onClose: () => void;
 }> = ({ ficha, onSave, onClose }) => {
-  const [nuevoEstado, setNuevoEstado] = useState<EstadoLaboral>(ficha.estado);
+  const [showConfirmation, setShowConfirmation] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave(nuevoEstado);
+    setShowConfirmation(true);
+  };
+
+  const handleConfirm = () => {
+    onSave(EstadoLaboral.DESVINCULADO);
   };
 
   return (
@@ -613,8 +617,8 @@ const EstadoModal: React.FC<{
         <div className="modal-content">
           <div className="modal-header bg-danger text-white">
             <h5 className="modal-title">
-              <i className="bi bi-arrow-repeat me-2"></i>
-              Cambiar Estado Laboral
+              <i className="bi bi-person-x me-2"></i>
+              Desvincular de la Empresa
             </h5>
             <button type="button" className="btn-close btn-close-white" onClick={onClose}></button>
           </div>
@@ -627,25 +631,21 @@ const EstadoModal: React.FC<{
                 <strong>Estado Actual:</strong> <span className="badge bg-primary">{ficha.estado}</span>
               </div>
 
-              <div className="mb-3">
-                <label className="form-label">Nuevo Estado:</label>
-                <select
-                  className="form-select"
-                  value={nuevoEstado}
-                  onChange={(e) => setNuevoEstado(e.target.value as EstadoLaboral)}
-                  required
-                >
-                  <option value={EstadoLaboral.ACTIVO}>Activo</option>
-                  <option value={EstadoLaboral.LICENCIA}>Licencia</option>
-                  <option value={EstadoLaboral.PERMISO}>Permiso</option>
-                  <option value={EstadoLaboral.DESVINCULADO}>Desvinculado</option>
-                </select>
+              <div className="alert alert-warning">
+                <i className="bi bi-exclamation-triangle me-2"></i>
+                <strong>Atención:</strong> Al desvincular al trabajador:
+                <ul className="mb-0 mt-2">
+                  <li>Se establecerá automáticamente la fecha de fin de contrato</li>
+                  <li>El trabajador ya no aparecerá en los conteos de Activos/Inactivos</li>
+                  <li>Esta acción no se puede deshacer</li>
+                </ul>
               </div>
 
-              {nuevoEstado === EstadoLaboral.DESVINCULADO && (
-                <div className="alert alert-warning">
-                  <i className="bi bi-exclamation-triangle me-2"></i>
-                  <strong>Atención:</strong> Al cambiar a "Desvinculado" se establecerá automáticamente la fecha de fin de contrato.
+              {showConfirmation && (
+                <div className="alert alert-danger">
+                  <i className="bi bi-question-circle me-2"></i>
+                  <strong>¿Está seguro de desvincular a este trabajador?</strong>
+                  <p className="mb-0 mt-2">Esta acción es permanente y no se puede deshacer.</p>
                 </div>
               )}
             </div>
@@ -654,10 +654,17 @@ const EstadoModal: React.FC<{
                 <i className="bi bi-x-circle me-2"></i>
                 Cancelar
               </button>
-              <button type="submit" className="btn btn-danger">
-                <i className="bi bi-check-circle me-2"></i>
-                Cambiar Estado
-              </button>
+              {!showConfirmation ? (
+                <button type="submit" className="btn btn-danger">
+                  <i className="bi bi-check-circle me-2"></i>
+                  Aceptar
+                </button>
+              ) : (
+                <button type="button" className="btn btn-danger" onClick={handleConfirm}>
+                  <i className="bi bi-exclamation-circle me-2"></i>
+                  Sí, Desvincular
+                </button>
+              )}
             </div>
           </form>
         </div>

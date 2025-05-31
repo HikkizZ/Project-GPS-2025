@@ -1,66 +1,68 @@
 import axios from 'axios';
 import { API_CONFIG, getAuthHeaders } from '@/config/api.config';
-import { LoginData, RegisterData, AuthResponse, User } from '@/types/auth.types';
+import { LoginData, RegisterData, AuthResponse, User, JWTPayload } from '@/types/auth.types';
 
 class AuthService {
   private baseURL = API_CONFIG.BASE_URL;
+  private tokenKey = 'token';
+  private userKey = 'user';
 
   // Login de usuario
-  async login(loginData: LoginData): Promise<{ token?: string; error?: string }> {
+  async login(credentials: LoginData): Promise<any> {
     try {
-      const response = await axios.post<AuthResponse>(
-        `${this.baseURL}${API_CONFIG.ENDPOINTS.AUTH.LOGIN}`,
-        loginData,
-        { headers: API_CONFIG.HEADERS }
-      );
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(credentials)
+      });
 
-      if (response.data.status === 'success' && response.data.data && 'token' in response.data.data) {
-        const token = response.data.data.token;
-        this.setToken(token);
-        return { token };
+      const data = await response.json();
+      
+      if (data.token) {
+        localStorage.setItem(this.tokenKey, data.token);
+        // Decodificar y guardar información del usuario
+        const payload = JSON.parse(atob(data.token.split('.')[1]));
+        const userData = {
+          name: payload.name,
+          email: payload.email,
+          role: payload.role,
+          rut: payload.rut
+        };
+        localStorage.setItem(this.userKey, JSON.stringify(userData));
       }
-
-      return { error: response.data.message };
-    } catch (error: any) {
+      
+      return data;
+    } catch (error) {
       console.error('Error en login:', error);
-      if (error.response?.data?.message) {
-        return { error: error.response.data.message };
-      }
-      return { error: 'Error de conexión con el servidor' };
+      throw error;
     }
   }
 
   // Registro de usuario (requiere autenticación)
-  async register(registerData: RegisterData): Promise<{ user?: User; error?: string }> {
+  async register(userData: RegisterData): Promise<any> {
     try {
-      const token = this.getToken();
-      if (!token) {
-        return { error: 'No hay token de autenticación' };
-      }
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(userData)
+      });
 
-      const response = await axios.post<AuthResponse>(
-        `${this.baseURL}${API_CONFIG.ENDPOINTS.AUTH.REGISTER}`,
-        registerData,
-        { headers: getAuthHeaders(token) }
-      );
-
-      if (response.data.status === 'success' && response.data.data && !('token' in response.data.data)) {
-        return { user: response.data.data as User };
-      }
-
-      return { error: response.data.message };
-    } catch (error: any) {
+      return await response.json();
+    } catch (error) {
       console.error('Error en registro:', error);
-      if (error.response?.data?.message) {
-        return { error: error.response.data.message };
-      }
-      return { error: 'Error de conexión con el servidor' };
+      throw error;
     }
   }
 
   // Logout
   logout(): void {
-    this.removeToken();
+    localStorage.removeItem(this.tokenKey);
+    localStorage.removeItem(this.userKey);
+    window.location.href = '/login';
   }
 
   // Gestión del token en localStorage
@@ -78,28 +80,18 @@ class AuthService {
 
   // Verificar si el usuario está autenticado
   isAuthenticated(): boolean {
-    const token = this.getToken();
-    if (!token) return false;
-
-    try {
-      // Verificar si el token no está expirado
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      const currentTime = Date.now() / 1000;
-      return payload.exp > currentTime;
-    } catch {
-      return false;
-    }
+    const token = localStorage.getItem(this.tokenKey);
+    return !!token;
   }
 
   // Obtener información del usuario del token
-  getCurrentUser(): any | null {
-    const token = this.getToken();
-    if (!token) return null;
-
+  getCurrentUser(): JWTPayload | null {
     try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      return payload;
-    } catch {
+      const userStr = localStorage.getItem(this.userKey);
+      if (!userStr) return null;
+      return JSON.parse(userStr);
+    } catch (error) {
+      console.error('Error getting current user:', error);
       return null;
     }
   }

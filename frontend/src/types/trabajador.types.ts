@@ -1,4 +1,4 @@
-export enum EstadoLaboral {
+export enum EstadoTrabajador {
   ACTIVO = "ACTIVO",
   INACTIVO = "INACTIVO",
   DESPEDIDO = "DESPEDIDO",
@@ -15,7 +15,7 @@ export interface FichaEmpresa {
   sueldoBase: number;
   fechaInicioContrato: string;
   fechaFinContrato?: string;
-  estado: EstadoLaboral;
+  estado: EstadoTrabajador;
   contratoURL?: string;
 }
 

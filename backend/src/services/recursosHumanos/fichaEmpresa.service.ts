@@ -194,17 +194,17 @@ export async function actualizarEstadoFichaService(
         if (userId) {
             const userRepo = queryRunner.manager.getRepository(User);
             const user = await userRepo.findOne({ where: { id: userId } });
-            if (!user || user.role !== "RecursosHumanos") {
+            if (!user || (user.role !== "RecursosHumanos" && user.role !== "Administrador")) {
                 await queryRunner.rollbackTransaction();
                 await queryRunner.release();
                 return [null, { message: "No tiene permiso para cambiar el estado de la ficha" }];
             }
 
-            // Si es RRHH, solo permitir cambiar a estado DESVINCULADO
+            // Si es RRHH o Administrador, solo permitir cambiar a estado DESVINCULADO
             if (estado !== EstadoLaboral.DESVINCULADO) {
                 await queryRunner.rollbackTransaction();
                 await queryRunner.release();
-                return [null, { message: "RRHH solo puede cambiar el estado a DESVINCULADO. Los estados de LICENCIA y PERMISO se actualizan automáticamente al aprobar solicitudes." }];
+                return [null, { message: "RRHH y Administrador solo pueden cambiar el estado a DESVINCULADO. Los estados de LICENCIA y PERMISO se actualizan automáticamente al aprobar solicitudes." }];
             }
         }
 
