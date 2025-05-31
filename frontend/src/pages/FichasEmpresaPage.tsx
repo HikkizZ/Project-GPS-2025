@@ -118,10 +118,12 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
   const handleCloseEditModal = () => {
     setShowEditModal(false);
     setSelectedWorkerId(null);
+    // Recargar los datos después de cerrar
+    handleSearch();
   };
 
   const handleUpdateSuccess = () => {
-    // Recargar las fichas después de una actualización exitosa
+    // Recargar las fichas
     handleSearch();
   };
 

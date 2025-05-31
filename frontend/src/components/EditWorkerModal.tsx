@@ -194,32 +194,25 @@ const EditWorkerModal: React.FC<EditWorkerModalProps> = ({ show, handleClose, wo
     try {
       setLoading(true);
       setError(null);
-      setSuccess(null);
 
-      // Excluir fechaInicioContrato del objeto a enviar
       const { fechaInicioContrato, ...dataToSubmit } = {
         ...formData,
         sueldoBase: parseFloat(formData.sueldoBase) || 0,
         fechaFinContrato: formData.fechaFinContrato || undefined
       };
 
-      console.log('Enviando datos:', dataToSubmit); // Para debug
-
       const response = await updateFichaEmpresa(ficha.id, dataToSubmit);
       
       if (response.success) {
-        setSuccess('Ficha actualizada exitosamente');
-        // Actualizar la ficha inmediatamente
-        await fetchFicha();
-        // Notificar al componente padre
+        // Primero notificar la actualización
         onUpdate();
-        // Cerrar el modal después de un breve delay
-        setTimeout(() => {
-          handleClose();
-        }, 1500);
-      } else {
-        setError(response.message || 'Error al actualizar la ficha');
+        // Forzar el cierre del modal
+        handleClose();
+        return; // Salir inmediatamente después de cerrar
       }
+
+      // Si llegamos aquí, hubo un error
+      setError(response.message || 'Error al actualizar la ficha');
     } catch (error) {
       console.error('Error updating ficha:', error);
       setError('Error al actualizar la ficha');
@@ -229,8 +222,14 @@ const EditWorkerModal: React.FC<EditWorkerModalProps> = ({ show, handleClose, wo
   };
 
   return (
-    <Modal show={show} onHide={handleClose} size="lg" backdrop="static">
-      <Modal.Header closeButton>
+    <Modal 
+      show={show} 
+      onHide={handleClose} 
+      size="lg" 
+      backdrop="static"
+      keyboard={false}
+    >
+      <Modal.Header closeButton={!loading}>
         <Modal.Title>
           Editar Ficha de Empresa
           {ficha && ` - ${ficha.trabajador.nombres} ${ficha.trabajador.apellidoPaterno}`}
@@ -452,22 +451,20 @@ const EditWorkerModal: React.FC<EditWorkerModalProps> = ({ show, handleClose, wo
       </Modal.Body>
 
       <Modal.Footer>
-        <Button variant="secondary" onClick={handleClose}>
+        <Button 
+          variant="secondary" 
+          onClick={handleClose}
+          disabled={loading}
+        >
           Cancelar
         </Button>
         <Button
           variant="primary"
-          onClick={handleSubmit}
+          type="submit"
+          form="editForm"
           disabled={loading}
         >
-          {loading ? (
-            <>
-              <Spinner animation="border" size="sm" className="me-1" />
-              Guardando...
-            </>
-          ) : (
-            'Guardar Cambios'
-          )}
+          {loading ? 'Guardando...' : 'Guardar Cambios'}
         </Button>
       </Modal.Footer>
     </Modal>
