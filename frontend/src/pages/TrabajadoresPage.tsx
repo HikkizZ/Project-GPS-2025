@@ -132,6 +132,16 @@ export const TrabajadoresPage: React.FC = () => {
               </div>
             </div>
             <div className="d-flex justify-content-between align-items-center mt-3">
+              <div>
+                <Button variant="primary" onClick={handleSearch}>
+                  <i className="bi bi-search me-2"></i>
+                  Buscar
+                </Button>
+                <Button variant="secondary" className="ms-2" onClick={clearFilters}>
+                  <i className="bi bi-x-circle me-2"></i>
+                  Limpiar
+                </Button>
+              </div>
               <Form.Check
                 type="checkbox"
                 label="Incluir trabajadores inactivos"
@@ -139,16 +149,6 @@ export const TrabajadoresPage: React.FC = () => {
                 onChange={(e) => setSearchParams({ ...searchParams, todos: e.target.checked })}
                 id="includeInactive"
               />
-              <div>
-                <Button variant="secondary" className="me-2" onClick={clearFilters}>
-                  <i className="bi bi-x-circle me-2"></i>
-                  Limpiar
-                </Button>
-                <Button variant="primary" onClick={handleSearch}>
-                  <i className="bi bi-search me-2"></i>
-                  Buscar
-                </Button>
-              </div>
             </div>
           </div>
         </div>
