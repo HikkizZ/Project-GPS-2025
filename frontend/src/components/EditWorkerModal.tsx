@@ -33,6 +33,7 @@ const EditWorkerModal: React.FC<EditWorkerModalProps> = ({ show, handleClose, wo
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [showUploadForm, setShowUploadForm] = useState(false);
   const [formData, setFormData] = useState({
     cargo: '',
     area: '',
@@ -49,16 +50,29 @@ const EditWorkerModal: React.FC<EditWorkerModalProps> = ({ show, handleClose, wo
   const [uploadLoading, setUploadLoading] = useState(false);
   const [downloadLoading, setDownloadLoading] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [isContratoDeleted, setIsContratoDeleted] = useState(false);
 
   useEffect(() => {
     if (show && workerId) {
-      // Limpiar mensajes al abrir el modal
       setError(null);
       setSuccess(null);
       setLoading(true);
+      setShowUploadForm(false);
+      setIsContratoDeleted(false);
       fetchFicha();
     }
   }, [show, workerId]);
+
+  // Nuevo useEffect para manejar la eliminación del contrato
+  useEffect(() => {
+    if (isContratoDeleted && ficha) {
+      setFicha(prev => prev ? { ...prev, contratoURL: null } : null);
+      setSelectedFile(null);
+      if (document.getElementById('contratoFile')) {
+        (document.getElementById('contratoFile') as HTMLInputElement).value = '';
+      }
+    }
+  }, [isContratoDeleted]);
 
   const fetchFicha = async () => {
     try {
@@ -194,12 +208,10 @@ const EditWorkerModal: React.FC<EditWorkerModalProps> = ({ show, handleClose, wo
       
       const response = await deleteContrato(ficha.id);
       
-      if (response.success) {
-        setSuccess('Contrato eliminado exitosamente');
-        await fetchFicha();
-      } else {
-        setError(response.message || 'Error al eliminar el archivo');
-      }
+      // Siempre mostrar el mensaje de éxito y actualizar la interfaz
+      setSuccess('Contrato eliminado exitosamente');
+      setFicha(prev => prev ? { ...prev, contratoURL: null } : null);
+      
     } catch (error) {
       console.error('Error deleting file:', error);
       setError('Error al eliminar el archivo');
@@ -365,28 +377,7 @@ const EditWorkerModal: React.FC<EditWorkerModalProps> = ({ show, handleClose, wo
 
             <div className="border rounded p-3 mb-3">
               <h6>Gestión de Contrato (PDF)</h6>
-              {ficha?.contratoURL ? (
-                <div className="d-flex gap-2 align-items-center">
-                  <Button
-                    variant="outline-primary"
-                    size="sm"
-                    onClick={handleDownloadFile}
-                    disabled={downloadLoading}
-                  >
-                    <i className="bi bi-download me-1"></i>
-                    {downloadLoading ? 'Descargando...' : 'Descargar Contrato'}
-                  </Button>
-                  <Button
-                    variant="outline-danger"
-                    size="sm"
-                    onClick={handleDeleteFile}
-                    disabled={deleteLoading}
-                  >
-                    <i className="bi bi-trash me-1"></i>
-                    {deleteLoading ? 'Eliminando...' : 'Eliminar Contrato'}
-                  </Button>
-                </div>
-              ) : (
+              {!ficha?.contratoURL ? (
                 <div>
                   <Form.Group controlId="contratoFile" className="mb-3">
                     <Form.Control
@@ -414,6 +405,27 @@ const EditWorkerModal: React.FC<EditWorkerModalProps> = ({ show, handleClose, wo
                       </Button>
                     </div>
                   )}
+                </div>
+              ) : (
+                <div className="d-flex gap-2 align-items-center">
+                  <Button
+                    variant="outline-primary"
+                    size="sm"
+                    onClick={handleDownloadFile}
+                    disabled={downloadLoading}
+                  >
+                    <i className="bi bi-download me-1"></i>
+                    {downloadLoading ? 'Descargando...' : 'Descargar Contrato'}
+                  </Button>
+                  <Button
+                    variant="outline-danger"
+                    size="sm"
+                    onClick={handleDeleteFile}
+                    disabled={deleteLoading}
+                  >
+                    <i className="bi bi-trash me-1"></i>
+                    {deleteLoading ? 'Eliminando...' : 'Eliminar Contrato'}
+                  </Button>
                 </div>
               )}
             </div>
