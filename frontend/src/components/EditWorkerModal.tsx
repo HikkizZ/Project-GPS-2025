@@ -128,6 +128,7 @@ const EditWorkerModal: React.FC<EditWorkerModalProps> = ({ show, handleClose, wo
     try {
       setLoading(true);
       setError(null);
+      setSuccess(null);
 
       // Si hay un archivo seleccionado, subirlo primero
       if (selectedFile) {
@@ -148,8 +149,14 @@ const EditWorkerModal: React.FC<EditWorkerModalProps> = ({ show, handleClose, wo
       const response = await updateFichaEmpresa(ficha.id, dataToSubmit);
       
       if (response.data || response.success) {
+        setSuccess('Ficha actualizada exitosamente');
+        // Notificar la actualización
         onUpdate();
-        handleClose();
+        // Esperar un momento para que el usuario vea el mensaje de éxito
+        setTimeout(() => {
+          // Cerrar el modal usando la función proporcionada por el padre
+          handleClose();
+        }, 1000);
       } else {
         setError(response.message || 'Error al actualizar la ficha');
       }
@@ -209,7 +216,7 @@ const EditWorkerModal: React.FC<EditWorkerModalProps> = ({ show, handleClose, wo
       backdrop="static"
       keyboard={false}
     >
-      <Modal.Header closeButton={!loading}>
+      <Modal.Header closeButton>
         <Modal.Title>
           Editar Ficha de Empresa
           {ficha && ` - ${ficha.trabajador.nombres} ${ficha.trabajador.apellidoPaterno}`}
@@ -229,7 +236,13 @@ const EditWorkerModal: React.FC<EditWorkerModalProps> = ({ show, handleClose, wo
         {success && <Alert variant="success">{success}</Alert>}
 
         {ficha && (
-          <Form id="editForm" onSubmit={handleSubmit}>
+          <Form 
+            id="editForm" 
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleSubmit();
+            }}
+          >
             <Row>
               <Col md={6}>
                 <Form.Group className="mb-3">
