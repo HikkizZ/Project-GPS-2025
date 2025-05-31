@@ -256,10 +256,12 @@ export const TrabajadoresPage: React.FC = () => {
                   <tr>
                     <th>RUT</th>
                     <th>Nombre Completo</th>
+                    <th>Fecha Nacimiento</th>
                     <th>Correo</th>
                     <th>Teléfono</th>
-                    <th>Cargo</th>
-                    <th>Estado</th>
+                    <th>N° Emergencia</th>
+                    <th>Dirección</th>
+                    <th>Fecha Ingreso</th>
                     <th className="text-center">Acciones</th>
                   </tr>
                 </thead>
@@ -268,14 +270,12 @@ export const TrabajadoresPage: React.FC = () => {
                     <tr key={trabajador.id}>
                       <td>{formatRUT(trabajador.rut)}</td>
                       <td>{`${trabajador.nombres} ${trabajador.apellidoPaterno} ${trabajador.apellidoMaterno}`}</td>
+                      <td>{new Date(trabajador.fechaNacimiento).toLocaleDateString()}</td>
                       <td>{trabajador.correo}</td>
                       <td>{trabajador.telefono}</td>
-                      <td>{trabajador.fichaEmpresa?.cargo || '-'}</td>
-                      <td>
-                        <span className={`badge bg-${trabajador.enSistema ? 'success' : 'danger'}`}>
-                          {trabajador.enSistema ? 'Activo' : 'Inactivo'}
-                        </span>
-                      </td>
+                      <td>{trabajador.numeroEmergencia || '-'}</td>
+                      <td>{trabajador.direccion}</td>
+                      <td>{new Date(trabajador.fechaIngreso).toLocaleDateString()}</td>
                       <td className="text-center">
                         <div className="btn-group">
                           <Button 
