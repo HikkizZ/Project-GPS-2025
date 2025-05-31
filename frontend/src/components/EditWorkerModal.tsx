@@ -321,13 +321,17 @@ const EditWorkerModal: React.FC<EditWorkerModalProps> = ({ show, handleClose, wo
               <Col md={6}>
                 <Form.Group className="mb-3">
                   <Form.Label>Jornada Laboral *</Form.Label>
-                  <Form.Control
-                    type="text"
+                  <Form.Select
                     name="jornadaLaboral"
                     value={formData.jornadaLaboral}
                     onChange={handleInputChange}
                     required
-                  />
+                  >
+                    <option value="">Seleccione jornada...</option>
+                    <option value="Completa">Completa</option>
+                    <option value="Media">Media Jornada</option>
+                    <option value="Part-Time">Part-Time</option>
+                  </Form.Select>
                 </Form.Group>
               </Col>
               
