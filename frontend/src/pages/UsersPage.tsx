@@ -56,6 +56,11 @@ export const UsersPage: React.FC = () => {
     availableRoles.push('Administrador');
   }
 
+  // Función para limpiar el RUT (eliminar puntos y guión)
+  const cleanRUT = (rut: string) => {
+    return rut.replace(/\./g, '').replace(/-/g, '');
+  };
+
   useEffect(() => {
     loadUsers();
   }, []);
@@ -74,8 +79,10 @@ export const UsersPage: React.FC = () => {
       }
       
       if (searchParams.rut) {
+        // Limpiar el RUT de búsqueda y los RUTs de usuarios antes de comparar
+        const searchRUT = cleanRUT(searchParams.rut);
         filteredUsers = filteredUsers.filter(user => 
-          user.rut.toLowerCase().includes(searchParams.rut!.toLowerCase())
+          cleanRUT(user.rut).includes(searchRUT)
         );
       }
       
@@ -150,18 +157,18 @@ export const UsersPage: React.FC = () => {
     setIsCreating(false);
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     
     if (name === 'rut') {
-      // Aplicar formato al RUT
+      // Aplicar formato al RUT en el campo de búsqueda
       const formattedRUT = formatRUT(value);
-      setNewUser(prev => ({
+      setSearchParams(prev => ({
         ...prev,
         [name]: formattedRUT
       }));
     } else {
-      setNewUser(prev => ({
+      setSearchParams(prev => ({
         ...prev,
         [name]: value
       }));
@@ -275,9 +282,10 @@ export const UsersPage: React.FC = () => {
                   </Form.Label>
                   <Form.Control
                     type="text"
+                    name="name"
                     placeholder="Buscar por nombre"
                     value={searchParams.name || ''}
-                    onChange={(e) => setSearchParams(prev => ({ ...prev, name: e.target.value }))}
+                    onChange={handleSearchInputChange}
                   />
                 </Form.Group>
               </div>
@@ -289,9 +297,10 @@ export const UsersPage: React.FC = () => {
                   </Form.Label>
                   <Form.Control
                     type="text"
+                    name="rut"
                     placeholder="12.345.678-9"
                     value={searchParams.rut || ''}
-                    onChange={(e) => setSearchParams(prev => ({ ...prev, rut: e.target.value }))}
+                    onChange={handleSearchInputChange}
                   />
                 </Form.Group>
               </div>
@@ -303,9 +312,10 @@ export const UsersPage: React.FC = () => {
                   </Form.Label>
                   <Form.Control
                     type="text"
+                    name="email"
                     placeholder="usuario@gmail.com"
                     value={searchParams.email || ''}
-                    onChange={(e) => setSearchParams(prev => ({ ...prev, email: e.target.value }))}
+                    onChange={handleSearchInputChange}
                   />
                 </Form.Group>
               </div>
@@ -316,8 +326,9 @@ export const UsersPage: React.FC = () => {
                     Rol
                   </Form.Label>
                   <Form.Select
+                    name="role"
                     value={searchParams.role || ''}
-                    onChange={(e) => setSearchParams(prev => ({ ...prev, role: e.target.value as UserRole }))}
+                    onChange={handleSearchInputChange}
                   >
                     <option value="">Todos los roles</option>
                     {availableRoles.map(role => (
@@ -373,7 +384,7 @@ export const UsersPage: React.FC = () => {
               {users.map(user => (
                 <tr key={user.id}>
                   <td>{user.name}</td>
-                  <td>{user.rut}</td>
+                  <td>{formatRUT(user.rut)}</td>
                   <td>{user.email}</td>
                   <td>{user.role}</td>
                   <td>
@@ -431,7 +442,7 @@ export const UsersPage: React.FC = () => {
                 type="text"
                 name="name"
                 value={newUser.name}
-                onChange={handleInputChange}
+                onChange={handleSearchInputChange}
                 placeholder="Ej: Juan Pérez González"
                 required
               />
@@ -446,7 +457,7 @@ export const UsersPage: React.FC = () => {
                 type="text"
                 name="rut"
                 value={newUser.rut}
-                onChange={handleInputChange}
+                onChange={handleSearchInputChange}
                 placeholder="12.345.678-9"
                 required
               />
@@ -461,7 +472,7 @@ export const UsersPage: React.FC = () => {
                 type="email"
                 name="email"
                 value={newUser.email}
-                onChange={handleInputChange}
+                onChange={handleSearchInputChange}
                 placeholder="usuario@gmail.com"
                 required
               />
@@ -476,7 +487,7 @@ export const UsersPage: React.FC = () => {
                 type="password"
                 name="password"
                 value={newUser.password}
-                onChange={handleInputChange}
+                onChange={handleSearchInputChange}
                 placeholder="Mínimo 8 caracteres"
                 required
                 minLength={8}
@@ -491,7 +502,7 @@ export const UsersPage: React.FC = () => {
               <Form.Select
                 name="role"
                 value={newUser.role}
-                onChange={handleInputChange}
+                onChange={handleSearchInputChange}
                 required
               >
                 {availableRoles.map(role => (
@@ -543,7 +554,7 @@ export const UsersPage: React.FC = () => {
               </Form.Group>
               <Form.Group className="mb-3">
                 <Form.Label>RUT</Form.Label>
-                <Form.Control type="text" value={selectedUser.rut} disabled />
+                <Form.Control type="text" value={formatRUT(selectedUser.rut)} disabled />
               </Form.Group>
               <Form.Group className="mb-3">
                 <Form.Label>Nuevo Rol</Form.Label>
@@ -598,7 +609,7 @@ export const UsersPage: React.FC = () => {
               <p>¿Estás seguro que deseas eliminar al siguiente usuario?</p>
               <ul className="list-unstyled">
                 <li><strong>Nombre:</strong> {selectedUser.name}</li>
-                <li><strong>RUT:</strong> {selectedUser.rut}</li>
+                <li><strong>RUT:</strong> {formatRUT(selectedUser.rut)}</li>
                 <li><strong>Email:</strong> {selectedUser.email}</li>
                 <li><strong>Rol:</strong> {selectedUser.role}</li>
               </ul>
