@@ -558,15 +558,15 @@ const Dashboard: React.FC = () => {
                       {(user?.role === 'Administrador' || user?.role === 'RecursosHumanos') && (
                         <div className="col-md-4 mb-3">
                           <div 
-                            className="card h-100 shadow-sm border-info"
+                            className="card h-100 shadow-sm border-primary"
                             style={{ cursor: 'pointer' }}
                             onClick={() => setCurrentPage('users')}
                           >
                             <div className="card-body text-center">
-                              <i className="bi bi-people display-4 text-info mb-3"></i>
+                              <i className="bi bi-people display-4 text-primary mb-3"></i>
                               <h5>Gestión de Usuarios</h5>
                               <p className="text-muted">Administrar cuentas y permisos del sistema</p>
-                              <button className="btn btn-info text-white">
+                              <button className="btn btn-primary">
                                 <i className="bi bi-shield-lock me-2"></i>
                                 Gestionar
                               </button>
