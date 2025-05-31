@@ -54,6 +54,9 @@ export class FichaEmpresa {
   })
   estado!: EstadoLaboral;
 
+  @Column({ type: "text", nullable: true })
+  motivoDesvinculacion!: string | null;
+
   @Column({ type: "varchar", length: 255, nullable: true })
   contratoURL!: string | null;
 }

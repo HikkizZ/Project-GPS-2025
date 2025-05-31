@@ -4,8 +4,10 @@ import {
   FichaEmpresaResponse, 
   FichaEmpresaSearchQuery,
   UpdateFichaEmpresaData,
-  ActualizarEstadoData
+  ActualizarEstadoData,
+  EstadoLaboral
 } from '@/types/fichaEmpresa.types';
+import axios from 'axios';
 
 class FichaEmpresaService {
   private baseURL = `${API_CONFIG.BASE_URL}/ficha-empresa`;
@@ -131,6 +133,20 @@ class FichaEmpresaService {
     } catch (error) {
       return { error: 'Error de conexión' };
     }
+  }
+
+  // Actualizar solo el estado laboral
+  async updateEstadoLaboral(id: number, estadoLaboral: EstadoLaboral, motivo?: string): Promise<FichaEmpresa> {
+    const response = await axios.patch(`${API_CONFIG.BASE_URL}/ficha-empresa/${id}/estado`, { 
+      estadoLaboral,
+      motivo
+    });
+    
+    if (response.status !== 200) {
+      throw new Error(response.data?.message || 'Error al actualizar estado laboral');
+    }
+    
+    return response.data.data;
   }
 
   // Formatear valores para mostrar

@@ -569,9 +569,9 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
       {showModal && selectedFicha && modalType === 'estado' && (
         <EstadoModal
           ficha={selectedFicha}
-          onSave={async (estado) => {
+          onSave={async (estado, motivo) => {
             try {
-              await actualizarEstado(selectedFicha.id, estado);
+              await actualizarEstado(selectedFicha.id, estado, motivo);
               setShowModal(false);
               setSelectedFicha(null);
               // Recargar fichas
@@ -597,18 +597,29 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
 // Componente Modal de Cambio de Estado
 const EstadoModal: React.FC<{
   ficha: FichaEmpresa;
-  onSave: (estado: EstadoLaboral) => void;
+  onSave: (estado: EstadoLaboral, motivo?: string) => void;
   onClose: () => void;
 }> = ({ ficha, onSave, onClose }) => {
   const [showConfirmation, setShowConfirmation] = useState(false);
+  const [motivo, setMotivo] = useState('');
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!motivo.trim()) {
+      setError('Debe especificar el motivo de la desvinculación');
+      return;
+    }
+    setError(null);
     setShowConfirmation(true);
   };
 
   const handleConfirm = () => {
-    onSave(EstadoLaboral.DESVINCULADO);
+    if (!motivo.trim()) {
+      setError('Debe especificar el motivo de la desvinculación');
+      return;
+    }
+    onSave(EstadoLaboral.DESVINCULADO, motivo.trim());
   };
 
   return (
@@ -639,6 +650,21 @@ const EstadoModal: React.FC<{
                   <li>El trabajador ya no aparecerá en los conteos de Activos/Inactivos</li>
                   <li>Esta acción no se puede deshacer</li>
                 </ul>
+              </div>
+
+              <div className="mb-3">
+                <label className="form-label required">
+                  Motivo de la Desvinculación
+                </label>
+                <textarea
+                  className={`form-control ${error ? 'is-invalid' : ''}`}
+                  value={motivo}
+                  onChange={(e) => setMotivo(e.target.value)}
+                  rows={3}
+                  placeholder="Especifique el motivo de la desvinculación..."
+                  required
+                />
+                {error && <div className="invalid-feedback">{error}</div>}
               </div>
 
               {showConfirmation && (
