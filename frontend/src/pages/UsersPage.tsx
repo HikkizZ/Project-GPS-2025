@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { RegisterData, UserRole } from '@/types/auth.types';
+import { useRut } from '@/hooks/useRut';
 
 export const UsersPage: React.FC = () => {
   const { user, register } = useAuth();
+  const { formatRUT, validateRUT } = useRut();
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState<string>('');
@@ -30,6 +32,13 @@ export const UsersPage: React.FC = () => {
     setError('');
     setSuccess('');
 
+    // Validar RUT antes de enviar
+    if (!validateRUT(newUser.rut)) {
+      setError('El RUT ingresado no es válido');
+      setIsCreating(false);
+      return;
+    }
+
     const result = await register(newUser);
     
     if (result.success) {
@@ -51,10 +60,20 @@ export const UsersPage: React.FC = () => {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setNewUser(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    
+    if (name === 'rut') {
+      // Aplicar formato al RUT
+      const formattedRUT = formatRUT(value);
+      setNewUser(prev => ({
+        ...prev,
+        [name]: formattedRUT
+      }));
+    } else {
+      setNewUser(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
   };
 
   // Verificar permisos
