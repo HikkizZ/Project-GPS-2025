@@ -34,15 +34,15 @@ export async function createTrabajador(req: Request, res: Response): Promise<voi
 
 export async function getTrabajadores(req: Request, res: Response): Promise<void> {
     try {
-        const [trabajadores, serviceError] = await getTrabajadoresService();
+        const incluirInactivos = req.query.todos === 'true';
+        const [trabajadores, serviceError] = await getTrabajadoresService(incluirInactivos);
         
         if (serviceError) {
-            const isNotFound = serviceError.message.includes("No hay trabajadores");
-            handleErrorClient(res, isNotFound ? 404 : 500, serviceError.message);
+            handleErrorClient(res, 404, serviceError);
             return;
         }
 
-        handleSuccess(res, 200, "Trabajadores recuperados exitosamente", trabajadores);
+        handleSuccess(res, 200, "Trabajadores obtenidos exitosamente", trabajadores);
     } catch (error) {
         console.error("Error al obtener trabajadores:", error);
         handleErrorServer(res, 500, "Error interno del servidor");

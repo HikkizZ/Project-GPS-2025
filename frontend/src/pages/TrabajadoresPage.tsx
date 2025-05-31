@@ -6,13 +6,17 @@ import { useRut } from '@/hooks/useRut';
 import { RegisterTrabajadorForm } from '@/components/trabajador/RegisterTrabajadorForm';
 
 export const TrabajadoresPage: React.FC = () => {
-  const { trabajadores, isLoading, error, loadTrabajadores, searchTrabajadores } = useTrabajadores();
+  const { trabajadores, isLoading, error, loadTrabajadores, searchTrabajadores, deleteTrabajador } = useTrabajadores();
   const { formatRUT } = useRut();
   
-  // Estados para el modal y filtros
+  // Estados para los modales y filtros
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [trabajadorToDelete, setTrabajadorToDelete] = useState<Trabajador | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [searchParams, setSearchParams] = useState<TrabajadorSearchQuery>({});
+  const [deleteError, setDeleteError] = useState<string>('');
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Cargar trabajadores al montar el componente
   useEffect(() => {
@@ -28,6 +32,34 @@ export const TrabajadoresPage: React.FC = () => {
   const clearFilters = () => {
     setSearchParams({});
     loadTrabajadores();
+  };
+
+  // Función para confirmar eliminación
+  const handleDeleteClick = (trabajador: Trabajador) => {
+    setTrabajadorToDelete(trabajador);
+    setShowDeleteModal(true);
+    setDeleteError('');
+  };
+
+  // Función para ejecutar la eliminación
+  const handleDeleteConfirm = async () => {
+    if (!trabajadorToDelete) return;
+
+    try {
+      setIsDeleting(true);
+      setDeleteError('');
+      const result = await deleteTrabajador(trabajadorToDelete.id);
+      if (result.success) {
+        setShowDeleteModal(false);
+        loadTrabajadores(); // Recargar la lista
+      } else {
+        setDeleteError(result.error || 'Error al eliminar trabajador');
+      }
+    } catch (error) {
+      setDeleteError('Error al eliminar trabajador');
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   return (
@@ -99,15 +131,24 @@ export const TrabajadoresPage: React.FC = () => {
                 </Form.Group>
               </div>
             </div>
-            <div className="d-flex justify-content-end mt-3">
-              <Button variant="secondary" className="me-2" onClick={clearFilters}>
-                <i className="bi bi-x-circle me-2"></i>
-                Limpiar
-              </Button>
-              <Button variant="primary" onClick={handleSearch}>
-                <i className="bi bi-search me-2"></i>
-                Buscar
-              </Button>
+            <div className="d-flex justify-content-between align-items-center mt-3">
+              <Form.Check
+                type="checkbox"
+                label="Incluir trabajadores inactivos"
+                checked={searchParams.todos || false}
+                onChange={(e) => setSearchParams({ ...searchParams, todos: e.target.checked })}
+                id="includeInactive"
+              />
+              <div>
+                <Button variant="secondary" className="me-2" onClick={clearFilters}>
+                  <i className="bi bi-x-circle me-2"></i>
+                  Limpiar
+                </Button>
+                <Button variant="primary" onClick={handleSearch}>
+                  <i className="bi bi-search me-2"></i>
+                  Buscar
+                </Button>
+              </div>
             </div>
           </div>
         </div>
@@ -162,7 +203,7 @@ export const TrabajadoresPage: React.FC = () => {
                       <Button 
                         variant="outline-danger" 
                         size="sm"
-                        onClick={() => {/* TODO: Implementar eliminación */}}
+                        onClick={() => handleDeleteClick(trabajador)}
                       >
                         <i className="bi bi-trash"></i>
                       </Button>
@@ -202,6 +243,68 @@ export const TrabajadoresPage: React.FC = () => {
             onCancel={() => setShowCreateModal(false)}
           />
         </Modal.Body>
+      </Modal>
+
+      {/* Modal de confirmación de eliminación */}
+      <Modal
+        show={showDeleteModal}
+        onHide={() => setShowDeleteModal(false)}
+        centered
+      >
+        <Modal.Header closeButton className="bg-danger text-white">
+          <Modal.Title>
+            <i className="bi bi-exclamation-triangle me-2"></i>
+            Confirmar Eliminación
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {deleteError && (
+            <Alert variant="danger" className="mb-3">
+              <i className="bi bi-exclamation-circle me-2"></i>
+              {deleteError}
+            </Alert>
+          )}
+          <p>¿Estás seguro que deseas eliminar al trabajador?</p>
+          <p className="mb-0">
+            <strong>Nombre:</strong> {trabajadorToDelete ? `${trabajadorToDelete.nombres} ${trabajadorToDelete.apellidoPaterno} ${trabajadorToDelete.apellidoMaterno}` : ''}
+            <br />
+            <strong>RUT:</strong> {trabajadorToDelete ? formatRUT(trabajadorToDelete.rut) : ''}
+          </p>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button 
+            variant="secondary" 
+            onClick={() => setShowDeleteModal(false)}
+            disabled={isDeleting}
+          >
+            <i className="bi bi-x-circle me-2"></i>
+            Cancelar
+          </Button>
+          <Button 
+            variant="danger" 
+            onClick={handleDeleteConfirm}
+            disabled={isDeleting}
+          >
+            {isDeleting ? (
+              <>
+                <Spinner
+                  as="span"
+                  animation="border"
+                  size="sm"
+                  role="status"
+                  aria-hidden="true"
+                  className="me-2"
+                />
+                Eliminando...
+              </>
+            ) : (
+              <>
+                <i className="bi bi-trash me-2"></i>
+                Eliminar
+              </>
+            )}
+          </Button>
+        </Modal.Footer>
       </Modal>
     </div>
   );

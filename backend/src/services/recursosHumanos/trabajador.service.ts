@@ -4,7 +4,7 @@ import { FichaEmpresa, EstadoLaboral } from "../../entity/recursosHumanos/fichaE
 import { ServiceResponse } from "../../../types.js";
 import { Not, DeepPartial } from "typeorm";
 import { validateRut } from "../../helpers/rut.helper.js";
-import { ILike } from "typeorm";
+import { ILike, Like } from "typeorm";
 import { FindOptionsWhere } from "typeorm";
 
 export async function createTrabajadorService(trabajadorData: Partial<Trabajador>): Promise<ServiceResponse<Trabajador>> {
@@ -106,12 +106,12 @@ export async function createTrabajadorService(trabajadorData: Partial<Trabajador
     }
 }
 
-export async function getTrabajadoresService(): Promise<ServiceResponse<Trabajador[]>> {
+export async function getTrabajadoresService(incluirInactivos: boolean = false): Promise<ServiceResponse<Trabajador[]>> {
     try {
         const trabajadorRepo = AppDataSource.getRepository(Trabajador);
         const trabajadores = await trabajadorRepo.find({
             relations: ["fichaEmpresa", "historialLaboral", "licenciasPermisos", "capacitaciones"],
-            where: { enSistema: true }
+            where: incluirInactivos ? {} : { enSistema: true }
         });
 
         if (!trabajadores.length) {
@@ -127,74 +127,32 @@ export async function getTrabajadoresService(): Promise<ServiceResponse<Trabajad
 
 export async function searchTrabajadoresService(query: any): Promise<ServiceResponse<Trabajador[]>> {
     try {
-        console.log("🔍 Iniciando búsqueda en servicio con query:", query);
-        
         const trabajadorRepo = AppDataSource.getRepository(Trabajador);
-        let whereClause: any = {};
-
-        // Solo agregar filtro enSistema si NO viene el parámetro todos=true
-        whereClause.enSistema = query.todos !== true ? true : undefined;
-        console.log("🔒 Estado del sistema:", whereClause.enSistema);
-
-        // Si la búsqueda es por RUT, manejar de forma especial
-        if (query.rut) {
-            console.log("🔍 Buscando por RUT:", query.rut);
-            const trabajador = await trabajadorRepo.findOne({
-                where: { 
-                    rut: query.rut,
-                    enSistema: whereClause.enSistema
-                },
-                relations: ["fichaEmpresa", "historialLaboral", "licenciasPermisos", "capacitaciones"]
-            });
-
-            if (!trabajador) {
-                console.log("❌ No se encontró trabajador con RUT:", query.rut);
-                return [null, "No se encontró ningún trabajador con el RUT especificado"];
-            }
-
-            console.log("✅ Trabajador encontrado por RUT:", trabajador.rut);
-            return [[trabajador], null];
+        
+        // Construir where clause
+        const whereClause: any = {};
+        
+        if (query.rut) whereClause.rut = Like(`%${query.rut}%`);
+        if (query.nombres) whereClause.nombres = Like(`%${query.nombres}%`);
+        if (query.apellidoPaterno) whereClause.apellidoPaterno = Like(`%${query.apellidoPaterno}%`);
+        if (query.apellidoMaterno) whereClause.apellidoMaterno = Like(`%${query.apellidoMaterno}%`);
+        if (query.correo) whereClause.correo = Like(`%${query.correo}%`);
+        if (query.telefono) whereClause.telefono = Like(`%${query.telefono}%`);
+        
+        // Solo incluir trabajadores activos a menos que se especifique lo contrario
+        if (!query.todos) {
+            whereClause.enSistema = true;
         }
-
-        // Para otras búsquedas, usar el comportamiento normal
-        if (query.nombres) {
-            whereClause.nombres = ILike(`%${query.nombres}%`);
-        }
-
-        if (query.apellidoPaterno) {
-            whereClause.apellidoPaterno = ILike(`%${query.apellidoPaterno}%`);
-        }
-
-        if (query.apellidoMaterno) {
-            whereClause.apellidoMaterno = ILike(`%${query.apellidoMaterno}%`);
-        }
-
-        if (query.correo) {
-            whereClause.correo = ILike(`%${query.correo}%`);
-        }
-
-        if (query.telefono) {
-            whereClause.telefono = ILike(`%${query.telefono}%`);
-        }
-
-        console.log("🔍 Criterios de búsqueda:", whereClause);
 
         const trabajadores = await trabajadorRepo.find({
             where: whereClause,
-            relations: ["fichaEmpresa", "historialLaboral", "licenciasPermisos", "capacitaciones"],
-            order: { id: "ASC" }
+            relations: ["fichaEmpresa", "historialLaboral", "licenciasPermisos", "capacitaciones"]
         });
-
-        console.log("📊 Resultados encontrados:", trabajadores.length);
-
-        if (!trabajadores || trabajadores.length === 0) {
-            return [null, "No se encontraron trabajadores que coincidan con los criterios de búsqueda"];
-        }
 
         return [trabajadores, null];
     } catch (error) {
-        console.error("❌ Error en searchTrabajadoresService:", error);
-        return [null, "Error al buscar trabajadores"];
+        console.error("Error en searchTrabajadoresService:", error);
+        return [null, "Error interno del servidor"];
     }
 }
 
