@@ -20,6 +20,7 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
   onTrabajadorModalClosed 
 }) => {
   const { user } = useAuth();
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   
   const {
     fichas,
@@ -118,13 +119,17 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
   const handleCloseEditModal = () => {
     setShowEditModal(false);
     setSelectedWorkerId(null);
-    // Recargar los datos después de cerrar
-    handleSearch();
   };
 
   const handleUpdateSuccess = () => {
     // Recargar las fichas
     handleSearch();
+    // Mostrar mensaje de éxito
+    setSuccessMessage('Ficha actualizada exitosamente');
+    // Limpiar el mensaje después de 3 segundos
+    setTimeout(() => {
+      setSuccessMessage(null);
+    }, 3000);
   };
 
   const getEstadoBadgeClass = (estado: EstadoLaboral) => {
@@ -262,6 +267,19 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
   // Vista para RRHH/Admin
   return (
     <div className="container-fluid py-4">
+      {/* Mostrar mensaje de éxito si existe */}
+      {successMessage && (
+        <div className="alert alert-success alert-dismissible fade show" role="alert">
+          <i className="bi bi-check-circle me-2"></i>
+          {successMessage}
+          <button 
+            type="button" 
+            className="btn-close" 
+            onClick={() => setSuccessMessage(null)}
+          ></button>
+        </div>
+      )}
+
       {/* Header */}
       <div className="row mb-4">
         <div className="col-12">

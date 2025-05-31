@@ -137,19 +137,23 @@ export const useFichaEmpresa = () => {
     updateState({ isLoading: true, error: null });
     
     try {
-      const updatedFicha = await fichaEmpresaService.updateFichaEmpresa(id, data);
+      const response = await fichaEmpresaService.updateFichaEmpresa(id, data);
       
-      // Actualizar en el estado local
-      setState(prev => ({
-        ...prev,
-        fichas: prev.fichas.map(ficha => 
-          ficha.id === id ? updatedFicha : ficha
-        ),
-        currentFicha: prev.currentFicha?.id === id ? updatedFicha : prev.currentFicha,
-        isLoading: false,
-      }));
-      
-      return updatedFicha;
+      if (response.success && response.data) {
+        // Actualizar en el estado local
+        setState(prev => ({
+          ...prev,
+          fichas: prev.fichas.map(ficha => 
+            ficha.id === id ? response.data : ficha
+          ),
+          currentFicha: prev.currentFicha?.id === id ? response.data : prev.currentFicha,
+          isLoading: false,
+        }));
+        
+        return response;
+      } else {
+        throw new Error(response.message || 'Error al actualizar ficha');
+      }
     } catch (error) {
       updateState({
         isLoading: false,

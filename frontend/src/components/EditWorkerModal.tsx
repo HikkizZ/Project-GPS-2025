@@ -186,16 +186,14 @@ const EditWorkerModal: React.FC<EditWorkerModalProps> = ({ show, handleClose, wo
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
+  const handleSubmit = async () => {
     if (!ficha) return;
 
     try {
       setLoading(true);
       setError(null);
 
-      const { fechaInicioContrato, ...dataToSubmit } = {
+      const dataToSubmit = {
         ...formData,
         sueldoBase: parseFloat(formData.sueldoBase) || 0,
         fechaFinContrato: formData.fechaFinContrato || undefined
@@ -203,19 +201,15 @@ const EditWorkerModal: React.FC<EditWorkerModalProps> = ({ show, handleClose, wo
 
       const response = await updateFichaEmpresa(ficha.id, dataToSubmit);
       
-      if (response.success) {
-        // Primero notificar la actualización
+      if (response.data || response.success) {
         onUpdate();
-        // Forzar el cierre del modal
         handleClose();
-        return; // Salir inmediatamente después de cerrar
+      } else {
+        setError(response.message || 'Error al actualizar la ficha');
       }
-
-      // Si llegamos aquí, hubo un error
-      setError(response.message || 'Error al actualizar la ficha');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating ficha:', error);
-      setError('Error al actualizar la ficha');
+      setError(error.response?.data?.message || error.message || 'Error al actualizar la ficha');
     } finally {
       setLoading(false);
     }
@@ -239,17 +233,15 @@ const EditWorkerModal: React.FC<EditWorkerModalProps> = ({ show, handleClose, wo
       <Modal.Body style={{ maxHeight: '70vh', overflowY: 'auto' }}>
         {loading && (
           <div className="text-center p-3">
-            <Spinner animation="border" role="status">
-              <span className="visually-hidden">Cargando...</span>
-            </Spinner>
+            <Spinner animation="border" variant="primary" />
           </div>
         )}
 
         {error && <Alert variant="danger">{error}</Alert>}
         {success && <Alert variant="success">{success}</Alert>}
 
-        {ficha && (
-          <Form id="editForm" onSubmit={handleSubmit}>
+        {ficha && !loading && (
+          <Form>
             <Row>
               <Col md={6}>
                 <Form.Group className="mb-3">
@@ -347,8 +339,8 @@ const EditWorkerModal: React.FC<EditWorkerModalProps> = ({ show, handleClose, wo
                     type="date"
                     name="fechaInicioContrato"
                     value={formData.fechaInicioContrato}
-                    readOnly
                     disabled
+                    readOnly
                     className="bg-light"
                   />
                   <Form.Text className="text-muted">
@@ -373,24 +365,15 @@ const EditWorkerModal: React.FC<EditWorkerModalProps> = ({ show, handleClose, wo
             <div className="border rounded p-3 mb-3">
               <h6>Gestión de Contrato (PDF)</h6>
               {ficha.contratoURL ? (
-                <div className="d-flex gap-2 align-items-center">
+                <div className="d-flex gap-2">
                   <Button
                     variant="outline-primary"
                     size="sm"
                     onClick={handleDownloadFile}
                     disabled={downloadLoading}
                   >
-                    {downloadLoading ? (
-                      <>
-                        <Spinner animation="border" size="sm" className="me-1" />
-                        Descargando...
-                      </>
-                    ) : (
-                      <>
-                        <i className="bi bi-download me-1"></i>
-                        Descargar Contrato
-                      </>
-                    )}
+                    <i className="bi bi-download me-1"></i>
+                    {downloadLoading ? 'Descargando...' : 'Descargar Contrato'}
                   </Button>
                   <Button
                     variant="outline-danger"
@@ -398,17 +381,8 @@ const EditWorkerModal: React.FC<EditWorkerModalProps> = ({ show, handleClose, wo
                     onClick={handleDeleteFile}
                     disabled={deleteLoading}
                   >
-                    {deleteLoading ? (
-                      <>
-                        <Spinner animation="border" size="sm" className="me-1" />
-                        Eliminando...
-                      </>
-                    ) : (
-                      <>
-                        <i className="bi bi-trash me-1"></i>
-                        Eliminar
-                      </>
-                    )}
+                    <i className="bi bi-trash me-1"></i>
+                    {deleteLoading ? 'Eliminando...' : 'Eliminar'}
                   </Button>
                 </div>
               ) : (
@@ -430,17 +404,8 @@ const EditWorkerModal: React.FC<EditWorkerModalProps> = ({ show, handleClose, wo
                       onClick={handleUploadFile}
                       disabled={uploadLoading}
                     >
-                      {uploadLoading ? (
-                        <>
-                          <Spinner animation="border" size="sm" className="me-1" />
-                          Subiendo...
-                        </>
-                      ) : (
-                        <>
-                          <i className="bi bi-upload me-1"></i>
-                          Subir Contrato
-                        </>
-                      )}
+                      <i className="bi bi-upload me-1"></i>
+                      {uploadLoading ? 'Subiendo...' : 'Subir Contrato'}
                     </Button>
                   )}
                 </div>
@@ -460,8 +425,7 @@ const EditWorkerModal: React.FC<EditWorkerModalProps> = ({ show, handleClose, wo
         </Button>
         <Button
           variant="primary"
-          type="submit"
-          form="editForm"
+          onClick={handleSubmit}
           disabled={loading}
         >
           {loading ? 'Guardando...' : 'Guardar Cambios'}

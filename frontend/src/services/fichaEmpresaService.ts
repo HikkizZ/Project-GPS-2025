@@ -97,14 +97,32 @@ export class FichaEmpresaService {
   }
 
   // Actualizar ficha existente
-  async updateFichaEmpresa(id: number, data: UpdateFichaEmpresaData): Promise<FichaEmpresa> {
-    const response = await axios.put(`${API_BASE_URL}/ficha-empresa/${id}`, data);
-    
-    if (response.status !== 200) {
-      throw new Error(response.data?.message || 'Error al actualizar ficha');
+  async updateFichaEmpresa(id: number, data: UpdateFichaEmpresaData): Promise<ApiResponse> {
+    try {
+      // Asegurarse de que no se envíe la fecha de inicio
+      const { fechaInicioContrato, ...updateData } = data;
+      
+      const response = await axios.put(`${API_BASE_URL}/ficha-empresa/${id}`, updateData);
+      
+      if (response.status === 200 && response.data) {
+        return {
+          success: true,
+          data: response.data.data || response.data,
+          message: 'Ficha actualizada exitosamente'
+        };
+      }
+      
+      return {
+        success: false,
+        message: response.data?.message || 'Error al actualizar la ficha'
+      };
+    } catch (error: any) {
+      console.error('Error updating ficha:', error);
+      return {
+        success: false,
+        message: error.response?.data?.message || error.message || 'Error al actualizar la ficha'
+      };
     }
-    
-    return response.data;
   }
 
   // Eliminar ficha
