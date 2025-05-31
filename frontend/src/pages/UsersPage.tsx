@@ -5,10 +5,19 @@ import { useRut } from '@/hooks/useRut';
 import { userService } from '@/services/user.service';
 import { Table, Button, Form, Alert, Spinner, Modal } from 'react-bootstrap';
 
+// Interfaz para los parámetros de búsqueda
+interface UserSearchParams {
+  name?: string;
+  rut?: string;
+  email?: string;
+  role?: UserRole;
+}
+
 export const UsersPage: React.FC = () => {
   const { user, register } = useAuth();
   const { formatRUT, validateRUT } = useRut();
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
@@ -20,6 +29,7 @@ export const UsersPage: React.FC = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState<SafeUser | null>(null);
   const [newRole, setNewRole] = useState<string>('');
+  const [searchParams, setSearchParams] = useState<UserSearchParams>({});
 
   const [newUser, setNewUser] = useState<RegisterData>({
     name: '',
@@ -54,7 +64,34 @@ export const UsersPage: React.FC = () => {
     try {
       setIsLoading(true);
       const data = await userService.getAllUsers();
-      setUsers(data);
+      // Aplicar filtros localmente
+      let filteredUsers = data;
+      
+      if (searchParams.name) {
+        filteredUsers = filteredUsers.filter(user => 
+          user.name.toLowerCase().includes(searchParams.name!.toLowerCase())
+        );
+      }
+      
+      if (searchParams.rut) {
+        filteredUsers = filteredUsers.filter(user => 
+          user.rut.toLowerCase().includes(searchParams.rut!.toLowerCase())
+        );
+      }
+      
+      if (searchParams.email) {
+        filteredUsers = filteredUsers.filter(user => 
+          user.email.toLowerCase().includes(searchParams.email!.toLowerCase())
+        );
+      }
+      
+      if (searchParams.role) {
+        filteredUsers = filteredUsers.filter(user => 
+          user.role === searchParams.role
+        );
+      }
+      
+      setUsers(filteredUsers);
       setError('');
     } catch (err) {
       setError('Error al cargar la lista de usuarios');
@@ -62,6 +99,15 @@ export const UsersPage: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleSearch = () => {
+    loadUsers();
+  };
+
+  const handleResetSearch = () => {
+    setSearchParams({});
+    loadUsers();
   };
 
   const handleCreateUser = async (e: React.FormEvent) => {
@@ -176,15 +222,121 @@ export const UsersPage: React.FC = () => {
   return (
     <div className="container mt-4">
       <div className="d-flex justify-content-between align-items-center mb-4">
-        <h1>Gestión de Usuarios</h1>
-        <Button variant="primary" onClick={() => setShowCreateModal(true)}>
-          <i className="bi bi-person-plus me-2"></i>
-          Registrar Nuevo Usuario
-        </Button>
+        <div>
+          <h1>Gestión de Usuarios</h1>
+          <p className="text-muted mb-0">Administración de cuentas y permisos</p>
+        </div>
+        <div className="d-flex gap-2">
+          <Button 
+            variant="outline-primary" 
+            onClick={() => setShowFilters(!showFilters)}
+          >
+            <i className="bi bi-funnel me-2"></i>
+            {showFilters ? 'Ocultar' : 'Mostrar'} Filtros
+          </Button>
+          <Button variant="primary" onClick={() => setShowCreateModal(true)}>
+            <i className="bi bi-person-plus me-2"></i>
+            Registrar Nuevo Usuario
+          </Button>
+        </div>
       </div>
 
       {error && <Alert variant="danger" dismissible onClose={() => setError('')}>{error}</Alert>}
       {success && <Alert variant="success" dismissible onClose={() => setSuccess('')}>{success}</Alert>}
+
+      {/* Sección de Filtros */}
+      {showFilters && (
+        <div className="card mb-4">
+          <div className="card-header">
+            <h6 className="card-title mb-0">
+              <i className="bi bi-search me-2"></i>
+              Filtros de Búsqueda
+            </h6>
+          </div>
+          <div className="card-body">
+            <div className="row g-3">
+              <div className="col-md-3">
+                <Form.Group>
+                  <Form.Label>
+                    <i className="bi bi-person me-2"></i>
+                    Nombre
+                  </Form.Label>
+                  <Form.Control
+                    type="text"
+                    placeholder="Buscar por nombre"
+                    value={searchParams.name || ''}
+                    onChange={(e) => setSearchParams(prev => ({ ...prev, name: e.target.value }))}
+                  />
+                </Form.Group>
+              </div>
+              <div className="col-md-3">
+                <Form.Group>
+                  <Form.Label>
+                    <i className="bi bi-credit-card me-2"></i>
+                    RUT
+                  </Form.Label>
+                  <Form.Control
+                    type="text"
+                    placeholder="12.345.678-9"
+                    value={searchParams.rut || ''}
+                    onChange={(e) => setSearchParams(prev => ({ ...prev, rut: e.target.value }))}
+                  />
+                </Form.Group>
+              </div>
+              <div className="col-md-3">
+                <Form.Group>
+                  <Form.Label>
+                    <i className="bi bi-envelope me-2"></i>
+                    Email
+                  </Form.Label>
+                  <Form.Control
+                    type="text"
+                    placeholder="usuario@gmail.com"
+                    value={searchParams.email || ''}
+                    onChange={(e) => setSearchParams(prev => ({ ...prev, email: e.target.value }))}
+                  />
+                </Form.Group>
+              </div>
+              <div className="col-md-3">
+                <Form.Group>
+                  <Form.Label>
+                    <i className="bi bi-shield me-2"></i>
+                    Rol
+                  </Form.Label>
+                  <Form.Select
+                    value={searchParams.role || ''}
+                    onChange={(e) => setSearchParams(prev => ({ ...prev, role: e.target.value as UserRole }))}
+                  >
+                    <option value="">Todos los roles</option>
+                    {availableRoles.map(role => (
+                      <option key={role} value={role}>{role}</option>
+                    ))}
+                  </Form.Select>
+                </Form.Group>
+              </div>
+            </div>
+            <div className="row mt-3">
+              <div className="col-12">
+                <Button
+                  variant="primary"
+                  onClick={handleSearch}
+                  className="me-2"
+                >
+                  <i className="bi bi-search me-2"></i>
+                  Buscar
+                </Button>
+                <Button
+                  variant="outline-secondary"
+                  onClick={handleResetSearch}
+                >
+                  <i className="bi bi-arrow-clockwise me-2"></i>
+                  Limpiar filtros
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div>
         <h3>Lista de Usuarios</h3>
