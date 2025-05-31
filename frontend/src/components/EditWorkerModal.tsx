@@ -152,7 +152,6 @@ const EditWorkerModal: React.FC<EditWorkerModalProps> = ({ show, handleClose, wo
           setLoading(false);
           return;
         }
-        // No mostrar mensaje de éxito del upload
       }
 
       const dataToSubmit = {
@@ -165,12 +164,10 @@ const EditWorkerModal: React.FC<EditWorkerModalProps> = ({ show, handleClose, wo
       const response = await updateFichaEmpresa(ficha.id, dataToSubmit);
       
       if (response.data || response.success) {
-        // Solo mostrar este mensaje, independientemente de si se subió un archivo o no
         setSuccess('Ficha actualizada exitosamente');
         onUpdate();
-        setTimeout(() => {
-          handleClose();
-        }, 1000);
+        // Cerrar el modal inmediatamente
+        handleClose();
       } else {
         setError(response.message || 'Error al actualizar la ficha');
       }
