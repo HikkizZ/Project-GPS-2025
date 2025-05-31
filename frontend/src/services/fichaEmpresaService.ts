@@ -263,7 +263,13 @@ export class FichaEmpresaService {
           },
         }
       );
-      return response.data;
+
+      // Retornar success sin mostrar mensaje en la UI
+      return {
+        success: true,
+        data: response.data,
+        message: '' // Mensaje vacío para que no se muestre en la UI
+      };
     } catch (error: any) {
       console.error('Error uploading contract:', error);
       return {
@@ -385,7 +391,13 @@ export const uploadContrato = async (fichaId: number, file: File): Promise<ApiRe
         },
       }
     );
-    return response.data;
+
+    // Retornar success sin mostrar mensaje en la UI
+    return {
+      success: true,
+      data: response.data,
+      message: '' // Mensaje vacío para que no se muestre en la UI
+    };
   } catch (error: any) {
     console.error('Error uploading contract:', error);
     return {

@@ -144,13 +144,15 @@ const EditWorkerModal: React.FC<EditWorkerModalProps> = ({ show, handleClose, wo
       setError(null);
       setSuccess(null);
 
-      // Si hay un archivo seleccionado, subirlo primero
+      // Si hay un archivo seleccionado, subirlo primero sin mostrar mensaje
       if (selectedFile) {
         const uploadResponse = await uploadContrato(ficha.id, selectedFile);
         if (!uploadResponse.success) {
           setError(uploadResponse.message || 'Error al subir el contrato');
+          setLoading(false);
           return;
         }
+        // No mostrar mensaje de éxito del upload
       }
 
       const dataToSubmit = {
@@ -163,12 +165,10 @@ const EditWorkerModal: React.FC<EditWorkerModalProps> = ({ show, handleClose, wo
       const response = await updateFichaEmpresa(ficha.id, dataToSubmit);
       
       if (response.data || response.success) {
+        // Solo mostrar este mensaje, independientemente de si se subió un archivo o no
         setSuccess('Ficha actualizada exitosamente');
-        // Notificar la actualización
         onUpdate();
-        // Esperar un momento para que el usuario vea el mensaje de éxito
         setTimeout(() => {
-          // Cerrar el modal usando la función proporcionada por el padre
           handleClose();
         }, 1000);
       } else {
