@@ -207,51 +207,42 @@ export const EstadoFichaValidation = Joi.object({
         .valid(...Object.values(EstadoLaboral))
         .required()
         .messages({
-            "string.base": "El estado debe ser una cadena de texto",
-            "any.only": "El estado debe ser uno válido",
-            "any.required": "El estado es requerido"
+            "any.required": "El estado es requerido",
+            "any.only": "El estado laboral no es válido",
+            "string.base": "El estado laboral debe ser una cadena de texto"
+        }),
+
+    motivo: Joi.string()
+        .when('estado', {
+            is: EstadoLaboral.DESVINCULADO,
+            then: Joi.string()
+                .required()
+                .min(3)
+                .max(500)
+                .messages({
+                    "any.required": "El motivo de desvinculación es requerido",
+                    "string.min": "El motivo debe tener al menos 3 caracteres",
+                    "string.max": "El motivo no puede exceder los 500 caracteres",
+                    "string.base": "El motivo debe ser una cadena de texto"
+                })
+        })
+        .messages({
+            "string.base": "El motivo debe ser una cadena de texto"
         }),
 
     fechaInicio: Joi.date()
         .iso()
-        .when('estado', {
-            is: Joi.string().valid(EstadoLaboral.LICENCIA, EstadoLaboral.PERMISO),
-            then: Joi.required(),
-            otherwise: Joi.forbidden()
-        })
         .messages({
             "date.base": "La fecha de inicio debe ser una fecha válida",
-            "date.format": "La fecha de inicio debe estar en formato YYYY-MM-DD",
-            "any.required": "La fecha de inicio es requerida para licencias y permisos",
-            "any.unknown": "La fecha de inicio solo aplica para licencias y permisos"
+            "date.format": "La fecha de inicio debe estar en formato YYYY-MM-DD"
         }),
 
     fechaFin: Joi.date()
         .iso()
-        .when('fechaInicio', {
-            is: Joi.exist(),
-            then: Joi.date().greater(Joi.ref('fechaInicio')),
-            otherwise: Joi.forbidden()
-        })
+        .min(Joi.ref('fechaInicio'))
         .messages({
             "date.base": "La fecha de fin debe ser una fecha válida",
             "date.format": "La fecha de fin debe estar en formato YYYY-MM-DD",
-            "date.greater": "La fecha de fin debe ser posterior a la fecha de inicio",
-            "any.unknown": "La fecha de fin solo aplica cuando hay fecha de inicio"
-        }),
-
-    motivo: Joi.string()
-        .min(10)
-        .max(500)
-        .when('estado', {
-            is: Joi.string().valid(EstadoLaboral.LICENCIA, EstadoLaboral.PERMISO, EstadoLaboral.DESVINCULADO),
-            then: Joi.required(),
-            otherwise: Joi.forbidden()
-        })
-        .messages({
-            "string.base": "El motivo debe ser una cadena de texto",
-            "string.min": "El motivo debe tener al menos 10 caracteres",
-            "string.max": "El motivo no puede exceder los 500 caracteres",
-            "any.required": "El motivo es requerido para licencias, permisos y desvinculaciones"
+            "date.min": "La fecha de fin no puede ser anterior a la fecha de inicio"
         })
 }); 
