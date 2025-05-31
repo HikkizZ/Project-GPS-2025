@@ -82,7 +82,7 @@ export async function closeTestApp(): Promise<void> {
 
 /**
  * Función para limpiar TODOS los datos de prueba de la base de datos
- * Mantiene solo admin (11.111.111-1) y RRHH (22.222.222-2)
+ * Mantiene solo al administrador (11.111.111-1)
  */
 export async function cleanupAllTestData(): Promise<void> {
     try {
@@ -98,21 +98,21 @@ export async function cleanupAllTestData(): Promise<void> {
         await AppDataSource.getRepository(HistorialLaboral).delete({});
         await AppDataSource.getRepository(FichaEmpresa).delete({});
 
-        // Eliminar usuarios de prueba (excepto admin y RRHH)
+        // Eliminar usuarios de prueba (excepto admin)
         await AppDataSource.getRepository(User)
             .createQueryBuilder()
             .delete()
             .where("rut NOT IN (:...ruts)", { 
-                ruts: ['11.111.111-1', '22.222.222-2'] 
+                ruts: ['11.111.111-1'] 
             })
             .execute();
 
-        // Eliminar trabajadores de prueba (excepto admin y RRHH)
+        // Eliminar trabajadores de prueba (excepto admin)
         await AppDataSource.getRepository(Trabajador)
             .createQueryBuilder()
             .delete()
             .where("rut NOT IN (:...ruts)", { 
-                ruts: ['11.111.111-1', '22.222.222-2'] 
+                ruts: ['11.111.111-1'] 
             })
             .execute();
 

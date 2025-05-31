@@ -29,47 +29,30 @@ async function limpiarBaseDatos() {
 
     // IMPORTANTE: Eliminar usuarios primero (userauth) antes que trabajadores
     // porque User tiene una FK hacia Trabajador por RUT
-    console.log("🔄 Eliminando usuarios (excepto admin y RRHH)...");
+    console.log("🔄 Eliminando usuarios (excepto admin)...");
     await AppDataSource.getRepository(User)
       .createQueryBuilder()
       .delete()
       .where("rut NOT IN (:...ruts)", { 
-        ruts: ['11.111.111-1', '22.222.222-2'] 
+        ruts: ['11.111.111-1'] 
       })
       .execute();
 
-    console.log("🔄 Eliminando trabajadores (excepto admin y RRHH)...");
+    console.log("🔄 Eliminando trabajadores (excepto admin)...");
     await AppDataSource.getRepository(Trabajador)
       .createQueryBuilder()
       .delete()
       .where("rut NOT IN (:...ruts)", { 
-        ruts: ['11.111.111-1', '22.222.222-2'] 
+        ruts: ['11.111.111-1'] 
       })
       .execute();
 
-    // Verificar que quedaron solo los usuarios necesarios
-    const usuariosRestantes = await AppDataSource.getRepository(User).find();
-    const trabajadoresRestantes = await AppDataSource.getRepository(Trabajador).find();
-
-    console.log(`✅ Limpieza completada:`);
-    console.log(`   - Usuarios restantes: ${usuariosRestantes.length}`);
-    console.log(`   - Trabajadores restantes: ${trabajadoresRestantes.length}`);
-    
-    usuariosRestantes.forEach(user => {
-      console.log(`   👤 ${user.name} (${user.email}) - ${user.role}`);
-    });
-
-    console.log("🎉 Base de datos limpiada exitosamente");
-
+    console.log("✅ Base de datos limpiada exitosamente");
+    process.exit(0);
   } catch (error) {
     console.error("❌ Error al limpiar la base de datos:", error);
-  } finally {
-    if (AppDataSource.isInitialized) {
-      await AppDataSource.destroy();
-    }
-    process.exit(0);
+    process.exit(1);
   }
 }
 
-// Ejecutar el script
 limpiarBaseDatos(); 

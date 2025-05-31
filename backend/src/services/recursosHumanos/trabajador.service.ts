@@ -6,6 +6,7 @@ import { Not, DeepPartial } from "typeorm";
 import { validateRut } from "../../helpers/rut.helper.js";
 import { ILike, Like } from "typeorm";
 import { FindOptionsWhere } from "typeorm";
+import { User } from "../../entity/user.entity.js";
 
 export async function createTrabajadorService(trabajadorData: Partial<Trabajador>): Promise<ServiceResponse<Trabajador>> {
     try {
@@ -197,8 +198,12 @@ export async function updateTrabajadorService(id: number, trabajadorData: Partia
 export async function deleteTrabajadorService(id: number): Promise<ServiceResponse<boolean>> {
     try {
         const trabajadorRepo = AppDataSource.getRepository(Trabajador);
+        const userRepo = AppDataSource.getRepository(User);
+
+        // Buscar el trabajador con su usuario asociado
         const trabajador = await trabajadorRepo.findOne({
-            where: { id, enSistema: true }
+            where: { id, enSistema: true },
+            relations: ["usuario"]
         });
 
         if (!trabajador) {
@@ -208,6 +213,16 @@ export async function deleteTrabajadorService(id: number): Promise<ServiceRespon
         // En lugar de eliminar, marcamos como inactivo
         trabajador.enSistema = false;
         await trabajadorRepo.save(trabajador);
+
+        // Si el trabajador tiene un usuario asociado, eliminarlo
+        if (trabajador.usuario) {
+            // No eliminar al administrador principal
+            if (trabajador.usuario.role === "Administrador" && trabajador.usuario.rut === "11.111.111-1") {
+                return [null, "No se puede eliminar el administrador principal"];
+            }
+
+            await userRepo.remove(trabajador.usuario);
+        }
 
         return [true, null];
     } catch (error) {

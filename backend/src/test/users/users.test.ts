@@ -9,7 +9,6 @@ import { Trabajador } from "../../entity/recursosHumanos/trabajador.entity.js";
 describe("👥 Users API", () => {
     let app: Application;
     let adminToken: string;
-    let rrhhToken: string;
     let regularUserToken: string;
     let testTrabajador: Trabajador;
 
@@ -18,24 +17,15 @@ describe("👥 Users API", () => {
         const setup = await setupTestApp();
         app = setup.app;
 
-        // Obtener tokens en paralelo
-        const [adminLogin, rrhhLogin] = await Promise.all([
-            request(app)
-                .post("/api/auth/login")
-                .send({
-                    email: "admin.principal@gmail.com",
-                    password: "Admin2024"
-                }),
-            request(app)
-                .post("/api/auth/login")
-                .send({
-                    email: "recursoshumanos@gmail.com",
-                    password: "RRHH2024"
-                })
-        ]);
+        // Obtener token de admin
+        const adminLogin = await request(app)
+            .post("/api/auth/login")
+            .send({
+                email: "admin.principal@gmail.com",
+                password: "Admin2024"
+            });
 
         adminToken = adminLogin.body.data.token;
-        rrhhToken = rrhhLogin.body.data.token;
 
         // Crear trabajador y usuario de prueba
         const trabajadorRepo = AppDataSource.getRepository(Trabajador);
@@ -85,6 +75,48 @@ describe("👥 Users API", () => {
             await AppDataSource.destroy();
         }
         console.log("🔒 Tests finalizados. Base de datos limpiada y cerrada.");
+    });
+
+    beforeEach(async () => {
+        try {
+            // Limpiar usuarios excepto el admin
+            await AppDataSource.getRepository(User)
+                .createQueryBuilder()
+                .delete()
+                .where("rut NOT IN (:...ruts)", { 
+                    ruts: ['11.111.111-1'] 
+                })
+                .execute();
+
+            // Limpiar trabajadores excepto el admin
+            await AppDataSource.getRepository(Trabajador)
+                .createQueryBuilder()
+                .delete()
+                .where("rut NOT IN (:...ruts)", { 
+                    ruts: ['11.111.111-1'] 
+                })
+                .execute();
+
+            // Crear trabajador de prueba
+            const trabajador = {
+                nombres: "Usuario",
+                apellidoPaterno: "Prueba",
+                apellidoMaterno: "Test",
+                rut: "12.345.678-9",
+                correo: "usuario.prueba@gmail.com",
+                telefono: "+56912345678",
+                direccion: "Calle Prueba 123",
+                fechaIngreso: new Date(),
+                fechaNacimiento: new Date("1990-01-01"),
+                numeroEmergencia: "+56987654321",
+                enSistema: true
+            };
+
+            await AppDataSource.getRepository(Trabajador).save(trabajador);
+        } catch (error) {
+            console.error("❌ Error en beforeEach:", error);
+            throw error;
+        }
     });
 
     describe("🔍 Búsqueda y Filtrado", () => {
