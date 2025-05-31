@@ -164,54 +164,66 @@ export const TrabajadoresPage: React.FC = () => {
 
       {/* Tabla de trabajadores */}
       {!isLoading && !error && (
-        <div className="card shadow">
-          <div className="table-responsive">
-            <Table hover className="mb-0">
-              <thead className="bg-light">
-                <tr>
-                  <th>RUT</th>
-                  <th>Nombre Completo</th>
-                  <th>Correo</th>
-                  <th>Teléfono</th>
-                  <th>Cargo</th>
-                  <th>Estado</th>
-                  <th>Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                {trabajadores.map((trabajador) => (
-                  <tr key={trabajador.id}>
-                    <td>{formatRUT(trabajador.rut)}</td>
-                    <td>{`${trabajador.nombres} ${trabajador.apellidoPaterno} ${trabajador.apellidoMaterno}`}</td>
-                    <td>{trabajador.correo}</td>
-                    <td>{trabajador.telefono}</td>
-                    <td>{trabajador.fichaEmpresa?.cargo || '-'}</td>
-                    <td>
-                      <span className={`badge bg-${trabajador.enSistema ? 'success' : 'danger'}`}>
-                        {trabajador.enSistema ? 'Activo' : 'Inactivo'}
-                      </span>
-                    </td>
-                    <td>
-                      <Button 
-                        variant="outline-primary" 
-                        size="sm" 
-                        className="me-2"
-                        onClick={() => {/* TODO: Implementar edición */}}
-                      >
-                        <i className="bi bi-pencil"></i>
-                      </Button>
-                      <Button 
-                        variant="outline-danger" 
-                        size="sm"
-                        onClick={() => handleDeleteClick(trabajador)}
-                      >
-                        <i className="bi bi-trash"></i>
-                      </Button>
-                    </td>
+        <div className="card shadow-sm">
+          <div className="card-body">
+            <div className="table-responsive">
+              <div className="d-flex justify-content-between align-items-center mb-3">
+                <h6 className="mb-0">
+                  <i className="bi bi-list-ul me-2"></i>
+                  Trabajadores Registrados ({trabajadores.length})
+                </h6>
+              </div>
+              <Table hover responsive className="align-middle">
+                <thead>
+                  <tr>
+                    <th>RUT</th>
+                    <th>Nombre Completo</th>
+                    <th>Correo</th>
+                    <th>Teléfono</th>
+                    <th>Cargo</th>
+                    <th>Estado</th>
+                    <th className="text-center">Acciones</th>
                   </tr>
-                ))}
-              </tbody>
-            </Table>
+                </thead>
+                <tbody>
+                  {trabajadores.map((trabajador) => (
+                    <tr key={trabajador.id}>
+                      <td>{formatRUT(trabajador.rut)}</td>
+                      <td>{`${trabajador.nombres} ${trabajador.apellidoPaterno} ${trabajador.apellidoMaterno}`}</td>
+                      <td>{trabajador.correo}</td>
+                      <td>{trabajador.telefono}</td>
+                      <td>{trabajador.fichaEmpresa?.cargo || '-'}</td>
+                      <td>
+                        <span className={`badge bg-${trabajador.enSistema ? 'success' : 'danger'}`}>
+                          {trabajador.enSistema ? 'Activo' : 'Inactivo'}
+                        </span>
+                      </td>
+                      <td className="text-center">
+                        <div className="btn-group">
+                          <Button 
+                            variant="outline-primary" 
+                            size="sm" 
+                            className="me-2"
+                            onClick={() => {/* TODO: Implementar edición */}}
+                            title="Editar trabajador"
+                          >
+                            <i className="bi bi-pencil"></i>
+                          </Button>
+                          <Button 
+                            variant="outline-danger" 
+                            size="sm"
+                            onClick={() => handleDeleteClick(trabajador)}
+                            title="Eliminar trabajador"
+                          >
+                            <i className="bi bi-trash"></i>
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </Table>
+            </div>
           </div>
         </div>
       )}

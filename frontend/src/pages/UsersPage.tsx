@@ -362,11 +362,11 @@ export const UsersPage: React.FC = () => {
                 Buscar
               </Button>
               <Button
-                variant="outline-secondary"
+                variant="secondary"
                 onClick={handleResetSearch}
               >
                 <i className="bi bi-arrow-counterclockwise me-2"></i>
-                Limpiar filtros
+                Limpiar
               </Button>
             </div>
           </div>
