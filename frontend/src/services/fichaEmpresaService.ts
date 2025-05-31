@@ -216,7 +216,10 @@ export class FichaEmpresaService {
   // Función para actualizar una ficha
   async updateFichaEmpresaData(id: number, data: FichaEmpresaUpdateData): Promise<ApiResponse> {
     try {
-      const response = await axios.put(`${API_BASE_URL}/ficha-empresa/${id}`, data);
+      // Asegurarse de que no se envíe la fecha de inicio
+      const { fechaInicioContrato, ...updateData } = data;
+      
+      const response = await axios.put(`${API_BASE_URL}/ficha-empresa/${id}`, updateData);
       return response.data;
     } catch (error: any) {
       console.error('Error updating ficha:', error);
@@ -336,7 +339,10 @@ export const getFichaEmpresa = async (id: number): Promise<ApiResponse> => {
 
 export const updateFichaEmpresa = async (id: number, data: FichaEmpresaUpdateData): Promise<ApiResponse> => {
   try {
-    const response = await axios.put(`${API_BASE_URL}/ficha-empresa/${id}`, data);
+    // Asegurarse de que no se envíe la fecha de inicio
+    const { fechaInicioContrato, ...updateData } = data;
+    
+    const response = await axios.put(`${API_BASE_URL}/ficha-empresa/${id}`, updateData);
     return response.data;
   } catch (error: any) {
     console.error('Error updating ficha:', error);

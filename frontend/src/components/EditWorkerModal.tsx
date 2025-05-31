@@ -194,7 +194,8 @@ const EditWorkerModal: React.FC<EditWorkerModalProps> = ({ show, handleClose, wo
       setError(null);
       setSuccess(null);
 
-      const dataToSubmit = {
+      // Excluir fechaInicioContrato del objeto a enviar
+      const { fechaInicioContrato, ...dataToSubmit } = {
         ...formData,
         sueldoBase: parseFloat(formData.sueldoBase) || 0,
         fechaFinContrato: formData.fechaFinContrato || undefined
@@ -286,14 +287,18 @@ const EditWorkerModal: React.FC<EditWorkerModalProps> = ({ show, handleClose, wo
               <Col md={6}>
                 <Form.Group className="mb-3">
                   <Form.Label>Tipo de Contrato *</Form.Label>
-                  <Form.Control
-                    type="text"
+                  <Form.Select
                     name="tipoContrato"
                     value={formData.tipoContrato}
                     onChange={handleInputChange}
-                    placeholder="Ej: Indefinido, Plazo fijo, etc."
                     required
-                  />
+                  >
+                    <option value="">Seleccione tipo...</option>
+                    <option value="Indefinido">Indefinido</option>
+                    <option value="Plazo Fijo">Plazo Fijo</option>
+                    <option value="Por Obra">Por Obra</option>
+                    <option value="Part-Time">Part-Time</option>
+                  </Form.Select>
                 </Form.Group>
               </Col>
             </Row>
@@ -307,7 +312,6 @@ const EditWorkerModal: React.FC<EditWorkerModalProps> = ({ show, handleClose, wo
                     name="jornadaLaboral"
                     value={formData.jornadaLaboral}
                     onChange={handleInputChange}
-                    placeholder="Ej: Completa, Parcial, etc."
                     required
                   />
                 </Form.Group>
@@ -321,9 +325,8 @@ const EditWorkerModal: React.FC<EditWorkerModalProps> = ({ show, handleClose, wo
                     name="sueldoBase"
                     value={formData.sueldoBase}
                     onChange={handleInputChange}
-                    step="0.01"
-                    min="0"
                     required
+                    min="0"
                   />
                 </Form.Group>
               </Col>
@@ -337,9 +340,13 @@ const EditWorkerModal: React.FC<EditWorkerModalProps> = ({ show, handleClose, wo
                     type="date"
                     name="fechaInicioContrato"
                     value={formData.fechaInicioContrato}
-                    onChange={handleInputChange}
-                    required
+                    readOnly
+                    disabled
+                    className="bg-light"
                   />
+                  <Form.Text className="text-muted">
+                    La fecha de inicio del contrato no puede ser modificada
+                  </Form.Text>
                 </Form.Group>
               </Col>
               
@@ -356,104 +363,82 @@ const EditWorkerModal: React.FC<EditWorkerModalProps> = ({ show, handleClose, wo
               </Col>
             </Row>
 
-            {/* Sección de Manejo de Contrato PDF */}
-            <hr />
-            <h6>Gestión de Contrato (PDF)</h6>
-            
-            <Row>
-              <Col md={12}>
-                {ficha.contratoURL ? (
-                  <div className="mb-3">
-                    <Alert variant="info">
-                      <i className="bi bi-file-earmark-pdf"></i> Contrato actual disponible
-                    </Alert>
-                    <div className="d-flex gap-2 mb-3">
-                      <Button 
-                        variant="success" 
-                        size="sm"
-                        onClick={handleDownloadFile}
-                        disabled={downloadLoading}
-                      >
-                        {downloadLoading ? (
-                          <>
-                            <Spinner animation="border" size="sm" className="me-2" />
-                            Descargando...
-                          </>
-                        ) : (
-                          <>
-                            <i className="bi bi-download me-2"></i>
-                            Descargar Contrato
-                          </>
-                        )}
-                      </Button>
-                      
-                      <Button 
-                        variant="danger" 
-                        size="sm"
-                        onClick={handleDeleteFile}
-                        disabled={deleteLoading}
-                      >
-                        {deleteLoading ? (
-                          <>
-                            <Spinner animation="border" size="sm" className="me-2" />
-                            Eliminando...
-                          </>
-                        ) : (
-                          <>
-                            <i className="bi bi-trash me-2"></i>
-                            Eliminar Contrato
-                          </>
-                        )}
-                      </Button>
-                    </div>
-                  </div>
-                ) : (
-                  <Alert variant="warning">
-                    <i className="bi bi-exclamation-triangle"></i> No hay contrato cargado
-                  </Alert>
-                )}
-
-                <Form.Group className="mb-3">
-                  <Form.Label>Subir nuevo contrato (PDF)</Form.Label>
-                  <Form.Control
-                    type="file"
-                    id="contratoFile"
-                    accept=".pdf"
-                    onChange={handleFileSelect}
-                  />
-                  <Form.Text className="text-muted">
-                    Solo archivos PDF. Máximo 10MB.
-                  </Form.Text>
-                </Form.Group>
-
-                {selectedFile && (
-                  <div className="mb-3">
-                    <Alert variant="info">
-                      <strong>Archivo seleccionado:</strong> {selectedFile.name} 
-                      ({(selectedFile.size / 1024 / 1024).toFixed(2)} MB)
-                    </Alert>
-                    <Button 
-                      variant="primary" 
+            <div className="border rounded p-3 mb-3">
+              <h6>Gestión de Contrato (PDF)</h6>
+              {ficha.contratoURL ? (
+                <div className="d-flex gap-2 align-items-center">
+                  <Button
+                    variant="outline-primary"
+                    size="sm"
+                    onClick={handleDownloadFile}
+                    disabled={downloadLoading}
+                  >
+                    {downloadLoading ? (
+                      <>
+                        <Spinner animation="border" size="sm" className="me-1" />
+                        Descargando...
+                      </>
+                    ) : (
+                      <>
+                        <i className="bi bi-download me-1"></i>
+                        Descargar Contrato
+                      </>
+                    )}
+                  </Button>
+                  <Button
+                    variant="outline-danger"
+                    size="sm"
+                    onClick={handleDeleteFile}
+                    disabled={deleteLoading}
+                  >
+                    {deleteLoading ? (
+                      <>
+                        <Spinner animation="border" size="sm" className="me-1" />
+                        Eliminando...
+                      </>
+                    ) : (
+                      <>
+                        <i className="bi bi-trash me-1"></i>
+                        Eliminar
+                      </>
+                    )}
+                  </Button>
+                </div>
+              ) : (
+                <div>
+                  <Form.Group controlId="contratoFile" className="mb-3">
+                    <Form.Control
+                      type="file"
+                      onChange={handleFileSelect}
+                      accept=".pdf"
+                    />
+                    <Form.Text className="text-muted">
+                      Solo archivos PDF. Máximo 10MB.
+                    </Form.Text>
+                  </Form.Group>
+                  {selectedFile && (
+                    <Button
+                      variant="outline-success"
                       size="sm"
                       onClick={handleUploadFile}
                       disabled={uploadLoading}
                     >
                       {uploadLoading ? (
                         <>
-                          <Spinner animation="border" size="sm" className="me-2" />
+                          <Spinner animation="border" size="sm" className="me-1" />
                           Subiendo...
                         </>
                       ) : (
                         <>
-                          <i className="bi bi-upload me-2"></i>
+                          <i className="bi bi-upload me-1"></i>
                           Subir Contrato
                         </>
                       )}
                     </Button>
-                  </div>
-                )}
-              </Col>
-            </Row>
+                  )}
+                </div>
+              )}
+            </div>
           </Form>
         )}
       </Modal.Body>
@@ -462,14 +447,15 @@ const EditWorkerModal: React.FC<EditWorkerModalProps> = ({ show, handleClose, wo
         <Button variant="secondary" onClick={handleClose}>
           Cancelar
         </Button>
-        <Button 
-          variant="primary" 
-          onClick={handleSubmit}
+        <Button
+          variant="primary"
+          type="submit"
+          form="editForm"
           disabled={loading}
         >
           {loading ? (
             <>
-              <Spinner animation="border" size="sm" className="me-2" />
+              <Spinner animation="border" size="sm" className="me-1" />
               Guardando...
             </>
           ) : (
