@@ -1,15 +1,25 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { RegisterData, UserRole } from '@/types/auth.types';
+import { RegisterData, UserRole, SafeUser } from '@/types/auth.types';
 import { useRut } from '@/hooks/useRut';
+import { userService } from '@/services/user.service';
+import { Table, Button, Form, Alert, Spinner, Modal } from 'react-bootstrap';
 
 export const UsersPage: React.FC = () => {
   const { user, register } = useAuth();
   const { formatRUT, validateRUT } = useRut();
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState<string>('');
   const [success, setSuccess] = useState<string>('');
+  const [users, setUsers] = useState<SafeUser[]>([]);
+  const [showUpdateModal, setShowUpdateModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<SafeUser | null>(null);
+  const [newRole, setNewRole] = useState<string>('');
 
   const [newUser, setNewUser] = useState<RegisterData>({
     name: '',
@@ -25,6 +35,24 @@ export const UsersPage: React.FC = () => {
   if (user?.role === 'Administrador') {
     availableRoles.push('Administrador');
   }
+
+  useEffect(() => {
+    loadUsers();
+  }, []);
+
+  const loadUsers = async () => {
+    try {
+      setIsLoading(true);
+      const data = await userService.getAllUsers();
+      setUsers(data);
+      setError('');
+    } catch (err) {
+      setError('Error al cargar la lista de usuarios');
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleCreateUser = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,6 +79,7 @@ export const UsersPage: React.FC = () => {
         role: 'Usuario'
       });
       setShowCreateForm(false);
+      loadUsers(); // Recargar la lista después de crear
     } else {
       setError(result.error || 'Error al crear usuario');
     }
@@ -76,6 +105,51 @@ export const UsersPage: React.FC = () => {
     }
   };
 
+  const handleUpdateClick = (selectedUser: SafeUser) => {
+    setSelectedUser(selectedUser);
+    setNewRole(selectedUser.role);
+    setShowUpdateModal(true);
+  };
+
+  const handleDeleteClick = (selectedUser: SafeUser) => {
+    setSelectedUser(selectedUser);
+    setShowDeleteModal(true);
+  };
+
+  const handleUpdateUser = async () => {
+    if (!selectedUser || !newRole) return;
+
+    try {
+      setIsUpdating(true);
+      setError('');
+      await userService.updateUser(selectedUser.id, selectedUser.rut, newRole);
+      setSuccess(`Rol de ${selectedUser.name} actualizado exitosamente`);
+      setShowUpdateModal(false);
+      loadUsers(); // Recargar la lista después de actualizar
+    } catch (err: any) {
+      setError(err.message || 'Error al actualizar usuario');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handleDeleteUser = async () => {
+    if (!selectedUser) return;
+
+    try {
+      setIsDeleting(true);
+      setError('');
+      await userService.deleteUser(selectedUser.id, selectedUser.rut);
+      setSuccess(`Usuario ${selectedUser.name} eliminado exitosamente`);
+      setShowDeleteModal(false);
+      loadUsers(); // Recargar la lista después de eliminar
+    } catch (err: any) {
+      setError(err.message || 'Error al eliminar usuario');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   // Verificar permisos
   if (user?.role !== 'Administrador' && user?.role !== 'RecursosHumanos') {
     return (
@@ -93,283 +167,266 @@ export const UsersPage: React.FC = () => {
   }
 
   return (
-    <div className="container-fluid py-4">
-      {/* Header */}
-      <div className="row mb-4">
-        <div className="col-12">
-          <div className="d-flex justify-content-between align-items-center">
-            <div>
-              <h2 className="mb-1">
-                <i className="bi bi-shield-lock me-2"></i>
-                Gestión de Usuarios
-              </h2>
-              <p className="text-muted mb-0">Administra los usuarios del sistema GPS 2025</p>
-            </div>
-            {!showCreateForm && (
-              <button 
-                onClick={() => setShowCreateForm(true)}
-                className="btn btn-primary"
-              >
-                <i className="bi bi-person-plus me-2"></i>
-                Registrar Nuevo Usuario
-              </button>
-            )}
-          </div>
-        </div>
+    <div className="container mt-4">
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <h1>Gestión de Usuarios</h1>
+        <Button variant="primary" onClick={() => setShowCreateForm(!showCreateForm)}>
+          {showCreateForm ? 'Cancelar' : 'Registrar Nuevo Usuario'}
+        </Button>
       </div>
 
-      {/* Alertas */}
-      {error && (
-        <div className="alert alert-danger alert-dismissible fade show">
-          <i className="bi bi-exclamation-triangle me-2"></i>
-          {error}
-          <button onClick={() => setError('')} className="btn-close"></button>
+      {error && <Alert variant="danger">{error}</Alert>}
+      {success && <Alert variant="success">{success}</Alert>}
+
+      {showCreateForm && (
+        <div className="mb-4">
+          <h3>Registrar Nuevo Usuario</h3>
+          <Form onSubmit={handleCreateUser}>
+            <Form.Group className="mb-3">
+              <Form.Label>Nombre</Form.Label>
+              <Form.Control
+                type="text"
+                name="name"
+                value={newUser.name}
+                onChange={handleInputChange}
+                required
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>RUT</Form.Label>
+              <Form.Control
+                type="text"
+                name="rut"
+                value={newUser.rut}
+                onChange={handleInputChange}
+                required
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>Email</Form.Label>
+              <Form.Control
+                type="email"
+                name="email"
+                value={newUser.email}
+                onChange={handleInputChange}
+                required
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>Contraseña</Form.Label>
+              <Form.Control
+                type="password"
+                name="password"
+                value={newUser.password}
+                onChange={handleInputChange}
+                required
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>Rol</Form.Label>
+              <Form.Select
+                name="role"
+                value={newUser.role}
+                onChange={handleInputChange}
+                required
+              >
+                {availableRoles.map(role => (
+                  <option key={role} value={role}>{role}</option>
+                ))}
+              </Form.Select>
+            </Form.Group>
+
+            <Button type="submit" disabled={isCreating}>
+              {isCreating ? (
+                <>
+                  <Spinner
+                    as="span"
+                    animation="border"
+                    size="sm"
+                    role="status"
+                    aria-hidden="true"
+                    className="me-2"
+                  />
+                  Creando...
+                </>
+              ) : (
+                'Crear Usuario'
+              )}
+            </Button>
+          </Form>
         </div>
       )}
 
-      {success && (
-        <div className="alert alert-success alert-dismissible fade show">
-          <i className="bi bi-check-circle me-2"></i>
-          {success}
-          <button onClick={() => setSuccess('')} className="btn-close"></button>
-        </div>
-      )}
-
-      {/* Formulario de creación */}
-      {showCreateForm ? (
-        <div className="row">
-          <div className="col-lg-8 mx-auto">
-            <div className="card shadow">
-              <div className="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-                <h5 className="mb-0">
-                  <i className="bi bi-person-plus me-2"></i>
-                  Registrar Nuevo Usuario
-                </h5>
-                <button 
-                  onClick={() => setShowCreateForm(false)}
-                  className="btn btn-outline-light btn-sm"
-                >
-                  <i className="bi bi-x me-2"></i>
-                  Cancelar
-                </button>
-              </div>
-              <div className="card-body">
-                <div className="alert alert-info">
-                  <i className="bi bi-info-circle me-2"></i>
-                  <strong>Importante:</strong> El usuario debe estar registrado como trabajador antes de crear su cuenta.
-                </div>
-
-                <form onSubmit={handleCreateUser}>
-                  <div className="row mb-3">
-                    <div className="col-md-6">
-                      <label htmlFor="name" className="form-label">
-                        <i className="bi bi-person me-2"></i>
-                        Nombre Completo:
-                      </label>
-                      <input
-                        type="text"
-                        id="name"
-                        name="name"
-                        value={newUser.name}
-                        onChange={handleInputChange}
-                        required
-                        disabled={isCreating}
-                        placeholder="Ej: Juan Pérez González"
-                        className="form-control"
-                      />
-                    </div>
-                    <div className="col-md-6">
-                      <label htmlFor="rut" className="form-label">
-                        <i className="bi bi-credit-card me-2"></i>
-                        RUT:
-                      </label>
-                      <input
-                        type="text"
-                        id="rut"
-                        name="rut"
-                        value={newUser.rut}
-                        onChange={handleInputChange}
-                        required
-                        disabled={isCreating}
-                        placeholder="12.345.678-9"
-                        className="form-control"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="row mb-3">
-                    <div className="col-md-6">
-                      <label htmlFor="email" className="form-label">
-                        <i className="bi bi-envelope me-2"></i>
-                        Email:
-                      </label>
-                      <input
-                        type="email"
-                        id="email"
-                        name="email"
-                        value={newUser.email}
-                        onChange={handleInputChange}
-                        required
-                        disabled={isCreating}
-                        placeholder="usuario@gmail.com"
-                        className="form-control"
-                      />
-                    </div>
-                    <div className="col-md-6">
-                      <label htmlFor="role" className="form-label">
-                        <i className="bi bi-shield me-2"></i>
-                        Rol:
-                      </label>
-                      <select
-                        id="role"
-                        name="role"
-                        value={newUser.role}
-                        onChange={handleInputChange}
-                        required
-                        disabled={isCreating}
-                        className="form-select"
-                      >
-                        {availableRoles.map(role => (
-                          <option key={role} value={role}>{role}</option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-
-                  <div className="mb-4">
-                    <label htmlFor="password" className="form-label">
-                      <i className="bi bi-key me-2"></i>
-                      Contraseña:
-                    </label>
-                    <input
-                      type="password"
-                      id="password"
-                      name="password"
-                      value={newUser.password}
-                      onChange={handleInputChange}
-                      required
-                      disabled={isCreating}
-                      placeholder="Mínimo 8 caracteres"
-                      minLength={8}
-                      className="form-control"
-                    />
-                  </div>
-
-                  <div className="d-flex gap-2">
-                    <button
-                      type="submit"
-                      className="btn btn-primary"
-                      disabled={isCreating}
-                    >
-                      {isCreating ? (
+      <div>
+        <h3>Lista de Usuarios</h3>
+        {isLoading ? (
+          <div className="text-center">
+            <Spinner animation="border" role="status">
+              <span className="visually-hidden">Cargando...</span>
+            </Spinner>
+          </div>
+        ) : (
+          <Table striped bordered hover responsive>
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>RUT</th>
+                <th>Email</th>
+                <th>Rol</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {users.map(user => (
+                <tr key={user.id}>
+                  <td>{user.name}</td>
+                  <td>{user.rut}</td>
+                  <td>{user.email}</td>
+                  <td>{user.role}</td>
+                  <td>
+                    <div className="d-flex gap-2">
+                      {/* No mostrar botones de edición/eliminación para el admin principal */}
+                      {!(user.role === 'Administrador' && user.rut === '11.111.111-1') && (
                         <>
-                          <span className="spinner-border spinner-border-sm me-2"></span>
-                          Creando...
-                        </>
-                      ) : (
-                        <>
-                          <i className="bi bi-check-circle me-2"></i>
-                          Crear Usuario
+                          <Button
+                            variant="outline-primary"
+                            size="sm"
+                            onClick={() => handleUpdateClick(user)}
+                            title="Editar rol"
+                          >
+                            <i className="bi bi-pencil-square"></i>
+                          </Button>
+                          {/* Mostrar botón de eliminar para administradores y RRHH */}
+                          <Button
+                            variant="outline-danger"
+                            size="sm"
+                            onClick={() => handleDeleteClick(user)}
+                            title="Eliminar usuario"
+                          >
+                            <i className="bi bi-trash"></i>
+                          </Button>
                         </>
                       )}
-                    </button>
-                    <button
-                      type="button"
-                      className="btn btn-secondary"
-                      onClick={() => setShowCreateForm(false)}
-                      disabled={isCreating}
-                    >
-                      <i className="bi bi-x-circle me-2"></i>
-                      Cancelar
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </div>
-          </div>
-        </div>
-      ) : (
-        <div className="row">
-          <div className="col-12">
-            <div className="card">
-              <div className="card-header bg-light">
-                <h5 className="mb-0">
-                  <i className="bi bi-people me-2"></i>
-                  Usuarios del Sistema
-                </h5>
-              </div>
-              <div className="card-body">
-                {/* Información del Usuario Actual */}
-                <div className="mb-4">
-                  <h6 className="text-primary mb-3">
-                    <i className="bi bi-person-circle me-2"></i>
-                    Usuario Actual
-                  </h6>
-                  <div className="card bg-light">
-                    <div className="card-body">
-                      <h5>{user?.name || 'Usuario'}</h5>
-                      <p className="mb-1">
-                        <strong>Rol:</strong> {user?.role || 'N/A'}
-                      </p>
-                      <p className="mb-0">
-                        <strong>RUT:</strong> {user?.rut || 'N/A'}
-                      </p>
                     </div>
-                  </div>
-                </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </Table>
+        )}
+      </div>
 
-                {/* Funcionalidades */}
-                <div className="mb-4">
-                  <h6 className="text-primary mb-3">
-                    <i className="bi bi-gear me-2"></i>
-                    Funcionalidades
-                  </h6>
-                  <ul className="list-group">
-                    <li className="list-group-item">
-                      <i className="bi bi-check-circle-fill text-success me-2"></i>
-                      Crear nuevos usuarios
-                    </li>
-                    <li className="list-group-item text-muted">
-                      <i className="bi bi-clock me-2"></i>
-                      Lista completa (próximamente)
-                    </li>
-                    <li className="list-group-item text-muted">
-                      <i className="bi bi-clock me-2"></i>
-                      Editar usuarios (próximamente)
-                    </li>
-                    <li className="list-group-item text-muted">
-                      <i className="bi bi-clock me-2"></i>
-                      Eliminar usuarios (próximamente)
-                    </li>
-                  </ul>
-                </div>
+      {/* Modal de Actualización */}
+      <Modal show={showUpdateModal} onHide={() => setShowUpdateModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Actualizar Rol de Usuario</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {selectedUser && (
+            <Form>
+              <Form.Group className="mb-3">
+                <Form.Label>Usuario</Form.Label>
+                <Form.Control type="text" value={selectedUser.name} disabled />
+              </Form.Group>
+              <Form.Group className="mb-3">
+                <Form.Label>RUT</Form.Label>
+                <Form.Control type="text" value={selectedUser.rut} disabled />
+              </Form.Group>
+              <Form.Group className="mb-3">
+                <Form.Label>Nuevo Rol</Form.Label>
+                <Form.Select
+                  value={newRole}
+                  onChange={(e) => setNewRole(e.target.value)}
+                >
+                  {availableRoles.map(role => (
+                    <option key={role} value={role}>{role}</option>
+                  ))}
+                </Form.Select>
+              </Form.Group>
+            </Form>
+          )}
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowUpdateModal(false)}>
+            Cancelar
+          </Button>
+          <Button
+            variant="primary"
+            onClick={handleUpdateUser}
+            disabled={isUpdating}
+          >
+            {isUpdating ? (
+              <>
+                <Spinner
+                  as="span"
+                  animation="border"
+                  size="sm"
+                  role="status"
+                  aria-hidden="true"
+                  className="me-2"
+                />
+                Actualizando...
+              </>
+            ) : (
+              'Guardar Cambios'
+            )}
+          </Button>
+        </Modal.Footer>
+      </Modal>
 
-                {/* Roles Disponibles */}
-                <div>
-                  <h6 className="text-primary mb-3">
-                    <i className="bi bi-shield-lock me-2"></i>
-                    Roles Disponibles
-                  </h6>
-                  <div className="row g-3">
-                    {availableRoles.map(role => (
-                      <div key={role} className="col-md-4 col-lg-3">
-                        <div className="card h-100">
-                          <div className="card-body">
-                            <h6 className="card-title">
-                              <i className="bi bi-person-badge me-2"></i>
-                              {role}
-                            </h6>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
+      {/* Modal de Confirmación de Eliminación */}
+      <Modal show={showDeleteModal} onHide={() => setShowDeleteModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Confirmar Eliminación</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {selectedUser && (
+            <div>
+              <p>¿Estás seguro que deseas eliminar al siguiente usuario?</p>
+              <ul className="list-unstyled">
+                <li><strong>Nombre:</strong> {selectedUser.name}</li>
+                <li><strong>RUT:</strong> {selectedUser.rut}</li>
+                <li><strong>Email:</strong> {selectedUser.email}</li>
+                <li><strong>Rol:</strong> {selectedUser.role}</li>
+              </ul>
+              <Alert variant="warning">
+                <i className="bi bi-exclamation-triangle me-2"></i>
+                Esta acción no se puede deshacer.
+              </Alert>
             </div>
-          </div>
-        </div>
-      )}
+          )}
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowDeleteModal(false)}>
+            Cancelar
+          </Button>
+          <Button
+            variant="danger"
+            onClick={handleDeleteUser}
+            disabled={isDeleting}
+          >
+            {isDeleting ? (
+              <>
+                <Spinner
+                  as="span"
+                  animation="border"
+                  size="sm"
+                  role="status"
+                  aria-hidden="true"
+                  className="me-2"
+                />
+                Eliminando...
+              </>
+            ) : (
+              'Eliminar Usuario'
+            )}
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </div>
   );
 }; 

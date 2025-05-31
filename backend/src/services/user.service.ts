@@ -130,8 +130,8 @@ export async function updateUserService(query: QueryParams, body: UpdateUserData
 
         if (!userFound) return [null, "Usuario no encontrado"];
 
-        /* Only admin can update roles */
-        if (requester.role !== "Administrador") {
+        /* Only admin and RRHH can update roles */
+        if (requester.role !== "Administrador" && requester.role !== "RecursosHumanos") {
             return [null, "No tienes permisos para modificar roles"];
         }
 
@@ -189,14 +189,19 @@ export async function deleteUserService(query: QueryParams, requester: User): Pr
 
         if (!userFound) return [null, "Usuario no encontrado"];
 
-        /* Prohibit if the requester is not admin */
-        if (requester.role !== "Administrador") {
+        /* Prohibit if the requester is not admin or RRHH */
+        if (requester.role !== "Administrador" && requester.role !== "RecursosHumanos") {
             return [null, "No tienes permisos para eliminar usuarios"];
         }
 
         /* Prevent deleting protected users */
         if (userFound.role === "Administrador" && userFound.rut === "11.111.111-1") {
             return [null, "No se puede eliminar el administrador principal"];
+        }
+
+        /* Only admin can delete admin users */
+        if (userFound.role === "Administrador" && requester.role !== "Administrador") {
+            return [null, "Solo los administradores pueden eliminar otros administradores"];
         }
 
         const userDeleted = await userRepository.remove(userFound);
