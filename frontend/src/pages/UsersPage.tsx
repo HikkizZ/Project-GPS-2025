@@ -161,7 +161,6 @@ export const UsersPage: React.FC = () => {
     const { name, value } = e.target;
     
     if (name === 'rut') {
-      // Aplicar formato al RUT en el campo de búsqueda
       const formattedRUT = formatRUT(value);
       setSearchParams(prev => ({
         ...prev,
@@ -169,6 +168,23 @@ export const UsersPage: React.FC = () => {
       }));
     } else {
       setSearchParams(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
+  };
+
+  const handleRegistrationInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    
+    if (name === 'rut') {
+      const formattedRUT = formatRUT(value);
+      setNewUser(prev => ({
+        ...prev,
+        [name]: formattedRUT
+      }));
+    } else {
+      setNewUser(prev => ({
         ...prev,
         [name]: value
       }));
@@ -445,7 +461,7 @@ export const UsersPage: React.FC = () => {
                 type="text"
                 name="name"
                 value={newUser.name}
-                onChange={handleSearchInputChange}
+                onChange={handleRegistrationInputChange}
                 placeholder="Ej: Juan Pérez González"
                 required
               />
@@ -460,7 +476,7 @@ export const UsersPage: React.FC = () => {
                 type="text"
                 name="rut"
                 value={newUser.rut}
-                onChange={handleSearchInputChange}
+                onChange={handleRegistrationInputChange}
                 placeholder="12.345.678-9"
                 required
               />
@@ -475,7 +491,7 @@ export const UsersPage: React.FC = () => {
                 type="email"
                 name="email"
                 value={newUser.email}
-                onChange={handleSearchInputChange}
+                onChange={handleRegistrationInputChange}
                 placeholder="usuario@gmail.com"
                 required
               />
@@ -490,7 +506,7 @@ export const UsersPage: React.FC = () => {
                 type="password"
                 name="password"
                 value={newUser.password}
-                onChange={handleSearchInputChange}
+                onChange={handleRegistrationInputChange}
                 placeholder="Mínimo 8 caracteres"
                 required
                 minLength={8}
@@ -505,7 +521,7 @@ export const UsersPage: React.FC = () => {
               <Form.Select
                 name="role"
                 value={newUser.role}
-                onChange={handleSearchInputChange}
+                onChange={handleRegistrationInputChange}
                 required
               >
                 {availableRoles.map(role => (
