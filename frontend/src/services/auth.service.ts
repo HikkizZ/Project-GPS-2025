@@ -41,11 +41,11 @@ class AuthService {
   }
 
   // Registro de usuario (requiere autenticación)
-  async register(registerData: RegisterData): Promise<{ user?: User; error?: string }> {
+  async register(registerData: RegisterData): Promise<{ success: boolean; user?: User; error?: string }> {
     try {
       const token = this.getToken();
       if (!token) {
-        return { error: 'No hay token de autenticación' };
+        return { success: false, error: 'No hay token de autenticación' };
       }
 
       const response = await axios.post<AuthResponse>(
@@ -54,17 +54,29 @@ class AuthService {
         { headers: getAuthHeaders(token) }
       );
 
-      if (response.data.status === 'success' && response.data.data && !('token' in response.data.data)) {
-        return { user: response.data.data as User };
+      if (response.data.status === 'success') {
+        return { 
+          success: true, 
+          user: response.data.data as User 
+        };
       }
 
-      return { error: response.data.message };
+      return { 
+        success: false, 
+        error: response.data.message || 'Error desconocido' 
+      };
     } catch (error: any) {
       console.error('Error en registro:', error);
       if (error.response?.data?.message) {
-        return { error: error.response.data.message };
+        return { 
+          success: false, 
+          error: error.response.data.message 
+        };
       }
-      return { error: 'Error de conexión con el servidor' };
+      return { 
+        success: false, 
+        error: 'Error de conexión con el servidor' 
+      };
     }
   }
 

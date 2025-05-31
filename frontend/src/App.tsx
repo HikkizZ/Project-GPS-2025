@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useTrabajador } from './hooks/useTrabajador';
 import { type CreateTrabajadorData, type Trabajador } from './types/trabajador';
 import { FichasEmpresaPage } from './pages/FichasEmpresaPage';
+import { UsersPage } from './pages/UsersPage';
 
 // Componente simple de Login
 const LoginPage: React.FC = () => {
@@ -462,6 +463,8 @@ const Dashboard: React.FC = () => {
 
   const renderPage = () => {
     switch (currentPage) {
+      case 'users':
+        return <UsersPage />;
       case 'registrar-trabajador':
         return (
           <RegistrarTrabajadorPage

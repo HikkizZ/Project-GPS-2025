@@ -60,35 +60,43 @@ export const UsersPage: React.FC = () => {
   // Verificar permisos
   if (user?.role !== 'Administrador' && user?.role !== 'RecursosHumanos') {
     return (
-      <div className="users-page">
-        <div className="access-denied">
-          <h1>Acceso Denegado</h1>
-          <p>No tienes permisos para acceder a la gestión de usuarios.</p>
-          <p>Solo usuarios con rol de <strong>Administrador</strong> o <strong>Recursos Humanos</strong> pueden gestionar usuarios.</p>
+      <div className="container py-4">
+        <div className="card">
+          <div className="card-body text-center">
+            <i className="bi bi-shield-exclamation display-1 text-danger mb-4"></i>
+            <h2>Acceso Denegado</h2>
+            <p className="lead">No tienes permisos para acceder a la gestión de usuarios.</p>
+            <p>Solo usuarios con rol de <strong>Administrador</strong> o <strong>Recursos Humanos</strong> pueden gestionar usuarios.</p>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="users-page">
-      <div className="page-header">
-        <div className="header-text">
-          <h1>
-            <i className="bi bi-shield-lock me-2"></i>
-            Gestión de Usuarios
-          </h1>
-          <p>Administra los usuarios del sistema GPS 2025</p>
+    <div className="container-fluid py-4">
+      {/* Header */}
+      <div className="row mb-4">
+        <div className="col-12">
+          <div className="d-flex justify-content-between align-items-center">
+            <div>
+              <h2 className="mb-1">
+                <i className="bi bi-shield-lock me-2"></i>
+                Gestión de Usuarios
+              </h2>
+              <p className="text-muted mb-0">Administra los usuarios del sistema GPS 2025</p>
+            </div>
+            {!showCreateForm && (
+              <button 
+                onClick={() => setShowCreateForm(true)}
+                className="btn btn-primary"
+              >
+                <i className="bi bi-person-plus me-2"></i>
+                Registrar Nuevo Usuario
+              </button>
+            )}
+          </div>
         </div>
-        {!showCreateForm && (
-          <button 
-            onClick={() => setShowCreateForm(true)}
-            className="btn btn-primary"
-          >
-            <i className="bi bi-person-plus me-2"></i>
-            Registrar Nuevo Usuario
-          </button>
-        )}
       </div>
 
       {/* Alertas */}
@@ -109,238 +117,240 @@ export const UsersPage: React.FC = () => {
       )}
 
       {/* Formulario de creación */}
-      {showCreateForm && (
-        <div className="create-user-section">
-          <div className="create-user-form">
-            <div className="d-flex justify-content-between align-items-center mb-4">
-              <h3>
-                <i className="bi bi-person-plus me-2"></i>
-                Registrar Nuevo Usuario
-              </h3>
-              <button 
-                onClick={() => setShowCreateForm(false)}
-                className="btn btn-outline-secondary"
-              >
-                <i className="bi bi-x me-2"></i>
-                Cancelar
-              </button>
-            </div>
-
-            <div className="alert alert-info">
-              <i className="bi bi-info-circle me-2"></i>
-              <strong>Importante:</strong> El usuario debe estar registrado como trabajador antes de crear su cuenta.
-            </div>
-
-            <form onSubmit={handleCreateUser}>
-              <div className="form-row">
-                <div className="form-group">
-                  <label htmlFor="name">
-                    <i className="bi bi-person me-2"></i>
-                    Nombre Completo:
-                  </label>
-                  <input
-                    type="text"
-                    id="name"
-                    name="name"
-                    value={newUser.name}
-                    onChange={handleInputChange}
-                    required
-                    disabled={isCreating}
-                    placeholder="Ej: Juan Pérez González"
-                    className="form-control"
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="rut">
-                    <i className="bi bi-credit-card me-2"></i>
-                    RUT:
-                  </label>
-                  <input
-                    type="text"
-                    id="rut"
-                    name="rut"
-                    value={newUser.rut}
-                    onChange={handleInputChange}
-                    required
-                    disabled={isCreating}
-                    placeholder="12.345.678-9"
-                    className="form-control"
-                  />
-                </div>
-              </div>
-
-              <div className="form-row">
-                <div className="form-group">
-                  <label htmlFor="email">
-                    <i className="bi bi-envelope me-2"></i>
-                    Email:
-                  </label>
-                  <input
-                    type="email"
-                    id="email"
-                    name="email"
-                    value={newUser.email}
-                    onChange={handleInputChange}
-                    required
-                    disabled={isCreating}
-                    placeholder="usuario@gmail.com"
-                    className="form-control"
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="role">
-                    <i className="bi bi-shield me-2"></i>
-                    Rol:
-                  </label>
-                  <select
-                    id="role"
-                    name="role"
-                    value={newUser.role}
-                    onChange={handleInputChange}
-                    required
-                    disabled={isCreating}
-                    className="form-control"
-                  >
-                    {availableRoles.map(role => (
-                      <option key={role} value={role}>{role}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="password">
-                  <i className="bi bi-key me-2"></i>
-                  Contraseña:
-                </label>
-                <input
-                  type="password"
-                  id="password"
-                  name="password"
-                  value={newUser.password}
-                  onChange={handleInputChange}
-                  required
-                  disabled={isCreating}
-                  placeholder="Mínimo 8 caracteres"
-                  minLength={8}
-                  className="form-control"
-                />
-              </div>
-
-              <div className="form-actions mt-4">
-                <button
-                  type="button"
+      {showCreateForm ? (
+        <div className="row">
+          <div className="col-lg-8 mx-auto">
+            <div className="card shadow">
+              <div className="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <h5 className="mb-0">
+                  <i className="bi bi-person-plus me-2"></i>
+                  Registrar Nuevo Usuario
+                </h5>
+                <button 
                   onClick={() => setShowCreateForm(false)}
-                  disabled={isCreating}
-                  className="btn btn-secondary"
+                  className="btn btn-outline-light btn-sm"
                 >
                   <i className="bi bi-x me-2"></i>
                   Cancelar
                 </button>
-                <button
-                  type="submit"
-                  disabled={isCreating}
-                  className="btn btn-primary"
-                >
-                  {isCreating ? (
-                    <>
-                      <span className="spinner-border spinner-border-sm me-2"></span>
-                      Creando...
-                    </>
-                  ) : (
-                    <>
-                      <i className="bi bi-check me-2"></i>
-                      Crear Usuario
-                    </>
-                  )}
-                </button>
               </div>
-            </form>
+              <div className="card-body">
+                <div className="alert alert-info">
+                  <i className="bi bi-info-circle me-2"></i>
+                  <strong>Importante:</strong> El usuario debe estar registrado como trabajador antes de crear su cuenta.
+                </div>
+
+                <form onSubmit={handleCreateUser}>
+                  <div className="row mb-3">
+                    <div className="col-md-6">
+                      <label htmlFor="name" className="form-label">
+                        <i className="bi bi-person me-2"></i>
+                        Nombre Completo:
+                      </label>
+                      <input
+                        type="text"
+                        id="name"
+                        name="name"
+                        value={newUser.name}
+                        onChange={handleInputChange}
+                        required
+                        disabled={isCreating}
+                        placeholder="Ej: Juan Pérez González"
+                        className="form-control"
+                      />
+                    </div>
+                    <div className="col-md-6">
+                      <label htmlFor="rut" className="form-label">
+                        <i className="bi bi-credit-card me-2"></i>
+                        RUT:
+                      </label>
+                      <input
+                        type="text"
+                        id="rut"
+                        name="rut"
+                        value={newUser.rut}
+                        onChange={handleInputChange}
+                        required
+                        disabled={isCreating}
+                        placeholder="12.345.678-9"
+                        className="form-control"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="row mb-3">
+                    <div className="col-md-6">
+                      <label htmlFor="email" className="form-label">
+                        <i className="bi bi-envelope me-2"></i>
+                        Email:
+                      </label>
+                      <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        value={newUser.email}
+                        onChange={handleInputChange}
+                        required
+                        disabled={isCreating}
+                        placeholder="usuario@gmail.com"
+                        className="form-control"
+                      />
+                    </div>
+                    <div className="col-md-6">
+                      <label htmlFor="role" className="form-label">
+                        <i className="bi bi-shield me-2"></i>
+                        Rol:
+                      </label>
+                      <select
+                        id="role"
+                        name="role"
+                        value={newUser.role}
+                        onChange={handleInputChange}
+                        required
+                        disabled={isCreating}
+                        className="form-select"
+                      >
+                        {availableRoles.map(role => (
+                          <option key={role} value={role}>{role}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="mb-4">
+                    <label htmlFor="password" className="form-label">
+                      <i className="bi bi-key me-2"></i>
+                      Contraseña:
+                    </label>
+                    <input
+                      type="password"
+                      id="password"
+                      name="password"
+                      value={newUser.password}
+                      onChange={handleInputChange}
+                      required
+                      disabled={isCreating}
+                      placeholder="Mínimo 8 caracteres"
+                      minLength={8}
+                      className="form-control"
+                    />
+                  </div>
+
+                  <div className="d-flex gap-2">
+                    <button
+                      type="submit"
+                      className="btn btn-primary"
+                      disabled={isCreating}
+                    >
+                      {isCreating ? (
+                        <>
+                          <span className="spinner-border spinner-border-sm me-2"></span>
+                          Creando...
+                        </>
+                      ) : (
+                        <>
+                          <i className="bi bi-check-circle me-2"></i>
+                          Crear Usuario
+                        </>
+                      )}
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      onClick={() => setShowCreateForm(false)}
+                      disabled={isCreating}
+                    >
+                      <i className="bi bi-x-circle me-2"></i>
+                      Cancelar
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="row">
+          <div className="col-12">
+            <div className="card">
+              <div className="card-header bg-light">
+                <h5 className="mb-0">
+                  <i className="bi bi-people me-2"></i>
+                  Usuarios del Sistema
+                </h5>
+              </div>
+              <div className="card-body">
+                {/* Información del Usuario Actual */}
+                <div className="mb-4">
+                  <h6 className="text-primary mb-3">
+                    <i className="bi bi-person-circle me-2"></i>
+                    Usuario Actual
+                  </h6>
+                  <div className="card bg-light">
+                    <div className="card-body">
+                      <h5>{user?.name || 'Usuario'}</h5>
+                      <p className="mb-1">
+                        <strong>Rol:</strong> {user?.role || 'N/A'}
+                      </p>
+                      <p className="mb-0">
+                        <strong>RUT:</strong> {user?.rut || 'N/A'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Funcionalidades */}
+                <div className="mb-4">
+                  <h6 className="text-primary mb-3">
+                    <i className="bi bi-gear me-2"></i>
+                    Funcionalidades
+                  </h6>
+                  <ul className="list-group">
+                    <li className="list-group-item">
+                      <i className="bi bi-check-circle-fill text-success me-2"></i>
+                      Crear nuevos usuarios
+                    </li>
+                    <li className="list-group-item text-muted">
+                      <i className="bi bi-clock me-2"></i>
+                      Lista completa (próximamente)
+                    </li>
+                    <li className="list-group-item text-muted">
+                      <i className="bi bi-clock me-2"></i>
+                      Editar usuarios (próximamente)
+                    </li>
+                    <li className="list-group-item text-muted">
+                      <i className="bi bi-clock me-2"></i>
+                      Eliminar usuarios (próximamente)
+                    </li>
+                  </ul>
+                </div>
+
+                {/* Roles Disponibles */}
+                <div>
+                  <h6 className="text-primary mb-3">
+                    <i className="bi bi-shield-lock me-2"></i>
+                    Roles Disponibles
+                  </h6>
+                  <div className="row g-3">
+                    {availableRoles.map(role => (
+                      <div key={role} className="col-md-4 col-lg-3">
+                        <div className="card h-100">
+                          <div className="card-body">
+                            <h6 className="card-title">
+                              <i className="bi bi-person-badge me-2"></i>
+                              {role}
+                            </h6>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )}
-
-      {/* Lista de usuarios existentes */}
-      <div className="users-list-section mt-4">
-        <h3>
-          <i className="bi bi-people me-2"></i>
-          Usuarios del Sistema
-        </h3>
-        <div className="users-info">
-          <div className="info-card">
-            <div className="info-icon">👤</div>
-            <div className="info-content">
-              <h4>Usuario Actual</h4>
-              <p><strong>{user?.name}</strong></p>
-              <p>
-                <i className="bi bi-shield me-2"></i>
-                Rol: {user?.role}
-              </p>
-              <p>
-                <i className="bi bi-credit-card me-2"></i>
-                RUT: {user?.rut}
-              </p>
-            </div>
-          </div>
-
-          <div className="info-card">
-            <div className="info-icon">📋</div>
-            <div className="info-content">
-              <h4>Funcionalidades</h4>
-              <ul className="list-unstyled">
-                <li>
-                  <i className="bi bi-check-circle text-success me-2"></i>
-                  Crear nuevos usuarios
-                </li>
-                <li>
-                  <i className="bi bi-clock text-warning me-2"></i>
-                  Lista completa (próximamente)
-                </li>
-                <li>
-                  <i className="bi bi-clock text-warning me-2"></i>
-                  Editar usuarios (próximamente)
-                </li>
-                <li>
-                  <i className="bi bi-clock text-warning me-2"></i>
-                  Eliminar usuarios (próximamente)
-                </li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="info-card">
-            <div className="info-icon">🔐</div>
-            <div className="info-content">
-              <h4>Roles Disponibles</h4>
-              <ul className="list-unstyled">
-                {availableRoles.map(role => (
-                  <li key={role}>
-                    <i className="bi bi-shield me-2"></i>
-                    {role}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        </div>
-
-        <div className="coming-soon mt-4">
-          <h4>
-            <i className="bi bi-tools me-2"></i>
-            Próximas Funcionalidades
-          </h4>
-          <p>Estamos trabajando en agregar:</p>
-          <ul>
-            <li>Lista completa de usuarios registrados</li>
-            <li>Búsqueda y filtrado de usuarios</li>
-            <li>Edición de información de usuarios</li>
-            <li>Gestión de permisos avanzados</li>
-            <li>Historial de actividades</li>
-          </ul>
-        </div>
-      </div>
     </div>
   );
 }; 

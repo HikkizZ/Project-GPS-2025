@@ -117,7 +117,7 @@ export async function registerService(user: RegisterData, userRole: string): Pro
   try {
         const userRepository = AppDataSource.getRepository(User);
         const trabajadorRepository = AppDataSource.getRepository(Trabajador);
-    const { name, rut, email, password, role } = user;
+        const { name, rut, email, password, role } = user;
 
         // Validaciones básicas
         if (!name || name.trim() === "") {
@@ -187,10 +187,22 @@ export async function registerService(user: RegisterData, userRole: string): Pro
             return [null, createErrorMessage({ password }, "La contraseña solo puede contener letras y números.")];
         }
 
+        // Normalizar el RUT antes de buscar al trabajador
+        const rutNormalizado = rut.replace(/\./g, "").trim();
+        
+        // Verificar si existe el trabajador con el RUT normalizado
+        const trabajador = await trabajadorRepository.findOne({ 
+            where: { rut: rutNormalizado } 
+        });
+
+        if (!trabajador) {
+            return [null, createErrorMessage({ rut }, "No existe un trabajador con este RUT.")];
+        }
+
         // Verificar si ya existe un usuario con el mismo email o RUT
         const [existingEmailUser, existingRutUser] = await Promise.all([
             userRepository.findOne({ where: { email } }),
-            userRepository.findOne({ where: { rut } })
+            userRepository.findOne({ where: { rut: rutNormalizado } })
         ]);
 
         if (existingEmailUser) {
@@ -201,47 +213,40 @@ export async function registerService(user: RegisterData, userRole: string): Pro
             return [null, createErrorMessage({ rut }, "El RUT ingresado ya está registrado.")];
         }
 
-        // Verificar si existe el trabajador
-        const trabajador = await trabajadorRepository.findOne({ where: { rut } });
-        if (!trabajador) {
-            return [null, createErrorMessage({ rut }, "No existe un trabajador con este RUT.")];
+        // Verificar el rol
+        if (!role || !allowedRoles.includes(role)) {
+            return [null, createErrorMessage({ role }, "El rol especificado no es válido.")];
         }
 
-        // Verificar que el email coincida con el del trabajador
-        if (trabajador.correo !== email) {
-            return [null, createErrorMessage({ email }, "El email debe coincidir con el email del trabajador.")];
+        // Solo administradores pueden crear otros administradores
+        if (role === "Administrador" && userRole !== "Administrador") {
+            return [null, "No tienes permisos para crear usuarios administradores."];
         }
 
-        // Verificar que el rol sea válido
-        if (!allowedRoles.includes(role)) {
-            return [null, createErrorMessage({ role }, "Rol no válido.")];
-        }
+        const hashedPassword = await encryptPassword(password);
 
         const newUser = userRepository.create({
-      name,
-      rut,
-      email,
-            password: await encryptPassword(password),
-            role
-    });
+            name,
+            rut: rutNormalizado,
+            email,
+            password: hashedPassword,
+            role,
+            createdAt: formatToLocalTime(new Date())
+        });
 
         await userRepository.save(newUser);
 
-        const { password: _, ...userData } = newUser;
+        const userResponse: UserResponse = {
+            name: newUser.name,
+            rut: newUser.rut,
+            email: newUser.email,
+            role: newUser.role,
+            createdAt: newUser.createdAt
+        };
 
-    const userResponse: UserResponse = {
-            id: userData.id,
-            name: userData.name,
-            rut: userData.rut,
-            email: userData.email,
-            role: userData.role,
-            createAt: formatToLocalTime(userData.createAt),
-            updateAt: formatToLocalTime(userData.updateAt)
-    };
-
-    return [userResponse, null];
-  } catch (error) {
-        console.error("❌ Error registering user: ", error);
+        return [userResponse, null];
+    } catch (error) {
+        console.error("❌ Error en register:", error);
         return [null, "Error interno del servidor."];
-  }
+    }
 }
