@@ -97,7 +97,8 @@ export const TrabajadoresPage: React.FC = () => {
         <div className="card mb-4 border-primary">
           <div className="card-body">
             <div className="row g-3">
-              <div className="col-md-4">
+              {/* Primera fila */}
+              <div className="col-md-3">
                 <Form.Group>
                   <Form.Label>RUT</Form.Label>
                   <Form.Control
@@ -108,7 +109,7 @@ export const TrabajadoresPage: React.FC = () => {
                   />
                 </Form.Group>
               </div>
-              <div className="col-md-4">
+              <div className="col-md-3">
                 <Form.Group>
                   <Form.Label>Nombres</Form.Label>
                   <Form.Control
@@ -119,7 +120,7 @@ export const TrabajadoresPage: React.FC = () => {
                   />
                 </Form.Group>
               </div>
-              <div className="col-md-4">
+              <div className="col-md-3">
                 <Form.Group>
                   <Form.Label>Apellido Paterno</Form.Label>
                   <Form.Control
@@ -127,6 +128,83 @@ export const TrabajadoresPage: React.FC = () => {
                     value={searchParams.apellidoPaterno || ''}
                     onChange={(e) => setSearchParams({ ...searchParams, apellidoPaterno: e.target.value })}
                     placeholder="Apellido paterno"
+                  />
+                </Form.Group>
+              </div>
+              <div className="col-md-3">
+                <Form.Group>
+                  <Form.Label>Apellido Materno</Form.Label>
+                  <Form.Control
+                    type="text"
+                    value={searchParams.apellidoMaterno || ''}
+                    onChange={(e) => setSearchParams({ ...searchParams, apellidoMaterno: e.target.value })}
+                    placeholder="Apellido materno"
+                  />
+                </Form.Group>
+              </div>
+              {/* Segunda fila */}
+              <div className="col-md-3">
+                <Form.Group>
+                  <Form.Label>Correo</Form.Label>
+                  <Form.Control
+                    type="email"
+                    value={searchParams.correo || ''}
+                    onChange={(e) => setSearchParams({ ...searchParams, correo: e.target.value })}
+                    placeholder="correo@ejemplo.com"
+                  />
+                </Form.Group>
+              </div>
+              <div className="col-md-3">
+                <Form.Group>
+                  <Form.Label>Teléfono</Form.Label>
+                  <Form.Control
+                    type="text"
+                    value={searchParams.telefono || ''}
+                    onChange={(e) => setSearchParams({ ...searchParams, telefono: e.target.value })}
+                    placeholder="+56912345678"
+                  />
+                </Form.Group>
+              </div>
+              <div className="col-md-3">
+                <Form.Group>
+                  <Form.Label>Número de Emergencia</Form.Label>
+                  <Form.Control
+                    type="text"
+                    value={searchParams.numeroEmergencia || ''}
+                    onChange={(e) => setSearchParams({ ...searchParams, numeroEmergencia: e.target.value })}
+                    placeholder="+56987654321"
+                  />
+                </Form.Group>
+              </div>
+              <div className="col-md-3">
+                <Form.Group>
+                  <Form.Label>Dirección</Form.Label>
+                  <Form.Control
+                    type="text"
+                    value={searchParams.direccion || ''}
+                    onChange={(e) => setSearchParams({ ...searchParams, direccion: e.target.value })}
+                    placeholder="Dirección del trabajador"
+                  />
+                </Form.Group>
+              </div>
+              {/* Tercera fila */}
+              <div className="col-md-3">
+                <Form.Group>
+                  <Form.Label>Fecha de Nacimiento</Form.Label>
+                  <Form.Control
+                    type="date"
+                    value={searchParams.fechaNacimiento || ''}
+                    onChange={(e) => setSearchParams({ ...searchParams, fechaNacimiento: e.target.value })}
+                  />
+                </Form.Group>
+              </div>
+              <div className="col-md-3">
+                <Form.Group>
+                  <Form.Label>Fecha de Ingreso</Form.Label>
+                  <Form.Control
+                    type="date"
+                    value={searchParams.fechaIngreso || ''}
+                    onChange={(e) => setSearchParams({ ...searchParams, fechaIngreso: e.target.value })}
                   />
                 </Form.Group>
               </div>

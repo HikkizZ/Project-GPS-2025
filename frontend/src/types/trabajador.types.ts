@@ -7,20 +7,6 @@ export enum EstadoTrabajador {
   RENUNCIADO = "RENUNCIADO"
 }
 
-export interface FichaEmpresa {
-  id: number;
-  cargo: string;
-  area: string;
-  empresa?: string;
-  tipoContrato: string;
-  jornadaLaboral?: string;
-  sueldoBase: number;
-  fechaInicioContrato: string;
-  fechaFinContrato?: string;
-  estado: EstadoTrabajador;
-  contratoURL?: string;
-}
-
 export interface HistorialLaboral {
   id: number;
   cargo: string;
@@ -90,7 +76,13 @@ export interface TrabajadorSearchQuery {
   nombres?: string;
   apellidoPaterno?: string;
   apellidoMaterno?: string;
+  fechaNacimiento?: string;
+  telefono?: string;
   correo?: string;
+  numeroEmergencia?: string;
+  direccion?: string;
+  fechaIngreso?: string;
+  todos?: boolean;
 }
 
 export interface TrabajadorResponse {
