@@ -16,9 +16,19 @@ export async function createTrabajadorService(trabajadorData: Partial<Trabajador
         // Validar datos requeridos
         if (!trabajadorData.rut || !trabajadorData.nombres || !trabajadorData.apellidoPaterno || 
             !trabajadorData.apellidoMaterno || !trabajadorData.telefono || !trabajadorData.correo || 
-            !trabajadorData.direccion || !trabajadorData.fechaIngreso) {
+            !trabajadorData.direccion) {
             return [null, "Faltan campos requeridos"];
         }
+
+        // Establecer la fecha de ingreso al día actual
+        // Forzar la zona horaria a Chile/Santiago
+        process.env.TZ = 'America/Santiago';
+        const now = new Date();
+        // Formatear la fecha en el formato YYYY-MM-DD que espera PostgreSQL
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        trabajadorData.fechaIngreso = new Date(`${year}-${month}-${day}T12:00:00`);
 
         // Validar formato de RUT usando el helper
         if (!validateRut(trabajadorData.rut)) {

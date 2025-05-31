@@ -61,7 +61,25 @@ export class Trabajador {
   @Column({ type: "varchar", length: 255, nullable: false })
   direccion!: string;
 
-  @CreateDateColumn({ type: "date" })
+  @Column({ 
+    type: "date",
+    transformer: {
+      to: (value: Date): string => {
+        // Forzar la zona horaria a Chile/Santiago
+        process.env.TZ = 'America/Santiago';
+        // Asegurar que la fecha se guarde en formato YYYY-MM-DD
+        const year = value.getFullYear();
+        const month = String(value.getMonth() + 1).padStart(2, '0');
+        const day = String(value.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      },
+      from: (value: string): Date => {
+        // Forzar la zona horaria a Chile/Santiago al leer
+        process.env.TZ = 'America/Santiago';
+        return new Date(value + 'T12:00:00');
+      }
+    }
+  })
   fechaIngreso!: Date;
 
   @Column({ type: "boolean", default: true })
