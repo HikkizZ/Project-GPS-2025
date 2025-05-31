@@ -90,7 +90,7 @@ const EditWorkerModal: React.FC<EditWorkerModalProps> = ({ show, handleClose, wo
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
@@ -133,6 +133,8 @@ const EditWorkerModal: React.FC<EditWorkerModalProps> = ({ show, handleClose, wo
         if (fileInput) fileInput.value = '';
         // Actualizar la ficha para mostrar que ahora tiene contrato
         await fetchFicha();
+        // Notificar al componente padre que hubo una actualización
+        onUpdate();
       } else {
         setError(response.message || 'Error al subir el archivo');
       }
@@ -201,11 +203,17 @@ const EditWorkerModal: React.FC<EditWorkerModalProps> = ({ show, handleClose, wo
         fechaFinContrato: formData.fechaFinContrato || undefined
       };
 
+      console.log('Enviando datos:', dataToSubmit); // Para debug
+
       const response = await updateFichaEmpresa(ficha.id, dataToSubmit);
       
       if (response.success) {
         setSuccess('Ficha actualizada exitosamente');
+        // Actualizar la ficha inmediatamente
+        await fetchFicha();
+        // Notificar al componente padre
         onUpdate();
+        // Cerrar el modal después de un breve delay
         setTimeout(() => {
           handleClose();
         }, 1500);
@@ -242,7 +250,7 @@ const EditWorkerModal: React.FC<EditWorkerModalProps> = ({ show, handleClose, wo
         {success && <Alert variant="success">{success}</Alert>}
 
         {ficha && (
-          <Form onSubmit={handleSubmit}>
+          <Form id="editForm" onSubmit={handleSubmit}>
             <Row>
               <Col md={6}>
                 <Form.Group className="mb-3">
@@ -449,8 +457,7 @@ const EditWorkerModal: React.FC<EditWorkerModalProps> = ({ show, handleClose, wo
         </Button>
         <Button
           variant="primary"
-          type="submit"
-          form="editForm"
+          onClick={handleSubmit}
           disabled={loading}
         >
           {loading ? (
