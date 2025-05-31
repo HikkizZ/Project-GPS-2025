@@ -300,7 +300,10 @@ export const UsersPage: React.FC = () => {
                     name="rut"
                     placeholder="12.345.678-9"
                     value={searchParams.rut || ''}
-                    onChange={handleSearchInputChange}
+                    onChange={(e) => {
+                      const formattedRUT = formatRUT(e.target.value);
+                      setSearchParams(prev => ({ ...prev, rut: formattedRUT }));
+                    }}
                   />
                 </Form.Group>
               </div>
