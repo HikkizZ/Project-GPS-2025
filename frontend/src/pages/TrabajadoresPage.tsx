@@ -222,7 +222,7 @@ export const TrabajadoresPage: React.FC = () => {
               </div>
               <Form.Check
                 type="checkbox"
-                label="Incluir trabajadores inactivos"
+                label="Incluir trabajadores eliminados (soft delete)"
                 checked={searchParams.todos || false}
                 onChange={(e) => setSearchParams({ ...searchParams, todos: e.target.checked })}
                 id="includeInactive"
@@ -354,7 +354,7 @@ export const TrabajadoresPage: React.FC = () => {
               {deleteError}
             </Alert>
           )}
-          <p>¿Estás seguro que deseas eliminar al trabajador?</p>
+          <p>¿Estás seguro que deseas eliminar (soft delete) al trabajador?</p>
           <p className="mb-0">
             <strong>Nombre:</strong> {trabajadorToDelete ? `${trabajadorToDelete.nombres} ${trabajadorToDelete.apellidoPaterno} ${trabajadorToDelete.apellidoMaterno}` : ''}
             <br />
