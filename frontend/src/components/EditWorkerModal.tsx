@@ -64,7 +64,7 @@ const EditWorkerModal: React.FC<EditWorkerModalProps> = ({ show, handleClose, wo
     try {
       const response = await getFichaEmpresa(workerId);
       
-      if (response.success) {
+      if (response.success && response.data) {
         const fichaData = response.data;
         setFicha(fichaData);
         setFormData({
@@ -77,12 +77,14 @@ const EditWorkerModal: React.FC<EditWorkerModalProps> = ({ show, handleClose, wo
           fechaInicioContrato: fichaData.fechaInicioContrato ? fichaData.fechaInicioContrato.split('T')[0] : '',
           fechaFinContrato: fichaData.fechaFinContrato ? fichaData.fechaFinContrato.split('T')[0] : ''
         });
+        setError(null);
       } else {
-        setError('No se pudo cargar la información del trabajador');
+        console.error('Error al cargar ficha:', response);
+        setError('No se pudo cargar la información del trabajador. Por favor, intente nuevamente.');
       }
     } catch (error) {
       console.error('Error fetching ficha:', error);
-      setError('Error al cargar la información del trabajador');
+      setError('Error al cargar la información del trabajador. Por favor, intente nuevamente.');
     } finally {
       setLoading(false);
     }

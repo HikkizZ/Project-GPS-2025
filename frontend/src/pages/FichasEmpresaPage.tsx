@@ -56,20 +56,29 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
   // Detectar trabajador recién registrado y abrir modal automáticamente
   useEffect(() => {
     if (trabajadorRecienRegistrado) {
-      // Buscar la ficha del trabajador recién registrado inmediatamente
+      // Si no tiene ficha, intentar buscarla
       const buscarYAbrirModal = async () => {
-        // Usar búsqueda específica por RUT
-        const ficha = await searchByRUT(trabajadorRecienRegistrado.rut);
-        
-        if (ficha) {
-          // Abrir modal de edición automáticamente usando EditWorkerModal
-          setSelectedWorkerId(ficha.id);
-          setShowEditModal(true);
-        }
-        
-        // Limpiar el trabajador recién registrado para evitar re-ejecución
-        if (onTrabajadorModalClosed) {
-          onTrabajadorModalClosed();
+        try {
+          // Esperar un momento para asegurar que la ficha esté creada en la base de datos
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          
+          // Usar búsqueda específica por RUT
+          const ficha = await searchByRUT(trabajadorRecienRegistrado.rut);
+          
+          if (ficha) {
+            // Abrir modal de edición automáticamente usando EditWorkerModal
+            setSelectedWorkerId(ficha.id);
+            setShowEditModal(true);
+          } else {
+            console.error('No se pudo encontrar la ficha del trabajador recién registrado');
+          }
+        } catch (error) {
+          console.error('Error al buscar la ficha:', error);
+        } finally {
+          // Limpiar el trabajador recién registrado
+          if (onTrabajadorModalClosed) {
+            onTrabajadorModalClosed();
+          }
         }
       };
       

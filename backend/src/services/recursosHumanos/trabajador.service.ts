@@ -24,6 +24,9 @@ export async function createTrabajadorService(trabajadorData: Partial<Trabajador
             return [null, "Formato de RUT inválido"];
         }
 
+        // Limpiar el RUT antes de guardarlo (remover puntos pero mantener el guión)
+        trabajadorData.rut = trabajadorData.rut.replace(/\./g, '');
+
         // Validar formato de correo
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(trabajadorData.correo)) {
@@ -89,6 +92,11 @@ export async function createTrabajadorService(trabajadorData: Partial<Trabajador
 
         if (!trabajadorCompleto) {
             throw new Error("No se pudo recargar el trabajador después de crear la ficha");
+        }
+
+        // Asegurarnos de que la ficha esté cargada
+        if (!trabajadorCompleto.fichaEmpresa) {
+            throw new Error("No se pudo cargar la ficha de empresa del trabajador");
         }
 
         return [trabajadorCompleto, null];

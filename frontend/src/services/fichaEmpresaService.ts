@@ -311,11 +311,24 @@ export default fichaEmpresaService;
 export const getFichaEmpresa = async (id: number): Promise<ApiResponse> => {
   try {
     const response = await axios.get(`${API_BASE_URL}/ficha-empresa/${id}`);
-    return response.data;
+    if (response.data && response.data.data) {
+      return {
+        success: true,
+        data: response.data.data,
+        message: null
+      };
+    } else {
+      return {
+        success: false,
+        data: null,
+        message: 'No se pudo cargar la información del trabajador'
+      };
+    }
   } catch (error: any) {
     console.error('Error getting ficha:', error);
     return {
       success: false,
+      data: null,
       message: error.response?.data?.message || 'Error al obtener la ficha'
     };
   }
