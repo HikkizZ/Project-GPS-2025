@@ -103,7 +103,7 @@ export const TrabajadoresPage: React.FC = () => {
                   <Form.Control
                     type="text"
                     value={searchParams.rut || ''}
-                    onChange={(e) => setSearchParams({ ...searchParams, rut: e.target.value })}
+                    onChange={(e) => setSearchParams({ ...searchParams, rut: formatRUT(e.target.value) })}
                     placeholder="Ej: 12.345.678-9"
                   />
                 </Form.Group>
