@@ -76,10 +76,11 @@ export const RegisterTrabajadorForm: React.FC<RegisterTrabajadorFormProps> = ({
   };
 
   return (
-    <Form onSubmit={handleSubmit}>
+    <Form onSubmit={handleSubmit} className="px-2">
       {error && <Alert variant="danger">{error}</Alert>}
 
-      <Row className="mb-3">
+      {/* Primera fila - Identificación */}
+      <Row className="mb-2">
         <Col md={6}>
           <Form.Group>
             <Form.Label>RUT: <span className="text-danger">*</span></Form.Label>
@@ -98,20 +99,20 @@ export const RegisterTrabajadorForm: React.FC<RegisterTrabajadorFormProps> = ({
             <Form.Label>Fecha de Ingreso:</Form.Label>
             <Form.Control
               type="date"
-              name="fechaIngreso"
               value={formData.fechaIngreso}
               readOnly
               disabled
               className="bg-light"
             />
-            <Form.Text className="text-muted">
-              La fecha de ingreso se establece automáticamente al día de hoy
+            <Form.Text className="text-muted small">
+              Se establece automáticamente al día de hoy
             </Form.Text>
           </Form.Group>
         </Col>
       </Row>
 
-      <Row className="mb-3">
+      {/* Segunda fila - Nombres y Fecha Nacimiento */}
+      <Row className="mb-2">
         <Col md={6}>
           <Form.Group>
             <Form.Label>Nombres: <span className="text-danger">*</span></Form.Label>
@@ -139,7 +140,8 @@ export const RegisterTrabajadorForm: React.FC<RegisterTrabajadorFormProps> = ({
         </Col>
       </Row>
 
-      <Row className="mb-3">
+      {/* Tercera fila - Apellidos */}
+      <Row className="mb-2">
         <Col md={6}>
           <Form.Group>
             <Form.Label>Apellido Paterno: <span className="text-danger">*</span></Form.Label>
@@ -168,7 +170,8 @@ export const RegisterTrabajadorForm: React.FC<RegisterTrabajadorFormProps> = ({
         </Col>
       </Row>
 
-      <Row className="mb-3">
+      {/* Cuarta fila - Contacto */}
+      <Row className="mb-2">
         <Col md={6}>
           <Form.Group>
             <Form.Label>Email: <span className="text-danger">*</span></Form.Label>
@@ -182,9 +185,6 @@ export const RegisterTrabajadorForm: React.FC<RegisterTrabajadorFormProps> = ({
             />
           </Form.Group>
         </Col>
-      </Row>
-
-      <Row className="mb-3">
         <Col md={6}>
           <Form.Group>
             <Form.Label>Teléfono: <span className="text-danger">*</span></Form.Label>
@@ -198,6 +198,10 @@ export const RegisterTrabajadorForm: React.FC<RegisterTrabajadorFormProps> = ({
             />
           </Form.Group>
         </Col>
+      </Row>
+
+      {/* Quinta fila - Teléfono Emergencia y Dirección */}
+      <Row className="mb-3">
         <Col md={6}>
           <Form.Group>
             <Form.Label>Teléfono de Emergencia:</Form.Label>
@@ -210,9 +214,6 @@ export const RegisterTrabajadorForm: React.FC<RegisterTrabajadorFormProps> = ({
             />
           </Form.Group>
         </Col>
-      </Row>
-
-      <Row className="mb-3">
         <Col md={6}>
           <Form.Group>
             <Form.Label>Dirección: <span className="text-danger">*</span></Form.Label>
@@ -228,21 +229,24 @@ export const RegisterTrabajadorForm: React.FC<RegisterTrabajadorFormProps> = ({
         </Col>
       </Row>
 
-      <div className="d-flex justify-content-end gap-2">
+      {/* Botones */}
+      <div className="d-flex justify-content-end gap-2 mt-3">
         <Button 
           variant="secondary" 
           onClick={onCancel} 
           disabled={isLoading}
+          size="sm"
         >
-          <i className="bi bi-x-circle me-2"></i>
+          <i className="bi bi-x-circle me-1"></i>
           Cancelar
         </Button>
         <Button 
           type="submit" 
           variant="primary" 
           disabled={isLoading}
+          size="sm"
         >
-          <i className="bi bi-check-circle me-2"></i>
+          <i className="bi bi-check-circle me-1"></i>
           {isLoading ? 'Registrando...' : 'Registrar Trabajador'}
         </Button>
       </div>
