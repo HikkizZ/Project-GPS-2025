@@ -553,20 +553,27 @@ const Dashboard: React.FC = () => {
                           </div>
                         </div>
                       </div>
-                      
-                      <div className="col-md-4 mb-3">
-                        <div className="card h-100 bg-light">
-                          <div className="card-body text-center">
-                            <i className="bi bi-list-ul display-4 text-muted mb-3"></i>
-                            <h5>Lista de Trabajadores</h5>
-                            <p className="text-muted">Ver todos los empleados</p>
-                            <button className="btn btn-outline-secondary" disabled>
-                              <i className="bi bi-list me-2"></i>
-                              Próximamente
-                            </button>
+
+                      {/* Nueva tarjeta de Usuarios */}
+                      {(user?.role === 'Administrador' || user?.role === 'RecursosHumanos') && (
+                        <div className="col-md-4 mb-3">
+                          <div 
+                            className="card h-100 shadow-sm border-info"
+                            style={{ cursor: 'pointer' }}
+                            onClick={() => setCurrentPage('users')}
+                          >
+                            <div className="card-body text-center">
+                              <i className="bi bi-people display-4 text-info mb-3"></i>
+                              <h5>Gestión de Usuarios</h5>
+                              <p className="text-muted">Administrar cuentas y permisos del sistema</p>
+                              <button className="btn btn-info text-white">
+                                <i className="bi bi-shield-lock me-2"></i>
+                                Gestionar
+                              </button>
+                            </div>
                           </div>
                         </div>
-                      </div>
+                      )}
                     </div>
 
                     {/* Otros Módulos */}

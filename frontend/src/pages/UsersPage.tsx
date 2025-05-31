@@ -255,191 +255,221 @@ export const UsersPage: React.FC = () => {
   }
 
   return (
-    <div className="container mt-4">
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <div>
-          <h1>Gestión de Usuarios</h1>
-          <p className="text-muted mb-0">Administración de cuentas y permisos</p>
-        </div>
-        <div className="d-flex gap-2">
-          <Button 
-            variant="outline-primary" 
-            onClick={() => setShowFilters(!showFilters)}
-          >
-            <i className="bi bi-funnel me-2"></i>
-            {showFilters ? 'Ocultar' : 'Mostrar'} Filtros
-          </Button>
-          <Button variant="primary" onClick={() => setShowCreateModal(true)}>
-            <i className="bi bi-person-plus me-2"></i>
-            Registrar Nuevo Usuario
-          </Button>
-        </div>
-      </div>
-
-      {error && <Alert variant="danger" dismissible onClose={() => setError('')}>{error}</Alert>}
-      {success && <Alert variant="success" dismissible onClose={() => setSuccess('')}>{success}</Alert>}
-
-      {/* Sección de Filtros */}
-      {showFilters && (
-        <div className="card mb-4">
-          <div className="card-header">
-            <h6 className="card-title mb-0">
-              <i className="bi bi-search me-2"></i>
-              Filtros de Búsqueda
-            </h6>
-          </div>
-          <div className="card-body">
-            <div className="row g-3">
-              <div className="col-md-3">
-                <Form.Group>
-                  <Form.Label>
-                    <i className="bi bi-person me-2"></i>
-                    Nombre
-                  </Form.Label>
-                  <Form.Control
-                    type="text"
-                    name="name"
-                    placeholder="Buscar por nombre"
-                    value={searchParams.name || ''}
-                    onChange={handleSearchInputChange}
-                  />
-                </Form.Group>
-              </div>
-              <div className="col-md-3">
-                <Form.Group>
-                  <Form.Label>
-                    <i className="bi bi-credit-card me-2"></i>
-                    RUT
-                  </Form.Label>
-                  <Form.Control
-                    type="text"
-                    name="rut"
-                    placeholder="12.345.678-9"
-                    value={searchParams.rut || ''}
-                    onChange={(e) => {
-                      const formattedRUT = formatRUT(e.target.value);
-                      setSearchParams(prev => ({ ...prev, rut: formattedRUT }));
-                    }}
-                  />
-                </Form.Group>
-              </div>
-              <div className="col-md-3">
-                <Form.Group>
-                  <Form.Label>
-                    <i className="bi bi-envelope me-2"></i>
-                    Email
-                  </Form.Label>
-                  <Form.Control
-                    type="text"
-                    name="email"
-                    placeholder="usuario@gmail.com"
-                    value={searchParams.email || ''}
-                    onChange={handleSearchInputChange}
-                  />
-                </Form.Group>
-              </div>
-              <div className="col-md-3">
-                <Form.Group>
-                  <Form.Label>
-                    <i className="bi bi-shield me-2"></i>
-                    Rol
-                  </Form.Label>
-                  <Form.Select
-                    name="role"
-                    value={searchParams.role || ''}
-                    onChange={handleSearchInputChange}
-                  >
-                    <option value="">Todos los roles</option>
-                    {availableRoles.map(role => (
-                      <option key={role} value={role}>{role}</option>
-                    ))}
-                  </Form.Select>
-                </Form.Group>
-              </div>
-            </div>
-            <div className="row mt-3">
-              <div className="col-12">
-                <Button
-                  variant="primary"
-                  onClick={handleSearch}
+    <div className="container py-4">
+      <div className="row justify-content-center">
+        <div className="col-12">
+          <div className="card shadow">
+            <div className="card-header bg-info text-white d-flex justify-content-between align-items-center">
+              <h4 className="mb-0">
+                <i className="bi bi-people me-2"></i>
+                Gestión de Usuarios
+              </h4>
+              <div>
+                <Button 
+                  variant="light" 
                   className="me-2"
+                  onClick={() => setShowFilters(!showFilters)}
                 >
-                  <i className="bi bi-search me-2"></i>
-                  Buscar
+                  <i className="bi bi-funnel me-2"></i>
+                  {showFilters ? 'Ocultar' : 'Mostrar'} Filtros
                 </Button>
-                <Button
-                  variant="outline-secondary"
-                  onClick={handleResetSearch}
-                >
-                  <i className="bi bi-arrow-clockwise me-2"></i>
-                  Limpiar filtros
+                <Button variant="light" onClick={() => setShowCreateModal(true)}>
+                  <i className="bi bi-person-plus me-2"></i>
+                  Nuevo Usuario
                 </Button>
+              </div>
+            </div>
+            <div className="card-body">
+              {error && (
+                <Alert variant="danger" dismissible onClose={() => setError('')}>
+                  <i className="bi bi-exclamation-triangle me-2"></i>
+                  {error}
+                </Alert>
+              )}
+              {success && (
+                <Alert variant="success" dismissible onClose={() => setSuccess('')}>
+                  <i className="bi bi-check-circle me-2"></i>
+                  {success}
+                </Alert>
+              )}
+
+              {/* Sección de Filtros */}
+              {showFilters && (
+                <div className="card mb-4">
+                  <div className="card-header">
+                    <h6 className="card-title mb-0">
+                      <i className="bi bi-search me-2"></i>
+                      Filtros de Búsqueda
+                    </h6>
+                  </div>
+                  <div className="card-body">
+                    <div className="row g-3">
+                      <div className="col-md-3">
+                        <Form.Group>
+                          <Form.Label>
+                            <i className="bi bi-person me-2"></i>
+                            Nombre
+                          </Form.Label>
+                          <Form.Control
+                            type="text"
+                            name="name"
+                            placeholder="Buscar por nombre"
+                            value={searchParams.name || ''}
+                            onChange={handleSearchInputChange}
+                          />
+                        </Form.Group>
+                      </div>
+                      <div className="col-md-3">
+                        <Form.Group>
+                          <Form.Label>
+                            <i className="bi bi-credit-card me-2"></i>
+                            RUT
+                          </Form.Label>
+                          <Form.Control
+                            type="text"
+                            name="rut"
+                            placeholder="12.345.678-9"
+                            value={searchParams.rut || ''}
+                            onChange={(e) => {
+                              const formattedRUT = formatRUT(e.target.value);
+                              setSearchParams(prev => ({ ...prev, rut: formattedRUT }));
+                            }}
+                          />
+                        </Form.Group>
+                      </div>
+                      <div className="col-md-3">
+                        <Form.Group>
+                          <Form.Label>
+                            <i className="bi bi-envelope me-2"></i>
+                            Email
+                          </Form.Label>
+                          <Form.Control
+                            type="text"
+                            name="email"
+                            placeholder="usuario@gmail.com"
+                            value={searchParams.email || ''}
+                            onChange={handleSearchInputChange}
+                          />
+                        </Form.Group>
+                      </div>
+                      <div className="col-md-3">
+                        <Form.Group>
+                          <Form.Label>
+                            <i className="bi bi-shield me-2"></i>
+                            Rol
+                          </Form.Label>
+                          <Form.Select
+                            name="role"
+                            value={searchParams.role || ''}
+                            onChange={handleSearchInputChange}
+                          >
+                            <option value="">Todos los roles</option>
+                            {availableRoles.map(role => (
+                              <option key={role} value={role}>{role}</option>
+                            ))}
+                          </Form.Select>
+                        </Form.Group>
+                      </div>
+                    </div>
+                    <div className="row mt-3">
+                      <div className="col-12">
+                        <Button
+                          variant="info"
+                          className="text-white me-2"
+                          onClick={handleSearch}
+                        >
+                          <i className="bi bi-search me-2"></i>
+                          Buscar
+                        </Button>
+                        <Button
+                          variant="outline-secondary"
+                          onClick={handleResetSearch}
+                        >
+                          <i className="bi bi-arrow-clockwise me-2"></i>
+                          Limpiar filtros
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Tabla de Usuarios */}
+              <div className="table-responsive">
+                {isLoading ? (
+                  <div className="text-center py-4">
+                    <Spinner animation="border" variant="info" role="status">
+                      <span className="visually-hidden">Cargando...</span>
+                    </Spinner>
+                  </div>
+                ) : (
+                  <>
+                    <div className="d-flex justify-content-between align-items-center mb-3">
+                      <h6 className="mb-0">
+                        <i className="bi bi-list me-2"></i>
+                        Usuarios Registrados ({users.length})
+                      </h6>
+                    </div>
+                    <Table striped bordered hover responsive className="align-middle">
+                      <thead className="bg-light">
+                        <tr>
+                          <th>Nombre</th>
+                          <th>RUT</th>
+                          <th>Email</th>
+                          <th>Rol</th>
+                          <th className="text-center">Acciones</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {users.map(user => (
+                          <tr key={user.id}>
+                            <td>{user.name}</td>
+                            <td>{formatRUT(user.rut)}</td>
+                            <td>{user.email}</td>
+                            <td>
+                              <span className={`badge bg-${getRoleBadgeColor(user.role)}`}>
+                                {user.role}
+                              </span>
+                            </td>
+                            <td className="text-center">
+                              <div className="btn-group">
+                                {/* No mostrar botones de edición/eliminación para el admin principal */}
+                                {!(user.role === 'Administrador' && user.rut === '11.111.111-1') && (
+                                  <>
+                                    <Button
+                                      variant="outline-info"
+                                      size="sm"
+                                      onClick={() => handleUpdateClick(user)}
+                                      title="Editar rol"
+                                    >
+                                      <i className="bi bi-pencil-square"></i>
+                                    </Button>
+                                    <Button
+                                      variant="outline-danger"
+                                      size="sm"
+                                      onClick={() => handleDeleteClick(user)}
+                                      title="Eliminar usuario"
+                                    >
+                                      <i className="bi bi-trash"></i>
+                                    </Button>
+                                  </>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </Table>
+                  </>
+                )}
               </div>
             </div>
           </div>
         </div>
-      )}
-
-      <div>
-        <h3>Lista de Usuarios</h3>
-        {isLoading ? (
-          <div className="text-center">
-            <Spinner animation="border" role="status">
-              <span className="visually-hidden">Cargando...</span>
-            </Spinner>
-          </div>
-        ) : (
-          <Table striped bordered hover responsive>
-            <thead>
-              <tr>
-                <th>Nombre</th>
-                <th>RUT</th>
-                <th>Email</th>
-                <th>Rol</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {users.map(user => (
-                <tr key={user.id}>
-                  <td>{user.name}</td>
-                  <td>{formatRUT(user.rut)}</td>
-                  <td>{user.email}</td>
-                  <td>{user.role}</td>
-                  <td>
-                    <div className="d-flex gap-2">
-                      {/* No mostrar botones de edición/eliminación para el admin principal */}
-                      {!(user.role === 'Administrador' && user.rut === '11.111.111-1') && (
-                        <>
-                          <Button
-                            variant="outline-primary"
-                            size="sm"
-                            onClick={() => handleUpdateClick(user)}
-                            title="Editar rol"
-                          >
-                            <i className="bi bi-pencil-square"></i>
-                          </Button>
-                          <Button
-                            variant="outline-danger"
-                            size="sm"
-                            onClick={() => handleDeleteClick(user)}
-                            title="Eliminar usuario"
-                          >
-                            <i className="bi bi-trash"></i>
-                          </Button>
-                        </>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </Table>
-        )}
       </div>
 
-      {/* Modal de Registro */}
-      <Modal show={showCreateModal} onHide={() => setShowCreateModal(false)} size="lg">
+      {/* Mantener los modales existentes */}
+      <Modal show={showCreateModal} onHide={() => setShowCreateModal(false)}>
         <Modal.Header closeButton>
           <Modal.Title>
             <i className="bi bi-person-plus me-2"></i>
@@ -559,7 +589,6 @@ export const UsersPage: React.FC = () => {
         </Modal.Footer>
       </Modal>
 
-      {/* Modal de Actualización */}
       <Modal show={showUpdateModal} onHide={() => setShowUpdateModal(false)}>
         <Modal.Header closeButton>
           <Modal.Title>Actualizar Rol de Usuario</Modal.Title>
@@ -617,7 +646,6 @@ export const UsersPage: React.FC = () => {
         </Modal.Footer>
       </Modal>
 
-      {/* Modal de Confirmación de Eliminación */}
       <Modal show={showDeleteModal} onHide={() => setShowDeleteModal(false)}>
         <Modal.Header closeButton>
           <Modal.Title>Confirmar Eliminación</Modal.Title>
@@ -668,4 +696,24 @@ export const UsersPage: React.FC = () => {
       </Modal>
     </div>
   );
+};
+
+// Función auxiliar para determinar el color del badge según el rol
+const getRoleBadgeColor = (role: string): string => {
+  switch (role) {
+    case 'Administrador':
+      return 'danger';
+    case 'RecursosHumanos':
+      return 'success';
+    case 'Gerencia':
+      return 'primary';
+    case 'Ventas':
+      return 'warning';
+    case 'Arriendo':
+      return 'info';
+    case 'Finanzas':
+      return 'secondary';
+    default:
+      return 'light';
+  }
 }; 
