@@ -3,6 +3,7 @@ import { useTrabajador } from './hooks/useTrabajador';
 import { type CreateTrabajadorData, type Trabajador } from './types/trabajador';
 import { FichasEmpresaPage } from './pages/FichasEmpresaPage';
 import { UsersPage } from './pages/UsersPage';
+import { TrabajadoresPage } from './pages/TrabajadoresPage';
 
 // Componente simple de Login
 const LoginPage: React.FC = () => {
@@ -479,6 +480,8 @@ const Dashboard: React.FC = () => {
             onTrabajadorModalClosed={() => setRecienRegistrado(null)}
           />
         );
+      case 'trabajadores':
+        return <TrabajadoresPage />;
       default:
         return (
           <div className="container py-4">
@@ -569,6 +572,27 @@ const Dashboard: React.FC = () => {
                               <button className="btn btn-primary">
                                 <i className="bi bi-shield-lock me-2"></i>
                                 Gestionar
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Tarjeta de Trabajadores */}
+                      {(user?.role === 'Administrador' || user?.role === 'RecursosHumanos') && (
+                        <div className="col-md-4 mb-3">
+                          <div 
+                            className="card h-100 shadow-sm border-success"
+                            style={{ cursor: 'pointer' }}
+                            onClick={() => setCurrentPage('trabajadores')}
+                          >
+                            <div className="card-body text-center">
+                              <i className="bi bi-people-fill display-4 text-success mb-3"></i>
+                              <h5>Trabajadores</h5>
+                              <p className="text-muted">Gestionar información del personal</p>
+                              <button className="btn btn-success">
+                                <i className="bi bi-person-gear me-2"></i>
+                                Administrar
                               </button>
                             </div>
                           </div>
@@ -701,9 +725,12 @@ const Dashboard: React.FC = () => {
                   </li>
                   <li><hr className="dropdown-divider" /></li>
                   <li>
-                    <button className="dropdown-item" disabled>
-                      <i className="bi bi-list-ul me-2"></i>
-                      Lista Trabajadores
+                    <button 
+                      className="dropdown-item"
+                      onClick={() => setCurrentPage('trabajadores')}
+                    >
+                      <i className="bi bi-people-fill me-2"></i>
+                      Trabajadores
                     </button>
                   </li>
                 </ul>

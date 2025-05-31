@@ -1,215 +1,208 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Table, Button, Form, Alert, Spinner, Modal } from 'react-bootstrap';
 import { useTrabajadores } from '@/hooks/useTrabajadores';
-import { TrabajadorCard } from '@/components/recursosHumanos/TrabajadorCard';
 import { Trabajador, TrabajadorSearchQuery } from '@/types/trabajador.types';
+import { useRut } from '@/hooks/useRut';
+import { RegisterTrabajadorForm } from '@/components/trabajador/RegisterTrabajadorForm';
 
 export const TrabajadoresPage: React.FC = () => {
-  const {
-    trabajadores,
-    isLoading,
-    error,
-    searchTrabajadores,
-    loadTrabajadores,
-    deleteTrabajador,
-    clearError
-  } = useTrabajadores();
+  const { trabajadores, isLoading, error, loadTrabajadores, searchTrabajadores } = useTrabajadores();
+  const { formatRUT } = useRut();
+  
+  // Estados para el modal y filtros
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
+  const [searchParams, setSearchParams] = useState<TrabajadorSearchQuery>({});
 
-  const [searchQuery, setSearchQuery] = useState<TrabajadorSearchQuery>({});
+  // Cargar trabajadores al montar el componente
+  useEffect(() => {
+    loadTrabajadores();
+  }, []);
 
-  const handleSearch = async () => {
-    await searchTrabajadores(searchQuery);
+  // Función para manejar la búsqueda
+  const handleSearch = () => {
+    searchTrabajadores(searchParams);
   };
 
-  const handleReset = () => {
-    setSearchQuery({});
+  // Función para limpiar filtros
+  const clearFilters = () => {
+    setSearchParams({});
     loadTrabajadores();
   };
 
-  const handleDelete = async (id: number) => {
-    if (!confirm('¿Está seguro de que desea eliminar este trabajador?')) {
-      return;
-    }
-    await deleteTrabajador(id);
-  };
-
-  const handleEdit = (trabajador: Trabajador) => {
-    // TODO: Implementar modal de edición
-    console.log('Editar trabajador:', trabajador);
-  };
-
-  const handleViewDetails = (trabajador: Trabajador) => {
-    // TODO: Implementar modal de detalles
-    console.log('Ver detalles:', trabajador);
-  };
-
-  const handleCreateNew = () => {
-    // TODO: Implementar modal de creación
-    console.log('Crear nuevo trabajador');
-  };
-
   return (
-    <div className="trabajadores-page">
-      <div className="page-header">
-        <div className="header-text">
-          <h1>Gestión de Trabajadores</h1>
-          <p>Administra la información del personal de la empresa</p>
+    <div className="container py-4">
+      {/* Header principal */}
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <div>
+          <h4 className="mb-1">
+            <i className="bi bi-people-fill me-2"></i>
+            Gestión de Trabajadores
+          </h4>
+          <p className="text-muted mb-0">Administrar información de trabajadores del sistema</p>
         </div>
-        <button onClick={handleCreateNew} className="btn btn-primary">
-          + Nuevo Trabajador
-        </button>
-      </div>
-
-      {/* Formulario de búsqueda */}
-      <div className="search-section">
-        <div className="search-form">
-          <h3>Buscar Trabajadores</h3>
-          <div className="search-fields">
-            <div className="form-group">
-              <label>RUT:</label>
-              <input
-                type="text"
-                placeholder="12.345.678-9"
-                value={searchQuery.rut || ''}
-                onChange={(e) => setSearchQuery({ ...searchQuery, rut: e.target.value })}
-              />
-            </div>
-
-            <div className="form-group">
-              <label>Nombres:</label>
-              <input
-                type="text"
-                placeholder="Nombres"
-                value={searchQuery.nombres || ''}
-                onChange={(e) => setSearchQuery({ ...searchQuery, nombres: e.target.value })}
-              />
-            </div>
-
-            <div className="form-group">
-              <label>Apellido Paterno:</label>
-              <input
-                type="text"
-                placeholder="Apellido Paterno"
-                value={searchQuery.apellidoPaterno || ''}
-                onChange={(e) => setSearchQuery({ ...searchQuery, apellidoPaterno: e.target.value })}
-              />
-            </div>
-
-            <div className="form-group">
-              <label>Apellido Materno:</label>
-              <input
-                type="text"
-                placeholder="Apellido Materno"
-                value={searchQuery.apellidoMaterno || ''}
-                onChange={(e) => setSearchQuery({ ...searchQuery, apellidoMaterno: e.target.value })}
-              />
-            </div>
-
-            <div className="form-group">
-              <label>Email:</label>
-              <input
-                type="email"
-                placeholder="correo@empresa.com"
-                value={searchQuery.correo || ''}
-                onChange={(e) => setSearchQuery({ ...searchQuery, correo: e.target.value })}
-              />
-            </div>
-
-            <div className="form-group">
-              <label>Teléfono:</label>
-              <input
-                type="text"
-                placeholder="+56912345678"
-                value={searchQuery.telefono || ''}
-                onChange={(e) => setSearchQuery({ ...searchQuery, telefono: e.target.value })}
-              />
-            </div>
-
-            <div className="form-group checkbox-group">
-              <label className="checkbox-label">
-                <input
-                  type="checkbox"
-                  checked={searchQuery.todos || false}
-                  onChange={(e) => setSearchQuery({ ...searchQuery, todos: e.target.checked })}
-                />
-                Incluir trabajadores inactivos
-              </label>
-            </div>
-          </div>
-
-          <div className="search-actions">
-            <button
-              onClick={handleSearch}
-              disabled={isLoading}
-              className="btn btn-primary"
-            >
-              {isLoading ? 'Buscando...' : 'Buscar'}
-            </button>
-            <button
-              onClick={handleReset}
-              disabled={isLoading}
-              className="btn btn-secondary"
-            >
-              Limpiar
-            </button>
-          </div>
+        <div>
+          <Button 
+            variant={showFilters ? "outline-secondary" : "outline-primary"}
+            className="me-2"
+            onClick={() => setShowFilters(!showFilters)}
+          >
+            <i className={`bi bi-funnel${showFilters ? '-fill' : ''} me-2`}></i>
+            {showFilters ? 'Ocultar' : 'Mostrar'} Filtros
+          </Button>
+          <Button 
+            variant="primary"
+            onClick={() => setShowCreateModal(true)}
+          >
+            <i className="bi bi-person-plus-fill me-2"></i>
+            Registrar Trabajador
+          </Button>
         </div>
       </div>
 
-      {/* Resultados */}
-      <div className="results-section">
-        {error && (
-          <div className="error-message">
-            <span>{error}</span>
-            <button onClick={clearError} className="error-close">✕</button>
-          </div>
-        )}
-
-        {isLoading ? (
-          <div className="loading-container">
-            <div className="loading-spinner"></div>
-            <p>Cargando trabajadores...</p>
-          </div>
-        ) : (
-          <>
-            <div className="results-header">
-              <h3>
-                Trabajadores encontrados: <span className="count">{trabajadores.length}</span>
-              </h3>
-              {trabajadores.length > 0 && (
-                <div className="results-summary">
-                  <span>
-                    Activos: {trabajadores.filter(t => t.enSistema).length} • 
-                    Inactivos: {trabajadores.filter(t => !t.enSistema).length}
-                  </span>
-                </div>
-              )}
-            </div>
-            
-            <div className="trabajadores-grid">
-              {trabajadores.map((trabajador) => (
-                <TrabajadorCard
-                  key={trabajador.id}
-                  trabajador={trabajador}
-                  onEdit={handleEdit}
-                  onDelete={handleDelete}
-                  onViewDetails={handleViewDetails}
-                />
-              ))}
-            </div>
-
-            {trabajadores.length === 0 && !error && (
-              <div className="no-results">
-                <div className="no-results-icon">🔍</div>
-                <h3>No se encontraron trabajadores</h3>
-                <p>Intenta ajustar los criterios de búsqueda o crear un nuevo trabajador.</p>
-                <button onClick={handleCreateNew} className="btn btn-primary">
-                  + Crear Nuevo Trabajador
-                </button>
+      {/* Sección de filtros */}
+      {showFilters && (
+        <div className="card mb-4 border-primary">
+          <div className="card-body">
+            <div className="row g-3">
+              <div className="col-md-4">
+                <Form.Group>
+                  <Form.Label>RUT</Form.Label>
+                  <Form.Control
+                    type="text"
+                    value={searchParams.rut || ''}
+                    onChange={(e) => setSearchParams({ ...searchParams, rut: e.target.value })}
+                    placeholder="Ej: 12.345.678-9"
+                  />
+                </Form.Group>
               </div>
-            )}
-          </>
-        )}
-      </div>
+              <div className="col-md-4">
+                <Form.Group>
+                  <Form.Label>Nombres</Form.Label>
+                  <Form.Control
+                    type="text"
+                    value={searchParams.nombres || ''}
+                    onChange={(e) => setSearchParams({ ...searchParams, nombres: e.target.value })}
+                    placeholder="Nombres del trabajador"
+                  />
+                </Form.Group>
+              </div>
+              <div className="col-md-4">
+                <Form.Group>
+                  <Form.Label>Apellido Paterno</Form.Label>
+                  <Form.Control
+                    type="text"
+                    value={searchParams.apellidoPaterno || ''}
+                    onChange={(e) => setSearchParams({ ...searchParams, apellidoPaterno: e.target.value })}
+                    placeholder="Apellido paterno"
+                  />
+                </Form.Group>
+              </div>
+            </div>
+            <div className="d-flex justify-content-end mt-3">
+              <Button variant="secondary" className="me-2" onClick={clearFilters}>
+                <i className="bi bi-x-circle me-2"></i>
+                Limpiar
+              </Button>
+              <Button variant="primary" onClick={handleSearch}>
+                <i className="bi bi-search me-2"></i>
+                Buscar
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Mensajes de error o carga */}
+      {error && <Alert variant="danger">{error}</Alert>}
+      {isLoading && (
+        <div className="text-center my-4">
+          <Spinner animation="border" variant="primary" />
+        </div>
+      )}
+
+      {/* Tabla de trabajadores */}
+      {!isLoading && !error && (
+        <div className="card shadow">
+          <div className="table-responsive">
+            <Table hover className="mb-0">
+              <thead className="bg-light">
+                <tr>
+                  <th>RUT</th>
+                  <th>Nombre Completo</th>
+                  <th>Correo</th>
+                  <th>Teléfono</th>
+                  <th>Cargo</th>
+                  <th>Estado</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {trabajadores.map((trabajador) => (
+                  <tr key={trabajador.id}>
+                    <td>{formatRUT(trabajador.rut)}</td>
+                    <td>{`${trabajador.nombres} ${trabajador.apellidoPaterno} ${trabajador.apellidoMaterno}`}</td>
+                    <td>{trabajador.correo}</td>
+                    <td>{trabajador.telefono}</td>
+                    <td>{trabajador.fichaEmpresa?.cargo || '-'}</td>
+                    <td>
+                      <span className={`badge bg-${trabajador.enSistema ? 'success' : 'danger'}`}>
+                        {trabajador.enSistema ? 'Activo' : 'Inactivo'}
+                      </span>
+                    </td>
+                    <td>
+                      <Button 
+                        variant="outline-primary" 
+                        size="sm" 
+                        className="me-2"
+                        onClick={() => {/* TODO: Implementar edición */}}
+                      >
+                        <i className="bi bi-pencil"></i>
+                      </Button>
+                      <Button 
+                        variant="outline-danger" 
+                        size="sm"
+                        onClick={() => {/* TODO: Implementar eliminación */}}
+                      >
+                        <i className="bi bi-trash"></i>
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de registro */}
+      <Modal
+        show={showCreateModal}
+        onHide={() => setShowCreateModal(false)}
+        size="lg"
+        centered
+      >
+        <Modal.Header closeButton className="bg-primary text-white">
+          <Modal.Title>
+            <i className="bi bi-person-plus me-2"></i>
+            Registrar Nuevo Trabajador
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <div className="alert alert-info">
+            <i className="bi bi-info-circle me-2"></i>
+            <strong>Nota:</strong> Al registrar un trabajador se creará automáticamente una ficha de empresa 
+            con valores por defecto que podrás editar inmediatamente.
+          </div>
+          <RegisterTrabajadorForm
+            onSuccess={() => {
+              setShowCreateModal(false);
+              loadTrabajadores();
+            }}
+            onCancel={() => setShowCreateModal(false)}
+          />
+        </Modal.Body>
+      </Modal>
     </div>
   );
 }; 
