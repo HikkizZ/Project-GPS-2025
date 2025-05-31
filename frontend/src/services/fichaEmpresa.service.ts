@@ -13,7 +13,7 @@ class FichaEmpresaService {
   private baseURL = `${API_CONFIG.BASE_URL}/ficha-empresa`;
 
   private getAuthHeaders() {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('authToken');
     return {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`

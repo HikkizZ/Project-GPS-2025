@@ -9,7 +9,7 @@ const API_BASE_URL = '/api';
 
 // Función helper para obtener headers con autenticación
 const getAuthHeaders = (): HeadersInit => {
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem('authToken');
   return {
     'Content-Type': 'application/json',
     ...(token && { 'Authorization': `Bearer ${token}` }),

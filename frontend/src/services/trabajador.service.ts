@@ -11,7 +11,7 @@ class TrabajadorService {
   private baseURL = API_CONFIG.BASE_URL + '/trabajadores';
 
   private getHeaders() {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('authToken');
     return {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`

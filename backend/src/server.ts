@@ -141,11 +141,20 @@ export async function setupTestServer(): Promise<{ app: Application; server: any
 
 async function setupAPI(): Promise<void> {
     try {
+        // Primero conectar a la base de datos
         await connectDB();
+        console.log("✅ Base de datos conectada");
+
+        // Luego ejecutar la configuración inicial
         await initialSetup();
+        console.log("✅ Configuración inicial completada");
+
+        // Finalmente iniciar el servidor
         await setupServer();
+        console.log("✅ Servidor iniciado correctamente");
     } catch (error) {
         console.error("❌ Error setting up the API: -> setupAPI(). Error: ", error);
+        process.exit(1); // Salir si hay un error crítico
     }
 }
 

@@ -13,7 +13,7 @@ const API_BASE_URL = '/api';
 // Configurar axios con interceptor para token
 axios.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('authToken');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }

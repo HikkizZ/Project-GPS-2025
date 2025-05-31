@@ -133,12 +133,25 @@ export async function searchTrabajadoresService(query: any): Promise<ServiceResp
         // Construir where clause
         const whereClause: any = {};
         
-        if (query.rut) whereClause.rut = Like(`%${query.rut}%`);
-        if (query.nombres) whereClause.nombres = Like(`%${query.nombres}%`);
-        if (query.apellidoPaterno) whereClause.apellidoPaterno = Like(`%${query.apellidoPaterno}%`);
-        if (query.apellidoMaterno) whereClause.apellidoMaterno = Like(`%${query.apellidoMaterno}%`);
-        if (query.correo) whereClause.correo = Like(`%${query.correo}%`);
-        if (query.telefono) whereClause.telefono = Like(`%${query.telefono}%`);
+        // Campos de identificación
+        if (query.rut) whereClause.rut = ILike(`%${query.rut.replace(/\./g, '')}%`); // Remover puntos del RUT
+        if (query.nombres) whereClause.nombres = ILike(`%${query.nombres}%`);
+        if (query.apellidoPaterno) whereClause.apellidoPaterno = ILike(`%${query.apellidoPaterno}%`);
+        if (query.apellidoMaterno) whereClause.apellidoMaterno = ILike(`%${query.apellidoMaterno}%`);
+        
+        // Campos de contacto
+        if (query.correo) whereClause.correo = ILike(`%${query.correo}%`);
+        if (query.telefono) whereClause.telefono = ILike(`%${query.telefono}%`);
+        if (query.numeroEmergencia) whereClause.numeroEmergencia = ILike(`%${query.numeroEmergencia}%`);
+        if (query.direccion) whereClause.direccion = ILike(`%${query.direccion}%`);
+        
+        // Campos de fechas
+        if (query.fechaNacimiento) {
+            whereClause.fechaNacimiento = query.fechaNacimiento;
+        }
+        if (query.fechaIngreso) {
+            whereClause.fechaIngreso = query.fechaIngreso;
+        }
         
         // Solo incluir trabajadores activos a menos que se especifique lo contrario
         if (!query.todos) {
