@@ -32,32 +32,25 @@ const LoginPage: React.FC = () => {
       if (response.ok && data.status === 'success') {
         // Guardar token
         const token = data.data.token;
-        localStorage.setItem('isAuthenticated', 'true');
-        localStorage.setItem('token', token);
+        localStorage.setItem('authToken', token);
         
         // Decodificar JWT para obtener datos del usuario
         try {
-          const payload = JSON.parse(atob(token.split('.')[1])); // Decodificar payload del JWT
+          const payload = JSON.parse(atob(token.split('.')[1]));
           const userData = {
             name: payload.name || 'Usuario',
             email: payload.email || email,
             role: payload.role || 'Usuario',
             rut: payload.rut || 'N/A'
           };
-          localStorage.setItem('user', JSON.stringify(userData));
+          localStorage.setItem('userData', JSON.stringify(userData));
+          
+          // Recargar la página para mostrar el dashboard
+          window.location.reload();
         } catch (decodeError) {
           console.error('Error decodificando token:', decodeError);
-          // Datos de fallback si falla la decodificación
-          localStorage.setItem('user', JSON.stringify({
-            name: 'Usuario',
-            email: email,
-            role: 'Usuario',
-            rut: 'N/A'
-          }));
+          setError('Error al procesar la información del usuario');
         }
-        
-        // Recargar la página para mostrar el dashboard
-        window.location.reload();
       } else {
         setError(data.message || 'Error al iniciar sesión');
       }
@@ -210,10 +203,15 @@ const RegistrarTrabajadorPage: React.FC<{
     setValidationErrors({});
     
     try {
-      const newTrabajador = await createTrabajador(formData);
-      onSuccess(newTrabajador);
+      const result = await createTrabajador(formData);
+      if (result.success && result.trabajador) {
+        onSuccess(result.trabajador);
+      } else {
+        setValidationErrors({ submit: result.error || 'Error al crear trabajador' });
+      }
     } catch (error) {
       console.error('Error al crear trabajador:', error);
+      setValidationErrors({ submit: 'Error al crear trabajador' });
     }
   };
 
@@ -431,7 +429,7 @@ const Dashboard: React.FC = () => {
   // Manejo seguro de localStorage
   const getUserFromStorage = () => {
     try {
-      const userStr = localStorage.getItem('user');
+      const userStr = localStorage.getItem('userData');
       if (!userStr || userStr === 'undefined' || userStr === 'null') {
         return { name: 'Usuario', role: 'Invitado', rut: 'N/A' };
       }
@@ -448,9 +446,8 @@ const Dashboard: React.FC = () => {
   const [recienRegistrado, setRecienRegistrado] = useState<Trabajador | null>(null);
 
   const handleLogout = () => {
-    localStorage.removeItem('isAuthenticated');
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('userData');
     window.location.reload();
   };
 
@@ -639,43 +636,69 @@ const Dashboard: React.FC = () => {
           </span>
           
           <div className="navbar-nav ms-auto d-flex flex-row">
-            <div className="nav-item dropdown me-3">
-              <button 
-                className="btn btn-outline-light dropdown-toggle" 
-                type="button" 
-                data-bs-toggle="dropdown"
-              >
-                <i className="bi bi-people me-2"></i>
-                RRHH
-              </button>
-              <ul className="dropdown-menu">
-                <li>
-                  <button 
-                    className="dropdown-item" 
-                    onClick={() => setCurrentPage('registrar-trabajador')}
-                  >
-                    <i className="bi bi-person-plus me-2"></i>
-                    Registrar Trabajador
-                  </button>
-                </li>
-                <li>
-                  <button 
-                    className="dropdown-item" 
-                    onClick={() => setCurrentPage('fichas-empresa')}
-                  >
-                    <i className="bi bi-clipboard-data me-2"></i>
-                    Fichas de Empresa
-                  </button>
-                </li>
-                <li><hr className="dropdown-divider" /></li>
-                <li>
-                  <button className="dropdown-item" disabled>
-                    <i className="bi bi-list-ul me-2"></i>
-                    Lista Trabajadores
-                  </button>
-                </li>
-              </ul>
-            </div>
+            {(user?.role === 'Administrador' || user?.role === 'RecursosHumanos') && (
+              <div className="nav-item dropdown me-3">
+                <button 
+                  className="btn btn-outline-light dropdown-toggle" 
+                  type="button" 
+                  data-bs-toggle="dropdown"
+                >
+                  <i className="bi bi-shield-lock me-2"></i>
+                  Usuarios
+                </button>
+                <ul className="dropdown-menu">
+                  <li>
+                    <button 
+                      className="dropdown-item" 
+                      onClick={() => setCurrentPage('users')}
+                    >
+                      <i className="bi bi-person-plus me-2"></i>
+                      Registrar Usuario
+                    </button>
+                  </li>
+                </ul>
+              </div>
+            )}
+            
+            {(user?.role === 'Administrador' || user?.role === 'RecursosHumanos') && (
+              <div className="nav-item dropdown me-3">
+                <button 
+                  className="btn btn-outline-light dropdown-toggle" 
+                  type="button" 
+                  data-bs-toggle="dropdown"
+                >
+                  <i className="bi bi-people me-2"></i>
+                  RRHH
+                </button>
+                <ul className="dropdown-menu">
+                  <li>
+                    <button 
+                      className="dropdown-item" 
+                      onClick={() => setCurrentPage('registrar-trabajador')}
+                    >
+                      <i className="bi bi-person-plus me-2"></i>
+                      Registrar Trabajador
+                    </button>
+                  </li>
+                  <li>
+                    <button 
+                      className="dropdown-item" 
+                      onClick={() => setCurrentPage('fichas-empresa')}
+                    >
+                      <i className="bi bi-clipboard-data me-2"></i>
+                      Fichas de Empresa
+                    </button>
+                  </li>
+                  <li><hr className="dropdown-divider" /></li>
+                  <li>
+                    <button className="dropdown-item" disabled>
+                      <i className="bi bi-list-ul me-2"></i>
+                      Lista Trabajadores
+                    </button>
+                  </li>
+                </ul>
+              </div>
+            )}
             
             <button 
               className="btn btn-outline-light me-3"
@@ -735,9 +758,9 @@ function App() {
   // Manejo seguro de autenticación
   const isAuthenticated = (() => {
     try {
-      const authStr = localStorage.getItem('isAuthenticated');
-      const tokenStr = localStorage.getItem('token');
-      return authStr === 'true' && tokenStr && tokenStr !== 'undefined';
+      const authStr = localStorage.getItem('authToken');
+      const userStr = localStorage.getItem('userData');
+      return authStr && userStr && authStr !== 'undefined' && userStr !== 'undefined';
     } catch (error) {
       console.error('Error checking authentication:', error);
       return false;

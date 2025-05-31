@@ -66,7 +66,7 @@ async function setupServer(): Promise<void> {
         // Rutas públicas (sin autenticación)
         app.use("/api/auth", indexRoutes);
 
-        // Resto de rutas (protegidas)
+        // Middleware de autenticación para rutas protegidas
         app.use("/api", indexRoutes);
 
         server = app.listen(PORT, () => {

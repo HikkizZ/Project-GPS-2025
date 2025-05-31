@@ -1,3 +1,5 @@
+import { FichaEmpresa } from './fichaEmpresa.types';
+
 export enum EstadoTrabajador {
   ACTIVO = "ACTIVO",
   INACTIVO = "INACTIVO",
@@ -81,7 +83,6 @@ export interface CreateTrabajadorData {
   numeroEmergencia?: string;
   direccion: string;
   fechaIngreso: string;
-  fichaEmpresa?: Partial<FichaEmpresa>;
 }
 
 export interface TrabajadorSearchQuery {
@@ -90,12 +91,10 @@ export interface TrabajadorSearchQuery {
   apellidoPaterno?: string;
   apellidoMaterno?: string;
   correo?: string;
-  telefono?: string;
-  todos?: boolean;
 }
 
 export interface TrabajadorResponse {
   status: 'success' | 'error';
-  message: string;
+  message?: string;
   data?: Trabajador | Trabajador[];
 } 

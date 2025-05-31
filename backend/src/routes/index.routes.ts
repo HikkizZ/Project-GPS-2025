@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import  authRoutes from './auth.routes.js';
+import authRoutes from './auth.routes.js';
 import userRoutes from './user.routes.js';
 import productRoutes from './product.routes.js';
 import customerRoutes from './customer.routes.js';
@@ -23,30 +23,20 @@ router.get('/', (_req, res) => {
     });
 });
 
-/* Auth routes */
+// Rutas de autenticación (públicas)
 router.use('/auth', authRoutes);
 
-/* User routes */
-router.use('/user', userRoutes);
-
-/* Product routes */
-router.use('/product', productRoutes);
-
-/* Customer routes */
-router.use('/customer', customerRoutes);
-
-/* Supplier routes */
-router.use('/supplier', supplierRoutes);
-
-/* Recursos Humanos routes */
+// Rutas protegidas
+router.use('/users', userRoutes);
+router.use('/products', productRoutes);
+router.use('/customers', customerRoutes);
+router.use('/suppliers', supplierRoutes);
 router.use('/ficha-empresa', fichaEmpresaRoutes);
 router.use('/licencia-permiso', licenciaPermisoRoutes);
-router.use('/trabajador', trabajadorRoutes);
+router.use('/trabajadores', trabajadorRoutes);
 router.use('/historial-laboral', historialLaboralRoutes);
 router.use('/cambios-laborales', cambiosLaboralesRoutes);
 router.use('/capacitacion', capacitacionRoutes);
-
-/* Files routes */
 router.use('/files', filesRoutes);
 
 export default router;

@@ -1,5 +1,5 @@
 export const API_CONFIG = {
-  BASE_URL: 'http://localhost:3000/api',
+  BASE_URL: '/api',
   ENDPOINTS: {
     AUTH: {
       LOGIN: '/auth/login',
@@ -8,11 +8,8 @@ export const API_CONFIG = {
     },
     TRABAJADORES: {
       BASE: '/trabajadores',
-      CREATE: '/',
-      GET_ALL: '/all',
-      SEARCH: '/detail/',
-      UPDATE: (id: number) => `/${id}`,
-      DELETE: (id: number) => `/${id}`
+      ALL: '/trabajadores/all',
+      DETAIL: '/trabajadores/detail'
     }
   },
   HEADERS: {

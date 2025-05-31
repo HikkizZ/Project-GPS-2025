@@ -98,6 +98,15 @@ export const HomePage: React.FC = () => {
         color: 'danger',
         category: 'admin',
         roles: ['Administrador', 'RecursosHumanos']
+      },
+      {
+        title: 'Gestión de Usuarios',
+        description: 'Registrar y administrar usuarios del sistema',
+        icon: '��',
+        link: '/users',
+        color: 'danger',
+        category: 'admin',
+        roles: ['Administrador', 'RecursosHumanos']
       }
     ];
 

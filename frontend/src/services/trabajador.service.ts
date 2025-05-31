@@ -1,6 +1,5 @@
 import axios from 'axios';
-import { API_CONFIG, getAuthHeaders } from '@/config/api.config';
-import { authService } from './auth.service';
+import { API_CONFIG } from '@/config/api.config';
 import {
   Trabajador,
   CreateTrabajadorData,
@@ -9,22 +8,21 @@ import {
 } from '@/types/trabajador.types';
 
 class TrabajadorService {
-  private baseURL = API_CONFIG.BASE_URL + API_CONFIG.ENDPOINTS.TRABAJADORES.BASE;
+  private baseURL = API_CONFIG.BASE_URL + '/trabajadores';
 
-  // Obtener headers con autenticación
   private getHeaders() {
-    const token = authService.getToken();
-    if (!token) {
-      throw new Error('No hay token de autenticación');
-    }
-    return getAuthHeaders(token);
+    const token = localStorage.getItem('token');
+    return {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    };
   }
 
   // Crear nuevo trabajador
   async createTrabajador(trabajadorData: CreateTrabajadorData): Promise<{ trabajador?: Trabajador; error?: string }> {
     try {
       const response = await axios.post<TrabajadorResponse>(
-        `${this.baseURL}${API_CONFIG.ENDPOINTS.TRABAJADORES.CREATE}`,
+        this.baseURL,
         trabajadorData,
         { headers: this.getHeaders() }
       );
@@ -33,7 +31,7 @@ class TrabajadorService {
         return { trabajador: response.data.data };
       }
 
-      return { error: response.data.message };
+      return { error: response.data.message || 'Error al crear trabajador' };
     } catch (error: any) {
       console.error('Error al crear trabajador:', error);
       if (error.response?.data?.message) {
@@ -47,12 +45,12 @@ class TrabajadorService {
   async getTrabajadores(): Promise<{ trabajadores?: Trabajador[]; error?: string }> {
     try {
       const response = await axios.get<TrabajadorResponse>(
-        `${this.baseURL}${API_CONFIG.ENDPOINTS.TRABAJADORES.GET_ALL}`,
+        `${this.baseURL}/all`,
         { headers: this.getHeaders() }
       );
 
-      if (response.data.status === 'success' && response.data.data && Array.isArray(response.data.data)) {
-        return { trabajadores: response.data.data };
+      if (response.data.status === 'success' && response.data.data) {
+        return { trabajadores: Array.isArray(response.data.data) ? response.data.data : [response.data.data] };
       }
 
       return { error: response.data.message };
@@ -76,13 +74,12 @@ class TrabajadorService {
       });
 
       const response = await axios.get<TrabajadorResponse>(
-        `${this.baseURL}${API_CONFIG.ENDPOINTS.TRABAJADORES.SEARCH}?${queryParams}`,
+        `${this.baseURL}/detail?${queryParams}`,
         { headers: this.getHeaders() }
       );
 
       if (response.data.status === 'success' && response.data.data) {
-        const data = Array.isArray(response.data.data) ? response.data.data : [response.data.data];
-        return { trabajadores: data };
+        return { trabajadores: Array.isArray(response.data.data) ? response.data.data : [response.data.data] };
       }
 
       return { error: response.data.message };
@@ -99,12 +96,12 @@ class TrabajadorService {
   async updateTrabajador(id: number, trabajadorData: Partial<Trabajador>): Promise<{ trabajador?: Trabajador; error?: string }> {
     try {
       const response = await axios.put<TrabajadorResponse>(
-        `${this.baseURL}${API_CONFIG.ENDPOINTS.TRABAJADORES.UPDATE(id)}`,
+        `${this.baseURL}/${id}`,
         trabajadorData,
         { headers: this.getHeaders() }
       );
 
-      if (response.data.status === 'success' && response.data.data && !Array.isArray(response.data.data)) {
+      if (response.data.status === 'success' && response.data.data) {
         return { trabajador: response.data.data };
       }
 
@@ -118,11 +115,11 @@ class TrabajadorService {
     }
   }
 
-  // Eliminar trabajador (soft delete)
+  // Eliminar trabajador
   async deleteTrabajador(id: number): Promise<{ success?: boolean; error?: string }> {
     try {
       const response = await axios.delete<TrabajadorResponse>(
-        `${this.baseURL}${API_CONFIG.ENDPOINTS.TRABAJADORES.DELETE(id)}`,
+        `${this.baseURL}/${id}`,
         { headers: this.getHeaders() }
       );
 
@@ -138,6 +135,31 @@ class TrabajadorService {
       }
       return { error: 'Error de conexión con el servidor' };
     }
+  }
+
+  // Formatear RUT
+  static formatRUT(rut: string): string {
+    // Eliminar caracteres no válidos
+    rut = rut.replace(/[^0-9kK-]/g, '');
+    
+    // Si el RUT está vacío, retornar
+    if (!rut) return '';
+    
+    // Separar número y dígito verificador
+    let numero = rut;
+    let dv = '';
+    
+    if (rut.includes('-')) {
+      [numero, dv] = rut.split('-');
+    } else {
+      dv = numero.slice(-1);
+      numero = numero.slice(0, -1);
+    }
+    
+    // Formatear número con puntos
+    numero = numero.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    
+    return numero + '-' + dv;
   }
 }
 

@@ -18,7 +18,7 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
   trabajadorRecienRegistrado, 
   onTrabajadorModalClosed 
 }) => {
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   
   const {
@@ -43,6 +43,34 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
   const [modalType, setModalType] = useState<'view' | 'edit' | 'estado'>('view');
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedWorkerId, setSelectedWorkerId] = useState<number | null>(null);
+
+  // Verificar autenticación
+  useEffect(() => {
+    const checkAuth = () => {
+      const token = localStorage.getItem('authToken');
+      const userData = localStorage.getItem('userData');
+      
+      if (!token || !userData) {
+        console.error('Usuario no autenticado');
+        // Redirigir al login
+        window.location.href = '/login';
+        return;
+      }
+
+      try {
+        const user = JSON.parse(userData);
+        if (!user.role) {
+          console.error('Rol de usuario no encontrado');
+          window.location.href = '/login';
+        }
+      } catch (error) {
+        console.error('Error al procesar datos del usuario:', error);
+        window.location.href = '/login';
+      }
+    };
+
+    checkAuth();
+  }, []);
 
   // Cargar datos iniciales
   useEffect(() => {
@@ -532,16 +560,26 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                               >
                                 <i className="bi bi-pencil"></i>
                               </button>
-                              {console.log('Role:', user?.role) /* Temporal para debug */}
-                              {user?.role && ['RecursosHumanos', 'Administrador'].includes(user.role) && (
-                                <button
-                                  className="btn btn-outline-danger"
-                                  onClick={() => handleChangeEstado(ficha)}
-                                  title="Cambiar estado"
-                                >
-                                  <i className="bi bi-x"></i>
-                                </button>
-                              )}
+                              {(() => {
+                                try {
+                                  const userData = localStorage.getItem('userData');
+                                  const user = userData ? JSON.parse(userData) : null;
+                                  const hasPermission = user && (user.role === 'RecursosHumanos' || user.role === 'Administrador');
+                                  
+                                  return hasPermission && ficha.estado !== EstadoLaboral.DESVINCULADO && (
+                                    <button
+                                      className="btn btn-outline-danger"
+                                      onClick={() => handleChangeEstado(ficha)}
+                                      title="Desvincular trabajador"
+                                    >
+                                      <i className="bi bi-person-x"></i>
+                                    </button>
+                                  );
+                                } catch (error) {
+                                  console.error('Error al verificar permisos:', error);
+                                  return null;
+                                }
+                              })()}
                             </div>
                           </td>
                         </tr>

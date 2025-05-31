@@ -74,29 +74,37 @@ export const UsersPage: React.FC = () => {
     <div className="users-page">
       <div className="page-header">
         <div className="header-text">
-          <h1>Gestión de Usuarios</h1>
+          <h1>
+            <i className="bi bi-shield-lock me-2"></i>
+            Gestión de Usuarios
+          </h1>
           <p>Administra los usuarios del sistema GPS 2025</p>
         </div>
-        <button 
-          onClick={() => setShowCreateForm(!showCreateForm)}
-          className="btn btn-primary"
-        >
-          {showCreateForm ? 'Cancelar' : '+ Nuevo Usuario'}
-        </button>
+        {!showCreateForm && (
+          <button 
+            onClick={() => setShowCreateForm(true)}
+            className="btn btn-primary"
+          >
+            <i className="bi bi-person-plus me-2"></i>
+            Registrar Nuevo Usuario
+          </button>
+        )}
       </div>
 
       {/* Alertas */}
       {error && (
-        <div className="alert alert-error">
-          <span>{error}</span>
-          <button onClick={() => setError('')} className="alert-close">✕</button>
+        <div className="alert alert-danger alert-dismissible fade show">
+          <i className="bi bi-exclamation-triangle me-2"></i>
+          {error}
+          <button onClick={() => setError('')} className="btn-close"></button>
         </div>
       )}
 
       {success && (
-        <div className="alert alert-success">
-          <span>{success}</span>
-          <button onClick={() => setSuccess('')} className="alert-close">✕</button>
+        <div className="alert alert-success alert-dismissible fade show">
+          <i className="bi bi-check-circle me-2"></i>
+          {success}
+          <button onClick={() => setSuccess('')} className="btn-close"></button>
         </div>
       )}
 
@@ -104,11 +112,32 @@ export const UsersPage: React.FC = () => {
       {showCreateForm && (
         <div className="create-user-section">
           <div className="create-user-form">
-            <h3>Crear Nuevo Usuario</h3>
+            <div className="d-flex justify-content-between align-items-center mb-4">
+              <h3>
+                <i className="bi bi-person-plus me-2"></i>
+                Registrar Nuevo Usuario
+              </h3>
+              <button 
+                onClick={() => setShowCreateForm(false)}
+                className="btn btn-outline-secondary"
+              >
+                <i className="bi bi-x me-2"></i>
+                Cancelar
+              </button>
+            </div>
+
+            <div className="alert alert-info">
+              <i className="bi bi-info-circle me-2"></i>
+              <strong>Importante:</strong> El usuario debe estar registrado como trabajador antes de crear su cuenta.
+            </div>
+
             <form onSubmit={handleCreateUser}>
               <div className="form-row">
                 <div className="form-group">
-                  <label htmlFor="name">Nombre Completo:</label>
+                  <label htmlFor="name">
+                    <i className="bi bi-person me-2"></i>
+                    Nombre Completo:
+                  </label>
                   <input
                     type="text"
                     id="name"
@@ -118,11 +147,15 @@ export const UsersPage: React.FC = () => {
                     required
                     disabled={isCreating}
                     placeholder="Ej: Juan Pérez González"
+                    className="form-control"
                   />
                 </div>
 
                 <div className="form-group">
-                  <label htmlFor="rut">RUT:</label>
+                  <label htmlFor="rut">
+                    <i className="bi bi-credit-card me-2"></i>
+                    RUT:
+                  </label>
                   <input
                     type="text"
                     id="rut"
@@ -132,13 +165,17 @@ export const UsersPage: React.FC = () => {
                     required
                     disabled={isCreating}
                     placeholder="12.345.678-9"
+                    className="form-control"
                   />
                 </div>
               </div>
 
               <div className="form-row">
                 <div className="form-group">
-                  <label htmlFor="email">Email:</label>
+                  <label htmlFor="email">
+                    <i className="bi bi-envelope me-2"></i>
+                    Email:
+                  </label>
                   <input
                     type="email"
                     id="email"
@@ -148,11 +185,15 @@ export const UsersPage: React.FC = () => {
                     required
                     disabled={isCreating}
                     placeholder="usuario@gmail.com"
+                    className="form-control"
                   />
                 </div>
 
                 <div className="form-group">
-                  <label htmlFor="role">Rol:</label>
+                  <label htmlFor="role">
+                    <i className="bi bi-shield me-2"></i>
+                    Rol:
+                  </label>
                   <select
                     id="role"
                     name="role"
@@ -160,6 +201,7 @@ export const UsersPage: React.FC = () => {
                     onChange={handleInputChange}
                     required
                     disabled={isCreating}
+                    className="form-control"
                   >
                     {availableRoles.map(role => (
                       <option key={role} value={role}>{role}</option>
@@ -169,7 +211,10 @@ export const UsersPage: React.FC = () => {
               </div>
 
               <div className="form-group">
-                <label htmlFor="password">Contraseña:</label>
+                <label htmlFor="password">
+                  <i className="bi bi-key me-2"></i>
+                  Contraseña:
+                </label>
                 <input
                   type="password"
                   id="password"
@@ -180,16 +225,18 @@ export const UsersPage: React.FC = () => {
                   disabled={isCreating}
                   placeholder="Mínimo 8 caracteres"
                   minLength={8}
+                  className="form-control"
                 />
               </div>
 
-              <div className="form-actions">
+              <div className="form-actions mt-4">
                 <button
                   type="button"
                   onClick={() => setShowCreateForm(false)}
                   disabled={isCreating}
                   className="btn btn-secondary"
                 >
+                  <i className="bi bi-x me-2"></i>
                   Cancelar
                 </button>
                 <button
@@ -197,7 +244,17 @@ export const UsersPage: React.FC = () => {
                   disabled={isCreating}
                   className="btn btn-primary"
                 >
-                  {isCreating ? 'Creando...' : 'Crear Usuario'}
+                  {isCreating ? (
+                    <>
+                      <span className="spinner-border spinner-border-sm me-2"></span>
+                      Creando...
+                    </>
+                  ) : (
+                    <>
+                      <i className="bi bi-check me-2"></i>
+                      Crear Usuario
+                    </>
+                  )}
                 </button>
               </div>
             </form>
@@ -206,16 +263,25 @@ export const UsersPage: React.FC = () => {
       )}
 
       {/* Lista de usuarios existentes */}
-      <div className="users-list-section">
-        <h3>Usuarios del Sistema</h3>
+      <div className="users-list-section mt-4">
+        <h3>
+          <i className="bi bi-people me-2"></i>
+          Usuarios del Sistema
+        </h3>
         <div className="users-info">
           <div className="info-card">
             <div className="info-icon">👤</div>
             <div className="info-content">
               <h4>Usuario Actual</h4>
               <p><strong>{user?.name}</strong></p>
-              <p>Rol: {user?.role}</p>
-              <p>RUT: {user?.rut}</p>
+              <p>
+                <i className="bi bi-shield me-2"></i>
+                Rol: {user?.role}
+              </p>
+              <p>
+                <i className="bi bi-credit-card me-2"></i>
+                RUT: {user?.rut}
+              </p>
             </div>
           </div>
 
@@ -223,11 +289,23 @@ export const UsersPage: React.FC = () => {
             <div className="info-icon">📋</div>
             <div className="info-content">
               <h4>Funcionalidades</h4>
-              <ul>
-                <li>✅ Crear nuevos usuarios</li>
-                <li>🔄 Lista completa (próximamente)</li>
-                <li>✏️ Editar usuarios (próximamente)</li>
-                <li>🗑️ Eliminar usuarios (próximamente)</li>
+              <ul className="list-unstyled">
+                <li>
+                  <i className="bi bi-check-circle text-success me-2"></i>
+                  Crear nuevos usuarios
+                </li>
+                <li>
+                  <i className="bi bi-clock text-warning me-2"></i>
+                  Lista completa (próximamente)
+                </li>
+                <li>
+                  <i className="bi bi-clock text-warning me-2"></i>
+                  Editar usuarios (próximamente)
+                </li>
+                <li>
+                  <i className="bi bi-clock text-warning me-2"></i>
+                  Eliminar usuarios (próximamente)
+                </li>
               </ul>
             </div>
           </div>
@@ -236,17 +314,23 @@ export const UsersPage: React.FC = () => {
             <div className="info-icon">🔐</div>
             <div className="info-content">
               <h4>Roles Disponibles</h4>
-              <ul>
+              <ul className="list-unstyled">
                 {availableRoles.map(role => (
-                  <li key={role}>• {role}</li>
+                  <li key={role}>
+                    <i className="bi bi-shield me-2"></i>
+                    {role}
+                  </li>
                 ))}
               </ul>
             </div>
           </div>
         </div>
 
-        <div className="coming-soon">
-          <h4>🚧 Próximas Funcionalidades</h4>
+        <div className="coming-soon mt-4">
+          <h4>
+            <i className="bi bi-tools me-2"></i>
+            Próximas Funcionalidades
+          </h4>
           <p>Estamos trabajando en agregar:</p>
           <ul>
             <li>Lista completa de usuarios registrados</li>

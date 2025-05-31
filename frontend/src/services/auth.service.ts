@@ -1,16 +1,16 @@
 import axios from 'axios';
 import { API_CONFIG, getAuthHeaders } from '@/config/api.config';
-import { LoginData, RegisterData, AuthResponse, User, JWTPayload } from '@/types/auth.types';
+import { LoginData, RegisterData, AuthResponse, User } from '@/types/auth.types';
 
 class AuthService {
   private baseURL = API_CONFIG.BASE_URL;
-  private tokenKey = 'token';
-  private userKey = 'user';
+  private tokenKey = 'authToken';
+  private userKey = 'userData';
 
   // Login de usuario
   async login(credentials: LoginData): Promise<any> {
     try {
-      const response = await fetch('/api/auth/login', {
+      const response = await fetch(`${this.baseURL}/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -41,20 +41,30 @@ class AuthService {
   }
 
   // Registro de usuario (requiere autenticación)
-  async register(userData: RegisterData): Promise<any> {
+  async register(registerData: RegisterData): Promise<{ user?: User; error?: string }> {
     try {
-      const response = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(userData)
-      });
+      const token = this.getToken();
+      if (!token) {
+        return { error: 'No hay token de autenticación' };
+      }
 
-      return await response.json();
-    } catch (error) {
+      const response = await axios.post<AuthResponse>(
+        `${this.baseURL}${API_CONFIG.ENDPOINTS.AUTH.REGISTER}`,
+        registerData,
+        { headers: getAuthHeaders(token) }
+      );
+
+      if (response.data.status === 'success' && response.data.data && !('token' in response.data.data)) {
+        return { user: response.data.data as User };
+      }
+
+      return { error: response.data.message };
+    } catch (error: any) {
       console.error('Error en registro:', error);
-      throw error;
+      if (error.response?.data?.message) {
+        return { error: error.response.data.message };
+      }
+      return { error: 'Error de conexión con el servidor' };
     }
   }
 
@@ -62,36 +72,44 @@ class AuthService {
   logout(): void {
     localStorage.removeItem(this.tokenKey);
     localStorage.removeItem(this.userKey);
-    window.location.href = '/login';
   }
 
   // Gestión del token en localStorage
   setToken(token: string): void {
-    localStorage.setItem('authToken', token);
+    localStorage.setItem(this.tokenKey, token);
   }
 
   getToken(): string | null {
-    return localStorage.getItem('authToken');
+    return localStorage.getItem(this.tokenKey);
   }
 
   removeToken(): void {
-    localStorage.removeItem('authToken');
+    localStorage.removeItem(this.tokenKey);
+    localStorage.removeItem(this.userKey);
   }
 
   // Verificar si el usuario está autenticado
   isAuthenticated(): boolean {
-    const token = localStorage.getItem(this.tokenKey);
-    return !!token;
+    const token = this.getToken();
+    const userData = localStorage.getItem(this.userKey);
+    if (!token || !userData) return false;
+
+    try {
+      // Verificar si el token no está expirado
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const currentTime = Date.now() / 1000;
+      return payload.exp > currentTime;
+    } catch {
+      return false;
+    }
   }
 
-  // Obtener información del usuario del token
-  getCurrentUser(): JWTPayload | null {
+  // Obtener información del usuario
+  getCurrentUser(): any | null {
     try {
-      const userStr = localStorage.getItem(this.userKey);
-      if (!userStr) return null;
-      return JSON.parse(userStr);
-    } catch (error) {
-      console.error('Error getting current user:', error);
+      const userData = localStorage.getItem(this.userKey);
+      return userData ? JSON.parse(userData) : null;
+    } catch {
       return null;
     }
   }
