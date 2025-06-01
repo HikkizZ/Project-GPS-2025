@@ -35,78 +35,108 @@ interface SearchFichaParams {
 
 export async function searchFichasEmpresa(params: SearchFichaParams): Promise<ServiceResponse<FichaEmpresa[]>> {
     try {
+        console.log("🔍 Iniciando búsqueda con parámetros:", params);
+        
         const fichaRepo = AppDataSource.getRepository(FichaEmpresa);
-        const whereClause: FindOptionsWhere<FichaEmpresa> = {};
+        const queryBuilder = fichaRepo.createQueryBuilder("ficha")
+            .leftJoinAndSelect("ficha.trabajador", "trabajador");
+
+        console.log("📋 Query base creada");
 
         // Filtros por trabajador
-        if (params.trabajadorId || params.rut) {
-            whereClause.trabajador = {};
-            if (params.trabajadorId) {
-                whereClause.trabajador.id = params.trabajadorId;
-            }
-            if (params.rut) {
-                whereClause.trabajador.rut = params.rut;
-            }
+        if (params.rut) {
+            // Limpiar el RUT de búsqueda (quitar puntos y guión)
+            const cleanRut = params.rut.replace(/\./g, '').replace(/-/g, '');
+            console.log("🔑 RUT limpio para búsqueda:", cleanRut);
+            
+            // Buscar tanto el RUT limpio como el RUT con formato
+            queryBuilder.andWhere(
+                "REPLACE(REPLACE(trabajador.rut, '.', ''), '-', '') ILIKE :cleanRut",
+                { cleanRut: `%${cleanRut}%` }
+            );
+            console.log("✅ Filtro de RUT agregado a la consulta");
+        }
+
+        if (params.trabajadorId) {
+            queryBuilder.andWhere("trabajador.id = :trabajadorId", { trabajadorId: params.trabajadorId });
         }
 
         // Filtro por estado
         if (params.estado) {
-            whereClause.estado = params.estado;
+            queryBuilder.andWhere("ficha.estado = :estado", { estado: params.estado });
         }
 
         // Filtros por información laboral (búsqueda parcial)
         if (params.cargo) {
-            whereClause.cargo = ILike(`%${params.cargo}%`);
+            queryBuilder.andWhere("ficha.cargo ILIKE :cargo", { cargo: `%${params.cargo}%` });
         }
         if (params.area) {
-            whereClause.area = ILike(`%${params.area}%`);
+            queryBuilder.andWhere("ficha.area ILIKE :area", { area: `%${params.area}%` });
         }
         if (params.empresa) {
-            whereClause.empresa = ILike(`%${params.empresa}%`);
+            queryBuilder.andWhere("ficha.empresa ILIKE :empresa", { empresa: `%${params.empresa}%` });
         }
         if (params.tipoContrato) {
-            whereClause.tipoContrato = params.tipoContrato;
+            queryBuilder.andWhere("ficha.tipoContrato = :tipoContrato", { tipoContrato: params.tipoContrato });
         }
         if (params.jornadaLaboral) {
-            whereClause.jornadaLaboral = params.jornadaLaboral;
+            queryBuilder.andWhere("ficha.jornadaLaboral = :jornadaLaboral", { jornadaLaboral: params.jornadaLaboral });
         }
 
         // Filtro por rango salarial
         if (params.sueldoBaseDesde || params.sueldoBaseHasta) {
-            whereClause.sueldoBase = Between(
-                params.sueldoBaseDesde || 0,
-                params.sueldoBaseHasta || 999999999
-            );
+            if (params.sueldoBaseDesde) {
+                queryBuilder.andWhere("ficha.sueldoBase >= :sueldoBaseDesde", { sueldoBaseDesde: params.sueldoBaseDesde });
+            }
+            if (params.sueldoBaseHasta) {
+                queryBuilder.andWhere("ficha.sueldoBase <= :sueldoBaseHasta", { sueldoBaseHasta: params.sueldoBaseHasta });
+            }
         }
 
         // Filtros por fechas
         if (params.fechaInicioDesde || params.fechaInicioHasta) {
-            whereClause.fechaInicioContrato = Between(
-                params.fechaInicioDesde || new Date('1900-01-01'),
-                params.fechaInicioHasta || new Date('2100-12-31')
-            );
+            if (params.fechaInicioDesde) {
+                queryBuilder.andWhere("ficha.fechaInicioContrato >= :fechaInicioDesde", 
+                    { fechaInicioDesde: params.fechaInicioDesde });
+            }
+            if (params.fechaInicioHasta) {
+                queryBuilder.andWhere("ficha.fechaInicioContrato <= :fechaInicioHasta", 
+                    { fechaInicioHasta: params.fechaInicioHasta });
+            }
         }
 
         if (params.fechaFinDesde || params.fechaFinHasta) {
-            whereClause.fechaFinContrato = Between(
-                params.fechaFinDesde || new Date('1900-01-01'),
-                params.fechaFinHasta || new Date('2100-12-31')
-            );
+            if (params.fechaFinDesde) {
+                queryBuilder.andWhere("ficha.fechaFinContrato >= :fechaFinDesde", 
+                    { fechaFinDesde: params.fechaFinDesde });
+            }
+            if (params.fechaFinHasta) {
+                queryBuilder.andWhere("ficha.fechaFinContrato <= :fechaFinHasta", 
+                    { fechaFinHasta: params.fechaFinHasta });
+            }
         }
 
-        const fichas = await fichaRepo.find({
-            where: whereClause,
-            relations: ["trabajador"],
-            order: { id: "ASC" }
-        });
+        // Ordenar por ID
+        queryBuilder.orderBy("ficha.id", "ASC");
+
+        // Log de la consulta SQL generada
+        const sqlQuery = queryBuilder.getSql();
+        const parameters = queryBuilder.getParameters();
+        console.log("🔍 SQL Query generada:", sqlQuery);
+        console.log("📝 Parámetros de la consulta:", parameters);
+
+        const fichas = await queryBuilder.getMany();
+        console.log(`✨ Resultados encontrados: ${fichas.length}`);
 
         if (!fichas.length) {
+            console.log("❌ No se encontraron resultados");
             return [null, { message: "No hay fichas de empresa que coincidan con los criterios de búsqueda" }];
         }
 
+        console.log("✅ Búsqueda completada exitosamente");
         return [fichas, null];
     } catch (error) {
-        console.error("Error al buscar fichas de empresa:", error);
+        console.error("❌ Error al buscar fichas de empresa:", error);
         return [null, { message: "Error interno del servidor" }];
     }
 }

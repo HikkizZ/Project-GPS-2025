@@ -49,13 +49,31 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
   const [incluirLicencias, setIncluirLicencias] = useState(false);
   const [incluirPermisos, setIncluirPermisos] = useState(false);
 
+  // Función para limpiar el RUT (eliminar puntos y guión)
+  const cleanRUT = (rut: string) => {
+    return rut.replace(/\./g, '').replace(/-/g, '');
+  };
+
   // Función para filtrar las fichas según los estados seleccionados
   const fichasFiltradas = fichas.filter(ficha => {
-    if (ficha.estado === EstadoLaboral.ACTIVO) return true;
-    if (ficha.estado === EstadoLaboral.DESVINCULADO) return incluirDesvinculados;
-    if (ficha.estado === EstadoLaboral.LICENCIA) return incluirLicencias;
-    if (ficha.estado === EstadoLaboral.PERMISO) return incluirPermisos;
-    return false;
+    // Primero filtrar por estado
+    if (ficha.estado === EstadoLaboral.ACTIVO) {
+      if (!incluirDesvinculados && !incluirLicencias && !incluirPermisos) return true;
+    }
+    if (ficha.estado === EstadoLaboral.DESVINCULADO && !incluirDesvinculados) return false;
+    if (ficha.estado === EstadoLaboral.LICENCIA && !incluirLicencias) return false;
+    if (ficha.estado === EstadoLaboral.PERMISO && !incluirPermisos) return false;
+
+    // Resto de los filtros
+    if (searchQuery.estado && ficha.estado !== searchQuery.estado) return false;
+    if (searchQuery.cargo && !ficha.cargo.toLowerCase().includes(searchQuery.cargo.toLowerCase())) return false;
+    if (searchQuery.area && !ficha.area.toLowerCase().includes(searchQuery.area.toLowerCase())) return false;
+    if (searchQuery.empresa && !ficha.empresa.toLowerCase().includes(searchQuery.empresa.toLowerCase())) return false;
+    if (searchQuery.tipoContrato && ficha.tipoContrato !== searchQuery.tipoContrato) return false;
+    if (searchQuery.sueldoBaseDesde && ficha.sueldoBase < searchQuery.sueldoBaseDesde) return false;
+    if (searchQuery.sueldoBaseHasta && ficha.sueldoBase > searchQuery.sueldoBaseHasta) return false;
+
+    return true;
   });
 
   // Verificar autenticación
@@ -131,6 +149,7 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
   }, [trabajadorRecienRegistrado, searchByRUT, onTrabajadorModalClosed]);
 
   const handleSearch = async () => {
+    // Siempre usar searchFichas, sin importar si hay RUT o no
     await searchFichas(searchQuery);
   };
 
@@ -288,7 +307,7 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                           <p className="mb-1"><strong>Nombre:</strong></p>
                           <p className="mb-2">{miFicha.trabajador.nombres} {miFicha.trabajador.apellidoPaterno} {miFicha.trabajador.apellidoMaterno}</p>
                           <p className="mb-1"><strong>RUT:</strong></p>
-                          <p className="mb-0">{miFicha.trabajador.rut}</p>
+                          <p className="mb-0">{formatRUT(miFicha.trabajador.rut)}</p>
                         </div>
                       </div>
                     </div>
@@ -403,11 +422,11 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
 
                 <div className="row g-3">
                   <div className="col-md-3">
-                    <label className="form-label">RUT del Trabajador:</label>
+                    <label className="form-label">RUT:</label>
                     <input
                       type="text"
                       className="form-control"
-                      placeholder="12.345.678-9"
+                      placeholder="Ej: 12.345.678-9"
                       value={searchQuery.rut || ''}
                       onChange={handleRutChange}
                     />
@@ -623,7 +642,7 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                             <div>
                               <strong>{ficha.trabajador.nombres} {ficha.trabajador.apellidoPaterno} {ficha.trabajador.apellidoMaterno}</strong>
                               <br />
-                              <small className="text-muted">{ficha.trabajador.rut}</small>
+                              <small className="text-muted">{formatRUT(ficha.trabajador.rut)}</small>
                             </div>
                           </td>
                           <td>{ficha.cargo || '-'}</td>

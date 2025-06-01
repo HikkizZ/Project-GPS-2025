@@ -52,6 +52,10 @@ export class FichaEmpresaService {
           // Formatear fechas a ISO string si es necesario
           if (value instanceof Date) {
             queryParams.append(key, value.toISOString());
+          } else if (key === 'rut') {
+            // Limpiar el RUT antes de enviarlo
+            const cleanRut = value.toString().replace(/\./g, '').replace(/-/g, '');
+            queryParams.append(key, cleanRut);
           } else {
             queryParams.append(key, value.toString());
           }
@@ -190,7 +194,9 @@ export class FichaEmpresaService {
   // Buscar por RUT
   async getFichaByRUT(rut: string): Promise<ApiResponse<FichaEmpresa | null>> {
     try {
-      const response = await axios.get(`${this.baseURL}/search?rut=${rut}`, {
+      // Limpiar el RUT antes de enviarlo al backend
+      const cleanRut = rut.replace(/\./g, '').replace(/-/g, '');
+      const response = await axios.get(`${this.baseURL}/search?rut=${cleanRut}`, {
         headers: this.getAuthHeaders()
       });
 

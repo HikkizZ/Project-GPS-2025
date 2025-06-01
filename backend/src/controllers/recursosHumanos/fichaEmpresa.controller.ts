@@ -322,4 +322,34 @@ export async function deleteContrato(req: Request, res: Response) {
         console.error("Error en deleteContrato:", error);
         handleErrorServer(res, 500, "Error interno del servidor");
     }
+}
+
+export async function searchFichas(req: Request, res: Response): Promise<void> {
+    try {
+        console.log("🔍 Recibiendo petición de búsqueda");
+        console.log("📝 Query params recibidos:", req.query);
+
+        const [fichas, error] = await searchFichasEmpresa(req.query);
+
+        if (error) {
+            console.log("❌ Error en la búsqueda:", error);
+            res.status(404).json({
+                status: "error",
+                message: error.message
+            });
+            return;
+        }
+
+        console.log("✅ Búsqueda exitosa, enviando respuesta");
+        res.status(200).json({
+            status: "success",
+            data: fichas
+        });
+    } catch (error) {
+        console.error("❌ Error en el controlador searchFichas:", error);
+        res.status(500).json({
+            status: "error",
+            message: "Error interno del servidor"
+        });
+    }
 } 
