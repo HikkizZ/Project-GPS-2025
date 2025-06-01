@@ -82,12 +82,10 @@ export const FichaEmpresaBodyValidation = Joi.object({
         }),
 
     sueldoBase: Joi.number()
-        .positive()
-        .precision(2)
+        .min(1)
         .messages({
-            "number.base": "El sueldo base debe ser un número.",
-            "number.positive": "El sueldo base debe ser mayor a cero.",
-            "number.precision": "El sueldo base debe tener máximo 2 decimales."
+            "number.base": "El sueldo base debe ser un número",
+            "number.min": "El sueldo base debe ser mayor a 0"
         }),
 
     fechaInicioContrato: Joi.date()
@@ -171,11 +169,9 @@ export const FichaEmpresaUpdateValidation = Joi.object({
 
     sueldoBase: Joi.number()
         .min(1)
-        .max(100000000)
         .messages({
             "number.base": "El sueldo base debe ser un número",
-            "number.min": "El sueldo base debe ser mayor a 0",
-            "number.max": "El sueldo base no puede exceder los 100,000,000"
+            "number.min": "El sueldo base debe ser mayor a 0"
         }),
 
     fechaInicioContrato: Joi.date()

@@ -81,23 +81,17 @@ export async function searchFichasEmpresa(params: SearchFichaParams): Promise<Se
 
         // Filtros por fechas
         if (params.fechaInicioDesde || params.fechaInicioHasta) {
-            const fechaInicio = params.fechaInicioDesde ? 
-                (typeof params.fechaInicioDesde === 'string' ? params.fechaInicioDesde : params.fechaInicioDesde.toISOString().split('T')[0]) : 
-                '1900-01-01';
-            const fechaFin = params.fechaInicioHasta ? 
-                (typeof params.fechaInicioHasta === 'string' ? params.fechaInicioHasta : params.fechaInicioHasta.toISOString().split('T')[0]) : 
-                '2100-12-31';
-            whereClause.fechaInicioContrato = Between(fechaInicio, fechaFin);
+            whereClause.fechaInicioContrato = Between(
+                params.fechaInicioDesde || new Date('1900-01-01'),
+                params.fechaInicioHasta || new Date('2100-12-31')
+            );
         }
 
         if (params.fechaFinDesde || params.fechaFinHasta) {
-            const fechaInicio = params.fechaFinDesde ? 
-                (typeof params.fechaFinDesde === 'string' ? params.fechaFinDesde : params.fechaFinDesde.toISOString().split('T')[0]) : 
-                '1900-01-01';
-            const fechaFin = params.fechaFinHasta ? 
-                (typeof params.fechaFinHasta === 'string' ? params.fechaFinHasta : params.fechaFinHasta.toISOString().split('T')[0]) : 
-                '2100-12-31';
-            whereClause.fechaFinContrato = Between(fechaInicio, fechaFin);
+            whereClause.fechaFinContrato = Between(
+                params.fechaFinDesde || new Date('1900-01-01'),
+                params.fechaFinHasta || new Date('2100-12-31')
+            );
         }
 
         const fichas = await fichaRepo.find({
@@ -107,13 +101,13 @@ export async function searchFichasEmpresa(params: SearchFichaParams): Promise<Se
         });
 
         if (!fichas.length) {
-            return [null, { message: "No se encontraron fichas que coincidan con los criterios de búsqueda" }];
+            return [null, { message: "No hay fichas de empresa que coincidan con los criterios de búsqueda" }];
         }
 
         return [fichas, null];
     } catch (error) {
         console.error("Error al buscar fichas de empresa:", error);
-        return [null, { message: "Error interno del servidor al buscar fichas" }];
+        return [null, { message: "Error interno del servidor" }];
     }
 }
 
@@ -126,13 +120,13 @@ export async function getFichaEmpresaById(id: number): Promise<ServiceResponse<F
         });
 
         if (!ficha) {
-            return [null, { message: "La ficha solicitada no existe o fue eliminada" }];
+            return [null, { message: "Ficha no encontrada" }];
         }
 
         return [ficha, null];
     } catch (error) {
         console.error("Error en getFichaEmpresaById:", error);
-        return [null, { message: "Error interno del servidor al buscar la ficha" }];
+        return [null, { message: "Error interno del servidor" }];
     }
 }
 
@@ -216,29 +210,6 @@ export async function actualizarEstadoFichaService(
             }
             ficha.fechaFinContrato = new Date();
             ficha.motivoDesvinculacion = motivo;
-
-            // Buscar y eliminar la cuenta de usuario asociada al trabajador
-            const userRepo = queryRunner.manager.getRepository(User);
-            const userToDelete = await userRepo.findOne({
-                where: { trabajador: { id: ficha.trabajador.id } }
-            });
-
-            if (userToDelete) {
-                // Marcar como eliminado (soft delete) en lugar de eliminar físicamente
-                userToDelete.activo = false;
-                await queryRunner.manager.save(userToDelete);
-            }
-
-            // Marcar al trabajador como no activo en el sistema
-            const trabajadorRepo = queryRunner.manager.getRepository(Trabajador);
-            const trabajador = await trabajadorRepo.findOne({
-                where: { id: ficha.trabajador.id }
-            });
-
-            if (trabajador) {
-                trabajador.enSistema = false;
-                await queryRunner.manager.save(trabajador);
-            }
         }
 
         // Actualizar el estado y otros campos
@@ -262,7 +233,7 @@ export async function actualizarEstadoFichaService(
 }
 
 // Definir los campos que no se pueden modificar según el estado
-const CAMPOS_PROTEGIDOS = ['id', 'trabajador'] as const;
+const CAMPOS_PROTEGIDOS = ['id', 'trabajador', 'fechaInicioContrato'] as const;
 const CAMPOS_ESTADO_DESVINCULADO = ['cargo', 'area', 'empresa', 'tipoContrato', 'jornadaLaboral', 'sueldoBase'] as const;
 
 export async function updateFichaEmpresaService(
@@ -305,24 +276,11 @@ export async function updateFichaEmpresaService(
             if (fichaData.sueldoBase <= 0) {
                 return [null, { message: "El sueldo base debe ser mayor a cero" }];
             }
-            if (fichaData.sueldoBase < fichaActual.sueldoBase) {
-                return [null, { message: "No se puede reducir el sueldo base" }];
-            }
-        }
-
-        if ('fechaInicioContrato' in fichaData && fichaData.fechaInicioContrato) {
-            const fechaInicio = new Date(fichaData.fechaInicioContrato);
-            if (fichaActual.fechaFinContrato && fechaInicio >= fichaActual.fechaFinContrato) {
-                return [null, { message: "La fecha de inicio debe ser anterior a la fecha de fin" }];
-            }
         }
 
         if ('fechaFinContrato' in fichaData && fichaData.fechaFinContrato) {
             const fechaFin = new Date(fichaData.fechaFinContrato);
-            const fechaInicio = fichaData.fechaInicioContrato ? 
-                new Date(fichaData.fechaInicioContrato) : 
-                fichaActual.fechaInicioContrato;
-            if (fechaFin <= fechaInicio) {
+            if (fechaFin <= fichaActual.fechaInicioContrato) {
                 return [null, { message: "La fecha de fin de contrato debe ser posterior a la fecha de inicio" }];
             }
         }

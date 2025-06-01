@@ -437,39 +437,35 @@ export const UsersPage: React.FC = () => {
                         </td>
                         <td className="text-center">
                           <div className="btn-group">
-                            {!(user.role === 'Administrador' && user.rut === '11.111.111-1') && (
-                              <>
-                                <Button
-                                  variant="outline-info"
-                                  size="sm"
-                                  onClick={() => {
-                                    const updatedUsers = users.map(u => 
-                                      u.id === user.id ? { ...u, showPassword: !u.showPassword } : u
-                                    );
-                                    setUsers(updatedUsers);
-                                  }}
-                                  title={user.showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
-                                >
-                                  <i className={`bi bi-eye${user.showPassword ? '-slash' : ''}`}></i>
-                                </Button>
-                                <Button
-                                  variant="outline-primary"
-                                  size="sm"
-                                  onClick={() => handleUpdateClick(user)}
-                                  title="Editar rol"
-                                >
-                                  <i className="bi bi-pencil-square"></i>
-                                </Button>
-                                <Button
-                                  variant="outline-danger"
-                                  size="sm"
-                                  onClick={() => handleDeleteClick(user)}
-                                  title="Eliminar usuario"
-                                >
-                                  <i className="bi bi-trash"></i>
-                                </Button>
-                              </>
-                            )}
+                            <Button
+                              variant="outline-info"
+                              size="sm"
+                              onClick={() => {
+                                const updatedUsers = users.map(u => 
+                                  u.id === user.id ? { ...u, showPassword: !u.showPassword } : u
+                                );
+                                setUsers(updatedUsers);
+                              }}
+                              title={user.showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                            >
+                              <i className={`bi bi-eye${user.showPassword ? '-slash' : ''}`}></i>
+                            </Button>
+                            <Button
+                              variant="outline-primary"
+                              size="sm"
+                              onClick={() => handleUpdateClick(user)}
+                              title="Editar rol"
+                            >
+                              <i className="bi bi-pencil-square"></i>
+                            </Button>
+                            <Button
+                              variant="outline-danger"
+                              size="sm"
+                              onClick={() => handleDeleteClick(user)}
+                              title="Eliminar usuario"
+                            >
+                              <i className="bi bi-trash"></i>
+                            </Button>
                           </div>
                         </td>
                       </tr>
