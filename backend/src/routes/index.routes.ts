@@ -4,6 +4,7 @@ import userRoutes from './user.routes.js';
 import productRoutes from './product.routes.js';
 import customerRoutes from './customer.routes.js';
 import supplierRoutes from './supplier.routes.js';
+import inventoryEntryRoutes from './inventoryEntry.routes.js';
 
 const router: Router = Router();
 
@@ -18,5 +19,6 @@ router.use('/user', userRoutes);
 router.use('/product', productRoutes);
 router.use('/customer', customerRoutes);
 router.use('/supplier', supplierRoutes);
+router.use('/inventory-entry', inventoryEntryRoutes);
 
 export default router;
