@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { RegisterData, UserRole, SafeUser } from '@/types/auth.types';
+import { UserRole, SafeUser } from '@/types/auth.types';
 import { useRut } from '@/hooks/useRut';
 import { userService } from '@/services/user.service';
 import { Table, Button, Form, Alert, Spinner, Modal } from 'react-bootstrap';
@@ -14,11 +14,9 @@ interface UserSearchParams {
 }
 
 export const UsersPage: React.FC = () => {
-  const { user, register } = useAuth();
+  const { user } = useAuth();
   const { formatRUT, validateRUT } = useRut();
-  const [showCreateModal, setShowCreateModal] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
-  const [isCreating, setIsCreating] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -35,24 +33,6 @@ export const UsersPage: React.FC = () => {
   // Estados para los checkboxes de filtrado
   const [incluirInactivos, setIncluirInactivos] = useState(false);
   const [soloInactivos, setSoloInactivos] = useState(false);
-
-  const [newUser, setNewUser] = useState<RegisterData>({
-    name: '',
-    rut: '',
-    email: '',
-    password: '',
-    role: 'Usuario'
-  });
-
-  const resetNewUser = () => {
-    setNewUser({
-      name: '',
-      rut: '',
-      email: '',
-      password: '',
-      role: 'Usuario'
-    });
-  };
 
   const availableRoles: UserRole[] = ['Usuario', 'RecursosHumanos', 'Gerencia', 'Ventas', 'Arriendo', 'Finanzas'];
   
@@ -131,68 +111,6 @@ export const UsersPage: React.FC = () => {
       console.error(err);
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const handleCreateUser = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsCreating(true);
-    setError('');
-    setSuccess('');
-
-    // Validar RUT antes de enviar
-    if (!validateRUT(newUser.rut)) {
-      setError('El RUT ingresado no es válido');
-      setIsCreating(false);
-      return;
-    }
-
-    const result = await register(newUser);
-    
-    if (result.success) {
-      setSuccess(`Usuario ${newUser.name} creado exitosamente`);
-      setTimeout(() => setSuccess(''), 3000);
-      resetNewUser();
-      setShowCreateModal(false);
-      loadUsers(); // Recargar la lista después de crear
-    } else {
-      setError(result.error || 'Error al crear usuario');
-    }
-    
-    setIsCreating(false);
-  };
-
-  const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    
-    if (name === 'rut') {
-      const formattedRUT = formatRUT(value);
-      setSearchParams(prev => ({
-        ...prev,
-        [name]: formattedRUT
-      }));
-    } else {
-      setSearchParams(prev => ({
-        ...prev,
-        [name]: value
-      }));
-    }
-  };
-
-  const handleRegistrationInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    
-    if (name === 'rut') {
-      const formattedRUT = formatRUT(value);
-      setNewUser(prev => ({
-        ...prev,
-        [name]: formattedRUT
-      }));
-    } else {
-      setNewUser(prev => ({
-        ...prev,
-        [name]: value
-      }));
     }
   };
 
@@ -293,18 +211,10 @@ export const UsersPage: React.FC = () => {
         <div>
           <Button 
             variant={showFilters ? "outline-secondary" : "outline-primary"}
-            className="me-2"
             onClick={() => setShowFilters(!showFilters)}
           >
             <i className={`bi bi-funnel${showFilters ? '-fill' : ''} me-2`}></i>
             {showFilters ? 'Ocultar' : 'Mostrar'} Filtros
-          </Button>
-          <Button 
-            variant="primary"
-            onClick={() => setShowCreateModal(true)}
-          >
-            <i className="bi bi-person-plus-fill me-2"></i>
-            Nuevo Usuario
           </Button>
         </div>
       </div>
@@ -368,7 +278,13 @@ export const UsersPage: React.FC = () => {
                   name="name"
                   placeholder="Buscar por nombre"
                   value={searchParams.name || ''}
-                  onChange={handleSearchInputChange}
+                  onChange={(e) => {
+                    const { value } = e.target;
+                    setSearchParams(prev => ({
+                      ...prev,
+                      name: value
+                    }));
+                  }}
                 />
               </div>
               <div className="col-md-3">
@@ -382,8 +298,11 @@ export const UsersPage: React.FC = () => {
                   placeholder="12.345.678-9"
                   value={searchParams.rut || ''}
                   onChange={(e) => {
-                    const formattedRUT = formatRUT(e.target.value);
-                    setSearchParams(prev => ({ ...prev, rut: formattedRUT }));
+                    const { value } = e.target;
+                    setSearchParams(prev => ({
+                      ...prev,
+                      rut: value
+                    }));
                   }}
                 />
               </div>
@@ -397,7 +316,13 @@ export const UsersPage: React.FC = () => {
                   name="email"
                   placeholder="usuario@gmail.com"
                   value={searchParams.email || ''}
-                  onChange={handleSearchInputChange}
+                  onChange={(e) => {
+                    const { value } = e.target;
+                    setSearchParams(prev => ({
+                      ...prev,
+                      email: value
+                    }));
+                  }}
                 />
               </div>
               <div className="col-md-3">
@@ -408,7 +333,13 @@ export const UsersPage: React.FC = () => {
                 <Form.Select
                   name="role"
                   value={searchParams.role || ''}
-                  onChange={handleSearchInputChange}
+                  onChange={(e) => {
+                    const { value } = e.target;
+                    setSearchParams(prev => ({
+                      ...prev,
+                      role: value as UserRole
+                    }));
+                  }}
                 >
                   <option value="">Todos los roles</option>
                   {availableRoles.map(role => (
@@ -551,127 +482,7 @@ export const UsersPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Mantener los modales existentes */}
-      <Modal show={showCreateModal} onHide={() => setShowCreateModal(false)}>
-        <Modal.Header closeButton>
-          <Modal.Title>
-            <i className="bi bi-person-plus me-2"></i>
-            Registrar Nuevo Usuario
-          </Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <Alert variant="info">
-            <i className="bi bi-info-circle me-2"></i>
-            <strong>Importante:</strong> El usuario debe estar registrado como trabajador antes de crear su cuenta.
-          </Alert>
-          <Form onSubmit={handleCreateUser}>
-            <Form.Group className="mb-3">
-              <Form.Label>
-                <i className="bi bi-person me-2"></i>
-                Nombre Completo
-              </Form.Label>
-              <Form.Control
-                type="text"
-                name="name"
-                value={newUser.name}
-                onChange={handleRegistrationInputChange}
-                placeholder="Ej: Juan Pérez González"
-                required
-              />
-            </Form.Group>
-
-            <Form.Group className="mb-3">
-              <Form.Label>
-                <i className="bi bi-credit-card me-2"></i>
-                RUT
-              </Form.Label>
-              <Form.Control
-                type="text"
-                name="rut"
-                value={newUser.rut}
-                onChange={handleRegistrationInputChange}
-                placeholder="12.345.678-9"
-                required
-              />
-            </Form.Group>
-
-            <Form.Group className="mb-3">
-              <Form.Label>
-                <i className="bi bi-envelope me-2"></i>
-                Email
-              </Form.Label>
-              <Form.Control
-                type="email"
-                name="email"
-                value={newUser.email}
-                onChange={handleRegistrationInputChange}
-                placeholder="usuario@gmail.com"
-                required
-              />
-            </Form.Group>
-
-            <Form.Group className="mb-3">
-              <Form.Label>
-                <i className="bi bi-key me-2"></i>
-                Contraseña
-              </Form.Label>
-              <Form.Control
-                type="password"
-                name="password"
-                value={newUser.password}
-                onChange={handleRegistrationInputChange}
-                placeholder="Mínimo 8 caracteres"
-                required
-                minLength={8}
-              />
-            </Form.Group>
-
-            <Form.Group className="mb-3">
-              <Form.Label>
-                <i className="bi bi-shield me-2"></i>
-                Rol
-              </Form.Label>
-              <Form.Select
-                name="role"
-                value={newUser.role}
-                onChange={handleRegistrationInputChange}
-                required
-              >
-                {availableRoles.map(role => (
-                  <option key={role} value={role}>{role}</option>
-                ))}
-              </Form.Select>
-            </Form.Group>
-          </Form>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowCreateModal(false)}>
-            <i className="bi bi-x-circle me-2"></i>
-            Cancelar
-          </Button>
-          <Button variant="primary" onClick={handleCreateUser} disabled={isCreating}>
-            {isCreating ? (
-              <>
-                <Spinner
-                  as="span"
-                  animation="border"
-                  size="sm"
-                  role="status"
-                  aria-hidden="true"
-                  className="me-2"
-                />
-                Creando...
-              </>
-            ) : (
-              <>
-                <i className="bi bi-check-circle me-2"></i>
-                Crear Usuario
-              </>
-            )}
-          </Button>
-        </Modal.Footer>
-      </Modal>
-
+      {/* Mantener solo los modales de actualización y eliminación */}
       <Modal show={showUpdateModal} onHide={() => {
         setShowUpdateModal(false);
         setNewPassword('');
