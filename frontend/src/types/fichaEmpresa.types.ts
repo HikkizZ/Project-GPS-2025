@@ -76,4 +76,17 @@ export interface FichaEmpresaResponse {
   success: boolean;
   message: string;
   data: FichaEmpresa;
+}
+
+export interface FichaEmpresaSearchParams {
+  rut?: string;
+  estado?: EstadoLaboral;
+  cargo?: string;
+  area?: string;
+  empresa?: string;
+  tipoContrato?: string;
+  sueldoBaseDesde?: number;
+  sueldoBaseHasta?: number;
+  fechaInicio?: string;
+  fechaFin?: string;
 } 

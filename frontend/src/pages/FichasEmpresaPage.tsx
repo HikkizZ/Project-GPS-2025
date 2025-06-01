@@ -482,6 +482,24 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                       onChange={(e) => setSearchQuery({ ...searchQuery, sueldoBaseHasta: Number(e.target.value) })}
                     />
                   </div>
+                  <div className="col-md-3">
+                    <label className="form-label">Fecha Inicio:</label>
+                    <input
+                      type="date"
+                      className="form-control"
+                      value={searchQuery.fechaInicio || ''}
+                      onChange={(e) => setSearchQuery({ ...searchQuery, fechaInicio: e.target.value })}
+                    />
+                  </div>
+                  <div className="col-md-3">
+                    <label className="form-label">Fecha Fin:</label>
+                    <input
+                      type="date"
+                      className="form-control"
+                      value={searchQuery.fechaFin || ''}
+                      onChange={(e) => setSearchQuery({ ...searchQuery, fechaFin: e.target.value })}
+                    />
+                  </div>
                 </div>
                 <div className="row mt-3">
                   <div className="col-12">

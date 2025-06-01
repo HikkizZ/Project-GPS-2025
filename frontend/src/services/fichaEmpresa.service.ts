@@ -49,7 +49,12 @@ export class FichaEmpresaService {
       
       Object.entries(searchParams).forEach(([key, value]) => {
         if (value !== undefined && value !== null && value !== '') {
-          queryParams.append(key, value.toString());
+          // Formatear fechas a ISO string si es necesario
+          if (value instanceof Date) {
+            queryParams.append(key, value.toISOString());
+          } else {
+            queryParams.append(key, value.toString());
+          }
         }
       });
 
