@@ -164,7 +164,9 @@ export async function searchTrabajadoresService(query: any): Promise<ServiceResp
         }
         
         // Solo incluir trabajadores activos a menos que se especifique lo contrario
-        if (!query.todos) {
+        if (query.soloEliminados) {
+            whereClause.enSistema = false;
+        } else if (!query.todos) {
             whereClause.enSistema = true;
         }
 

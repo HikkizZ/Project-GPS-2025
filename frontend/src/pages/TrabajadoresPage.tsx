@@ -220,13 +220,22 @@ export const TrabajadoresPage: React.FC = () => {
                   Limpiar
                 </Button>
               </div>
-              <Form.Check
-                type="checkbox"
-                label="Incluir trabajadores eliminados (soft delete)"
-                checked={searchParams.todos || false}
-                onChange={(e) => setSearchParams({ ...searchParams, todos: e.target.checked })}
-                id="includeInactive"
-              />
+              <div className="d-flex gap-3">
+                <Form.Check
+                  type="checkbox"
+                  label="Incluir trabajadores eliminados (soft delete)"
+                  checked={searchParams.todos || false}
+                  onChange={(e) => setSearchParams({ ...searchParams, todos: e.target.checked })}
+                  id="includeInactive"
+                />
+                <Form.Check
+                  type="checkbox"
+                  label="Sólo mostrar trabajadores eliminados (soft delete)"
+                  checked={searchParams.soloEliminados || false}
+                  onChange={(e) => setSearchParams({ ...searchParams, soloEliminados: e.target.checked })}
+                  id="onlyInactive"
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -267,9 +276,17 @@ export const TrabajadoresPage: React.FC = () => {
                 </thead>
                 <tbody>
                   {trabajadores.map((trabajador) => (
-                    <tr key={trabajador.id}>
+                    <tr key={trabajador.id} className={!trabajador.enSistema ? 'table-light' : ''}>
                       <td>{formatRUT(trabajador.rut)}</td>
-                      <td>{`${trabajador.nombres} ${trabajador.apellidoPaterno} ${trabajador.apellidoMaterno}`}</td>
+                      <td>
+                        {`${trabajador.nombres} ${trabajador.apellidoPaterno} ${trabajador.apellidoMaterno}`}
+                        {!trabajador.enSistema && (
+                          <span className="badge bg-secondary bg-opacity-25 text-secondary ms-2" style={{ fontSize: '0.8em' }}>
+                            <i className="bi bi-trash me-1"></i>
+                            Eliminado
+                          </span>
+                        )}
+                      </td>
                       <td>{new Date(trabajador.fechaNacimiento).toLocaleDateString()}</td>
                       <td>{trabajador.correo}</td>
                       <td>{trabajador.telefono}</td>
