@@ -411,6 +411,7 @@ export const UsersPage: React.FC = () => {
                       <th>RUT</th>
                       <th>Email</th>
                       <th>Rol</th>
+                      <th>Estado</th>
                       <th className="text-center">Acciones</th>
                     </tr>
                   </thead>
@@ -423,6 +424,11 @@ export const UsersPage: React.FC = () => {
                         <td>
                           <span className={`badge bg-${getRoleBadgeColor(user.role)}`}>
                             {user.role}
+                          </span>
+                        </td>
+                        <td>
+                          <span className={`badge bg-${user.estadoCuenta === 'Activa' ? 'success' : 'danger'}`}>
+                            {user.estadoCuenta}
                           </span>
                         </td>
                         <td className="text-center">

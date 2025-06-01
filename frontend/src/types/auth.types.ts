@@ -6,6 +6,7 @@ export interface User {
   rut: string;
   email: string;
   role: UserRole;
+  estadoCuenta: string;
   createAt: string;
   updateAt: string;
 }

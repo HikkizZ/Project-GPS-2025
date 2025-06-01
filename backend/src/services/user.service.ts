@@ -170,47 +170,29 @@ export async function updateUserService(query: QueryParams, body: UpdateUserData
 }
 
 /* Eliminar un usuario, validando el rol del solicitante */
-export async function deleteUserService(query: QueryParams, requester: User): Promise<ServiceResponse<SafeUser>> {
+export async function deleteUserService(id: number, rut: string): Promise<ServiceResponse<boolean>> {
     try {
-        const { id, rut, email } = query;
         const userRepository = AppDataSource.getRepository(User);
-
-        // Validar formato de RUT y email si están presentes
-        if (rut && !isValidRut(rut)) {
-            return [null, "Formato de RUT inválido"];
-        }
-        if (email && !isValidEmail(email)) {
-            return [null, "Formato de email inválido"];
-        }
-
-        const userFound = await userRepository.findOne({
-            where: [{ id }, { rut }, { email }],
-        });
-
-        if (!userFound) return [null, "Usuario no encontrado"];
-
-        /* Prohibit if the requester is not admin or RRHH */
-        if (requester.role !== "Administrador" && requester.role !== "RecursosHumanos") {
-            return [null, "No tienes permisos para eliminar usuarios"];
+        
+        // Buscar el usuario
+        const user = await userRepository.findOne({ where: { id, rut } });
+        
+        if (!user) {
+            return [null, "Usuario no encontrado"];
         }
 
-        /* Prevent deleting protected users */
-        if (userFound.role === "Administrador" && userFound.rut === "11.111.111-1") {
+        // No permitir eliminar al administrador principal
+        if (user.role === "Administrador" && user.rut === "11.111.111-1") {
             return [null, "No se puede eliminar el administrador principal"];
         }
 
-        /* Only admin can delete admin users */
-        if (userFound.role === "Administrador" && requester.role !== "Administrador") {
-            return [null, "Solo los administradores pueden eliminar otros administradores"];
-        }
+        // En lugar de eliminar, marcar como inactivo
+        user.estadoCuenta = "Inactiva";
+        await userRepository.save(user);
 
-        const userDeleted = await userRepository.remove(userFound);
-
-        const { password, ...dataUser } = userDeleted;
-        return [dataUser, null];
-    }
-    catch (error) {
-        console.error("Error al eliminar un usuario:", error);
+        return [true, null];
+    } catch (error) {
+        console.error("Error en deleteUserService:", error);
         return [null, "Error interno del servidor"];
     }
 }

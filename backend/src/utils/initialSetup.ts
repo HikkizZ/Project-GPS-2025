@@ -11,26 +11,45 @@ export async function initialSetup(): Promise<void> {
         const userRepo = AppDataSource.getRepository(User);
         const trabajadorRepo = AppDataSource.getRepository(Trabajador);
 
-        // Eliminar usuario y trabajador admin si existen
-        const adminRut = "11.111.111-1";
-        const adminEmail = "admin.principal@gmail.com";
-        
-        console.log("=> Eliminando usuario admin existente si existe...");
-        await userRepo.delete({ email: adminEmail });
-        
-        console.log("=> Eliminando trabajador admin existente si existe...");
-        await trabajadorRepo.delete({ rut: adminRut });
+        // Buscar usuario admin existente
+        console.log("=> Verificando usuario admin existente...");
+        const adminUser = await userRepo.findOne({
+            where: { email: "admin.principal@gmail.com" }
+        });
+
+        if (adminUser) {
+            console.log("=> Usuario admin encontrado, actualizando estado...");
+            // Si existe, asegurarse de que esté activo
+            adminUser.estadoCuenta = "Activa";
+            await userRepo.save(adminUser);
+            return;
+        }
+
+        // Si no existe, crear el usuario admin
+        console.log("=> Creando usuario admin...");
+        const hashedPassword = await encryptPassword("admin123");
+        const newAdmin = userRepo.create({
+            name: "Administrador Principal",
+            rut: "11.111.111-1",
+            email: "admin.principal@gmail.com",
+            password: hashedPassword,
+            role: "Administrador",
+            estadoCuenta: "Activa"
+        });
+
+        await userRepo.save(newAdmin);
+        console.log("✅ Usuario admin creado exitosamente");
 
         // Crear el trabajador admin
         console.log("=> Creando trabajador admin...");
         const trabajadorAdmin = trabajadorRepo.create({
-            rut: adminRut,
+            rut: "11.111.111-1",
             nombres: "Administrador",
             apellidoPaterno: "Principal",
             apellidoMaterno: "Sistema",
             fechaNacimiento: new Date("1990-01-01"),
             telefono: "+56911111111",
-            correo: adminEmail,
+            correo: "admin.principal@gmail.com",
             numeroEmergencia: "+56911111111",
             direccion: "Dirección Principal 123",
             fechaIngreso: new Date(),
@@ -38,28 +57,10 @@ export async function initialSetup(): Promise<void> {
         });
 
         const savedTrabajador = await trabajadorRepo.save(trabajadorAdmin);
-        console.log("✅ Trabajador admin creado con RUT:", adminRut);
-
-        // Crear el usuario admin
-        const hashedPassword = await encryptPassword("Admin2024");
-        const userAdmin = userRepo.create({
-            name: "Administrador Principal",
-            rut: adminRut,
-            email: adminEmail,
-            password: hashedPassword,
-            role: "Administrador" as userRole,
-            trabajador: savedTrabajador
-        });
-
-        const savedUser = await userRepo.save(userAdmin);
-        console.log("✅ Usuario admin creado:", {
-            email: savedUser.email,
-            role: savedUser.role,
-            rut: savedUser.rut
-        });
+        console.log("✅ Trabajador admin creado con RUT:", "11.111.111-1");
 
         // Actualizar la referencia en el trabajador
-        savedTrabajador.usuario = savedUser;
+        savedTrabajador.usuario = newAdmin;
         await trabajadorRepo.save(savedTrabajador);
 
         console.log("✅ Configuración inicial completada con éxito");

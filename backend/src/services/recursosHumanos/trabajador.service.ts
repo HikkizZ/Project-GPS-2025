@@ -279,62 +279,46 @@ export async function desvincularTrabajadorService(
             return [null, "Trabajador no encontrado o ya desvinculado"];
         }
 
-        // 2. Verificar permisos del usuario que realiza la acción
-        let userRegistrador;
-        if (userId) {
-            const userRepo = queryRunner.manager.getRepository(User);
-            userRegistrador = await userRepo.findOne({ where: { id: userId } });
-            if (!userRegistrador || (userRegistrador.role !== "RecursosHumanos" && userRegistrador.role !== "Administrador")) {
-                await queryRunner.rollbackTransaction();
-                await queryRunner.release();
-                return [null, "No tiene permiso para desvincular trabajadores"];
-            }
-        } else {
-            await queryRunner.rollbackTransaction();
-            await queryRunner.release();
-            return [null, "Se requiere un usuario para realizar la desvinculación"];
-        }
-
-        // 3. Actualizar la ficha de empresa
-        if (trabajador.fichaEmpresa) {
-            trabajador.fichaEmpresa.estado = EstadoLaboral.DESVINCULADO;
-            trabajador.fichaEmpresa.fechaFinContrato = new Date();
-            trabajador.fichaEmpresa.motivoDesvinculacion = motivo;
-            await queryRunner.manager.save(trabajador.fichaEmpresa);
-
-            // 4. Crear registro en historial laboral
-            const historial = new HistorialLaboral();
-            historial.trabajador = trabajador;
-            historial.cargo = trabajador.fichaEmpresa.cargo;
-            historial.area = trabajador.fichaEmpresa.area;
-            historial.tipoContrato = trabajador.fichaEmpresa.tipoContrato;
-            historial.sueldoBase = trabajador.fichaEmpresa.sueldoBase;
-            historial.fechaInicio = trabajador.fichaEmpresa.fechaInicioContrato;
-            historial.fechaFin = new Date();
-            historial.motivoTermino = motivo;
-            historial.registradoPor = userRegistrador;
-            await queryRunner.manager.save(historial);
-        }
-
-        // 5. Desactivar la cuenta de usuario si existe
-        if (trabajador.usuario) {
-            trabajador.usuario.activo = false;
-            await queryRunner.manager.save(trabajador.usuario);
-        }
-
-        // 6. Marcar al trabajador como fuera del sistema
+        // 2. Actualizar el estado del trabajador
         trabajador.enSistema = false;
-        const trabajadorActualizado = await queryRunner.manager.save(trabajador);
+        await queryRunner.manager.save(Trabajador, trabajador);
 
-        // Confirmar todos los cambios
+        // 3. Actualizar el estado de la cuenta de usuario si existe
+        if (trabajador.usuario) {
+            const usuario = await queryRunner.manager.findOne(User, {
+                where: { rut: trabajador.rut }
+            });
+            if (usuario) {
+                usuario.estadoCuenta = "Inactiva";
+                await queryRunner.manager.save(User, usuario);
+            }
+        }
+
+        // 4. Registrar en el historial laboral
+        const registrador = userId ? await queryRunner.manager.findOne(User, { where: { id: userId } }) : null;
+        
+        const historialLaboral = new HistorialLaboral();
+        historialLaboral.trabajador = trabajador;
+        historialLaboral.cargo = trabajador.fichaEmpresa?.cargo || "No especificado";
+        historialLaboral.area = trabajador.fichaEmpresa?.area || "No especificada";
+        historialLaboral.tipoContrato = trabajador.fichaEmpresa?.tipoContrato || "No especificado";
+        historialLaboral.sueldoBase = trabajador.fichaEmpresa?.sueldoBase || 0;
+        historialLaboral.fechaInicio = trabajador.fichaEmpresa?.fechaInicio || new Date().toISOString();
+        historialLaboral.fechaFin = new Date().toISOString();
+        historialLaboral.motivoTermino = motivo;
+        historialLaboral.registradoPor = registrador;
+
+        await queryRunner.manager.save(HistorialLaboral, historialLaboral);
+
+        // 5. Commit de la transacción
         await queryRunner.commitTransaction();
         await queryRunner.release();
 
-        return [trabajadorActualizado, null];
+        return [trabajador, null];
     } catch (error) {
+        console.error("Error en desvincularTrabajadorService:", error);
         await queryRunner.rollbackTransaction();
         await queryRunner.release();
-        console.error("Error en desvincularTrabajadorService:", error);
         return [null, "Error interno del servidor"];
     }
 } 
