@@ -89,7 +89,7 @@ export async function initialSetup(): Promise<void> {
                 empresa: "GPS 2025",
                 tipoContrato: "Indefinido",
                 jornadaLaboral: "Completa",
-                sueldoBase: 2500000, // Sueldo base ejemplo
+                sueldoBase: 3000000, // Sueldo base admin
                 fechaInicioContrato: new Date(),
                 estado: EstadoLaboral.ACTIVO
             });
