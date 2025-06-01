@@ -56,6 +56,12 @@ export const AppDataSource = new DataSource({
 
 export async function connectDB(): Promise<void> {
     try {
+        // Si ya está inicializada, no hacer nada
+        if (AppDataSource.isInitialized) {
+            console.log("✅ Database already connected.");
+            return;
+        }
+
         // Crear esquema de pruebas si es necesario
         if (isTest) {
             await createTestSchema();
@@ -65,7 +71,11 @@ export async function connectDB(): Promise<void> {
         await AppDataSource.initialize();
         console.log(`✅ Database connected successfully to ${isTest ? 'test' : 'public'} schema.`);
     } catch (error) {
+        if (error instanceof Error && error.message.includes("AlreadyConnectedError")) {
+            console.log("✅ Database already connected.");
+            return;
+        }
         console.error("❌ Error connecting to the database: ", error);
-        process.exit(1);
+        throw error;
     }
 }

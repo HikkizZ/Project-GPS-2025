@@ -4,6 +4,7 @@ import { type CreateTrabajadorData, type Trabajador } from './types/trabajador';
 import { FichasEmpresaPage } from './pages/FichasEmpresaPage';
 import { UsersPage } from './pages/UsersPage';
 import { TrabajadoresPage } from './pages/TrabajadoresPage';
+import { authService } from './services/auth.service';
 
 // Componente simple de Login
 const LoginPage: React.FC = () => {
@@ -18,47 +19,12 @@ const LoginPage: React.FC = () => {
     setError('');
 
     try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email,
-          password,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok && data.status === 'success') {
-        // Guardar token
-        const token = data.data.token;
-        localStorage.setItem('authToken', token);
-        
-        // Decodificar JWT para obtener datos del usuario
-        try {
-          const payload = JSON.parse(atob(token.split('.')[1]));
-          const userData = {
-            name: payload.name || 'Usuario',
-            email: payload.email || email,
-            role: payload.role || 'Usuario',
-            rut: payload.rut || 'N/A'
-          };
-          localStorage.setItem('userData', JSON.stringify(userData));
-          
-          // Recargar la página para mostrar el dashboard
-          window.location.reload();
-        } catch (decodeError) {
-          console.error('Error decodificando token:', decodeError);
-          setError('Error al procesar la información del usuario');
-        }
-      } else {
-        setError(data.message || 'Error al iniciar sesión');
-      }
-    } catch (error) {
+      await authService.login({ email, password });
+      // Recargar la página para mostrar el dashboard
+      window.location.reload();
+    } catch (error: any) {
       console.error('Error de conexión:', error);
-      setError('Error de conexión. Verifica que el backend esté funcionando.');
+      setError(error.message || 'Error de conexión. Verifica que el backend esté funcionando.');
     } finally {
       setIsLoading(false);
     }
@@ -523,24 +489,6 @@ const Dashboard: React.FC = () => {
                     <div className="row">
                       <div className="col-md-4 mb-3">
                         <div 
-                          className="card h-100 shadow-sm border-primary"
-                          style={{ cursor: 'pointer' }}
-                          onClick={() => setCurrentPage('registrar-trabajador')}
-                        >
-                          <div className="card-body text-center">
-                            <i className="bi bi-person-plus display-4 text-primary mb-3"></i>
-                            <h5>Registrar Trabajador</h5>
-                            <p className="text-muted">Agregar nuevo empleado al sistema</p>
-                            <button className="btn btn-primary">
-                              <i className="bi bi-plus-circle me-2"></i>
-                              Registrar
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div className="col-md-4 mb-3">
-                        <div 
                           className="card h-100 shadow-sm border-success"
                           style={{ cursor: 'pointer' }}
                           onClick={() => setCurrentPage('fichas-empresa')}
@@ -556,7 +504,7 @@ const Dashboard: React.FC = () => {
                           </div>
                         </div>
                       </div>
-
+                      
                       {/* Nueva tarjeta de Usuarios */}
                       {(user?.role === 'Administrador' || user?.role === 'RecursosHumanos') && (
                         <div className="col-md-4 mb-3">

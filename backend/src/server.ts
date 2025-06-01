@@ -18,7 +18,7 @@ import { FileManagementService } from "./services/fileManagement.service.js";
 
 // Exportar la aplicación y el servidor para las pruebas
 export const app: Application = express();
-export let server: any;
+let server: any;
 
 async function setupServer(): Promise<void> {
     try {
@@ -54,9 +54,6 @@ async function setupServer(): Promise<void> {
         }));
 
         app.use(passport.initialize());
-
-        app.use(passport.session());
-
         passportJWTSetup();
 
         // Inicializar directorios de archivos
@@ -66,7 +63,10 @@ async function setupServer(): Promise<void> {
         // Rutas públicas (sin autenticación)
         app.use("/api/auth", indexRoutes);
 
-        // Middleware de autenticación para rutas protegidas
+        // Middleware de autenticación para todas las demás rutas /api
+        app.use("/api", authenticateJWT);
+        
+        // Resto de rutas (protegidas)
         app.use("/api", indexRoutes);
 
         server = app.listen(PORT, () => {
