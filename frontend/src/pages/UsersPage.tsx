@@ -31,6 +31,10 @@ export const UsersPage: React.FC = () => {
   const [newRole, setNewRole] = useState<string>('');
   const [searchParams, setSearchParams] = useState<UserSearchParams>({});
 
+  // Estados para los checkboxes de filtrado
+  const [incluirInactivos, setIncluirInactivos] = useState(false);
+  const [soloInactivos, setSoloInactivos] = useState(false);
+
   const [newUser, setNewUser] = useState<RegisterData>({
     name: '',
     rut: '',
@@ -238,6 +242,13 @@ export const UsersPage: React.FC = () => {
     }
   };
 
+  // Función para filtrar usuarios según el estado de cuenta
+  const usuariosFiltrados = users.filter(user => {
+    if (soloInactivos) return user.estadoCuenta === 'Inactiva';
+    if (!incluirInactivos) return user.estadoCuenta === 'Activa';
+    return true;
+  });
+
   // Verificar permisos
   if (user?.role !== 'Administrador' && user?.role !== 'RecursosHumanos') {
     return (
@@ -292,6 +303,46 @@ export const UsersPage: React.FC = () => {
               <i className="bi bi-search me-2"></i>
               Filtros de Búsqueda
             </h6>
+
+            {/* Checkboxes de estado de cuenta */}
+            <div className="row mb-4">
+              <div className="col-12">
+                <h6 className="mb-3">Estado de cuenta:</h6>
+                <div className="form-check form-check-inline">
+                  <input
+                    className="form-check-input"
+                    type="checkbox"
+                    id="incluirInactivos"
+                    checked={incluirInactivos}
+                    onChange={(e) => {
+                      setIncluirInactivos(e.target.checked);
+                      if (e.target.checked) setSoloInactivos(false);
+                    }}
+                    disabled={soloInactivos}
+                  />
+                  <label className="form-check-label" htmlFor="incluirInactivos">
+                    Incluir cuentas inactivas
+                  </label>
+                </div>
+                <div className="form-check form-check-inline">
+                  <input
+                    className="form-check-input"
+                    type="checkbox"
+                    id="soloInactivos"
+                    checked={soloInactivos}
+                    onChange={(e) => {
+                      setSoloInactivos(e.target.checked);
+                      if (e.target.checked) setIncluirInactivos(false);
+                    }}
+                    disabled={incluirInactivos}
+                  />
+                  <label className="form-check-label" htmlFor="soloInactivos">
+                    Ver solo cuentas inactivas
+                  </label>
+                </div>
+              </div>
+            </div>
+
             <div className="row g-3">
               <div className="col-md-3">
                 <label className="form-label d-flex align-items-center">
@@ -401,7 +452,11 @@ export const UsersPage: React.FC = () => {
                 <div className="d-flex justify-content-between align-items-center mb-3">
                   <h6 className="mb-0">
                     <i className="bi bi-list-ul me-2"></i>
-                    Usuarios Registrados ({users.length})
+                    Usuarios Registrados ({usuariosFiltrados.length})
+                    <small className="text-muted ms-2">
+                      (Activos: {usuariosFiltrados.filter(u => u.estadoCuenta === 'Activa').length} • 
+                      Inactivos: {usuariosFiltrados.filter(u => u.estadoCuenta === 'Inactiva').length})
+                    </small>
                   </h6>
                 </div>
                 <Table hover responsive className="align-middle">
@@ -416,7 +471,7 @@ export const UsersPage: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {users.map(user => (
+                    {usuariosFiltrados.map(user => (
                       <tr key={user.id}>
                         <td>{user.name}</td>
                         <td>{formatRUT(user.rut)}</td>
