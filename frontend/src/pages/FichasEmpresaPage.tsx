@@ -42,6 +42,20 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
   const [modalType, setModalType] = useState<'view' | 'edit'>('view');
   const [showEditModal, setShowEditModal] = useState(false);
 
+  // Estados para los checkboxes de filtrado
+  const [incluirDesvinculados, setIncluirDesvinculados] = useState(false);
+  const [incluirLicencias, setIncluirLicencias] = useState(false);
+  const [incluirPermisos, setIncluirPermisos] = useState(false);
+
+  // Función para filtrar las fichas según los estados seleccionados
+  const fichasFiltradas = fichas.filter(ficha => {
+    if (ficha.estado === EstadoLaboral.ACTIVO) return true;
+    if (ficha.estado === EstadoLaboral.DESVINCULADO) return incluirDesvinculados;
+    if (ficha.estado === EstadoLaboral.LICENCIA) return incluirLicencias;
+    if (ficha.estado === EstadoLaboral.PERMISO) return incluirPermisos;
+    return false;
+  });
+
   // Verificar autenticación
   useEffect(() => {
     const checkAuth = () => {
@@ -334,6 +348,49 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                 </h6>
               </div>
               <div className="card-body">
+                {/* Checkboxes de estado */}
+                <div className="row mb-4">
+                  <div className="col-12">
+                    <h6 className="mb-3">Estados a mostrar:</h6>
+                    <div className="form-check form-check-inline">
+                      <input
+                        className="form-check-input"
+                        type="checkbox"
+                        id="incluirDesvinculados"
+                        checked={incluirDesvinculados}
+                        onChange={(e) => setIncluirDesvinculados(e.target.checked)}
+                      />
+                      <label className="form-check-label" htmlFor="incluirDesvinculados">
+                        Desvinculados
+                      </label>
+                    </div>
+                    <div className="form-check form-check-inline">
+                      <input
+                        className="form-check-input"
+                        type="checkbox"
+                        id="incluirLicencias"
+                        checked={incluirLicencias}
+                        onChange={(e) => setIncluirLicencias(e.target.checked)}
+                      />
+                      <label className="form-check-label" htmlFor="incluirLicencias">
+                        Licencias
+                      </label>
+                    </div>
+                    <div className="form-check form-check-inline">
+                      <input
+                        className="form-check-input"
+                        type="checkbox"
+                        id="incluirPermisos"
+                        checked={incluirPermisos}
+                        onChange={(e) => setIncluirPermisos(e.target.checked)}
+                      />
+                      <label className="form-check-label" htmlFor="incluirPermisos">
+                        Permisos Administrativos
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
                 <div className="row g-3">
                   <div className="col-md-3">
                     <label className="form-label">RUT del Trabajador:</label>
@@ -469,16 +526,19 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
             <div className="card-header">
               <h6 className="card-title mb-0">
                 <i className="bi bi-table me-2"></i>
-                Fichas Encontradas ({fichas.filter(f => f.estado !== EstadoLaboral.DESVINCULADO).length})
+                Fichas Encontradas ({fichasFiltradas.length})
               </h6>
             </div>
             <div className="card-body">
-              {fichas.length > 0 && (
+              {fichasFiltradas.length > 0 && (
                 <small className="text-muted mb-3 d-block">
-                  Activos: {fichas.filter(f => f.estado === EstadoLaboral.ACTIVO).length} • 
-                  Inactivos: {fichas.filter(f => (f.estado === EstadoLaboral.LICENCIA || f.estado === EstadoLaboral.PERMISO)).length}
+                  Activos: {fichasFiltradas.filter(f => f.estado === EstadoLaboral.ACTIVO).length} • 
+                  Licencias: {fichasFiltradas.filter(f => f.estado === EstadoLaboral.LICENCIA).length} • 
+                  Permisos: {fichasFiltradas.filter(f => f.estado === EstadoLaboral.PERMISO).length} • 
+                  Desvinculados: {fichasFiltradas.filter(f => f.estado === EstadoLaboral.DESVINCULADO).length}
                 </small>
               )}
+
               {isLoading ? (
                 <div className="text-center py-5">
                   <div className="spinner-border text-primary" role="status">
@@ -486,7 +546,7 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                   </div>
                   <p className="mt-2 text-muted">Cargando fichas...</p>
                 </div>
-              ) : fichas.length === 0 ? (
+              ) : fichasFiltradas.length === 0 ? (
                 <div className="text-center py-5">
                   <i className="bi bi-clipboard-x display-1 text-muted"></i>
                   <h5 className="mt-3">No se encontraron fichas</h5>
@@ -507,7 +567,7 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                       </tr>
                     </thead>
                     <tbody>
-                      {fichas.map((ficha) => (
+                      {fichasFiltradas.map((ficha) => (
                         <tr key={ficha.id}>
                           <td>
                             <div>
