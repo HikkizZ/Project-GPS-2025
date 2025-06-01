@@ -37,4 +37,17 @@ export interface JWTPayload {
   email: string;
   role: UserRole;
   rut: string;
+}
+
+export interface SafeUser {
+    id: number;
+    name: string;
+    rut: string;
+    email: string;
+    role: UserRole;
+    estadoCuenta: string;
+    createAt: string;
+    updateAt: string;
+    password?: string;
+    showPassword?: boolean;
 } 

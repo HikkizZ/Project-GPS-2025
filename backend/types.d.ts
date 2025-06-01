@@ -39,4 +39,7 @@ export type UpdateUserData = {
     role?: userRole;
 }
 
-export type SafeUser = Omit<User, 'password'>; // Exclude the password field from the User type
+export interface SafeUser extends Omit<User, 'password'> {
+    password?: string;
+    showPassword?: boolean;
+}

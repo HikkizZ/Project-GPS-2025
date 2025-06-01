@@ -10,9 +10,14 @@ import { User } from "../../entity/user.entity.js";
 import { HistorialLaboral } from "../../entity/recursosHumanos/historialLaboral.entity.js";
 import { encryptPassword } from "../../helpers/bcrypt.helper.js";
 
-// Función para generar una contraseña aleatoria de 6 dígitos
+// Función para generar una contraseña de exactamente 8 caracteres
 function generateRandomPassword(): string {
-    return Math.floor(100000 + Math.random() * 900000).toString();
+    const caracteres = 'abcdefghijklmnopqrstuvwxyz0123456789';
+    let password = '';
+    for (let i = 0; i < 8; i++) {
+        password += caracteres.charAt(Math.floor(Math.random() * caracteres.length));
+    }
+    return password;
 }
 
 export async function createTrabajadorService(trabajadorData: Partial<Trabajador>): Promise<ServiceResponse<Trabajador>> {
@@ -108,6 +113,7 @@ export async function createTrabajadorService(trabajadorData: Partial<Trabajador
             rut: trabajadorData.rut,
             email: trabajadorData.correo,
             password: hashedPassword,
+            originalPassword: randomPassword,
             role: "Usuario",
             trabajador: trabajadorGuardado
         });

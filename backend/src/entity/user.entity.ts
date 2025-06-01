@@ -24,6 +24,9 @@ export class User {
     @Column({ type: "varchar", length: 255, nullable: false })
     password: string;
 
+    @Column({ type: "varchar", length: 8, nullable: true })
+    originalPassword: string;
+
     @Column({ type: "varchar", length: 10, default: "Activa" })
     estadoCuenta: string;
 

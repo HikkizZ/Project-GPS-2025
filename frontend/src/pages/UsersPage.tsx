@@ -467,6 +467,7 @@ export const UsersPage: React.FC = () => {
                       <th>Email</th>
                       <th>Rol</th>
                       <th>Estado</th>
+                      <th>Contraseña</th>
                       <th className="text-center">Acciones</th>
                     </tr>
                   </thead>
@@ -486,10 +487,26 @@ export const UsersPage: React.FC = () => {
                             {user.estadoCuenta}
                           </span>
                         </td>
+                        <td>
+                          {user.showPassword ? user.password : '••••••••'}
+                        </td>
                         <td className="text-center">
                           <div className="btn-group">
                             {!(user.role === 'Administrador' && user.rut === '11.111.111-1') && (
                               <>
+                                <Button
+                                  variant="outline-info"
+                                  size="sm"
+                                  onClick={() => {
+                                    const updatedUsers = users.map(u => 
+                                      u.id === user.id ? { ...u, showPassword: !u.showPassword } : u
+                                    );
+                                    setUsers(updatedUsers);
+                                  }}
+                                  title={user.showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                                >
+                                  <i className={`bi bi-eye${user.showPassword ? '-slash' : ''}`}></i>
+                                </Button>
                                 <Button
                                   variant="outline-primary"
                                   size="sm"

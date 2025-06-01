@@ -102,7 +102,12 @@ export async function getUsersService(): Promise<ServiceResponse<SafeUser[]>> {
 
         if (!users || users.length === 0) return [[], null]; // Retornar array vacío
 
-        const usersData = users.map(({ password, ...user }) => user);
+        // Ahora incluimos la contraseña original en la respuesta
+        const usersData = users.map(user => ({
+            ...user,
+            password: user.originalPassword || user.password, // Usar la contraseña original si existe
+            showPassword: false
+        }));
         return [usersData, null];
     } catch (error) {
         console.error("Error in getUsersService:", error);
