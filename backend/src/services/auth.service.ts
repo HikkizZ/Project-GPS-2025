@@ -89,17 +89,22 @@ export async function loginService(user: LoginData): Promise<[string | null, aut
             return [null, createErrorMessage({ email }, "El email ingresado no está registrado.")];
         }
 
-    const isMatch = await comparePassword(password, userFound.password);
+        // Verificar estado de la cuenta
+        if (userFound.estadoCuenta === "Inactiva") {
+            return [null, createErrorMessage({ email }, "Esta cuenta ha sido desactivada. Por favor, contacte al administrador.")];
+        }
+
+        const isMatch = await comparePassword(password, userFound.password);
         if (!isMatch) {
             return [null, createErrorMessage({ password }, "La contraseña ingresada es incorrecta.")];
         }
 
-    const payload: JWTPayload = {
-      name: userFound.name,
-      email: userFound.email,
+        const payload: JWTPayload = {
+            name: userFound.name,
+            email: userFound.email,
             role: userFound.role,
-      rut: userFound.rut
-    };
+            rut: userFound.rut
+        };
 
         if (!ACCESS_TOKEN_SECRET) {
             return [null, "Error interno del servidor. Falta la clave secreta."];
