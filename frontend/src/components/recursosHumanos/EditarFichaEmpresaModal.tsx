@@ -185,6 +185,7 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
         tipoContrato: formData.tipoContrato,
         jornadaLaboral: formData.jornadaLaboral,
         sueldoBase: sueldoBase,
+        fechaInicioContrato: formData.fechaInicioContrato,
         fechaFinContrato: formData.fechaFinContrato || undefined
       };
 
