@@ -27,8 +27,10 @@ class TrabajadorService {
         { headers: this.getHeaders() }
       );
 
-      if (response.data.status === 'success' && response.data.data && !Array.isArray(response.data.data)) {
-        return { trabajador: response.data.data };
+      if (response.data.status === 'success' && response.data.data) {
+        // Asegurarnos de que data es un único trabajador y no un array
+        const trabajador = Array.isArray(response.data.data) ? response.data.data[0] : response.data.data;
+        return { trabajador };
       }
 
       return { error: response.data.message || 'Error al crear trabajador' };
@@ -50,7 +52,8 @@ class TrabajadorService {
       );
 
       if (response.data.status === 'success' && response.data.data) {
-        return { trabajadores: Array.isArray(response.data.data) ? response.data.data : [response.data.data] };
+        const trabajadores = Array.isArray(response.data.data) ? response.data.data : [response.data.data];
+        return { trabajadores };
       }
 
       return { error: response.data.message };
@@ -79,7 +82,8 @@ class TrabajadorService {
       );
 
       if (response.data.status === 'success' && response.data.data) {
-        return { trabajadores: Array.isArray(response.data.data) ? response.data.data : [response.data.data] };
+        const trabajadores = Array.isArray(response.data.data) ? response.data.data : [response.data.data];
+        return { trabajadores };
       }
 
       return { error: response.data.message };
@@ -102,7 +106,9 @@ class TrabajadorService {
       );
 
       if (response.data.status === 'success' && response.data.data) {
-        return { trabajador: response.data.data };
+        // Asegurarnos de que data es un único trabajador y no un array
+        const trabajador = Array.isArray(response.data.data) ? response.data.data[0] : response.data.data;
+        return { trabajador };
       }
 
       return { error: response.data.message };
@@ -137,7 +143,7 @@ class TrabajadorService {
     }
   }
 
-  // Formatear RUT
+  // Utilidades estáticas
   static formatRUT(rut: string): string {
     // Eliminar caracteres no válidos
     rut = rut.replace(/[^0-9kK-]/g, '');
@@ -160,6 +166,46 @@ class TrabajadorService {
     numero = numero.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
     
     return numero + '-' + dv;
+  }
+
+  static validateRUT(rut: string): boolean {
+    // Remover puntos y guiones
+    const cleanRut = rut.replace(/[.\-]/g, '');
+    
+    if (cleanRut.length < 8 || cleanRut.length > 9) return false;
+    
+    const rutNumber = cleanRut.slice(0, -1);
+    const dv = cleanRut.slice(-1).toLowerCase();
+    
+    // Calcular dígito verificador
+    let suma = 0;
+    let multiplicador = 2;
+    
+    for (let i = rutNumber.length - 1; i >= 0; i--) {
+      suma += parseInt(rutNumber[i]) * multiplicador;
+      multiplicador = multiplicador === 7 ? 2 : multiplicador + 1;
+    }
+    
+    const resto = suma % 11;
+    const dvCalculado = resto === 0 ? '0' : resto === 1 ? 'k' : (11 - resto).toString();
+    
+    return dv === dvCalculado;
+  }
+
+  static formatPhone(phone: string): string {
+    // Agregar +56 si no tiene código de país
+    if (!phone.startsWith('+')) {
+      if (phone.startsWith('9')) {
+        return `+56${phone}`;
+      }
+      return `+56${phone}`;
+    }
+    return phone;
+  }
+
+  static formatFecha(fecha: string | Date): string {
+    const date = typeof fecha === 'string' ? new Date(fecha) : fecha;
+    return date.toLocaleDateString('es-CL');
   }
 }
 
