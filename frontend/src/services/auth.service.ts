@@ -9,21 +9,33 @@ class AuthService {
   // Login de usuario
   async login(credentials: LoginData): Promise<any> {
     try {
+      console.log('Intentando login con:', this.baseURL + '/auth/login');
       const response = await fetch(`${this.baseURL}/auth/login`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
         },
+        credentials: 'include',
         body: JSON.stringify(credentials)
       });
 
+      if (!response.ok) {
+        if (response.status === 404) {
+          throw new Error('No se puede conectar con el servidor. Por favor, verifica que el servidor esté corriendo.');
+        }
+        const errorData = await response.json().catch(() => ({
+          message: 'Error de conexión con el servidor'
+        }));
+        throw new Error(errorData.message || 'Error al iniciar sesión');
+      }
+
       const data = await response.json();
       
-      if (response.ok && data.status === 'success' && data.data?.token) {
+      if (data.status === 'success' && data.data?.token) {
         const token = data.data.token;
         localStorage.setItem(this.tokenKey, token);
         
-        // Decodificar y guardar información del usuario
         try {
           const payload = JSON.parse(atob(token.split('.')[1]));
           const userData = {
@@ -36,7 +48,7 @@ class AuthService {
           return { token, ...data };
         } catch (decodeError) {
           console.error('Error decodificando token:', decodeError);
-          this.logout(); // Limpiar datos si hay error
+          this.logout();
           throw new Error('Error al procesar la información del usuario');
         }
       } else {
@@ -44,7 +56,7 @@ class AuthService {
       }
     } catch (error) {
       console.error('Error en login:', error);
-      this.logout(); // Limpiar datos si hay error
+      this.logout();
       throw error;
     }
   }

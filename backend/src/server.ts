@@ -25,8 +25,10 @@ async function setupServer(): Promise<void> {
         app.disable("x-powered-by");
 
         app.use(cors({
-            origin: true,
-            credentials: true
+            origin: ['http://localhost:5173', 'http://127.0.0.1:5173'],
+            credentials: true,
+            methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+            allowedHeaders: ['Content-Type', 'Authorization', 'Accept']
         }));
         
         app.use(urlencoded({
@@ -60,13 +62,7 @@ async function setupServer(): Promise<void> {
         FileManagementService.ensureUploadDirectories();
         console.log("✅ Directorios de archivos inicializados");
 
-        // Rutas públicas (sin autenticación)
-        app.use("/api/auth", indexRoutes);
-
-        // Middleware de autenticación para todas las demás rutas /api
-        app.use("/api", authenticateJWT);
-        
-        // Resto de rutas (protegidas)
+        // Configurar todas las rutas bajo /api
         app.use("/api", indexRoutes);
 
         server = app.listen(PORT, () => {
@@ -82,8 +78,10 @@ export async function setupTestServer(): Promise<{ app: Application; server: any
         app.disable("x-powered-by");
 
         app.use(cors({
-            origin: true,
-            credentials: true
+            origin: ['http://localhost:5173', 'http://127.0.0.1:5173'],
+            credentials: true,
+            methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+            allowedHeaders: ['Content-Type', 'Authorization', 'Accept']
         }));
 
         app.use(urlencoded({
@@ -116,13 +114,7 @@ export async function setupTestServer(): Promise<{ app: Application; server: any
 
         passportJWTSetup();
 
-        // Rutas públicas (sin autenticación)
-        app.use("/api/auth", indexRoutes);
-
-        // Middleware de autenticación para rutas protegidas
-        app.use("/api/*", authenticateJWT);
-
-        // Resto de rutas (protegidas)
+        // Configurar todas las rutas bajo /api
         app.use("/api", indexRoutes);
 
         await connectDB();

@@ -97,8 +97,7 @@ const LoginPage: React.FC = () => {
                 <div className="mt-3">
                   <small className="text-muted">
                     <strong>Credenciales de prueba:</strong><br/>
-                    <strong>Admin:</strong> admin.principal@gmail.com / Admin2024<br/>
-                    <strong>RRHH:</strong> recursoshumanos@gmail.com / RRHH2024
+                    <strong>Admin:</strong> admin.principal@gmail.com / Admin2024
                   </small>
                 </div>
               </div>

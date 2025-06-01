@@ -5,38 +5,25 @@ import { authValidation, registerValidation } from "../validations/auth.validati
 
 /* Login controller */
 export async function login(req: Request, res: Response): Promise<void> {
-  try {
+    try {
         const { body } = req;
 
-        // Validaciones básicas
-        if (!body.email) {
-            res.status(400).json({
-                status: "error",
-                message: "El email es requerido."
-            });
-      return;
-    }
+        // Asegurarse de que la respuesta sea JSON
+        res.setHeader('Content-Type', 'application/json');
 
-        if (typeof body.email !== "string") {
+        // Validaciones básicas
+        if (!body.email || typeof body.email !== "string") {
             res.status(400).json({
                 status: "error",
-                message: "El email debe ser de tipo texto."
+                message: "El email es requerido y debe ser de tipo texto."
             });
             return;
         }
 
-        if (!body.password) {
+        if (!body.password || typeof body.password !== "string") {
             res.status(400).json({
                 status: "error",
-                message: "La contraseña es requerida."
-            });
-      return;
-    }
-
-        if (typeof body.password !== "string") {
-            res.status(400).json({
-                status: "error",
-                message: "La contraseña debe ser de tipo texto."
+                message: "La contraseña es requerida y debe ser de tipo texto."
             });
             return;
         }
@@ -62,6 +49,16 @@ export async function login(req: Request, res: Response): Promise<void> {
             return;
         }
 
+        // Configurar las cookies de sesión si es necesario
+        if (accessToken) {
+            res.cookie('jwt', accessToken, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'strict',
+                maxAge: 24 * 60 * 60 * 1000 // 24 horas
+            });
+        }
+
         res.status(200).json({
             status: "success",
             message: "Usuario autenticado.",
@@ -69,13 +66,13 @@ export async function login(req: Request, res: Response): Promise<void> {
                 token: accessToken
             }
         });
-  } catch (error) {
+    } catch (error) {
         console.error("❌ Error en login controller:", error);
         res.status(500).json({
             status: "error",
             message: "Error interno del servidor."
         });
-  }
+    }
 }
 
 /* Register controller */

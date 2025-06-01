@@ -11,6 +11,7 @@ import historialLaboralRoutes from './recursosHumanos/historialLaboral.routes.js
 import cambiosLaboralesRoutes from './recursosHumanos/cambiosLaborales.routes.js';
 import capacitacionRoutes from './recursosHumanos/capacitacion.routes.js';
 import filesRoutes from './files.routes.js';
+import { authenticateJWT } from '../middlewares/authentication.middleware.js';
 
 const router: Router = Router();
 
@@ -25,6 +26,9 @@ router.get('/', (_req, res) => {
 
 // Rutas de autenticación (públicas)
 router.use('/auth', authRoutes);
+
+// Middleware de autenticación para todas las rutas protegidas
+router.use(authenticateJWT);
 
 // Rutas protegidas
 router.use('/users', userRoutes);
