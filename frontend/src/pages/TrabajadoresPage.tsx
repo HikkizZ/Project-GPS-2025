@@ -319,7 +319,7 @@ export const TrabajadoresPage: React.FC = () => {
                         {!trabajador.enSistema && (
                           <span className="badge bg-secondary bg-opacity-25 text-secondary ms-2" style={{ fontSize: '0.8em' }}>
                             <i className="bi bi-trash me-1"></i>
-                            Eliminado
+                            Desvinculado
                           </span>
                         )}
                       </td>
