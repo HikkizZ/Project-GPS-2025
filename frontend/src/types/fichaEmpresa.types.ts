@@ -26,6 +26,19 @@ export interface FichaEmpresa {
   contratoURL?: string | null;
 }
 
+export interface CreateFichaEmpresaData {
+  trabajadorId: number;
+  cargo: string;
+  area: string;
+  empresa: string;
+  tipoContrato: string;
+  jornadaLaboral: string;
+  sueldoBase: number;
+  fechaInicioContrato: Date | string;
+  fechaFinContrato?: Date | string;
+  contratoURL?: string;
+}
+
 export interface FichaEmpresaSearchQuery {
   trabajadorId?: number;
   rut?: string;

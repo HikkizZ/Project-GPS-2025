@@ -5,6 +5,7 @@ import { FichasEmpresaPage } from './pages/FichasEmpresaPage';
 import { UsersPage } from './pages/UsersPage';
 import { TrabajadoresPage } from './pages/TrabajadoresPage';
 import { authService } from './services/auth.service';
+import { EditarTrabajadorModal } from './components/trabajador/EditarTrabajadorModal';
 
 // Componente simple de Login
 const LoginPage: React.FC = () => {

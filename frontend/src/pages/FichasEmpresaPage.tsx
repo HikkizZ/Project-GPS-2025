@@ -7,7 +7,7 @@ import {
   EstadoLaboral
 } from '@/types/fichaEmpresa.types';
 import { Trabajador } from '@/types/trabajador.types';
-import EditWorkerModal from '@/components/EditWorkerModal';
+import { EditarFichaEmpresaModal } from '@/components/recursosHumanos/EditarFichaEmpresaModal';
 
 interface FichasEmpresaPageProps {
   trabajadorRecienRegistrado?: Trabajador | null;
@@ -20,12 +20,12 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
 }) => {
   const { user, isAuthenticated } = useAuth();
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   
   const {
     fichas,
     currentFicha: miFicha,
     isLoading,
-    error,
     loadFichas: searchFichas,
     loadFichaById: loadMiFicha,
     updateFicha,
@@ -42,7 +42,6 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
   const [showModal, setShowModal] = useState(false);
   const [modalType, setModalType] = useState<'view' | 'edit' | 'estado'>('view');
   const [showEditModal, setShowEditModal] = useState(false);
-  const [selectedWorkerId, setSelectedWorkerId] = useState<number | null>(null);
 
   // Verificar autenticación
   useEffect(() => {
@@ -94,14 +93,16 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
           const ficha = await searchByRUT(trabajadorRecienRegistrado.rut);
           
           if (ficha) {
-            // Abrir modal de edición automáticamente usando EditWorkerModal
-            setSelectedWorkerId(ficha.id);
+            // Abrir modal de edición
+            setSelectedFicha(ficha);
             setShowEditModal(true);
           } else {
             console.error('No se pudo encontrar la ficha del trabajador recién registrado');
+            setError('No se pudo encontrar la ficha del trabajador. Por favor, intente más tarde.');
           }
         } catch (error) {
           console.error('Error al buscar la ficha:', error);
+          setError('Error al buscar la ficha del trabajador. Por favor, intente más tarde.');
         } finally {
           // Limpiar el trabajador recién registrado
           if (onTrabajadorModalClosed) {
@@ -132,8 +133,7 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
   };
 
   const handleEditFicha = (ficha: FichaEmpresa) => {
-    // Usar el nuevo EditWorkerModal en lugar del modal interno
-    setSelectedWorkerId(ficha.id);
+    setSelectedFicha(ficha);
     setShowEditModal(true);
   };
 
@@ -145,7 +145,7 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
 
   const handleCloseEditModal = () => {
     setShowEditModal(false);
-    setSelectedWorkerId(null);
+    setSelectedFicha(null);
   };
 
   const handleUpdateSuccess = () => {
@@ -594,11 +594,11 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
       </div>
 
       {/* Modal de Edición */}
-      {showEditModal && selectedWorkerId && (
-        <EditWorkerModal
+      {showEditModal && selectedFicha && (
+        <EditarFichaEmpresaModal
           show={showEditModal}
-          handleClose={handleCloseEditModal}
-          workerId={selectedWorkerId}
+          onHide={handleCloseEditModal}
+          ficha={selectedFicha}
           onUpdate={handleUpdateSuccess}
         />
       )}
@@ -641,26 +641,11 @@ const EstadoModal: React.FC<{
   onSave: (estado: EstadoLaboral, motivo: string) => void;
   onClose: () => void;
 }> = ({ ficha, onSave, onClose }) => {
-  const [showConfirmation, setShowConfirmation] = useState(false);
   const [motivo, setMotivo] = useState('');
-  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!motivo.trim()) {
-      setError('Debe especificar el motivo de la desvinculación');
-      return;
-    }
-    setError(null);
-    setShowConfirmation(true);
-  };
-
-  const handleConfirm = () => {
-    if (!motivo.trim()) {
-      setError('Debe especificar el motivo de la desvinculación');
-      return;
-    }
-    onSave(EstadoLaboral.DESVINCULADO, motivo.trim());
+    onSave(EstadoLaboral.DESVINCULADO, motivo);
   };
 
   return (
@@ -693,45 +678,25 @@ const EstadoModal: React.FC<{
                 </ul>
               </div>
 
-              <div className="mb-3">
-                <label className="form-label required">
-                  Motivo de la Desvinculación
-                </label>
+              <div className="form-group">
+                <label className="form-label">Motivo de Desvinculación</label>
                 <textarea
-                  className={`form-control ${error ? 'is-invalid' : ''}`}
+                  className="form-control"
                   value={motivo}
                   onChange={(e) => setMotivo(e.target.value)}
-                  rows={3}
-                  placeholder="Especifique el motivo de la desvinculación..."
                   required
-                />
-                {error && <div className="invalid-feedback">{error}</div>}
+                  rows={3}
+                  placeholder="Ingrese el motivo de la desvinculación..."
+                ></textarea>
               </div>
-
-              {showConfirmation && (
-                <div className="alert alert-danger">
-                  <i className="bi bi-question-circle me-2"></i>
-                  <strong>¿Está seguro de desvincular a este trabajador?</strong>
-                  <p className="mb-0 mt-2">Esta acción es permanente y no se puede deshacer.</p>
-                </div>
-              )}
             </div>
             <div className="modal-footer">
               <button type="button" className="btn btn-secondary" onClick={onClose}>
-                <i className="bi bi-x-circle me-2"></i>
                 Cancelar
               </button>
-              {!showConfirmation ? (
-                <button type="submit" className="btn btn-danger">
-                  <i className="bi bi-check-circle me-2"></i>
-                  Aceptar
-                </button>
-              ) : (
-                <button type="button" className="btn btn-danger" onClick={handleConfirm}>
-                  <i className="bi bi-exclamation-circle me-2"></i>
-                  Sí, Desvincular
-                </button>
-              )}
+              <button type="submit" className="btn btn-danger" disabled={!motivo.trim()}>
+                Confirmar Desvinculación
+              </button>
             </div>
           </form>
         </div>

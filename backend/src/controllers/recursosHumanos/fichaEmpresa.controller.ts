@@ -38,7 +38,7 @@ export async function getFichaEmpresa(req: Request, res: Response) {
     try {
         const id = parseInt(req.params.id);
         if (isNaN(id)) {
-            handleErrorClient(res, 400, "ID inválido");
+            handleErrorClient(res, 400, "El ID proporcionado no es válido");
             return;
         }
 
@@ -51,14 +51,14 @@ export async function getFichaEmpresa(req: Request, res: Response) {
         }
 
         if (!ficha) {
-            handleErrorClient(res, 404, "No se encontró la ficha del trabajador");
+            handleErrorClient(res, 404, "La ficha solicitada no existe o fue eliminada");
             return;
         }
 
-        handleSuccess(res, 200, "", ficha);
+        handleSuccess(res, 200, "Ficha encontrada exitosamente", ficha);
     } catch (error) {
         console.error("Error al obtener ficha de empresa:", error);
-        handleErrorServer(res, 500, "Error al procesar la solicitud");
+        handleErrorServer(res, 500, "Error interno al procesar la solicitud");
     }
 }
 
@@ -87,25 +87,32 @@ export async function getMiFicha(req: Request, res: Response) {
 export async function updateFichaEmpresa(req: Request, res: Response) {
     try {
         const id = parseInt(req.params.id);
+        console.log('Intentando actualizar ficha con ID:', id);
+        
         if (isNaN(id)) {
+            console.log('ID inválido:', req.params.id);
             handleErrorClient(res, 400, "ID inválido");
             return;
         }
 
         const validationResult = FichaEmpresaUpdateValidation.validate(req.body);
         if (validationResult.error) {
+            console.log('Error de validación:', validationResult.error.message);
             handleErrorClient(res, 400, validationResult.error.message);
             return;
         }
 
+        console.log('Datos a actualizar:', validationResult.value);
         const [ficha, error] = await updateFichaEmpresaService(id, validationResult.value);
 
         if (error) {
+            console.log('Error al actualizar:', error);
             const errorMessage = typeof error === 'string' ? error : error.message;
             handleErrorClient(res, 404, errorMessage);
             return;
         }
 
+        console.log('Ficha actualizada exitosamente:', ficha);
         handleSuccess(res, 200, "Ficha actualizada exitosamente", ficha!);
     } catch (error) {
         console.error("Error en updateFichaEmpresa:", error);

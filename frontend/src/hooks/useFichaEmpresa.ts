@@ -5,7 +5,7 @@ import type {
   UpdateFichaEmpresaData,
   EstadoLaboral
 } from '../types/fichaEmpresa.types';
-import { fichaEmpresaService } from '../services/fichaEmpresa.service';
+import fichaEmpresaService, { FichaEmpresaService } from '../services/fichaEmpresa.service';
 
 interface UseFichaEmpresaState {
   fichas: FichaEmpresa[];
@@ -51,16 +51,14 @@ export const useFichaEmpresa = () => {
     try {
       const result = await fichaEmpresaService.getFichasEmpresa(searchParams);
       
-      updateState({
-        fichas: result.data,
-        pagination: {
-          total: result.total,
-          page: result.page,
-          limit: result.limit,
-          totalPages: result.totalPages,
-        },
-        isLoading: false,
-      });
+      if (result.success && result.data) {
+        updateState({
+          fichas: result.data,
+          isLoading: false,
+        });
+      } else {
+        throw new Error(result.message);
+      }
     } catch (error) {
       updateState({
         isLoading: false,
@@ -74,21 +72,26 @@ export const useFichaEmpresa = () => {
     updateState({ isLoading: true, error: null });
     
     try {
-      let ficha;
+      let result;
       if (id) {
-        ficha = await fichaEmpresaService.getFichaEmpresaById(id);
+        result = await fichaEmpresaService.getFichaEmpresaById(id);
       } else {
-        ficha = await fichaEmpresaService.getMiFicha();
+        result = await fichaEmpresaService.getMiFicha();
       }
       
-      updateState({
-        currentFicha: ficha,
-        isLoading: false,
-      });
+      if (result.success && result.data) {
+        updateState({
+          currentFicha: result.data,
+          isLoading: false,
+        });
+      } else {
+        throw new Error(result.message || 'Error al cargar ficha');
+      }
     } catch (error) {
       updateState({
         isLoading: false,
         error: error instanceof Error ? error.message : 'Error al cargar ficha',
+        currentFicha: null
       });
     }
   }, [updateState]);
@@ -101,12 +104,13 @@ export const useFichaEmpresa = () => {
       const response = await fichaEmpresaService.updateFichaEmpresa(id, data);
       
       if (response.success && response.data) {
+        const updatedFicha = response.data;
         setState(prev => ({
           ...prev,
           fichas: prev.fichas.map(ficha => 
-            ficha.id === id ? response.data : ficha
+            ficha.id === id ? updatedFicha : ficha
           ),
-          currentFicha: prev.currentFicha?.id === id ? response.data : prev.currentFicha,
+          currentFicha: prev.currentFicha?.id === id ? updatedFicha : prev.currentFicha || null,
           isLoading: false,
         }));
         
@@ -139,18 +143,30 @@ export const useFichaEmpresa = () => {
     updateState({ isLoading: true, error: null });
     
     try {
-      const ficha = await fichaEmpresaService.getFichaByRUT(rut);
-      updateState({
-        currentFicha: ficha || null,
-        fichas: ficha ? [ficha] : [],
-        isLoading: false,
-      });
-      
-      return ficha;
+      const result = await fichaEmpresaService.getFichaByRUT(rut);
+      if (result.success && result.data) {
+        updateState({
+          currentFicha: result.data,
+          fichas: [result.data],
+          isLoading: false,
+          error: null
+        });
+        return result.data;
+      } else {
+        updateState({
+          isLoading: false,
+          error: result.message || 'No se encontró la ficha',
+          currentFicha: null,
+          fichas: []
+        });
+        return null;
+      }
     } catch (error) {
       updateState({
         isLoading: false,
         error: error instanceof Error ? error.message : 'Error al buscar por RUT',
+        currentFicha: null,
+        fichas: []
       });
       return null;
     }
@@ -178,9 +194,9 @@ export const useFichaEmpresa = () => {
     clearError,
     
     // Utilidades del servicio
-    formatSalario: fichaEmpresaService.formatSalario,
-    formatFecha: fichaEmpresaService.formatFecha,
-    getEstadoLaboralColor: fichaEmpresaService.getEstadoLaboralColor,
-    getEstadoLaboralIcon: fichaEmpresaService.getEstadoLaboralIcon,
+    formatSalario: FichaEmpresaService.formatSalario,
+    formatFecha: FichaEmpresaService.formatFecha,
+    getEstadoLaboralColor: FichaEmpresaService.getEstadoLaboralColor,
+    getEstadoLaboralIcon: FichaEmpresaService.getEstadoLaboralIcon,
   };
 }; 

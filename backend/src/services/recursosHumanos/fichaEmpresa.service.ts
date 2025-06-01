@@ -101,13 +101,13 @@ export async function searchFichasEmpresa(params: SearchFichaParams): Promise<Se
         });
 
         if (!fichas.length) {
-            return [null, { message: "No hay fichas de empresa que coincidan con los criterios de búsqueda" }];
+            return [null, { message: "No se encontraron fichas que coincidan con los criterios de búsqueda" }];
         }
 
         return [fichas, null];
     } catch (error) {
         console.error("Error al buscar fichas de empresa:", error);
-        return [null, { message: "Error interno del servidor" }];
+        return [null, { message: "Error interno del servidor al buscar fichas" }];
     }
 }
 
@@ -120,13 +120,13 @@ export async function getFichaEmpresaById(id: number): Promise<ServiceResponse<F
         });
 
         if (!ficha) {
-            return [null, { message: "Ficha no encontrada" }];
+            return [null, { message: "La ficha solicitada no existe o fue eliminada" }];
         }
 
         return [ficha, null];
     } catch (error) {
         console.error("Error en getFichaEmpresaById:", error);
-        return [null, { message: "Error interno del servidor" }];
+        return [null, { message: "Error interno del servidor al buscar la ficha" }];
     }
 }
 
@@ -273,6 +273,8 @@ export async function updateFichaEmpresaService(
 
         // 4. Validar cambios específicos
         if ('sueldoBase' in fichaData && fichaData.sueldoBase !== undefined) {
+            console.log('Sueldo base actual:', fichaActual.sueldoBase);
+            console.log('Nuevo sueldo base:', fichaData.sueldoBase);
             if (fichaData.sueldoBase <= 0) {
                 return [null, { message: "El sueldo base debe ser mayor a cero" }];
             }

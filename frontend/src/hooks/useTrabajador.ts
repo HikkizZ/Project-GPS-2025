@@ -1,83 +1,99 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { trabajadorService } from '@/services/trabajador.service';
-import { CreateTrabajadorData } from '@/types/trabajador.types';
+import type { Trabajador, CreateTrabajadorData } from '@/types/trabajador.types';
 
 export const useTrabajador = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string>('');
+  const [error, setError] = useState<string | null>(null);
+  const [trabajadores, setTrabajadores] = useState<Trabajador[]>([]);
 
-  const clearError = () => setError('');
-
-  const validateRUT = (rut: string): boolean => {
-    // Eliminar puntos y guión
-    rut = rut.replace(/\./g, '').replace('-', '');
-    
-    // Validar largo mínimo
-    if (rut.length < 8) return false;
-    
-    // Obtener dígito verificador
-    const dv = rut.slice(-1).toUpperCase();
-    const rutNumero = parseInt(rut.slice(0, -1));
-    
-    // Calcular dígito verificador
-    let suma = 0;
-    let multiplicador = 2;
-    let numero = rutNumero;
-    
-    while (numero > 0) {
-      suma += (numero % 10) * multiplicador;
-      numero = Math.floor(numero / 10);
-      multiplicador = multiplicador === 7 ? 2 : multiplicador + 1;
-    }
-    
-    const dvEsperado = 11 - (suma % 11);
-    const dvCalculado = dvEsperado === 11 ? '0' : dvEsperado === 10 ? 'K' : dvEsperado.toString();
-    
-    return dv === dvCalculado;
-  };
-
-  const formatRUT = (rut: string): string => {
-    // Eliminar caracteres no válidos
-    rut = rut.replace(/[^0-9kK]/g, '');
-    
-    // Si el RUT está vacío, retornar
-    if (!rut) return '';
-    
-    // Separar número y dígito verificador
-    const dv = rut.slice(-1);
-    const numero = rut.slice(0, -1);
-    
-    // Formatear número con puntos
-    const numeroFormateado = numero.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-    
-    return numeroFormateado + '-' + dv;
-  };
-
-  const createTrabajador = async (trabajadorData: CreateTrabajadorData) => {
-    setIsLoading(true);
-    setError('');
+  const getTrabajadores = useCallback(async () => {
     try {
-      const result = await trabajadorService.createTrabajador(trabajadorData);
-      if (result.error) {
-        setError(result.error);
-        return { success: false, error: result.error };
+      setIsLoading(true);
+      setError(null);
+      const response = await trabajadorService.getTrabajadores();
+      if (response.trabajadores) {
+        setTrabajadores(response.trabajadores);
+      } else if (response.error) {
+        setError(response.error);
       }
-      return { success: true, trabajador: result.trabajador };
-    } catch (error: any) {
-      const errorMsg = error.message || 'Error al crear trabajador';
+    } catch (err) {
+      setError('Error al obtener trabajadores');
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const createTrabajador = useCallback(async (data: CreateTrabajadorData) => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const response = await trabajadorService.createTrabajador(data);
+      if (response.trabajador) {
+        setTrabajadores(prev => [...prev, response.trabajador!]);
+        return { success: true };
+      } else if (response.error) {
+        setError(response.error);
+        return { success: false, error: response.error };
+      }
+      return { success: false, error: 'Error desconocido' };
+    } catch (err) {
+      const errorMsg = 'Error al crear trabajador';
       setError(errorMsg);
       return { success: false, error: errorMsg };
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
+
+  const updateTrabajador = useCallback(async (id: number, data: Partial<Trabajador>) => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const response = await trabajadorService.updateTrabajador(id, data);
+      if (response.trabajador) {
+        setTrabajadores(prev => 
+          prev.map(t => t.id === id ? response.trabajador! : t)
+        );
+        return { success: true };
+      } else if (response.error) {
+        setError(response.error);
+        return { success: false, error: response.error };
+      }
+      return { success: false, error: 'Error desconocido' };
+    } catch (err) {
+      const errorMsg = 'Error al actualizar trabajador';
+      setError(errorMsg);
+      return { success: false, error: errorMsg };
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const deleteTrabajador = useCallback(async (id: number) => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      await trabajadorService.deleteTrabajador(id);
+      setTrabajadores(prev => prev.filter(t => t.id !== id));
+      return { success: true };
+    } catch (err) {
+      const errorMsg = 'Error al eliminar trabajador';
+      setError(errorMsg);
+      return { success: false, error: errorMsg };
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
   return {
+    trabajadores,
     isLoading,
     error,
-    clearError,
-    validateRUT,
-    formatRUT,
-    createTrabajador
+    getTrabajadores,
+    createTrabajador,
+    updateTrabajador,
+    deleteTrabajador
   };
 }; 
