@@ -12,6 +12,8 @@ import { handleSuccess, handleErrorClient, handleErrorServer } from '../handlers
 import { userQueryValidation, userBodyValidation } from '../validations/user.validation.js';
 
 import { User } from '../entity/user.entity.js';
+import { Trabajador } from '../entity/recursosHumanos/trabajador.entity.js';
+import { AppDataSource } from '../config/configDB.js';
 
 /* Search users with filters */
 export async function searchUsers(req: Request, res: Response): Promise<void> {
@@ -131,5 +133,46 @@ export async function deleteUser(req: Request, res: Response): Promise<void> {
         handleSuccess(res, 200, 'Usuario eliminado.', deletedUser);
     } catch (error) {
         handleErrorServer(res, 500, (error as Error).message);
+    }
+}
+
+/* Update user name by trabajador */
+export async function updateUserByTrabajador(req: Request, res: Response): Promise<void> {
+    try {
+        const trabajadorId = parseInt(req.params.id);
+        const { nombres, apellidoPaterno, apellidoMaterno } = req.body;
+
+        const trabajadorRepo = AppDataSource.getRepository(Trabajador);
+        const userRepo = AppDataSource.getRepository(User);
+
+        // Buscar el trabajador
+        const trabajador = await trabajadorRepo.findOne({
+            where: { id: trabajadorId }
+        });
+
+        if (!trabajador) {
+            handleErrorClient(res, 404, "Trabajador no encontrado");
+            return;
+        }
+
+        // Buscar el usuario asociado por RUT
+        const user = await userRepo.findOne({
+            where: { rut: trabajador.rut }
+        });
+
+        if (!user) {
+            handleErrorClient(res, 404, "Usuario no encontrado");
+            return;
+        }
+
+        // Actualizar el nombre del usuario
+        const nombreCompleto = `${nombres || trabajador.nombres} ${apellidoPaterno || trabajador.apellidoPaterno} ${apellidoMaterno || trabajador.apellidoMaterno}`.trim();
+        user.name = nombreCompleto;
+        await userRepo.save(user);
+
+        handleSuccess(res, 200, "Nombre de usuario actualizado exitosamente", user);
+    } catch (error) {
+        console.error("Error al actualizar nombre de usuario:", error);
+        handleErrorServer(res, 500, "Error interno del servidor");
     }
 }   
