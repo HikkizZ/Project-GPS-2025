@@ -487,60 +487,59 @@ const Dashboard: React.FC = () => {
                     </div>
                     
                     <div className="row">
+                      {/* Tarjeta de Trabajadores */}
                       <div className="col-md-4 mb-3">
                         <div 
                           className="card h-100 shadow-sm border-success"
                           style={{ cursor: 'pointer' }}
+                          onClick={() => setCurrentPage('trabajadores')}
+                        >
+                          <div className="card-body text-center">
+                            <i className="bi bi-people-fill display-4 text-success mb-3"></i>
+                            <h5>Trabajadores</h5>
+                            <p className="text-muted">Gestionar información del personal</p>
+                            <button className="btn btn-success">
+                              <i className="bi bi-person-gear me-2"></i>
+                              Administrar
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Tarjeta de Fichas de Empresa */}
+                      <div className="col-md-4 mb-3">
+                        <div 
+                          className="card h-100 shadow-sm border-primary"
+                          style={{ cursor: 'pointer' }}
                           onClick={() => setCurrentPage('fichas-empresa')}
                         >
                           <div className="card-body text-center">
-                            <i className="bi bi-clipboard-data display-4 text-success mb-3"></i>
+                            <i className="bi bi-clipboard-data display-4 text-primary mb-3"></i>
                             <h5>Fichas de Empresa</h5>
                             <p className="text-muted">Editar información laboral de trabajadores</p>
-                            <button className="btn btn-success">
+                            <button className="btn btn-primary">
                               <i className="bi bi-pencil-square me-2"></i>
                               Gestionar
                             </button>
                           </div>
                         </div>
                       </div>
-                      
-                      {/* Nueva tarjeta de Usuarios */}
+
+                      {/* Tarjeta de Gestión de Usuarios */}
                       {(user?.role === 'Administrador' || user?.role === 'RecursosHumanos') && (
                         <div className="col-md-4 mb-3">
                           <div 
-                            className="card h-100 shadow-sm border-primary"
+                            className="card h-100 shadow-sm border-warning"
                             style={{ cursor: 'pointer' }}
                             onClick={() => setCurrentPage('users')}
                           >
                             <div className="card-body text-center">
-                              <i className="bi bi-people display-4 text-primary mb-3"></i>
+                              <i className="bi bi-people display-4 text-warning mb-3"></i>
                               <h5>Gestión de Usuarios</h5>
                               <p className="text-muted">Administrar cuentas y permisos del sistema</p>
-                              <button className="btn btn-primary">
+                              <button className="btn btn-warning">
                                 <i className="bi bi-shield-lock me-2"></i>
                                 Gestionar
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Tarjeta de Trabajadores */}
-                      {(user?.role === 'Administrador' || user?.role === 'RecursosHumanos') && (
-                        <div className="col-md-4 mb-3">
-                          <div 
-                            className="card h-100 shadow-sm border-success"
-                            style={{ cursor: 'pointer' }}
-                            onClick={() => setCurrentPage('trabajadores')}
-                          >
-                            <div className="card-body text-center">
-                              <i className="bi bi-people-fill display-4 text-success mb-3"></i>
-                              <h5>Trabajadores</h5>
-                              <p className="text-muted">Gestionar información del personal</p>
-                              <button className="btn btn-success">
-                                <i className="bi bi-person-gear me-2"></i>
-                                Administrar
                               </button>
                             </div>
                           </div>

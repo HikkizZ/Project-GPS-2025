@@ -9,11 +9,11 @@ export const RecursosHumanosPage: React.FC = () => {
     const modules = [
       {
         id: 'trabajadores',
-        title: 'Gestión de Trabajadores',
-        description: 'Administrar empleados y personal',
+        title: 'Trabajadores',
+        description: 'Gestionar información del personal',
         icon: '👥',
         link: '/trabajadores',
-        color: 'primary',
+        color: 'success',
         stats: { total: '-', activos: '-' }
       },
       {
@@ -22,7 +22,7 @@ export const RecursosHumanosPage: React.FC = () => {
         description: 'Información laboral y contratos',
         icon: '📋',
         link: '/fichas-empresa',
-        color: 'success',
+        color: 'primary',
         stats: { total: '-', pendientes: '-' }
       },
       {
