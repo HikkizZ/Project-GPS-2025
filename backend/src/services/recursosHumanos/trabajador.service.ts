@@ -279,6 +279,8 @@ export async function desvincularTrabajadorService(
             return [null, "Trabajador no encontrado o ya desvinculado"];
         }
 
+        console.log('Estado inicial de la ficha:', trabajador.fichaEmpresa?.estado);
+
         // 2. Actualizar el estado del trabajador
         trabajador.enSistema = false;
         await queryRunner.manager.save(Trabajador, trabajador);
@@ -294,7 +296,23 @@ export async function desvincularTrabajadorService(
             }
         }
 
-        // 4. Registrar en el historial laboral
+        // 4. Actualizar el estado de la ficha de empresa
+        if (trabajador.fichaEmpresa) {
+            const fichaRepo = queryRunner.manager.getRepository(FichaEmpresa);
+            const ficha = await fichaRepo.findOne({
+                where: { id: trabajador.fichaEmpresa.id }
+            });
+
+            if (ficha) {
+                ficha.estado = EstadoLaboral.DESVINCULADO;
+                ficha.fechaFinContrato = new Date();
+                ficha.motivoDesvinculacion = motivo;
+                await queryRunner.manager.save(FichaEmpresa, ficha);
+                console.log('Estado actualizado de la ficha:', ficha.estado);
+            }
+        }
+
+        // 5. Registrar en el historial laboral
         const registrador = userId ? await queryRunner.manager.findOne(User, { where: { id: userId } }) : null;
         
         const historialLaboral = new HistorialLaboral();
@@ -310,15 +328,28 @@ export async function desvincularTrabajadorService(
 
         await queryRunner.manager.save(HistorialLaboral, historialLaboral);
 
-        // 5. Commit de la transacción
+        // 6. Commit de la transacción
         await queryRunner.commitTransaction();
+
+        // 7. Verificar el estado final de la ficha
+        const fichaFinal = await queryRunner.manager.findOne(FichaEmpresa, {
+            where: { id: trabajador.fichaEmpresa?.id }
+        });
+        console.log('Estado final de la ficha después del commit:', fichaFinal?.estado);
+
         await queryRunner.release();
 
-        return [trabajador, null];
+        // 8. Recargar el trabajador con todas sus relaciones actualizadas
+        const trabajadorActualizado = await AppDataSource.getRepository(Trabajador).findOne({
+            where: { id },
+            relations: ["fichaEmpresa", "usuario"]
+        });
+
+        return [trabajadorActualizado || trabajador, null];
     } catch (error) {
         console.error("Error en desvincularTrabajadorService:", error);
         await queryRunner.rollbackTransaction();
         await queryRunner.release();
         return [null, "Error interno del servidor"];
     }
-} 
+}
