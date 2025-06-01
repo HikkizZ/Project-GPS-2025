@@ -38,7 +38,20 @@ export class FichaEmpresa {
   @Column({ type: "varchar", length: 50, nullable: true })
   jornadaLaboral!: string;
 
-  @Column({ type: "decimal", precision: 10, scale: 2, nullable: false })
+  @Column({ 
+    type: "integer", 
+    nullable: true,
+    transformer: {
+      to: (value: number | null): number => {
+        return value === null ? 0 : Math.round(value);
+      },
+      from: (value: string | number | null): number => {
+        if (value === null) return 0;
+        return typeof value === 'string' ? parseInt(value) : value;
+      }
+    },
+    default: 0
+  })
   sueldoBase!: number;
 
   @Column({

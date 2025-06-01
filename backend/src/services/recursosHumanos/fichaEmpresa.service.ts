@@ -233,7 +233,7 @@ export async function actualizarEstadoFichaService(
 }
 
 // Definir los campos que no se pueden modificar según el estado
-const CAMPOS_PROTEGIDOS = ['id', 'trabajador', 'fechaInicioContrato'] as const;
+const CAMPOS_PROTEGIDOS = ['id', 'trabajador'] as const;
 const CAMPOS_ESTADO_DESVINCULADO = ['cargo', 'area', 'empresa', 'tipoContrato', 'jornadaLaboral', 'sueldoBase'] as const;
 
 export async function updateFichaEmpresaService(
