@@ -606,13 +606,15 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                               >
                                 <i className="bi bi-eye"></i>
                               </button>
-                              <button
-                                className="btn btn-outline-warning"
-                                onClick={() => handleEditFicha(ficha)}
-                                title="Editar"
-                              >
-                                <i className="bi bi-pencil"></i>
-                              </button>
+                              {ficha.trabajador.rut !== '11.111.111-1' && (
+                                <button
+                                  className="btn btn-outline-warning"
+                                  onClick={() => handleEditFicha(ficha)}
+                                  title="Editar"
+                                >
+                                  <i className="bi bi-pencil"></i>
+                                </button>
+                              )}
                             </div>
                           </td>
                         </tr>
