@@ -4,6 +4,7 @@ import { useTrabajadores } from '@/hooks/useTrabajadores';
 import { Trabajador, TrabajadorSearchQuery } from '@/types/trabajador.types';
 import { useRut } from '@/hooks/useRut';
 import { RegisterTrabajadorForm } from '@/components/trabajador/RegisterTrabajadorForm';
+import { EditarTrabajadorModal } from '@/components/trabajador/EditarTrabajadorModal';
 
 export const TrabajadoresPage: React.FC = () => {
   const { trabajadores, isLoading, error, loadTrabajadores, searchTrabajadores, desvincularTrabajador } = useTrabajadores();
@@ -11,6 +12,8 @@ export const TrabajadoresPage: React.FC = () => {
   
   // Estados para los modales y filtros
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedTrabajador, setSelectedTrabajador] = useState<Trabajador | null>(null);
   const [showDesvincularModal, setShowDesvincularModal] = useState(false);
   const [trabajadorToDesvincular, setTrabajadorToDesvincular] = useState<Trabajador | null>(null);
   const [motivoDesvinculacion, setMotivoDesvinculacion] = useState('');
@@ -335,7 +338,10 @@ export const TrabajadoresPage: React.FC = () => {
                             variant="outline-primary" 
                             size="sm" 
                             className="me-2"
-                            onClick={() => {/* TODO: Implementar edición */}}
+                            onClick={() => {
+                              setSelectedTrabajador(trabajador);
+                              setShowEditModal(true);
+                            }}
                             title="Editar trabajador"
                           >
                             <i className="bi bi-pencil"></i>
@@ -460,6 +466,23 @@ export const TrabajadoresPage: React.FC = () => {
           </Button>
         </Modal.Footer>
       </Modal>
+
+      {/* Modal de Edición */}
+      {showEditModal && selectedTrabajador && (
+        <EditarTrabajadorModal
+          show={showEditModal}
+          onHide={() => {
+            setShowEditModal(false);
+            setSelectedTrabajador(null);
+          }}
+          trabajador={selectedTrabajador}
+          onSuccess={() => {
+            loadTrabajadores();
+            setShowEditModal(false);
+            setSelectedTrabajador(null);
+          }}
+        />
+      )}
     </div>
   );
 }; 
