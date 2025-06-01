@@ -78,6 +78,12 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
         ...prev,
         [name]: numberValue
       }));
+    } else if (name === 'fechaInicioContrato' || name === 'fechaFinContrato') {
+      // Mantener la fecha exactamente como viene del input type="date"
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
     } else {
       setFormData(prev => ({
         ...prev,

@@ -41,10 +41,56 @@ export class FichaEmpresa {
   @Column({ type: "decimal", precision: 10, scale: 2, nullable: false })
   sueldoBase!: number;
 
-  @Column({ type: "date", nullable: false })
+  @Column({ 
+    type: "date", 
+    nullable: false,
+    transformer: {
+      to: (value: Date | string): string => {
+        // Si ya es un string en formato YYYY-MM-DD, mantenerlo así
+        if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+          return value;
+        }
+        // Si es una fecha, convertirla a YYYY-MM-DD
+        const date = typeof value === 'string' ? new Date(value) : value;
+        return date.toISOString().split('T')[0];
+      },
+      from: (value: string | Date): Date => {
+        // Mantener la fecha exacta sin ajustes de zona horaria
+        if (typeof value === 'string') {
+          const [year, month, day] = value.split('-').map(Number);
+          return new Date(year, month - 1, day);
+        }
+        return value;
+      }
+    }
+  })
   fechaInicioContrato!: Date;
 
-  @Column({ type: "date", nullable: true })
+  @Column({ 
+    type: "date", 
+    nullable: true,
+    transformer: {
+      to: (value: Date | string | null): string | null => {
+        if (!value) return null;
+        // Si ya es un string en formato YYYY-MM-DD, mantenerlo así
+        if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+          return value;
+        }
+        // Si es una fecha, convertirla a YYYY-MM-DD
+        const date = typeof value === 'string' ? new Date(value) : value;
+        return date.toISOString().split('T')[0];
+      },
+      from: (value: string | Date | null): Date | null => {
+        if (!value) return null;
+        // Mantener la fecha exacta sin ajustes de zona horaria
+        if (typeof value === 'string') {
+          const [year, month, day] = value.split('-').map(Number);
+          return new Date(year, month - 1, day);
+        }
+        return value;
+      }
+    }
+  })
   fechaFinContrato!: Date;
 
   @Column({
