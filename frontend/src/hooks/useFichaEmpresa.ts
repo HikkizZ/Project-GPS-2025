@@ -5,7 +5,10 @@ import type {
   UpdateFichaEmpresaData,
   EstadoLaboral
 } from '../types/fichaEmpresa.types';
-import fichaEmpresaService, { FichaEmpresaService } from '../services/fichaEmpresa.service';
+import fichaEmpresaService, { 
+  FichaEmpresaService, 
+  downloadContrato as downloadContratoService 
+} from '../services/fichaEmpresa.service';
 
 interface UseFichaEmpresaState {
   fichas: FichaEmpresa[];
@@ -43,6 +46,15 @@ export const useFichaEmpresa = () => {
   const clearError = useCallback(() => {
     updateState({ error: null });
   }, [updateState]);
+
+  // Función para descargar contrato
+  const downloadContrato = useCallback(async (fichaId: number) => {
+    try {
+      await downloadContratoService(fichaId);
+    } catch (error) {
+      throw error;
+    }
+  }, []);
 
   // Función principal para cargar fichas con filtros
   const loadFichas = useCallback(async (searchParams: FichaEmpresaSearchQuery = {}) => {
@@ -192,6 +204,7 @@ export const useFichaEmpresa = () => {
     updateEstadoLaboral,
     searchByRUT,
     clearError,
+    downloadContrato,
     
     // Utilidades del servicio
     formatSalario: FichaEmpresaService.formatSalario,

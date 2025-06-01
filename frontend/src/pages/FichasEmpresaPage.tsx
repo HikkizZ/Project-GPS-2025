@@ -614,15 +614,14 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                           </td>
                           <td>
                             <div className="btn-group btn-group-sm">
-                              {ficha.contratoURL && (
-                                <button
-                                  className="btn btn-outline-primary"
-                                  onClick={() => handleDownloadContrato(ficha.id)}
-                                  title="Descargar contrato"
-                                >
-                                  <i className="bi bi-file-earmark-pdf"></i>
-                                </button>
-                              )}
+                              <button
+                                className={`btn ${ficha.contratoURL ? 'btn-outline-danger' : 'btn-outline-secondary'}`}
+                                onClick={() => handleDownloadContrato(ficha.id)}
+                                title={ficha.contratoURL ? "Descargar contrato" : "No hay contrato disponible"}
+                                disabled={!ficha.contratoURL}
+                              >
+                                <i className="bi bi-file-earmark-pdf"></i>
+                              </button>
                               {ficha.trabajador.rut !== '11.111.111-1' && (
                                 <button
                                   className="btn btn-outline-warning"

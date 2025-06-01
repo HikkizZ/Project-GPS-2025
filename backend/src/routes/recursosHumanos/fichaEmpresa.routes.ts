@@ -18,16 +18,16 @@ const router: Router = Router();
 // Rutas protegidas - requieren autenticación
 router.use(authenticateJWT);
 
-// Rutas públicas para usuarios autenticados
+// Ruta para obtener la ficha propia del usuario
 router.get("/mi-ficha", getMiFicha);
-router.get("/:id/contrato", descargarContrato);
 
-// Rutas protegidas para RRHH y Admin
+// Rutas que requieren rol de RRHH o Admin
 router.use(verifyRole(["RecursosHumanos", "Administrador"]));
 
 router
     .get("/search", getFichasEmpresa)
     .get("/:id", getFichaEmpresa)
+    .get("/:id/contrato", descargarContrato)
     .put("/:id", updateFichaEmpresa)
     .put("/:id/estado", actualizarEstadoFicha)
     .post("/:id/upload-contrato", uploadMiddleware.single('contrato'), uploadContrato)

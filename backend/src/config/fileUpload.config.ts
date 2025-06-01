@@ -9,17 +9,18 @@ const CONTRATOS_DIR = path.join(UPLOADS_DIR, 'contratos');
 // Crear directorios si no existen
 const ensureDirectoryExists = (dirPath: string) => {
   if (!fs.existsSync(dirPath)) {
-    fs.mkdirSync(dirPath, { recursive: true });
+    fs.mkdirSync(dirPath, { recursive: true, mode: 0o755 });
   }
 };
 
-// Inicializar directorios
+// Asegurar que los directorios existan
 ensureDirectoryExists(UPLOADS_DIR);
 ensureDirectoryExists(CONTRATOS_DIR);
 
 // Configuración de almacenamiento
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
+    ensureDirectoryExists(CONTRATOS_DIR); // Asegurar que el directorio exista antes de cada upload
     cb(null, CONTRATOS_DIR);
   },
   filename: (req, file, cb) => {
