@@ -76,6 +76,9 @@ export const RegisterTrabajadorForm: React.FC<RegisterTrabajadorFormProps> = ({
     const { name, value } = e.target;
     if (name === 'rut') {
       setFormData({ ...formData, [name]: formatRUT(value) });
+    } else if (name === 'fechaNacimiento') {
+      // Mantener la fecha exactamente como viene del input type="date"
+      setFormData({ ...formData, [name]: value });
     } else {
       setFormData({ ...formData, [name]: value });
     }

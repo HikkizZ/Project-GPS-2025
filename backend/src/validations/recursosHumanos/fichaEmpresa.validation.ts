@@ -178,9 +178,11 @@ export const FichaEmpresaUpdateValidation = Joi.object({
             "number.max": "El sueldo base no puede exceder los 100,000,000"
         }),
 
-    fechaInicioContrato: Joi.any().forbidden()
+    fechaInicioContrato: Joi.date()
+        .iso()
         .messages({
-            "any.unknown": "No se puede modificar la fecha de inicio del contrato"
+            "date.base": "La fecha de inicio de contrato debe ser una fecha válida",
+            "date.format": "La fecha de inicio de contrato debe estar en formato YYYY-MM-DD"
         }),
 
     fechaFinContrato: Joi.date()

@@ -256,7 +256,7 @@ export async function actualizarEstadoFichaService(
 }
 
 // Definir los campos que no se pueden modificar según el estado
-const CAMPOS_PROTEGIDOS = ['id', 'trabajador', 'fechaInicioContrato'] as const;
+const CAMPOS_PROTEGIDOS = ['id', 'trabajador'] as const;
 const CAMPOS_ESTADO_DESVINCULADO = ['cargo', 'area', 'empresa', 'tipoContrato', 'jornadaLaboral', 'sueldoBase'] as const;
 
 export async function updateFichaEmpresaService(
@@ -304,9 +304,19 @@ export async function updateFichaEmpresaService(
             }
         }
 
+        if ('fechaInicioContrato' in fichaData && fichaData.fechaInicioContrato) {
+            const fechaInicio = new Date(fichaData.fechaInicioContrato);
+            if (fichaActual.fechaFinContrato && fechaInicio >= fichaActual.fechaFinContrato) {
+                return [null, { message: "La fecha de inicio debe ser anterior a la fecha de fin" }];
+            }
+        }
+
         if ('fechaFinContrato' in fichaData && fichaData.fechaFinContrato) {
             const fechaFin = new Date(fichaData.fechaFinContrato);
-            if (fechaFin <= fichaActual.fechaInicioContrato) {
+            const fechaInicio = fichaData.fechaInicioContrato ? 
+                new Date(fichaData.fechaInicioContrato) : 
+                fichaActual.fechaInicioContrato;
+            if (fechaFin <= fechaInicio) {
                 return [null, { message: "La fecha de fin de contrato debe ser posterior a la fecha de inicio" }];
             }
         }

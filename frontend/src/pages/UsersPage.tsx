@@ -29,6 +29,7 @@ export const UsersPage: React.FC = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState<SafeUser | null>(null);
   const [newRole, setNewRole] = useState<string>('');
+  const [newPassword, setNewPassword] = useState<string>('');
   const [searchParams, setSearchParams] = useState<UserSearchParams>({});
 
   // Estados para los checkboxes de filtrado
@@ -198,6 +199,7 @@ export const UsersPage: React.FC = () => {
   const handleUpdateClick = (selectedUser: SafeUser) => {
     setSelectedUser(selectedUser);
     setNewRole(selectedUser.role);
+    setNewPassword('');
     setShowUpdateModal(true);
   };
 
@@ -207,20 +209,32 @@ export const UsersPage: React.FC = () => {
   };
 
   const handleUpdateUser = async () => {
-    if (!selectedUser || !newRole) return;
+    if (!selectedUser) return;
 
     try {
-      setIsUpdating(true);
-      setError('');
-      await userService.updateUser(selectedUser.id, selectedUser.rut, newRole);
-      setSuccess(`Rol de ${selectedUser.name} actualizado exitosamente`);
-      setTimeout(() => setSuccess(''), 3000);
-      setShowUpdateModal(false);
-      loadUsers(); // Recargar la lista después de actualizar
+        setIsUpdating(true);
+        setError('');
+        
+        // Crear objeto con las actualizaciones
+        const updates: { role?: string, password?: string } = {};
+        if (newRole && newRole !== selectedUser.role) updates.role = newRole;
+        if (newPassword && newPassword.length === 8) updates.password = newPassword;
+
+        // Solo enviar la petición si hay cambios
+        if (Object.keys(updates).length > 0) {
+            await userService.updateUser(selectedUser.id, selectedUser.rut, updates);
+            setSuccess(`Usuario ${selectedUser.name} actualizado exitosamente`);
+            setTimeout(() => setSuccess(''), 3000);
+            setShowUpdateModal(false);
+            loadUsers(); // Recargar la lista después de actualizar
+        } else {
+            setShowUpdateModal(false); // Cerrar modal si no hay cambios
+        }
     } catch (err: any) {
-      setError(err.message || 'Error al actualizar usuario');
+        setError(err.message || 'Error al actualizar usuario');
     } finally {
-      setIsUpdating(false);
+        setIsUpdating(false);
+        setNewPassword('');
     }
   };
 
@@ -658,23 +672,41 @@ export const UsersPage: React.FC = () => {
         </Modal.Footer>
       </Modal>
 
-      <Modal show={showUpdateModal} onHide={() => setShowUpdateModal(false)}>
+      <Modal show={showUpdateModal} onHide={() => {
+        setShowUpdateModal(false);
+        setNewPassword('');
+        if (selectedUser) setNewRole(selectedUser.role);
+      }}>
         <Modal.Header closeButton>
-          <Modal.Title>Actualizar Rol de Usuario</Modal.Title>
+          <Modal.Title>
+            <i className="bi bi-person-gear me-2"></i>
+            Actualizar Usuario
+          </Modal.Title>
         </Modal.Header>
         <Modal.Body>
           {selectedUser && (
             <Form>
               <Form.Group className="mb-3">
-                <Form.Label>Usuario</Form.Label>
+                <Form.Label>
+                  <i className="bi bi-person me-2"></i>
+                  Usuario
+                </Form.Label>
                 <Form.Control type="text" value={selectedUser.name} disabled />
               </Form.Group>
+              
               <Form.Group className="mb-3">
-                <Form.Label>RUT</Form.Label>
+                <Form.Label>
+                  <i className="bi bi-credit-card me-2"></i>
+                  RUT
+                </Form.Label>
                 <Form.Control type="text" value={formatRUT(selectedUser.rut)} disabled />
               </Form.Group>
+
               <Form.Group className="mb-3">
-                <Form.Label>Nuevo Rol</Form.Label>
+                <Form.Label>
+                  <i className="bi bi-shield me-2"></i>
+                  Rol
+                </Form.Label>
                 <Form.Select
                   value={newRole}
                   onChange={(e) => setNewRole(e.target.value)}
@@ -684,17 +716,39 @@ export const UsersPage: React.FC = () => {
                   ))}
                 </Form.Select>
               </Form.Group>
+
+              <Form.Group className="mb-3">
+                <Form.Label>
+                  <i className="bi bi-key me-2"></i>
+                  Nueva Contraseña
+                </Form.Label>
+                <Form.Control
+                  type="text"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="Dejar vacío para mantener la actual"
+                  maxLength={8}
+                />
+                <Form.Text className="text-muted">
+                  La contraseña debe tener exactamente 8 caracteres si se desea cambiar
+                </Form.Text>
+              </Form.Group>
             </Form>
           )}
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowUpdateModal(false)}>
+          <Button variant="secondary" onClick={() => {
+            setShowUpdateModal(false);
+            setNewPassword('');
+            if (selectedUser) setNewRole(selectedUser.role);
+          }}>
+            <i className="bi bi-x-circle me-2"></i>
             Cancelar
           </Button>
           <Button
             variant="primary"
             onClick={handleUpdateUser}
-            disabled={isUpdating}
+            disabled={isUpdating || (newPassword !== '' && newPassword.length !== 8)}
           >
             {isUpdating ? (
               <>
@@ -709,7 +763,10 @@ export const UsersPage: React.FC = () => {
                 Actualizando...
               </>
             ) : (
-              'Guardar Cambios'
+              <>
+                <i className="bi bi-check-circle me-2"></i>
+                Guardar Cambios
+              </>
             )}
           </Button>
         </Modal.Footer>

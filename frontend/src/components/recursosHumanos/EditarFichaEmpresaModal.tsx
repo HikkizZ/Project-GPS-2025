@@ -352,19 +352,14 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
               <Form.Group className="mb-3">
                 <Form.Label>
                   Fecha Inicio Contrato *
-                  <InfoIcon text="La fecha de inicio no se puede modificar" />
                 </Form.Label>
                 <Form.Control
                   type="date"
                   name="fechaInicioContrato"
                   value={formData.fechaInicioContrato}
-                  readOnly
-                  disabled
-                  className="bg-light"
+                  onChange={handleInputChange}
+                  required
                 />
-                <Form.Text className="text-muted">
-                  La fecha de inicio no se puede modificar
-                </Form.Text>
               </Form.Group>
             </Col>
             <Col md={6}>

@@ -26,24 +26,21 @@ class UserService {
     }
   }
 
-  async updateUser(userId: number, rut: string, role: string): Promise<SafeUser> {
+  async updateUser(id: number, rut: string, updates: { role?: string, password?: string }): Promise<void> {
     try {
-      const response = await fetch(`${this.baseURL}/users/update?id=${userId}`, {
+      const response = await fetch(`${this.baseURL}/users/update?id=${id}&rut=${rut}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('authToken')}`
         },
-        body: JSON.stringify({ role })
+        body: JSON.stringify(updates)
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Error al actualizar usuario');
+        const error = await response.json();
+        throw new Error(error.message || 'Error al actualizar usuario');
       }
-
-      const data = await response.json();
-      return data.data;
     } catch (error) {
       console.error('Error en updateUser:', error);
       throw error;
