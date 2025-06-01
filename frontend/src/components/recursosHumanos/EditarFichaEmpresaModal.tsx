@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, Button, Form, Alert, Spinner, Row, Col } from 'react-bootstrap';
+import { Modal, Button, Form, Alert, Spinner, Row, Col, OverlayTrigger, Tooltip } from 'react-bootstrap';
 import { FichaEmpresa, UpdateFichaEmpresaData, EstadoLaboral } from '@/types/fichaEmpresa.types';
 import { updateFichaEmpresa, uploadContrato, downloadContrato, deleteContrato, getFichaEmpresa } from '@/services/fichaEmpresa.service';
 
@@ -9,6 +9,16 @@ interface EditarFichaEmpresaModalProps {
   ficha: FichaEmpresa;
   onUpdate?: () => void;
 }
+
+// Componente para el ícono de información con tooltip
+const InfoIcon: React.FC<{ text: string }> = ({ text }) => (
+  <OverlayTrigger
+    placement="right"
+    overlay={<Tooltip>{text}</Tooltip>}
+  >
+    <i className="bi bi-info-circle ms-2" style={{ cursor: 'help' }}></i>
+  </OverlayTrigger>
+);
 
 export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = ({
   show,
@@ -34,21 +44,6 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
     fechaInicioContrato: ficha.fechaInicioContrato ? new Date(ficha.fechaInicioContrato).toISOString().split('T')[0] : '',
     fechaFinContrato: ficha.fechaFinContrato ? new Date(ficha.fechaFinContrato).toISOString().split('T')[0] : ''
   });
-
-  // Agregar información de validación
-  const validationInfo = (
-    <Alert variant="info" className="mt-3">
-      <h6 className="mb-2">Información importante sobre las validaciones:</h6>
-      <ul className="mb-0">
-        <li>No se puede reducir el sueldo base de un empleado</li>
-        <li>El sueldo base debe ser mayor a 0</li>
-        <li>La fecha de fin de contrato debe ser posterior a la fecha de inicio</li>
-        <li>No se pueden modificar datos laborales de una ficha desvinculada</li>
-        <li>Los tipos de contrato válidos son: Indefinido, Plazo Fijo, Por Obra, Part-Time</li>
-        <li>Las jornadas laborales válidas son: Completa, Media, Part-Time</li>
-      </ul>
-    </Alert>
-  );
 
   useEffect(() => {
     if (show) {
@@ -236,9 +231,6 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
             </div>
           )}
 
-          {/* Mostrar la información de validación al inicio */}
-          {validationInfo}
-
           <h5 className="mb-3 mt-4">Información del Trabajador</h5>
           <div className="alert alert-info">
             <strong>Trabajador:</strong> {ficha.trabajador.nombres} {ficha.trabajador.apellidoPaterno} {ficha.trabajador.apellidoMaterno}
@@ -250,7 +242,10 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
           <Row>
             <Col md={6}>
               <Form.Group className="mb-3">
-                <Form.Label>Cargo *</Form.Label>
+                <Form.Label>
+                  Cargo *
+                  <InfoIcon text="El cargo debe tener entre 3 y 100 caracteres" />
+                </Form.Label>
                 <Form.Control
                   type="text"
                   name="cargo"
@@ -262,7 +257,10 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
             </Col>
             <Col md={6}>
               <Form.Group className="mb-3">
-                <Form.Label>Área *</Form.Label>
+                <Form.Label>
+                  Área *
+                  <InfoIcon text="El área debe tener entre 3 y 100 caracteres" />
+                </Form.Label>
                 <Form.Control
                   type="text"
                   name="area"
@@ -277,7 +275,10 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
           <Row>
             <Col md={6}>
               <Form.Group className="mb-3">
-                <Form.Label>Empresa *</Form.Label>
+                <Form.Label>
+                  Empresa *
+                  <InfoIcon text="La empresa debe tener entre 3 y 100 caracteres" />
+                </Form.Label>
                 <Form.Control
                   type="text"
                   name="empresa"
@@ -289,7 +290,9 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
             </Col>
             <Col md={6}>
               <Form.Group className="mb-3">
-                <Form.Label>Tipo de Contrato *</Form.Label>
+                <Form.Label>
+                  Tipo de Contrato *
+                </Form.Label>
                 <Form.Select
                   name="tipoContrato"
                   value={formData.tipoContrato}
@@ -300,6 +303,7 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
                   <option value="Indefinido">Indefinido</option>
                   <option value="Plazo Fijo">Plazo Fijo</option>
                   <option value="Por Obra">Por Obra</option>
+                  <option value="Part-Time">Part-Time</option>
                 </Form.Select>
               </Form.Group>
             </Col>
@@ -308,7 +312,9 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
           <Row>
             <Col md={6}>
               <Form.Group className="mb-3">
-                <Form.Label>Jornada Laboral *</Form.Label>
+                <Form.Label>
+                  Jornada Laboral *
+                </Form.Label>
                 <Form.Select
                   name="jornadaLaboral"
                   value={formData.jornadaLaboral}
@@ -317,13 +323,17 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
                 >
                   <option value="">Seleccione...</option>
                   <option value="Completa">Completa</option>
-                  <option value="Parcial">Parcial</option>
+                  <option value="Media">Media</option>
+                  <option value="Part-Time">Part-Time</option>
                 </Form.Select>
               </Form.Group>
             </Col>
             <Col md={6}>
               <Form.Group className="mb-3">
-                <Form.Label>Sueldo Base *</Form.Label>
+                <Form.Label>
+                  Sueldo Base *
+                  <InfoIcon text="El sueldo base debe ser mayor a 0, no puede exceder los 100,000,000 y no puede ser menor al sueldo actual" />
+                </Form.Label>
                 <Form.Control
                   type="text"
                   pattern="[0-9]*"
@@ -340,7 +350,10 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
           <Row>
             <Col md={6}>
               <Form.Group className="mb-3">
-                <Form.Label>Fecha Inicio Contrato *</Form.Label>
+                <Form.Label>
+                  Fecha Inicio Contrato *
+                  <InfoIcon text="La fecha de inicio no se puede modificar" />
+                </Form.Label>
                 <Form.Control
                   type="date"
                   name="fechaInicioContrato"
@@ -356,7 +369,10 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
             </Col>
             <Col md={6}>
               <Form.Group className="mb-3">
-                <Form.Label>Fecha Fin Contrato</Form.Label>
+                <Form.Label>
+                  Fecha Fin Contrato
+                  <InfoIcon text="La fecha de fin debe ser posterior a la fecha de inicio" />
+                </Form.Label>
                 <Form.Control
                   type="date"
                   name="fechaFinContrato"
