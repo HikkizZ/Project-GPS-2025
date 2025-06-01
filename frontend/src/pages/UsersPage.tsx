@@ -272,7 +272,20 @@ export const UsersPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="row g-3">
+            <div className="row g-3 mb-3">
+              <div className="col-md-3">
+                <label className="form-label d-flex align-items-center">
+                  <i className="bi bi-credit-card me-2"></i>
+                  RUT
+                </label>
+                <Form.Control
+                  type="text"
+                  name="rut"
+                  placeholder="12.345.678-9"
+                  value={searchParams.rut || ''}
+                  onChange={handleRutChange}
+                />
+              </div>
               <div className="col-md-3">
                 <label className="form-label d-flex align-items-center">
                   <i className="bi bi-person me-2"></i>
@@ -290,19 +303,6 @@ export const UsersPage: React.FC = () => {
                       name: value
                     }));
                   }}
-                />
-              </div>
-              <div className="col-md-3">
-                <label className="form-label d-flex align-items-center">
-                  <i className="bi bi-credit-card me-2"></i>
-                  RUT
-                </label>
-                <Form.Control
-                  type="text"
-                  name="rut"
-                  placeholder="12.345.678-9"
-                  value={searchParams.rut || ''}
-                  onChange={handleRutChange}
                 />
               </div>
               <div className="col-md-3">

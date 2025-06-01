@@ -35,26 +35,20 @@ interface SearchFichaParams {
 
 export async function searchFichasEmpresa(params: SearchFichaParams): Promise<ServiceResponse<FichaEmpresa[]>> {
     try {
-        console.log("🔍 Iniciando búsqueda con parámetros:", params);
-        
         const fichaRepo = AppDataSource.getRepository(FichaEmpresa);
         const queryBuilder = fichaRepo.createQueryBuilder("ficha")
             .leftJoinAndSelect("ficha.trabajador", "trabajador");
-
-        console.log("📋 Query base creada");
 
         // Filtros por trabajador
         if (params.rut) {
             // Limpiar el RUT de búsqueda (quitar puntos y guión)
             const cleanRut = params.rut.replace(/\./g, '').replace(/-/g, '');
-            console.log("🔑 RUT limpio para búsqueda:", cleanRut);
             
             // Buscar tanto el RUT limpio como el RUT con formato
             queryBuilder.andWhere(
                 "REPLACE(REPLACE(trabajador.rut, '.', ''), '-', '') ILIKE :cleanRut",
                 { cleanRut: `%${cleanRut}%` }
             );
-            console.log("✅ Filtro de RUT agregado a la consulta");
         }
 
         if (params.trabajadorId) {
@@ -119,24 +113,15 @@ export async function searchFichasEmpresa(params: SearchFichaParams): Promise<Se
         // Ordenar por ID
         queryBuilder.orderBy("ficha.id", "ASC");
 
-        // Log de la consulta SQL generada
-        const sqlQuery = queryBuilder.getSql();
-        const parameters = queryBuilder.getParameters();
-        console.log("🔍 SQL Query generada:", sqlQuery);
-        console.log("📝 Parámetros de la consulta:", parameters);
-
         const fichas = await queryBuilder.getMany();
-        console.log(`✨ Resultados encontrados: ${fichas.length}`);
 
         if (!fichas.length) {
-            console.log("❌ No se encontraron resultados");
             return [null, { message: "No hay fichas de empresa que coincidan con los criterios de búsqueda" }];
         }
 
-        console.log("✅ Búsqueda completada exitosamente");
         return [fichas, null];
     } catch (error) {
-        console.error("❌ Error al buscar fichas de empresa:", error);
+        console.error("Error al buscar fichas de empresa:", error);
         return [null, { message: "Error interno del servidor" }];
     }
 }
