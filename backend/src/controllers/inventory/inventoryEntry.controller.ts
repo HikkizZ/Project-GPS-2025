@@ -8,7 +8,7 @@ import {
 
 import { CreateInventoryEntryDTO } from '../../types/index.js';
 import { handleSuccess, handleErrorClient, handleErrorServer } from '../../handlers/responseHandlers.js';
-import { createInventoryEntryValidation, inventoryEntryQueryValidation } from '../../validations/inventory/inventory.validation.js';
+import { createInventoryEntryValidation, inventoryQueryValidation } from '../../validations/inventory/inventory.validation.js';
 
 export async function createInventoryEntry(req: Request, res: Response): Promise<void> {
   try {
@@ -65,7 +65,7 @@ export async function getInventoryEntryById(req: Request, res: Response): Promis
 
     const parsedId = id ? Number(id) : undefined;
 
-    const { error } = inventoryEntryQueryValidation.validate({ id: parsedId });
+    const { error } = inventoryQueryValidation.validate({ id: parsedId });
 
     if (error || parsedId === undefined) {
       handleErrorClient(res, 400, error?.message ?? "El parámetro 'id' es obligatorio.");
@@ -97,7 +97,7 @@ export async function deleteInventoryEntry(req: Request, res: Response): Promise
 
     const parsedId = id ? Number(id) : undefined;
 
-    const { error } = inventoryEntryQueryValidation.validate({ id: parsedId });
+    const { error } = inventoryQueryValidation.validate({ id: parsedId });
 
     if (error || parsedId === undefined) {
       handleErrorClient(res, 400, error?.message ?? "El parámetro 'id' es obligatorio.");
