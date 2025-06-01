@@ -116,44 +116,52 @@ export async function updateUserService(query: QueryParams, body: UpdateUserData
         const { id, rut, email } = query;
         const userRepository = AppDataSource.getRepository(User);
         
-        // Validar formato de RUT y email si están presentes
-        if (rut && !isValidRut(rut)) {
-            return [null, "Formato de RUT inválido"];
-        }
-        if (email && !isValidEmail(email)) {
-            return [null, "Formato de email inválido"];
-        }
-
+        // Buscar el usuario
         const userFound = await userRepository.findOne({
             where: [{ id }, { rut }, { email }],
         });
 
         if (!userFound) return [null, "Usuario no encontrado"];
 
+        // Solo permitir actualizar contraseña y rol
+        const allowedUpdates = ['password', 'role'];
+        const updates = Object.keys(body).filter(key => !allowedUpdates.includes(key));
+        
+        if (updates.length > 0) {
+            return [null, "Solo se puede modificar la contraseña y el rol del usuario"];
+        }
+
         /* Only admin and RRHH can update roles */
-        if (requester.role !== "Administrador" && requester.role !== "RecursosHumanos") {
+        if (body.role && requester.role !== "Administrador" && requester.role !== "RecursosHumanos") {
             return [null, "No tienes permisos para modificar roles"];
         }
 
-        /* Only allow updating the role field */
-        if (!body.role) {
-            return [null, "El campo role es requerido"];
-        }
-
-        /* Validate role */
-        if (!isValidRole(body.role)) {
+        /* Validate role if present */
+        if (body.role && !isValidRole(body.role)) {
             return [null, "Rol inválido"];
         }
 
         /* Prevent updating protected users */
         if (userFound.role === "Administrador" && userFound.rut === "11.111.111-1") {
-            return [null, "No se puede modificar el rol del administrador principal"];
+            return [null, "No se puede modificar el administrador principal"];
         }
 
         const dataUserUpdate: Partial<User> = {
-            role: body.role,
             updateAt: new Date(),
         };
+
+        // Actualizar rol si está presente
+        if (body.role) {
+            dataUserUpdate.role = body.role;
+        }
+
+        // Actualizar contraseña si está presente
+        if (body.password) {
+            if (body.password.length < 6) {
+                return [null, "La contraseña debe tener al menos 6 caracteres"];
+            }
+            dataUserUpdate.password = await encryptPassword(body.password);
+        }
 
         await userRepository.update({ id: userFound.id }, dataUserUpdate);
 

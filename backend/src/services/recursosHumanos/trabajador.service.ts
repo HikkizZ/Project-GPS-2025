@@ -8,11 +8,18 @@ import { ILike, Like } from "typeorm";
 import { FindOptionsWhere } from "typeorm";
 import { User } from "../../entity/user.entity.js";
 import { HistorialLaboral } from "../../entity/recursosHumanos/historialLaboral.entity.js";
+import { encryptPassword } from "../../helpers/bcrypt.helper.js";
+
+// Función para generar una contraseña aleatoria de 6 dígitos
+function generateRandomPassword(): string {
+    return Math.floor(100000 + Math.random() * 900000).toString();
+}
 
 export async function createTrabajadorService(trabajadorData: Partial<Trabajador>): Promise<ServiceResponse<Trabajador>> {
     try {
         const trabajadorRepo = AppDataSource.getRepository(Trabajador);
         const fichaRepo = AppDataSource.getRepository(FichaEmpresa);
+        const userRepo = AppDataSource.getRepository(User);
 
         // Validar datos requeridos
         if (!trabajadorData.rut || !trabajadorData.nombres || !trabajadorData.apellidoPaterno || 
@@ -68,12 +75,44 @@ export async function createTrabajadorService(trabajadorData: Partial<Trabajador
             }
         }
 
+        // Verificar si ya existe un usuario con el mismo RUT o correo
+        const existingUser = await userRepo.findOne({
+            where: [
+                { rut: trabajadorData.rut },
+                { email: trabajadorData.correo }
+            ]
+        });
+
+        if (existingUser) {
+            if (existingUser.rut === trabajadorData.rut) {
+                return [null, "Ya existe un usuario con ese RUT"];
+            }
+            if (existingUser.email === trabajadorData.correo) {
+                return [null, "Ya existe un usuario con ese correo"];
+            }
+        }
+
         // Crear el trabajador
         const trabajador = trabajadorRepo.create({
             ...trabajadorData,
             enSistema: true
         });
         const trabajadorGuardado = await trabajadorRepo.save(trabajador);
+
+        // Crear usuario automáticamente
+        const randomPassword = generateRandomPassword();
+        const hashedPassword = await encryptPassword(randomPassword);
+        
+        const newUser = userRepo.create({
+            name: `${trabajadorData.nombres} ${trabajadorData.apellidoPaterno} ${trabajadorData.apellidoMaterno}`,
+            rut: trabajadorData.rut,
+            email: trabajadorData.correo,
+            password: hashedPassword,
+            role: "Usuario",
+            trabajador: trabajadorGuardado
+        });
+
+        await userRepo.save(newUser);
 
         // SIEMPRE crear la ficha de empresa con valores por defecto
         const fichaData: DeepPartial<FichaEmpresa> = {
@@ -99,7 +138,7 @@ export async function createTrabajadorService(trabajadorData: Partial<Trabajador
         // Recargar el trabajador con todas sus relaciones
         const trabajadorCompleto = await trabajadorRepo.findOne({
             where: { id: trabajadorGuardado.id },
-            relations: ["fichaEmpresa"]
+            relations: ["fichaEmpresa", "usuario"]
         });
 
         if (!trabajadorCompleto) {
@@ -111,7 +150,8 @@ export async function createTrabajadorService(trabajadorData: Partial<Trabajador
             throw new Error("No se pudo cargar la ficha de empresa del trabajador");
         }
 
-        return [trabajadorCompleto, null];
+        // Devolver la contraseña generada junto con el trabajador
+        return [{ ...trabajadorCompleto, tempPassword: randomPassword }, null];
     } catch (error) {
         console.error("Error en createTrabajadorService:", error);
         return [null, "Error interno del servidor"];
