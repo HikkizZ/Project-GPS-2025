@@ -8,6 +8,7 @@ import {
 } from '@/types/fichaEmpresa.types';
 import { Trabajador } from '@/types/trabajador.types';
 import { EditarFichaEmpresaModal } from '@/components/recursosHumanos/EditarFichaEmpresaModal';
+import { OverlayTrigger, Tooltip } from 'react-bootstrap';
 
 interface FichasEmpresaPageProps {
   trabajadorRecienRegistrado?: Trabajador | null;
@@ -32,7 +33,8 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
     formatSalario: formatSueldo,
     formatFecha,
     searchByRUT,
-    clearError
+    clearError,
+    downloadContrato
   } = useFichaEmpresa();
 
   const [searchQuery, setSearchQuery] = useState<FichaEmpresaSearchParams>({});
@@ -156,6 +158,15 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
     setTimeout(() => {
       setSuccessMessage(null);
     }, 3000);
+  };
+
+  const handleDownloadContrato = async (fichaId: number) => {
+    try {
+      await downloadContrato(fichaId);
+    } catch (error) {
+      setError('Error al descargar el contrato. Por favor, intente nuevamente.');
+      setTimeout(() => setError(null), 3000);
+    }
   };
 
   const getEstadoBadgeClass = (estado: EstadoLaboral) => {
@@ -552,9 +563,13 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                         <th>Trabajador</th>
                         <th>Cargo</th>
                         <th>Área</th>
+                        <th>Empresa</th>
                         <th>Estado</th>
-                        <th>Contrato</th>
-                        <th>Sueldo</th>
+                        <th>Tipo Contrato</th>
+                        <th>Jornada</th>
+                        <th>Fecha Inicio</th>
+                        <th>Fecha Fin</th>
+                        <th>Sueldo Base</th>
                         <th>Acciones</th>
                       </tr>
                     </thead>
@@ -563,27 +578,35 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                         <tr key={ficha.id}>
                           <td>
                             <div>
-                              <strong>{ficha.trabajador.nombres} {ficha.trabajador.apellidoPaterno}</strong>
+                              <strong>{ficha.trabajador.nombres} {ficha.trabajador.apellidoPaterno} {ficha.trabajador.apellidoMaterno}</strong>
                               <br />
                               <small className="text-muted">{ficha.trabajador.rut}</small>
                             </div>
                           </td>
-                          <td>
-                            <span className="fw-medium">{ficha.cargo}</span>
-                          </td>
-                          <td>{ficha.area}</td>
+                          <td>{ficha.cargo || '-'}</td>
+                          <td>{ficha.area || '-'}</td>
+                          <td>{ficha.empresa || '-'}</td>
                           <td>
                             <span className={`badge ${getEstadoBadgeClass(ficha.estado)}`}>
                               {ficha.estado}
                             </span>
+                            {ficha.estado === EstadoLaboral.DESVINCULADO && ficha.motivoDesvinculacion && (
+                              <OverlayTrigger
+                                placement="top"
+                                overlay={<Tooltip>{ficha.motivoDesvinculacion}</Tooltip>}
+                              >
+                                <i className="bi bi-info-circle ms-2 text-muted"></i>
+                              </OverlayTrigger>
+                            )}
                           </td>
                           <td>
                             <span className={getTipoContratoColor(ficha.tipoContrato)}>
                               {ficha.tipoContrato}
                             </span>
-                            <br />
-                            <small className="text-muted">{ficha.jornadaLaboral}</small>
                           </td>
+                          <td>{ficha.jornadaLaboral || '-'}</td>
+                          <td>{formatFecha(ficha.fechaInicioContrato)}</td>
+                          <td>{ficha.fechaFinContrato ? formatFecha(ficha.fechaFinContrato) : '-'}</td>
                           <td>
                             <span className="fw-bold text-success">
                               {formatSueldo(ficha.sueldoBase)}
@@ -591,6 +614,15 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                           </td>
                           <td>
                             <div className="btn-group btn-group-sm">
+                              {ficha.contratoURL && (
+                                <button
+                                  className="btn btn-outline-primary"
+                                  onClick={() => handleDownloadContrato(ficha.id)}
+                                  title="Descargar contrato"
+                                >
+                                  <i className="bi bi-file-earmark-pdf"></i>
+                                </button>
+                              )}
                               {ficha.trabajador.rut !== '11.111.111-1' && (
                                 <button
                                   className="btn btn-outline-warning"
