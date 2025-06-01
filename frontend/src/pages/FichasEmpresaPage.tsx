@@ -38,8 +38,6 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
   const [searchQuery, setSearchQuery] = useState<FichaEmpresaSearchParams>({});
   const [showFilters, setShowFilters] = useState(false);
   const [selectedFicha, setSelectedFicha] = useState<FichaEmpresa | null>(null);
-  const [showModal, setShowModal] = useState(false);
-  const [modalType, setModalType] = useState<'view' | 'edit'>('view');
   const [showEditModal, setShowEditModal] = useState(false);
 
   // Estados para los checkboxes de filtrado
@@ -137,12 +135,6 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
     if (user?.role !== 'Usuario') {
       searchFichas({});
     }
-  };
-
-  const handleViewFicha = (ficha: FichaEmpresa) => {
-    setSelectedFicha(ficha);
-    setModalType('view');
-    setShowModal(true);
   };
 
   const handleEditFicha = (ficha: FichaEmpresa) => {
@@ -599,13 +591,6 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                           </td>
                           <td>
                             <div className="btn-group btn-group-sm">
-                              <button
-                                className="btn btn-outline-primary"
-                                onClick={() => handleViewFicha(ficha)}
-                                title="Ver detalles"
-                              >
-                                <i className="bi bi-eye"></i>
-                              </button>
                               {ficha.trabajador.rut !== '11.111.111-1' && (
                                 <button
                                   className="btn btn-outline-warning"
