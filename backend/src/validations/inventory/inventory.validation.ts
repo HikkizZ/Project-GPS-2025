@@ -8,7 +8,7 @@ const rutValidator = (value: string, helper: CustomHelpers) => {
 }
 
 /* Query validation for inventory entry */
-export const inventoryEntryQueryValidation: ObjectSchema = Joi.object({
+export const inventoryQueryValidation: ObjectSchema = Joi.object({
   id: Joi.number()
     .integer()
     .positive()
