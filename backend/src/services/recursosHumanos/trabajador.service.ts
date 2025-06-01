@@ -164,18 +164,23 @@ export async function searchTrabajadoresService(query: any): Promise<ServiceResp
             whereClause.fechaIngreso = query.fechaIngreso;
         }
         
-        // Solo incluir trabajadores activos a menos que se especifique lo contrario
-        if (query.soloEliminados) {
+        // Manejar el filtro de estado del sistema
+        if (query.soloEliminados === true || query.soloEliminados === 'true') {
             whereClause.enSistema = false;
-        } else if (!query.todos) {
+        } else if (query.todos !== true && query.todos !== 'true') {
             whereClause.enSistema = true;
         }
+        // Si query.todos es true, no agregamos ningún filtro de enSistema
+
+        console.log('Query recibida:', query);
+        console.log('Where clause generada:', whereClause);
 
         const trabajadores = await trabajadorRepo.find({
             where: whereClause,
             relations: ["fichaEmpresa", "historialLaboral", "licenciasPermisos", "capacitaciones"]
         });
 
+        console.log('Trabajadores encontrados:', trabajadores.length);
         return [trabajadores, null];
     } catch (error) {
         console.error("Error en searchTrabajadoresService:", error);

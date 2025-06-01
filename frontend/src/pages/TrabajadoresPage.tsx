@@ -99,10 +99,60 @@ export const TrabajadoresPage: React.FC = () => {
 
       {/* Sección de filtros */}
       {showFilters && (
-        <div className="card mb-4 border-primary">
+        <div className="card border-light shadow-sm mb-4">
           <div className="card-body">
+            <h6 className="card-title mb-3">
+              <i className="bi bi-search me-2"></i>
+              Filtros de Búsqueda
+            </h6>
+
+            {/* Checkboxes de estado */}
+            <div className="row mb-4">
+              <div className="col-12">
+                <h6 className="mb-3">Estado del trabajador:</h6>
+                <div className="form-check form-check-inline">
+                  <input
+                    className="form-check-input"
+                    type="checkbox"
+                    id="incluirEliminados"
+                    checked={searchParams.todos || false}
+                    onChange={(e) => {
+                      setSearchParams({ 
+                        ...searchParams, 
+                        todos: e.target.checked,
+                        soloEliminados: false 
+                      });
+                    }}
+                    disabled={searchParams.soloEliminados}
+                  />
+                  <label className="form-check-label" htmlFor="incluirEliminados">
+                    Incluir trabajadores desvinculados
+                  </label>
+                </div>
+                <div className="form-check form-check-inline">
+                  <input
+                    className="form-check-input"
+                    type="checkbox"
+                    id="soloEliminados"
+                    checked={searchParams.soloEliminados || false}
+                    onChange={(e) => {
+                      setSearchParams({ 
+                        ...searchParams, 
+                        soloEliminados: e.target.checked,
+                        todos: false 
+                      });
+                    }}
+                    disabled={searchParams.todos}
+                  />
+                  <label className="form-check-label" htmlFor="soloEliminados">
+                    Ver solo trabajadores desvinculados
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            {/* Resto de los filtros */}
             <div className="row g-3">
-              {/* Primera fila */}
               <div className="col-md-3">
                 <Form.Group>
                   <Form.Label>RUT</Form.Label>
@@ -147,7 +197,6 @@ export const TrabajadoresPage: React.FC = () => {
                   />
                 </Form.Group>
               </div>
-              {/* Segunda fila */}
               <div className="col-md-3">
                 <Form.Group>
                   <Form.Label>Correo</Form.Label>
@@ -192,7 +241,6 @@ export const TrabajadoresPage: React.FC = () => {
                   />
                 </Form.Group>
               </div>
-              {/* Tercera fila */}
               <div className="col-md-3">
                 <Form.Group>
                   <Form.Label>Fecha de Nacimiento</Form.Label>
@@ -214,33 +262,16 @@ export const TrabajadoresPage: React.FC = () => {
                 </Form.Group>
               </div>
             </div>
-            <div className="d-flex justify-content-between align-items-center mt-3">
-              <div>
-                <Button variant="primary" onClick={handleSearch}>
-                  <i className="bi bi-search me-2"></i>
-                  Buscar
-                </Button>
-                <Button variant="secondary" className="ms-2" onClick={clearFilters}>
-                  <i className="bi bi-x-circle me-2"></i>
-                  Limpiar
-                </Button>
-              </div>
-              <div className="d-flex gap-3">
-                <Form.Check
-                  type="checkbox"
-                  label="Incluir trabajadores eliminados (soft delete)"
-                  checked={searchParams.todos || false}
-                  onChange={(e) => setSearchParams({ ...searchParams, todos: e.target.checked })}
-                  id="includeInactive"
-                />
-                <Form.Check
-                  type="checkbox"
-                  label="Sólo mostrar trabajadores eliminados (soft delete)"
-                  checked={searchParams.soloEliminados || false}
-                  onChange={(e) => setSearchParams({ ...searchParams, soloEliminados: e.target.checked })}
-                  id="onlyInactive"
-                />
-              </div>
+
+            <div className="mt-3">
+              <Button variant="primary" className="me-2" onClick={handleSearch}>
+                <i className="bi bi-search me-2"></i>
+                Buscar
+              </Button>
+              <Button variant="secondary" onClick={clearFilters}>
+                <i className="bi bi-arrow-counterclockwise me-2"></i>
+                Limpiar
+              </Button>
             </div>
           </div>
         </div>
