@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useFichaEmpresa } from '@/hooks/useFichaEmpresa';
 import { useAuth } from '@/context/AuthContext';
+import { useRut } from '@/hooks/useRut';
 import { 
   FichaEmpresa, 
   FichaEmpresaSearchParams,
@@ -20,6 +21,7 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
   onTrabajadorModalClosed 
 }) => {
   const { user, isAuthenticated } = useAuth();
+  const { formatRUT } = useRut();
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   
@@ -197,6 +199,11 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
       default:
         return 'text-muted';
     }
+  };
+
+  const handleRutChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formattedRut = formatRUT(e.target.value);
+    setSearchQuery({ ...searchQuery, rut: formattedRut });
   };
 
   // Si es usuario normal, mostrar solo su ficha
@@ -402,7 +409,7 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                       className="form-control"
                       placeholder="12.345.678-9"
                       value={searchQuery.rut || ''}
-                      onChange={(e) => setSearchQuery({ ...searchQuery, rut: e.target.value })}
+                      onChange={handleRutChange}
                     />
                   </div>
                   <div className="col-md-3">

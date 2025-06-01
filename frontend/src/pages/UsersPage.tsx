@@ -181,6 +181,11 @@ export const UsersPage: React.FC = () => {
     return true;
   });
 
+  const handleRutChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formattedRut = formatRUT(e.target.value);
+    setSearchParams({ ...searchParams, rut: formattedRut });
+  };
+
   // Verificar permisos
   if (user?.role !== 'Administrador' && user?.role !== 'RecursosHumanos') {
     return (
@@ -297,13 +302,7 @@ export const UsersPage: React.FC = () => {
                   name="rut"
                   placeholder="12.345.678-9"
                   value={searchParams.rut || ''}
-                  onChange={(e) => {
-                    const { value } = e.target;
-                    setSearchParams(prev => ({
-                      ...prev,
-                      rut: value
-                    }));
-                  }}
+                  onChange={handleRutChange}
                 />
               </div>
               <div className="col-md-3">
