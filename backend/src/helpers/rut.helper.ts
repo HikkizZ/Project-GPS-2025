@@ -9,7 +9,6 @@ export function validateRut(rut: string): boolean {
 
     // Remove all periods and convert to uppercase
     const cleanRut = rut.replace(/\./g, '').trim().toUpperCase();
-    console.log('Clean RUT:', cleanRut);
 
     // Split the RUT into number and verifier
     const match = cleanRut.match(/^(\d{7,8})-([\dK])$/);
@@ -17,8 +16,6 @@ export function validateRut(rut: string): boolean {
 
     const num = match[1]; // Number part
     const dv = match[2].toUpperCase(); // Verifier part
-    console.log('Number part:', num);
-    console.log('Verifier:', dv);
 
     // Calculate the verifier
     let sum = 0;
@@ -28,14 +25,11 @@ export function validateRut(rut: string): boolean {
     for (let i = num.length - 1; i >= 0; i--) {
         const digit = parseInt(num[i]);
         const product = digit * mul;
-        console.log(`Digit ${digit} * ${mul} = ${product}`);
         sum += product;
         mul = mul === 7 ? 2 : mul + 1;
     }
-    console.log('Sum:', sum);
 
     const remainder = sum % 11;
-    console.log('Remainder:', remainder);
     
     // En el algoritmo chileno:
     // Si el resto es 0, el dígito es 0
@@ -46,9 +40,6 @@ export function validateRut(rut: string): boolean {
                         remainder === 1 ? 'K' : 
                         dv === 'K' && remainder === 6 ? 'K' : 
                         (11 - remainder).toString();
-    
-    console.log('Calculated verifier:', dvCalculated);
-    console.log('Expected verifier:', dv);
 
     return dv === dvCalculated;
 }
