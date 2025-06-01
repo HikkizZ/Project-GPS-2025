@@ -41,11 +41,12 @@ export class FichaEmpresa {
   @Column({ type: "decimal", precision: 10, scale: 2, nullable: false })
   sueldoBase!: number;
 
-  @Column({ 
-    type: "date", 
+  @Column({
+    type: "date",
     nullable: false,
     transformer: {
-      to: (value: Date | string): string => {
+      to: (value: Date | string | null): string | null => {
+        if (!value) return null;
         // Si ya es un string en formato YYYY-MM-DD, mantenerlo así
         if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
           return value;
@@ -54,7 +55,8 @@ export class FichaEmpresa {
         const date = typeof value === 'string' ? new Date(value) : value;
         return date.toISOString().split('T')[0];
       },
-      from: (value: string | Date): Date => {
+      from: (value: string | Date | null): Date | null => {
+        if (!value) return null;
         // Mantener la fecha exacta sin ajustes de zona horaria
         if (typeof value === 'string') {
           const [year, month, day] = value.split('-').map(Number);
@@ -66,8 +68,8 @@ export class FichaEmpresa {
   })
   fechaInicioContrato!: Date;
 
-  @Column({ 
-    type: "date", 
+  @Column({
+    type: "date",
     nullable: true,
     transformer: {
       to: (value: Date | string | null): string | null => {
@@ -91,7 +93,7 @@ export class FichaEmpresa {
       }
     }
   })
-  fechaFinContrato!: Date;
+  fechaFinContrato?: Date;
 
   @Column({
     type: "enum",

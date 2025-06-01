@@ -483,21 +483,39 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                     />
                   </div>
                   <div className="col-md-3">
-                    <label className="form-label">Fecha Inicio:</label>
+                    <label className="form-label">Fecha Inicio Desde:</label>
                     <input
                       type="date"
                       className="form-control"
-                      value={searchQuery.fechaInicio || ''}
-                      onChange={(e) => setSearchQuery({ ...searchQuery, fechaInicio: e.target.value })}
+                      value={searchQuery.fechaInicioDesde || ''}
+                      onChange={(e) => setSearchQuery({ ...searchQuery, fechaInicioDesde: e.target.value })}
                     />
                   </div>
                   <div className="col-md-3">
-                    <label className="form-label">Fecha Fin:</label>
+                    <label className="form-label">Fecha Inicio Hasta:</label>
                     <input
                       type="date"
                       className="form-control"
-                      value={searchQuery.fechaFin || ''}
-                      onChange={(e) => setSearchQuery({ ...searchQuery, fechaFin: e.target.value })}
+                      value={searchQuery.fechaInicioHasta || ''}
+                      onChange={(e) => setSearchQuery({ ...searchQuery, fechaInicioHasta: e.target.value })}
+                    />
+                  </div>
+                  <div className="col-md-3">
+                    <label className="form-label">Fecha Fin Desde:</label>
+                    <input
+                      type="date"
+                      className="form-control"
+                      value={searchQuery.fechaFinDesde || ''}
+                      onChange={(e) => setSearchQuery({ ...searchQuery, fechaFinDesde: e.target.value })}
+                    />
+                  </div>
+                  <div className="col-md-3">
+                    <label className="form-label">Fecha Fin Hasta:</label>
+                    <input
+                      type="date"
+                      className="form-control"
+                      value={searchQuery.fechaFinHasta || ''}
+                      onChange={(e) => setSearchQuery({ ...searchQuery, fechaFinHasta: e.target.value })}
                     />
                   </div>
                 </div>

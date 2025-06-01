@@ -81,17 +81,23 @@ export async function searchFichasEmpresa(params: SearchFichaParams): Promise<Se
 
         // Filtros por fechas
         if (params.fechaInicioDesde || params.fechaInicioHasta) {
-            whereClause.fechaInicioContrato = Between(
-                params.fechaInicioDesde || new Date('1900-01-01'),
-                params.fechaInicioHasta || new Date('2100-12-31')
-            );
+            const fechaInicio = params.fechaInicioDesde ? 
+                (typeof params.fechaInicioDesde === 'string' ? params.fechaInicioDesde : params.fechaInicioDesde.toISOString().split('T')[0]) : 
+                '1900-01-01';
+            const fechaFin = params.fechaInicioHasta ? 
+                (typeof params.fechaInicioHasta === 'string' ? params.fechaInicioHasta : params.fechaInicioHasta.toISOString().split('T')[0]) : 
+                '2100-12-31';
+            whereClause.fechaInicioContrato = Between(fechaInicio, fechaFin);
         }
 
         if (params.fechaFinDesde || params.fechaFinHasta) {
-            whereClause.fechaFinContrato = Between(
-                params.fechaFinDesde || new Date('1900-01-01'),
-                params.fechaFinHasta || new Date('2100-12-31')
-            );
+            const fechaInicio = params.fechaFinDesde ? 
+                (typeof params.fechaFinDesde === 'string' ? params.fechaFinDesde : params.fechaFinDesde.toISOString().split('T')[0]) : 
+                '1900-01-01';
+            const fechaFin = params.fechaFinHasta ? 
+                (typeof params.fechaFinHasta === 'string' ? params.fechaFinHasta : params.fechaFinHasta.toISOString().split('T')[0]) : 
+                '2100-12-31';
+            whereClause.fechaFinContrato = Between(fechaInicio, fechaFin);
         }
 
         const fichas = await fichaRepo.find({

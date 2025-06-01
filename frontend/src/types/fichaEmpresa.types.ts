@@ -87,6 +87,8 @@ export interface FichaEmpresaSearchParams {
   tipoContrato?: string;
   sueldoBaseDesde?: number;
   sueldoBaseHasta?: number;
-  fechaInicio?: string;
-  fechaFin?: string;
+  fechaInicioDesde?: string;
+  fechaInicioHasta?: string;
+  fechaFinDesde?: string;
+  fechaFinHasta?: string;
 } 
