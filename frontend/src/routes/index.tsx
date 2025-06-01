@@ -1,7 +1,7 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import Login from '@/pages/Login';
-import Register from '@/pages/Register';
+import { LoginPage } from '@/pages/LoginPage';
+import { RegisterPage } from '@/pages/RegisterPage';
 import { UsersPage } from '@/pages/UsersPage';
 import { authService } from '@/services/auth.service';
 
@@ -29,12 +29,12 @@ const AdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 const AppRoutes: React.FC = () => {
   return (
     <Routes>
-      <Route path="/login" element={<Login />} />
+      <Route path="/login" element={<LoginPage />} />
       <Route
         path="/register"
         element={
           <AdminRoute>
-            <Register />
+            <RegisterPage />
           </AdminRoute>
         }
       />
