@@ -210,6 +210,29 @@ export async function actualizarEstadoFichaService(
             }
             ficha.fechaFinContrato = new Date();
             ficha.motivoDesvinculacion = motivo;
+
+            // Buscar y eliminar la cuenta de usuario asociada al trabajador
+            const userRepo = queryRunner.manager.getRepository(User);
+            const userToDelete = await userRepo.findOne({
+                where: { trabajador: { id: ficha.trabajador.id } }
+            });
+
+            if (userToDelete) {
+                // Marcar como eliminado (soft delete) en lugar de eliminar físicamente
+                userToDelete.activo = false;
+                await queryRunner.manager.save(userToDelete);
+            }
+
+            // Marcar al trabajador como no activo en el sistema
+            const trabajadorRepo = queryRunner.manager.getRepository(Trabajador);
+            const trabajador = await trabajadorRepo.findOne({
+                where: { id: ficha.trabajador.id }
+            });
+
+            if (trabajador) {
+                trabajador.enSistema = false;
+                await queryRunner.manager.save(trabajador);
+            }
         }
 
         // Actualizar el estado y otros campos
@@ -273,8 +296,6 @@ export async function updateFichaEmpresaService(
 
         // 4. Validar cambios específicos
         if ('sueldoBase' in fichaData && fichaData.sueldoBase !== undefined) {
-            console.log('Sueldo base actual:', fichaActual.sueldoBase);
-            console.log('Nuevo sueldo base:', fichaData.sueldoBase);
             if (fichaData.sueldoBase <= 0) {
                 return [null, { message: "El sueldo base debe ser mayor a cero" }];
             }

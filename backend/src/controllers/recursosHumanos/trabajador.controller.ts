@@ -5,7 +5,8 @@ import {
     getTrabajadoresService,
     searchTrabajadoresService,
     updateTrabajadorService,
-    deleteTrabajadorService
+    deleteTrabajadorService,
+    desvincularTrabajadorService
 } from "../../services/recursosHumanos/trabajador.service.js";
 import { TrabajadorBodyValidation, TrabajadorQueryValidation, TrabajadorUpdateValidation } from "../../validations/recursosHumanos/trabajador.validation.js";
 
@@ -127,5 +128,41 @@ export async function deleteTrabajador(req: Request, res: Response): Promise<voi
     } catch (error) {
         console.error("Error al eliminar trabajador:", error);
         handleErrorServer(res, 500, "Error interno del servidor");
+    }
+}
+
+export async function desvincularTrabajador(req: Request, res: Response) {
+    try {
+        const id = parseInt(req.params.id);
+        if (isNaN(id)) {
+            handleErrorClient(res, 400, "ID inválido");
+            return;
+        }
+
+        const { motivo } = req.body;
+        if (!motivo || typeof motivo !== 'string' || motivo.trim().length < 3) {
+            handleErrorClient(res, 400, "El motivo de desvinculación es requerido y debe tener al menos 3 caracteres");
+            return;
+        }
+
+        const [trabajador, error] = await desvincularTrabajadorService(id, motivo.trim(), req.user?.id);
+
+        if (error) {
+            if (error.includes("No tiene permiso")) {
+                handleErrorClient(res, 403, error);
+                return;
+            }
+            if (error.includes("no encontrado")) {
+                handleErrorClient(res, 404, error);
+                return;
+            }
+            handleErrorClient(res, 400, error);
+            return;
+        }
+
+        handleSuccess(res, 200, "Trabajador desvinculado exitosamente", trabajador);
+    } catch (error) {
+        console.error("Error en desvincularTrabajador:", error);
+        handleErrorServer(res);
     }
 } 

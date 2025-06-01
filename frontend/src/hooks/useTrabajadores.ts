@@ -111,6 +111,28 @@ export const useTrabajadores = () => {
     }
   };
 
+  // Desvincular trabajador
+  const desvincularTrabajador = async (id: number, motivo: string) => {
+    setIsLoading(true);
+    setError('');
+    try {
+      const result = await trabajadorService.desvincularTrabajador(id, motivo);
+      if (result.success) {
+        await loadTrabajadores(); // Recargar la lista
+        return { success: true };
+      } else {
+        setError(result.error || 'Error al desvincular trabajador');
+        return { success: false, error: result.error };
+      }
+    } catch (error) {
+      const errorMsg = 'Error al desvincular trabajador';
+      setError(errorMsg);
+      return { success: false, error: errorMsg };
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // Cargar trabajadores al inicializar el hook
   useEffect(() => {
     loadTrabajadores();
@@ -125,6 +147,7 @@ export const useTrabajadores = () => {
     createTrabajador,
     updateTrabajador,
     deleteTrabajador,
+    desvincularTrabajador,
     clearError: () => setError('')
   };
 }; 

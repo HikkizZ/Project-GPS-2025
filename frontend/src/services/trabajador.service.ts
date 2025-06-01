@@ -143,6 +143,29 @@ class TrabajadorService {
     }
   }
 
+  // Desvincular trabajador
+  async desvincularTrabajador(id: number, motivo: string): Promise<{ success: boolean; error?: string }> {
+    try {
+      const response = await axios.post(
+        `${this.baseURL}/${id}/desvincular`,
+        { motivo },
+        { headers: this.getHeaders() }
+      );
+
+      if (response.data.status === 'success') {
+        return { success: true };
+      }
+
+      return { success: false, error: response.data.message };
+    } catch (error: any) {
+      console.error('Error al desvincular trabajador:', error);
+      if (error.response?.data?.message) {
+        return { success: false, error: error.response.data.message };
+      }
+      return { success: false, error: 'Error de conexión con el servidor' };
+    }
+  }
+
   // Utilidades estáticas
   static formatRUT(rut: string): string {
     // Eliminar caracteres no válidos

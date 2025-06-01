@@ -6,8 +6,11 @@ import {
     getTrabajadores,
     searchTrabajadores,
     updateTrabajador,
-    deleteTrabajador
+    deleteTrabajador,
+    desvincularTrabajador
 } from "../../controllers/recursosHumanos/trabajador.controller.js";
+import { verifyToken } from '../../middlewares/auth.middleware.js';
+import { checkRole } from '../../middlewares/roles.middleware.js';
 
 const router: Router = Router();
 
@@ -22,6 +25,7 @@ router
     .get("/all", getTrabajadores)
     .get("/detail/", searchTrabajadores)
     .put("/:id", updateTrabajador)
-    .delete("/:id", deleteTrabajador);
+    .delete("/:id", deleteTrabajador)
+    .post("/:id/desvincular", desvincularTrabajador);
 
 export default router; 

@@ -29,7 +29,6 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
     loadFichas: searchFichas,
     loadFichaById: loadMiFicha,
     updateFicha,
-    updateEstadoLaboral: actualizarEstado,
     formatSalario: formatSueldo,
     formatFecha,
     searchByRUT,
@@ -40,7 +39,7 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
   const [showFilters, setShowFilters] = useState(false);
   const [selectedFicha, setSelectedFicha] = useState<FichaEmpresa | null>(null);
   const [showModal, setShowModal] = useState(false);
-  const [modalType, setModalType] = useState<'view' | 'edit' | 'estado'>('view');
+  const [modalType, setModalType] = useState<'view' | 'edit'>('view');
   const [showEditModal, setShowEditModal] = useState(false);
 
   // Verificar autenticación
@@ -135,12 +134,6 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
   const handleEditFicha = (ficha: FichaEmpresa) => {
     setSelectedFicha(ficha);
     setShowEditModal(true);
-  };
-
-  const handleChangeEstado = (ficha: FichaEmpresa) => {
-    setSelectedFicha(ficha);
-    setModalType('estado');
-    setShowModal(true);
   };
 
   const handleCloseEditModal = () => {
@@ -560,26 +553,6 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                               >
                                 <i className="bi bi-pencil"></i>
                               </button>
-                              {(() => {
-                                try {
-                                  const userData = localStorage.getItem('userData');
-                                  const user = userData ? JSON.parse(userData) : null;
-                                  const hasPermission = user && (user.role === 'RecursosHumanos' || user.role === 'Administrador');
-                                  
-                                  return hasPermission && ficha.estado !== EstadoLaboral.DESVINCULADO && (
-                                    <button
-                                      className="btn btn-outline-danger"
-                                      onClick={() => handleChangeEstado(ficha)}
-                                      title="Desvincular trabajador"
-                                    >
-                                      <i className="bi bi-person-x"></i>
-                                    </button>
-                                  );
-                                } catch (error) {
-                                  console.error('Error al verificar permisos:', error);
-                                  return null;
-                                }
-                              })()}
                             </div>
                           </td>
                         </tr>
@@ -602,105 +575,6 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
           onUpdate={handleUpdateSuccess}
         />
       )}
-
-      {/* Modal de Cambio de Estado */}
-      {showModal && selectedFicha && modalType === 'estado' && (
-        <EstadoModal
-          ficha={selectedFicha}
-          onSave={async (estado, motivo) => {
-            try {
-              await actualizarEstado(selectedFicha.id, estado, motivo);
-              setShowModal(false);
-              setSelectedFicha(null);
-              // Recargar fichas
-              if (user?.role === 'Usuario') {
-                loadMiFicha();
-              } else {
-                handleSearch();
-              }
-              // Mostrar mensaje de éxito
-              setSuccessMessage('Estado actualizado exitosamente');
-            } catch (error) {
-              console.error('Error al actualizar estado:', error);
-              // El error se manejará a través del estado global
-            }
-          }}
-          onClose={() => {
-            setShowModal(false);
-            setSelectedFicha(null);
-          }}
-        />
-      )}
-    </div>
-  );
-};
-
-// Componente Modal de Cambio de Estado
-const EstadoModal: React.FC<{
-  ficha: FichaEmpresa;
-  onSave: (estado: EstadoLaboral, motivo: string) => void;
-  onClose: () => void;
-}> = ({ ficha, onSave, onClose }) => {
-  const [motivo, setMotivo] = useState('');
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSave(EstadoLaboral.DESVINCULADO, motivo);
-  };
-
-  return (
-    <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-      <div className="modal-dialog">
-        <div className="modal-content">
-          <div className="modal-header bg-danger text-white">
-            <h5 className="modal-title">
-              <i className="bi bi-person-x me-2"></i>
-              Desvincular de la Empresa
-            </h5>
-            <button type="button" className="btn-close btn-close-white" onClick={onClose}></button>
-          </div>
-          <form onSubmit={handleSubmit}>
-            <div className="modal-body">
-              <div className="alert alert-info">
-                <i className="bi bi-info-circle me-2"></i>
-                <strong>Trabajador:</strong> {ficha.trabajador.nombres} {ficha.trabajador.apellidoPaterno}
-                <br />
-                <strong>Estado Actual:</strong> <span className="badge bg-primary">{ficha.estado}</span>
-              </div>
-
-              <div className="alert alert-warning">
-                <i className="bi bi-exclamation-triangle me-2"></i>
-                <strong>Atención:</strong> Al desvincular al trabajador:
-                <ul className="mb-0 mt-2">
-                  <li>Se establecerá automáticamente la fecha de fin de contrato</li>
-                  <li>El trabajador ya no aparecerá en los conteos de Activos/Inactivos</li>
-                  <li>Esta acción no se puede deshacer</li>
-                </ul>
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">Motivo de Desvinculación</label>
-                <textarea
-                  className="form-control"
-                  value={motivo}
-                  onChange={(e) => setMotivo(e.target.value)}
-                  required
-                  rows={3}
-                  placeholder="Ingrese el motivo de la desvinculación..."
-                ></textarea>
-              </div>
-            </div>
-            <div className="modal-footer">
-              <button type="button" className="btn btn-secondary" onClick={onClose}>
-                Cancelar
-              </button>
-              <button type="submit" className="btn btn-danger" disabled={!motivo.trim()}>
-                Confirmar Desvinculación
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
     </div>
   );
 }; 

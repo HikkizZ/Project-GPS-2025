@@ -7,6 +7,7 @@ import { validateRut } from "../../helpers/rut.helper.js";
 import { ILike, Like } from "typeorm";
 import { FindOptionsWhere } from "typeorm";
 import { User } from "../../entity/user.entity.js";
+import { HistorialLaboral } from "../../entity/recursosHumanos/historialLaboral.entity.js";
 
 export async function createTrabajadorService(trabajadorData: Partial<Trabajador>): Promise<ServiceResponse<Trabajador>> {
     try {
@@ -252,6 +253,88 @@ export async function deleteTrabajadorService(id: number): Promise<ServiceRespon
         return [true, null];
     } catch (error) {
         console.error("Error en deleteTrabajadorService:", error);
+        return [null, "Error interno del servidor"];
+    }
+}
+
+export async function desvincularTrabajadorService(
+    id: number,
+    motivo: string,
+    userId?: number
+): Promise<ServiceResponse<Trabajador>> {
+    const queryRunner = AppDataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+        // 1. Obtener el trabajador con sus relaciones
+        const trabajador = await queryRunner.manager.findOne(Trabajador, {
+            where: { id, enSistema: true },
+            relations: ["fichaEmpresa", "usuario"]
+        });
+
+        if (!trabajador) {
+            await queryRunner.rollbackTransaction();
+            await queryRunner.release();
+            return [null, "Trabajador no encontrado o ya desvinculado"];
+        }
+
+        // 2. Verificar permisos del usuario que realiza la acción
+        let userRegistrador;
+        if (userId) {
+            const userRepo = queryRunner.manager.getRepository(User);
+            userRegistrador = await userRepo.findOne({ where: { id: userId } });
+            if (!userRegistrador || (userRegistrador.role !== "RecursosHumanos" && userRegistrador.role !== "Administrador")) {
+                await queryRunner.rollbackTransaction();
+                await queryRunner.release();
+                return [null, "No tiene permiso para desvincular trabajadores"];
+            }
+        } else {
+            await queryRunner.rollbackTransaction();
+            await queryRunner.release();
+            return [null, "Se requiere un usuario para realizar la desvinculación"];
+        }
+
+        // 3. Actualizar la ficha de empresa
+        if (trabajador.fichaEmpresa) {
+            trabajador.fichaEmpresa.estado = EstadoLaboral.DESVINCULADO;
+            trabajador.fichaEmpresa.fechaFinContrato = new Date();
+            trabajador.fichaEmpresa.motivoDesvinculacion = motivo;
+            await queryRunner.manager.save(trabajador.fichaEmpresa);
+
+            // 4. Crear registro en historial laboral
+            const historial = new HistorialLaboral();
+            historial.trabajador = trabajador;
+            historial.cargo = trabajador.fichaEmpresa.cargo;
+            historial.area = trabajador.fichaEmpresa.area;
+            historial.tipoContrato = trabajador.fichaEmpresa.tipoContrato;
+            historial.sueldoBase = trabajador.fichaEmpresa.sueldoBase;
+            historial.fechaInicio = trabajador.fichaEmpresa.fechaInicioContrato;
+            historial.fechaFin = new Date();
+            historial.motivoTermino = motivo;
+            historial.registradoPor = userRegistrador;
+            await queryRunner.manager.save(historial);
+        }
+
+        // 5. Desactivar la cuenta de usuario si existe
+        if (trabajador.usuario) {
+            trabajador.usuario.activo = false;
+            await queryRunner.manager.save(trabajador.usuario);
+        }
+
+        // 6. Marcar al trabajador como fuera del sistema
+        trabajador.enSistema = false;
+        const trabajadorActualizado = await queryRunner.manager.save(trabajador);
+
+        // Confirmar todos los cambios
+        await queryRunner.commitTransaction();
+        await queryRunner.release();
+
+        return [trabajadorActualizado, null];
+    } catch (error) {
+        await queryRunner.rollbackTransaction();
+        await queryRunner.release();
+        console.error("Error en desvincularTrabajadorService:", error);
         return [null, "Error interno del servidor"];
     }
 } 
