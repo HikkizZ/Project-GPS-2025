@@ -130,7 +130,7 @@ class TrabajadorService {
         return { trabajador };
       }
 
-      return { error: response.data.message };
+      return { error: response.data.message || 'Error al actualizar trabajador' };
     } catch (error: any) {
       console.error('Error al actualizar trabajador:', error);
       if (error.response?.data?.message) {

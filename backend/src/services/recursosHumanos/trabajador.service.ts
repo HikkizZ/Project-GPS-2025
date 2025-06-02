@@ -237,10 +237,12 @@ export async function searchTrabajadoresService(query: any): Promise<ServiceResp
 export async function updateTrabajadorService(id: number, trabajadorData: Partial<Trabajador>): Promise<ServiceResponse<Trabajador>> {
     try {
         const trabajadorRepo = AppDataSource.getRepository(Trabajador);
+        const userRepo = AppDataSource.getRepository(User);
         
         // Buscar el trabajador
         const trabajador = await trabajadorRepo.findOne({
-            where: { id, enSistema: true }
+            where: { id, enSistema: true },
+            relations: ["usuario"]
         });
 
         if (!trabajador) {
@@ -261,9 +263,19 @@ export async function updateTrabajadorService(id: number, trabajadorData: Partia
             }
         }
 
-        // Actualizar campos
+        // Actualizar campos del trabajador
         Object.assign(trabajador, trabajadorData);
         const trabajadorActualizado = await trabajadorRepo.save(trabajador);
+
+        // Si se actualizaron los nombres, actualizar también el nombre del usuario
+        if (trabajadorData.nombres || trabajadorData.apellidoPaterno || trabajadorData.apellidoMaterno) {
+            const nombreCompleto = `${trabajadorData.nombres || trabajador.nombres} ${trabajadorData.apellidoPaterno || trabajador.apellidoPaterno} ${trabajadorData.apellidoMaterno || trabajador.apellidoMaterno}`.trim();
+            
+            if (trabajador.usuario) {
+                trabajador.usuario.name = nombreCompleto;
+                await userRepo.save(trabajador.usuario);
+            }
+        }
 
         return [trabajadorActualizado, null];
     } catch (error) {

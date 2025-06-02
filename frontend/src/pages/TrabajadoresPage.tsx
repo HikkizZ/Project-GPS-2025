@@ -4,6 +4,7 @@ import { useTrabajadores } from '@/hooks/useTrabajadores';
 import { Trabajador, TrabajadorSearchQuery } from '@/types/trabajador.types';
 import { useRut } from '@/hooks/useRut';
 import { RegisterTrabajadorForm } from '@/components/trabajador/RegisterTrabajadorForm';
+import { EditarTrabajadorModal } from '@/components/trabajador/EditarTrabajadorModal';
 
 export const TrabajadoresPage: React.FC = () => {
   const { trabajadores, isLoading, error, loadTrabajadores, searchTrabajadores, deleteTrabajador } = useTrabajadores();
@@ -12,7 +13,9 @@ export const TrabajadoresPage: React.FC = () => {
   // Estados para los modales y filtros
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [trabajadorToDelete, setTrabajadorToDelete] = useState<Trabajador | null>(null);
+  const [trabajadorToEdit, setTrabajadorToEdit] = useState<Trabajador | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [searchParams, setSearchParams] = useState<TrabajadorSearchQuery>({});
   const [deleteError, setDeleteError] = useState<string>('');
@@ -40,6 +43,12 @@ export const TrabajadoresPage: React.FC = () => {
     setTrabajadorToDelete(trabajador);
     setShowDeleteModal(true);
     setDeleteError('');
+  };
+
+  // Función para editar trabajador
+  const handleEditClick = (trabajador: Trabajador) => {
+    setTrabajadorToEdit(trabajador);
+    setShowEditModal(true);
   };
 
   // Función para ejecutar la eliminación
@@ -313,8 +322,9 @@ export const TrabajadoresPage: React.FC = () => {
                             variant="outline-primary" 
                             size="sm" 
                             className="me-2"
-                            onClick={() => {/* TODO: Implementar edición */}}
+                            onClick={() => handleEditClick(trabajador)}
                             title="Editar trabajador"
+                            disabled={!trabajador.enSistema}
                           >
                             <i className="bi bi-pencil"></i>
                           </Button>
@@ -323,6 +333,7 @@ export const TrabajadoresPage: React.FC = () => {
                             size="sm"
                             onClick={() => handleDeleteClick(trabajador)}
                             title="Eliminar trabajador"
+                            disabled={!trabajador.enSistema}
                           >
                             <i className="bi bi-trash"></i>
                           </Button>
@@ -429,6 +440,23 @@ export const TrabajadoresPage: React.FC = () => {
           </Button>
         </Modal.Footer>
       </Modal>
+
+      {/* Modal de edición */}
+      {trabajadorToEdit && (
+        <EditarTrabajadorModal
+          show={showEditModal}
+          onHide={() => {
+            setShowEditModal(false);
+            setTrabajadorToEdit(null);
+          }}
+          trabajador={trabajadorToEdit}
+          onSuccess={() => {
+            loadTrabajadores();
+            setSuccessMessage('Trabajador actualizado exitosamente');
+            setTimeout(() => setSuccessMessage(''), 3000);
+          }}
+        />
+      )}
     </div>
   );
 }; 

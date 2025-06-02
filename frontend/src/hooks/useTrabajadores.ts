@@ -77,8 +77,9 @@ export const useTrabajadores = () => {
         await loadTrabajadores(); // Recargar la lista
         return { success: true, trabajador: result.trabajador };
       } else {
-        setError(result.error || 'Error al actualizar trabajador');
-        return { success: false, error: result.error };
+        const errorMsg = result.error || 'Error al actualizar trabajador';
+        setError(errorMsg);
+        return { success: false, error: errorMsg };
       }
     } catch (error) {
       const errorMsg = 'Error al actualizar trabajador';

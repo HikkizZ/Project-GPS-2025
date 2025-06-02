@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Modal, Form, Button, Alert } from 'react-bootstrap';
 import { Trabajador } from '@/types/trabajador.types';
 import { useTrabajadores } from '@/hooks/useTrabajadores';
@@ -31,6 +31,18 @@ export const EditarTrabajadorModal: React.FC<EditarTrabajadorModalProps> = ({
     numeroEmergencia: trabajador.numeroEmergencia || '',
     direccion: trabajador.direccion,
   });
+
+  // Actualizar el estado del formulario cuando cambia el trabajador
+  useEffect(() => {
+    setFormData({
+      nombres: trabajador.nombres,
+      apellidoPaterno: trabajador.apellidoPaterno,
+      apellidoMaterno: trabajador.apellidoMaterno,
+      telefono: trabajador.telefono,
+      numeroEmergencia: trabajador.numeroEmergencia || '',
+      direccion: trabajador.direccion,
+    });
+  }, [trabajador]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
