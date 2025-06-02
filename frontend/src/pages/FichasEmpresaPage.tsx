@@ -675,24 +675,27 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                             </span>
                           </td>
                           <td>
-                            <div className="btn-group btn-group-sm">
-                              <button
-                                className={`btn ${ficha.contratoURL ? 'btn-outline-danger' : 'btn-outline-secondary'}`}
-                                onClick={() => handleDownloadContrato(ficha.id)}
-                                title={ficha.contratoURL ? "Descargar contrato" : "No hay contrato disponible"}
-                                disabled={!ficha.contratoURL || ficha.estado === EstadoLaboral.DESVINCULADO}
-                              >
-                                <i className="bi bi-file-earmark-pdf"></i>
-                              </button>
-                              <button
-                                className="btn btn-outline-warning"
-                                onClick={() => handleEditFicha(ficha)}
-                                title="Editar"
-                                disabled={ficha.estado === EstadoLaboral.DESVINCULADO}
-                              >
-                                <i className="bi bi-pencil"></i>
-                              </button>
-                            </div>
+                            {/* Ocultar acciones si es el admin principal */}
+                            {(ficha.trabajador.correo !== 'admin.principal@gmail.com' && ficha.trabajador.rut !== '11.111.111-1') && (
+                              <div className="btn-group btn-group-sm">
+                                <button
+                                  className={`btn ${ficha.contratoURL ? 'btn-outline-danger' : 'btn-outline-secondary'}`}
+                                  onClick={() => handleDownloadContrato(ficha.id)}
+                                  title={ficha.contratoURL ? "Descargar contrato" : "No hay contrato disponible"}
+                                  disabled={!ficha.contratoURL || ficha.estado === EstadoLaboral.DESVINCULADO}
+                                >
+                                  <i className="bi bi-file-earmark-pdf"></i>
+                                </button>
+                                <button
+                                  className="btn btn-outline-warning"
+                                  onClick={() => handleEditFicha(ficha)}
+                                  title="Editar"
+                                  disabled={ficha.estado === EstadoLaboral.DESVINCULADO}
+                                >
+                                  <i className="bi bi-pencil"></i>
+                                </button>
+                              </div>
+                            )}
                           </td>
                         </tr>
                       ))}

@@ -353,27 +353,30 @@ export const TrabajadoresPage: React.FC = () => {
                       <td>{trabajador.direccion}</td>
                       <td>{new Date(trabajador.fechaIngreso).toLocaleDateString()}</td>
                       <td className="text-center">
-                        <div className="btn-group">
-                          <Button 
-                            variant="outline-primary" 
-                            size="sm" 
-                            className="me-2"
-                            onClick={() => handleEditClick(trabajador)}
-                            title="Editar trabajador"
-                            disabled={!trabajador.enSistema}
-                          >
-                            <i className="bi bi-pencil"></i>
-                          </Button>
-                          <Button 
-                            variant="outline-danger" 
-                            size="sm"
-                            onClick={() => handleDesvincularClick(trabajador)}
-                            title="Desvincular trabajador"
-                            disabled={!trabajador.enSistema}
-                          >
-                            <i className="bi bi-person-x"></i>
-                          </Button>
-                        </div>
+                        {/* Ocultar acciones si es el admin principal */}
+                        {(trabajador.correo !== 'admin.principal@gmail.com' && trabajador.rut !== '11.111.111-1') && (
+                          <div className="btn-group">
+                            <Button
+                              variant="outline-primary"
+                              size="sm"
+                              className="me-2"
+                              onClick={() => handleEditClick(trabajador)}
+                              title="Editar trabajador"
+                              disabled={!trabajador.enSistema}
+                            >
+                              <i className="bi bi-pencil"></i>
+                            </Button>
+                            <Button
+                              variant="outline-danger"
+                              size="sm"
+                              onClick={() => handleDesvincularClick(trabajador)}
+                              title="Desvincular trabajador"
+                              disabled={!trabajador.enSistema}
+                            >
+                              <i className="bi bi-person-x"></i>
+                            </Button>
+                          </div>
+                        )}
                       </td>
                     </tr>
                   ))}

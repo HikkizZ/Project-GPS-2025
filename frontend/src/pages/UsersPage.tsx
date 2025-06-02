@@ -435,40 +435,43 @@ export const UsersPage: React.FC = () => {
                           {user.showPassword ? user.password : '••••••••'}
                         </td>
                         <td className="text-center">
-                          <div className="btn-group">
-                            <Button
-                              variant="outline-info"
-                              size="sm"
-                              onClick={() => {
-                                const updatedUsers = users.map(u => 
-                                  u.id === user.id ? { ...u, showPassword: !u.showPassword } : u
-                                );
-                                setUsers(updatedUsers);
-                              }}
-                              title={user.showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
-                              disabled={user.estadoCuenta === 'Inactiva'}
-                            >
-                              <i className={`bi bi-eye${user.showPassword ? '-slash' : ''}`}></i>
-                            </Button>
-                            <Button
-                              variant="outline-primary"
-                              size="sm"
-                              onClick={() => handleUpdateClick(user)}
-                              title="Editar rol"
-                              disabled={user.estadoCuenta === 'Inactiva'}
-                            >
-                              <i className="bi bi-pencil-square"></i>
-                            </Button>
-                            <Button
-                              variant="outline-danger"
-                              size="sm"
-                              onClick={() => handleDeleteClick(user)}
-                              title="Eliminar usuario"
-                              disabled={user.estadoCuenta === 'Inactiva'}
-                            >
-                              <i className="bi bi-trash"></i>
-                            </Button>
-                          </div>
+                          {/* Ocultar acciones si es el admin principal */}
+                          {(user.email !== 'admin.principal@gmail.com' && user.rut !== '11.111.111-1') && (
+                            <div className="btn-group">
+                              <Button
+                                variant="outline-info"
+                                size="sm"
+                                onClick={() => {
+                                  const updatedUsers = users.map(u => 
+                                    u.id === user.id ? { ...u, showPassword: !u.showPassword } : u
+                                  );
+                                  setUsers(updatedUsers);
+                                }}
+                                title={user.showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                                disabled={user.estadoCuenta === 'Inactiva'}
+                              >
+                                <i className={`bi bi-eye${user.showPassword ? '-slash' : ''}`}></i>
+                              </Button>
+                              <Button
+                                variant="outline-primary"
+                                size="sm"
+                                onClick={() => handleUpdateClick(user)}
+                                title="Editar rol"
+                                disabled={user.estadoCuenta === 'Inactiva'}
+                              >
+                                <i className="bi bi-pencil-square"></i>
+                              </Button>
+                              <Button
+                                variant="outline-danger"
+                                size="sm"
+                                onClick={() => handleDeleteClick(user)}
+                                title="Eliminar usuario"
+                                disabled={user.estadoCuenta === 'Inactiva'}
+                              >
+                                <i className="bi bi-trash"></i>
+                              </Button>
+                            </div>
+                          )}
                         </td>
                       </tr>
                     ))}
