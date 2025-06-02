@@ -44,6 +44,16 @@ Abajo les dejo comentarios para que sepan qué hace cada línea y dónde impacta
 
 /*
 ========================================
+Ajuste para alinear las alertas a la izquierda
+========================================
+*/
+.alert {
+  justify-content: flex-start !important;
+  text-align: left !important;
+}
+
+/*
+========================================
 ESTILOS GLOBALES
 ========================================
 - Todo lo que está aquí afecta a toda la app.
