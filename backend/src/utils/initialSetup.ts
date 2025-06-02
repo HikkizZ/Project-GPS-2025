@@ -32,6 +32,14 @@ export async function initialSetup(): Promise<void> {
             adminTrabajador = await trabajadorRepo.findOne({
                 where: { rut: "11.111.111-1" }
             });
+
+            // Si el trabajador existe pero está marcado como eliminado, reactivarlo
+            if (adminTrabajador && !adminTrabajador.enSistema) {
+                console.log("=> Reactivando trabajador admin...");
+                adminTrabajador.enSistema = true;
+                await trabajadorRepo.save(adminTrabajador);
+                console.log("✅ Trabajador admin reactivado");
+            }
         } else {
             // Si no existe, crear el usuario admin
             console.log("=> Creando usuario admin...");
