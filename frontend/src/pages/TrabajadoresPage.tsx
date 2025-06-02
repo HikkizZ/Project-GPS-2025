@@ -341,8 +341,8 @@ export const TrabajadoresPage: React.FC = () => {
                         {`${trabajador.nombres} ${trabajador.apellidoPaterno} ${trabajador.apellidoMaterno}`}
                         {!trabajador.enSistema && (
                           <span className="badge bg-secondary bg-opacity-25 text-secondary ms-2" style={{ fontSize: '0.8em' }}>
-                            <i className="bi bi-trash me-1"></i>
-                            Eliminado
+                            <i className="bi bi-person-x me-1"></i>
+                            Desvinculado
                           </span>
                         )}
                       </td>
@@ -365,23 +365,13 @@ export const TrabajadoresPage: React.FC = () => {
                             <i className="bi bi-pencil"></i>
                           </Button>
                           <Button 
-                            variant="outline-warning" 
+                            variant="outline-danger" 
                             size="sm"
-                            className="me-2"
                             onClick={() => handleDesvincularClick(trabajador)}
                             title="Desvincular trabajador"
                             disabled={!trabajador.enSistema}
                           >
                             <i className="bi bi-person-x"></i>
-                          </Button>
-                          <Button 
-                            variant="outline-danger" 
-                            size="sm"
-                            onClick={() => handleDeleteClick(trabajador)}
-                            title="Eliminar trabajador"
-                            disabled={!trabajador.enSistema}
-                          >
-                            <i className="bi bi-trash"></i>
                           </Button>
                         </div>
                       </td>
@@ -493,7 +483,7 @@ export const TrabajadoresPage: React.FC = () => {
         onHide={() => setShowDesvincularModal(false)}
         centered
       >
-        <Modal.Header closeButton className="bg-warning text-dark">
+        <Modal.Header closeButton className="bg-danger text-white">
           <Modal.Title>
             <i className="bi bi-person-x me-2"></i>
             Desvincular Trabajador
@@ -544,7 +534,7 @@ export const TrabajadoresPage: React.FC = () => {
             Cancelar
           </Button>
           <Button 
-            variant="warning" 
+            variant="danger" 
             onClick={handleDesvincularConfirm}
             disabled={isDesvinculando || !motivoDesvinculacion.trim()}
           >
