@@ -53,3 +53,16 @@ export type InventoryEntryDetailDTO = {
   quantity: number;
   purchasePrice: number;
 };
+
+/* Inventory exit DTOs */
+/* Header-level data for inventory exit */
+export type CreateInventoryExitDTO = {
+  customerRut: string;
+  details: InventoryExitDetailDTO[];
+};
+
+/* Detail-level data for each product in the exit */
+export type InventoryExitDetailDTO = {
+  productId: number;
+  quantity: number;
+};
