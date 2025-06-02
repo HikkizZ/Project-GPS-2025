@@ -19,16 +19,14 @@ export const UsersPage: React.FC = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState<string>('');
   const [success, setSuccess] = useState<string>('');
   const [users, setUsers] = useState<SafeUser[]>([]);
   const [showUpdateModal, setShowUpdateModal] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<SafeUser | null>(null);
   const [newRole, setNewRole] = useState<string>('');
   const [newPassword, setNewPassword] = useState<string>('');
   const [searchParams, setSearchParams] = useState<UserSearchParams>({});
+  const [selectedUser, setSelectedUser] = useState<SafeUser | null>(null);
 
   // Estados para los checkboxes de filtrado
   const [incluirInactivos, setIncluirInactivos] = useState(false);
@@ -115,15 +113,10 @@ export const UsersPage: React.FC = () => {
   };
 
   const handleUpdateClick = (selectedUser: SafeUser) => {
-    setSelectedUser(selectedUser);
     setNewRole(selectedUser.role);
     setNewPassword('');
-    setShowUpdateModal(true);
-  };
-
-  const handleDeleteClick = (selectedUser: SafeUser) => {
     setSelectedUser(selectedUser);
-    setShowDeleteModal(true);
+    setShowUpdateModal(true);
   };
 
   const handleUpdateUser = async () => {
@@ -153,24 +146,6 @@ export const UsersPage: React.FC = () => {
     } finally {
         setIsUpdating(false);
         setNewPassword('');
-    }
-  };
-
-  const handleDeleteUser = async () => {
-    if (!selectedUser) return;
-
-    try {
-      setIsDeleting(true);
-      setError('');
-      await userService.deleteUser(selectedUser.id, selectedUser.rut);
-      setSuccess(`Usuario ${selectedUser.name} eliminado exitosamente`);
-      setTimeout(() => setSuccess(''), 3000);
-      setShowDeleteModal(false);
-      loadUsers(); // Recargar la lista después de eliminar
-    } catch (err: any) {
-      setError(err.message || 'Error al eliminar usuario');
-    } finally {
-      setIsDeleting(false);
     }
   };
 
@@ -461,15 +436,6 @@ export const UsersPage: React.FC = () => {
                               >
                                 <i className="bi bi-pencil-square"></i>
                               </Button>
-                              <Button
-                                variant="outline-danger"
-                                size="sm"
-                                onClick={() => handleDeleteClick(user)}
-                                title="Eliminar usuario"
-                                disabled={user.estadoCuenta === 'Inactiva'}
-                              >
-                                <i className="bi bi-trash"></i>
-                              </Button>
                             </div>
                           )}
                         </td>
@@ -483,7 +449,7 @@ export const UsersPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Mantener solo los modales de actualización y eliminación */}
+      {/* Mantener solo los modales de actualización */}
       <Modal show={showUpdateModal} onHide={() => {
         setShowUpdateModal(false);
         setNewPassword('');
@@ -579,55 +545,6 @@ export const UsersPage: React.FC = () => {
                 <i className="bi bi-check-circle me-2"></i>
                 Guardar Cambios
               </>
-            )}
-          </Button>
-        </Modal.Footer>
-      </Modal>
-
-      <Modal show={showDeleteModal} onHide={() => setShowDeleteModal(false)}>
-        <Modal.Header closeButton>
-          <Modal.Title>Confirmar Eliminación</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          {selectedUser && (
-            <div>
-              <p>¿Estás seguro que deseas eliminar al siguiente usuario?</p>
-              <ul className="list-unstyled">
-                <li><strong>Nombre:</strong> {selectedUser.name}</li>
-                <li><strong>RUT:</strong> {formatRUT(selectedUser.rut)}</li>
-                <li><strong>Email:</strong> {selectedUser.email}</li>
-                <li><strong>Rol:</strong> {selectedUser.role}</li>
-              </ul>
-              <Alert variant="warning">
-                <i className="bi bi-exclamation-triangle me-2"></i>
-                Esta acción no se puede deshacer.
-              </Alert>
-            </div>
-          )}
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowDeleteModal(false)}>
-            Cancelar
-          </Button>
-          <Button
-            variant="danger"
-            onClick={handleDeleteUser}
-            disabled={isDeleting}
-          >
-            {isDeleting ? (
-              <>
-                <Spinner
-                  as="span"
-                  animation="border"
-                  size="sm"
-                  role="status"
-                  aria-hidden="true"
-                  className="me-2"
-                />
-                Eliminando...
-              </>
-            ) : (
-              'Eliminar Usuario'
             )}
           </Button>
         </Modal.Footer>

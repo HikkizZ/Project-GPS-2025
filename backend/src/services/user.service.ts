@@ -167,31 +167,3 @@ export async function updateUserService(query: QueryParams, body: UpdateUserData
         return [null, "Error interno del servidor"];
     }
 }
-
-/* Eliminar un usuario, validando el rol del solicitante */
-export async function deleteUserService(id: number, rut: string): Promise<ServiceResponse<boolean>> {
-    try {
-        const userRepository = AppDataSource.getRepository(User);
-        
-        // Buscar el usuario
-        const user = await userRepository.findOne({ where: { id, rut } });
-        
-        if (!user) {
-            return [null, "Usuario no encontrado"];
-        }
-
-        // No permitir eliminar al administrador principal
-        if (user.role === "Administrador" && user.rut === "11.111.111-1") {
-            return [null, "No se puede eliminar el administrador principal"];
-        }
-
-        // En lugar de eliminar, marcar como inactivo
-        user.estadoCuenta = "Inactiva";
-        await userRepository.save(user);
-
-        return [true, null];
-    } catch (error) {
-        console.error("Error en deleteUserService:", error);
-        return [null, "Error interno del servidor"];
-    }
-}

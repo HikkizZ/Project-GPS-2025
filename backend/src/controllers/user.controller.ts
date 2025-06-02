@@ -3,7 +3,6 @@ import {
     getUserService,
     getUsersService,
     updateUserService,
-    deleteUserService,
     searchUsersService
  } from '../services/user.service.js';
 
@@ -103,34 +102,6 @@ export async function updateUser(req: Request, res: Response): Promise<void> {
         }
 
         handleSuccess(res, 200, 'Usuario actualizado.', updatedUser);
-    } catch (error) {
-        handleErrorServer(res, 500, (error as Error).message);
-    }
-}
-
-/* Delete user controller */
-export async function deleteUser(req: Request, res: Response): Promise<void> {
-    try {
-        const rut = req.query.rut as string | undefined;
-        const email = req.query.email as string | undefined;
-        const id = req.query.id ? Number(req.query.id) : undefined;
-
-        const [deletedUser, error] = await deleteUserService({ rut, email, id }, req.user!);
-
-        if (error) {
-            if (error.includes("inválido") || error.includes("formato")) {
-                handleErrorClient(res, 400, error);
-                return;
-            }
-            if (error.includes("No tienes permisos") || error.includes("No se puede eliminar")) {
-                handleErrorClient(res, 403, error);
-                return;
-            }
-            handleErrorClient(res, 404, error);
-            return;
-        }
-
-        handleSuccess(res, 200, 'Usuario eliminado.', deletedUser);
     } catch (error) {
         handleErrorServer(res, 500, (error as Error).message);
     }

@@ -15,7 +15,7 @@ router.use(verifyRole(["Administrador", "RecursosHumanos"]));
 router.get("/detail/", getUser);
 router.get("/all", getUsers);
 router.put("/update/", updateUser);
-router.delete("/delete/", deleteUser);
+// router.delete("/delete/", deleteUser);
 
 // Actualizar nombre de usuario por trabajador
 router.put('/actualizar-por-trabajador/:id', updateUserByTrabajador);
