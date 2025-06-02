@@ -680,7 +680,7 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                                 className={`btn ${ficha.contratoURL ? 'btn-outline-danger' : 'btn-outline-secondary'}`}
                                 onClick={() => handleDownloadContrato(ficha.id)}
                                 title={ficha.contratoURL ? "Descargar contrato" : "No hay contrato disponible"}
-                                disabled={!ficha.contratoURL}
+                                disabled={!ficha.contratoURL || ficha.estado === EstadoLaboral.DESVINCULADO}
                               >
                                 <i className="bi bi-file-earmark-pdf"></i>
                               </button>
@@ -688,6 +688,7 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                                 className="btn btn-outline-warning"
                                 onClick={() => handleEditFicha(ficha)}
                                 title="Editar"
+                                disabled={ficha.estado === EstadoLaboral.DESVINCULADO}
                               >
                                 <i className="bi bi-pencil"></i>
                               </button>
