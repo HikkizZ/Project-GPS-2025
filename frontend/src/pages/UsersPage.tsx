@@ -446,6 +446,7 @@ export const UsersPage: React.FC = () => {
                                 setUsers(updatedUsers);
                               }}
                               title={user.showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                              disabled={user.estadoCuenta === 'Inactiva'}
                             >
                               <i className={`bi bi-eye${user.showPassword ? '-slash' : ''}`}></i>
                             </Button>
@@ -454,6 +455,7 @@ export const UsersPage: React.FC = () => {
                               size="sm"
                               onClick={() => handleUpdateClick(user)}
                               title="Editar rol"
+                              disabled={user.estadoCuenta === 'Inactiva'}
                             >
                               <i className="bi bi-pencil-square"></i>
                             </Button>
@@ -462,6 +464,7 @@ export const UsersPage: React.FC = () => {
                               size="sm"
                               onClick={() => handleDeleteClick(user)}
                               title="Eliminar usuario"
+                              disabled={user.estadoCuenta === 'Inactiva'}
                             >
                               <i className="bi bi-trash"></i>
                             </Button>
