@@ -7,6 +7,10 @@ export const useTrabajador = () => {
   const [error, setError] = useState<string | null>(null);
   const [trabajadores, setTrabajadores] = useState<Trabajador[]>([]);
 
+  const clearError = useCallback(() => {
+    setError(null);
+  }, []);
+
   const getTrabajadores = useCallback(async () => {
     try {
       setIsLoading(true);
@@ -32,7 +36,7 @@ export const useTrabajador = () => {
       const response = await trabajadorService.createTrabajador(data);
       if (response.trabajador) {
         setTrabajadores(prev => [...prev, response.trabajador!]);
-        return { success: true };
+        return { success: true, trabajador: response.trabajador };
       } else if (response.error) {
         setError(response.error);
         return { success: false, error: response.error };
@@ -94,6 +98,7 @@ export const useTrabajador = () => {
     getTrabajadores,
     createTrabajador,
     updateTrabajador,
-    deleteTrabajador
+    deleteTrabajador,
+    clearError
   };
 }; 

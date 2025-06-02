@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useTrabajador } from './hooks/useTrabajador';
+import { useRut } from './hooks/useRut';
 import { type CreateTrabajadorData, type Trabajador } from './types/trabajador.types';
 import { FichasEmpresaPage } from './pages/FichasEmpresaPage';
 import { UsersPage } from './pages/UsersPage';
 import { TrabajadoresPage } from './pages/TrabajadoresPage';
 import { authService } from './services/auth.service';
-import { EditarTrabajadorModal } from './components/trabajador/EditarTrabajadorModal';
 
 // Componente simple de Login
 const LoginPage: React.FC = () => {
@@ -115,7 +115,8 @@ const RegistrarTrabajadorPage: React.FC<{
   onSuccess: (trabajador: Trabajador) => void;
   onCancel: () => void;
 }> = ({ onSuccess, onCancel }) => {
-  const { createTrabajador, isLoading, error, clearError, validateRUT, formatRUT } = useTrabajador();
+  const { createTrabajador: createTrabajadorService, isLoading: isCreating, error: createError, clearError } = useTrabajador();
+  const { validateRUT, formatRUT } = useRut();
   
   const [formData, setFormData] = useState<CreateTrabajadorData>({
     rut: '',
@@ -127,7 +128,7 @@ const RegistrarTrabajadorPage: React.FC<{
     correo: '',
     numeroEmergencia: '',
     direccion: '',
-    fechaIngreso: new Date().toISOString().split('T')[0], // Fecha actual por defecto
+    fechaIngreso: new Date().toISOString().split('T')[0],
   });
 
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
@@ -171,7 +172,7 @@ const RegistrarTrabajadorPage: React.FC<{
     setValidationErrors({});
     
     try {
-      const result = await createTrabajador(formData);
+      const result = await createTrabajadorService(formData);
       if (result.success && result.trabajador) {
         onSuccess(result.trabajador);
       } else {
@@ -210,10 +211,10 @@ const RegistrarTrabajadorPage: React.FC<{
               </h4>
             </div>
             <div className="card-body">
-              {error && (
+              {createError && (
                 <div className="alert alert-danger alert-dismissible fade show">
                   <i className="bi bi-exclamation-triangle me-2"></i>
-                  {error}
+                  {createError}
                   <button type="button" className="btn-close" onClick={clearError}></button>
                 </div>
               )}
@@ -365,8 +366,8 @@ const RegistrarTrabajadorPage: React.FC<{
                 </div>
 
                 <div className="d-flex gap-2 mt-4">
-                  <button type="submit" className="btn btn-primary" disabled={isLoading}>
-                    {isLoading ? (
+                  <button type="submit" className="btn btn-primary" disabled={isCreating}>
+                    {isCreating ? (
                       <>
                         <span className="spinner-border spinner-border-sm me-2" />
                         Registrando...
