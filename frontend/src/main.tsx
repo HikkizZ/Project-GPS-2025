@@ -6,6 +6,7 @@ import { AuthProvider } from './context/AuthContext.tsx'
 // Importar Bootstrap completo
 import 'bootstrap/dist/css/bootstrap.min.css'
 import 'bootstrap-icons/font/bootstrap-icons.css'
+import './styles/index.css'
 
 console.log('main.tsx cargado correctamente!');
 
