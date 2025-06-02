@@ -25,7 +25,7 @@ describe('📋 Ficha Empresa API', () => {
                 .post('/api/auth/login')
                 .send({
                     email: 'admin.principal@gmail.com',
-                    password: 'Admin2024'
+                    password: 'Admin123'
                 });
 
             adminToken = adminLogin.body.data.token;

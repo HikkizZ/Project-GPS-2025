@@ -76,7 +76,7 @@ const LoginPage: React.FC = () => {
                       className="form-control"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      placeholder="Admin2024"
+                      placeholder="Admin123"
                       required
                       disabled={isLoading}
                     />
@@ -98,7 +98,7 @@ const LoginPage: React.FC = () => {
                 <div className="mt-3">
                   <small className="text-muted">
                     <strong>Credenciales de prueba:</strong><br/>
-                    <strong>Admin:</strong> admin.principal@gmail.com / Admin2024
+                    <strong>Admin:</strong> admin.principal@gmail.com / Admin123
                   </small>
                 </div>
               </div>

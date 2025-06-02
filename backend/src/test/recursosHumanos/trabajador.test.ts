@@ -28,7 +28,7 @@ describe('👥 Trabajadores API', () => {
                 .post('/api/auth/login')
                 .send({
                     email: 'admin.principal@gmail.com',
-                    password: 'Admin2024'
+                    password: 'Admin123'
                 });
 
             if (adminLogin.status !== 200 || !adminLogin.body.data?.token) {

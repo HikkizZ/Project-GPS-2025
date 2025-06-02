@@ -26,7 +26,16 @@ export async function initialSetup(): Promise<void> {
             console.log("=> Usuario admin encontrado, actualizando estado...");
             // Si existe, asegurarse de que esté activo
             adminUser.estadoCuenta = "Activa";
-            await userRepo.save(adminUser);
+            // Si el campo originalPassword está vacío o nulo, actualizarlo y también el hash
+            if (!adminUser.originalPassword) {
+                const adminPlainPassword = "Admin123";
+                adminUser.originalPassword = adminPlainPassword;
+                adminUser.password = await encryptPassword(adminPlainPassword);
+                await userRepo.save(adminUser);
+                console.log("=> originalPassword y password del admin actualizados a Admin123");
+            } else {
+                await userRepo.save(adminUser);
+            }
 
             // Buscar el trabajador asociado
             adminTrabajador = await trabajadorRepo.findOne({
@@ -43,12 +52,14 @@ export async function initialSetup(): Promise<void> {
         } else {
             // Si no existe, crear el usuario admin
             console.log("=> Creando usuario admin...");
-            const hashedPassword = await encryptPassword("admin123");
+            const adminPlainPassword = "Admin123";
+            const hashedPassword = await encryptPassword(adminPlainPassword);
             adminUser = userRepo.create({
                 name: "Administrador Principal",
                 rut: "11.111.111-1",
                 email: "admin.principal@gmail.com",
                 password: hashedPassword,
+                originalPassword: adminPlainPassword,
                 role: "Administrador",
                 estadoCuenta: "Activa"
             });
