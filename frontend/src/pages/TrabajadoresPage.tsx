@@ -7,19 +7,24 @@ import { RegisterTrabajadorForm } from '@/components/trabajador/RegisterTrabajad
 import { EditarTrabajadorModal } from '@/components/trabajador/EditarTrabajadorModal';
 
 export const TrabajadoresPage: React.FC = () => {
-  const { trabajadores, isLoading, error, loadTrabajadores, searchTrabajadores, deleteTrabajador } = useTrabajadores();
+  const { trabajadores, isLoading, error, loadTrabajadores, searchTrabajadores, deleteTrabajador, desvincularTrabajador } = useTrabajadores();
   const { formatRUT } = useRut();
   
   // Estados para los modales y filtros
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showDesvincularModal, setShowDesvincularModal] = useState(false);
   const [trabajadorToDelete, setTrabajadorToDelete] = useState<Trabajador | null>(null);
   const [trabajadorToEdit, setTrabajadorToEdit] = useState<Trabajador | null>(null);
+  const [trabajadorToDesvincular, setTrabajadorToDesvincular] = useState<Trabajador | null>(null);
+  const [motivoDesvinculacion, setMotivoDesvinculacion] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [searchParams, setSearchParams] = useState<TrabajadorSearchQuery>({});
   const [deleteError, setDeleteError] = useState<string>('');
   const [isDeleting, setIsDeleting] = useState(false);
+  const [desvincularError, setDesvincularError] = useState<string>('');
+  const [isDesvinculando, setIsDesvinculando] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string>('');
 
   // Cargar trabajadores al montar el componente
@@ -51,6 +56,14 @@ export const TrabajadoresPage: React.FC = () => {
     setShowEditModal(true);
   };
 
+  // Función para manejar la desvinculación
+  const handleDesvincularClick = (trabajador: Trabajador) => {
+    setTrabajadorToDesvincular(trabajador);
+    setShowDesvincularModal(true);
+    setDesvincularError('');
+    setMotivoDesvinculacion('');
+  };
+
   // Función para ejecutar la eliminación
   const handleDeleteConfirm = async () => {
     if (!trabajadorToDelete) return;
@@ -69,6 +82,29 @@ export const TrabajadoresPage: React.FC = () => {
       setDeleteError('Error al eliminar trabajador');
     } finally {
       setIsDeleting(false);
+    }
+  };
+
+  // Función para ejecutar la desvinculación
+  const handleDesvincularConfirm = async () => {
+    if (!trabajadorToDesvincular || !motivoDesvinculacion.trim()) return;
+
+    try {
+      setIsDesvinculando(true);
+      setDesvincularError('');
+      const result = await desvincularTrabajador(trabajadorToDesvincular.id, motivoDesvinculacion);
+      if (result.success) {
+        setShowDesvincularModal(false);
+        loadTrabajadores(); // Recargar la lista
+        setSuccessMessage('Trabajador desvinculado exitosamente');
+        setTimeout(() => setSuccessMessage(''), 3000);
+      } else {
+        setDesvincularError(result.error || 'Error al desvincular trabajador');
+      }
+    } catch (error) {
+      setDesvincularError('Error al desvincular trabajador');
+    } finally {
+      setIsDesvinculando(false);
     }
   };
 
@@ -329,6 +365,16 @@ export const TrabajadoresPage: React.FC = () => {
                             <i className="bi bi-pencil"></i>
                           </Button>
                           <Button 
+                            variant="outline-warning" 
+                            size="sm"
+                            className="me-2"
+                            onClick={() => handleDesvincularClick(trabajador)}
+                            title="Desvincular trabajador"
+                            disabled={!trabajador.enSistema}
+                          >
+                            <i className="bi bi-person-x"></i>
+                          </Button>
+                          <Button 
                             variant="outline-danger" 
                             size="sm"
                             onClick={() => handleDeleteClick(trabajador)}
@@ -435,6 +481,89 @@ export const TrabajadoresPage: React.FC = () => {
               <>
                 <i className="bi bi-trash me-2"></i>
                 Eliminar
+              </>
+            )}
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* Modal de desvinculación */}
+      <Modal
+        show={showDesvincularModal}
+        onHide={() => setShowDesvincularModal(false)}
+        centered
+      >
+        <Modal.Header closeButton className="bg-warning text-dark">
+          <Modal.Title>
+            <i className="bi bi-person-x me-2"></i>
+            Desvincular Trabajador
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {desvincularError && (
+            <Alert variant="danger" className="mb-3">
+              <i className="bi bi-exclamation-circle me-2"></i>
+              {desvincularError}
+            </Alert>
+          )}
+          <Alert variant="warning" className="mb-3">
+            <i className="bi bi-exclamation-triangle me-2"></i>
+            <strong>Advertencia:</strong> Esta acción:
+            <ul className="mb-0 mt-2">
+              <li>Marcará al trabajador como desvinculado en el sistema</li>
+              <li>Cambiará el estado de su ficha a "Desvinculado"</li>
+              <li>Desactivará su cuenta de usuario</li>
+              <li>Registrará el motivo de desvinculación en el historial laboral</li>
+            </ul>
+          </Alert>
+          <p>¿Estás seguro que deseas desvincular al trabajador?</p>
+          <p className="mb-3">
+            <strong>Nombre:</strong> {trabajadorToDesvincular ? `${trabajadorToDesvincular.nombres} ${trabajadorToDesvincular.apellidoPaterno} ${trabajadorToDesvincular.apellidoMaterno}` : ''}
+            <br />
+            <strong>RUT:</strong> {trabajadorToDesvincular ? formatRUT(trabajadorToDesvincular.rut) : ''}
+          </p>
+          <Form.Group>
+            <Form.Label>Motivo de Desvinculación</Form.Label>
+            <Form.Control
+              as="textarea"
+              rows={3}
+              value={motivoDesvinculacion}
+              onChange={(e) => setMotivoDesvinculacion(e.target.value)}
+              placeholder="Ingrese el motivo de la desvinculación..."
+              required
+            />
+          </Form.Group>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button 
+            variant="secondary" 
+            onClick={() => setShowDesvincularModal(false)}
+            disabled={isDesvinculando}
+          >
+            <i className="bi bi-x-circle me-2"></i>
+            Cancelar
+          </Button>
+          <Button 
+            variant="warning" 
+            onClick={handleDesvincularConfirm}
+            disabled={isDesvinculando || !motivoDesvinculacion.trim()}
+          >
+            {isDesvinculando ? (
+              <>
+                <Spinner
+                  as="span"
+                  animation="border"
+                  size="sm"
+                  role="status"
+                  aria-hidden="true"
+                  className="me-2"
+                />
+                Desvinculando...
+              </>
+            ) : (
+              <>
+                <i className="bi bi-person-x me-2"></i>
+                Desvincular
               </>
             )}
           </Button>
