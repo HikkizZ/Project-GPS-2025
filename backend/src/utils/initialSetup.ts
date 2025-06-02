@@ -28,11 +28,11 @@ export async function initialSetup(): Promise<void> {
             adminUser.estadoCuenta = "Activa";
             // Si el campo originalPassword está vacío o nulo, actualizarlo y también el hash
             if (!adminUser.originalPassword) {
-                const adminPlainPassword = "Admin123";
+                const adminPlainPassword = "204dm1n8";
                 adminUser.originalPassword = adminPlainPassword;
                 adminUser.password = await encryptPassword(adminPlainPassword);
                 await userRepo.save(adminUser);
-                console.log("=> originalPassword y password del admin actualizados a Admin123");
+                console.log("=> originalPassword y password del admin actualizados a 204dm1n8");
             } else {
                 await userRepo.save(adminUser);
             }
@@ -52,7 +52,7 @@ export async function initialSetup(): Promise<void> {
         } else {
             // Si no existe, crear el usuario admin
             console.log("=> Creando usuario admin...");
-            const adminPlainPassword = "Admin123";
+            const adminPlainPassword = "204dm1n8";
             const hashedPassword = await encryptPassword(adminPlainPassword);
             adminUser = userRepo.create({
                 name: "Administrador Principal",
