@@ -85,3 +85,55 @@ export const createInventoryEntryValidation: ObjectSchema = Joi.object({
 }).messages({
   "object.base": "El cuerpo de la solicitud debe ser un objeto válido.",
 });
+
+/* Validación de cada detalle de salida */
+const inventoryExitDetailSchema = Joi.object({
+  productId: Joi.number()
+    .integer()
+    .positive()
+    .required()
+    .messages({
+      "any.required": "El ID del producto es obligatorio.",
+      "number.base": "El ID del producto debe ser un número.",
+      "number.integer": "El ID del producto debe ser un número entero.",
+      "number.positive": "El ID del producto debe ser mayor a cero.",
+    }),
+
+  quantity: Joi.number()
+    .integer()
+    .positive()
+    .required()
+    .messages({
+      "any.required": "La cantidad es obligatoria.",
+      "number.base": "La cantidad debe ser un número.",
+      "number.integer": "La cantidad debe ser un número entero.",
+      "number.positive": "La cantidad debe ser mayor a cero.",
+    })
+});
+
+/* Validación del objeto completo de salida */
+export const createInventoryExitValidation: ObjectSchema = Joi.object({
+  customerRut: Joi.string()
+    .min(8)
+    .max(12)
+    .custom(rutValidator, "RUT validation")
+    .required()
+    .messages({
+      "any.required": "El RUT del cliente es obligatorio.",
+      "string.base": "El RUT debe ser una cadena de texto.",
+      "string.min": "El RUT debe tener al menos 8 caracteres.",
+      "string.max": "El RUT debe tener menos de 12 caracteres.",
+    }),
+
+  details: Joi.array()
+    .items(inventoryExitDetailSchema)
+    .min(1)
+    .required()
+    .messages({
+      "array.base": "Los detalles deben ser un arreglo.",
+      "array.min": "Debe haber al menos un producto en la salida.",
+      "any.required": "Los detalles de la salida son obligatorios.",
+    }),
+}).messages({
+  "object.base": "El cuerpo de la solicitud debe ser un objeto válido.",
+});
