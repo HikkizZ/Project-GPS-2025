@@ -306,7 +306,7 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
                   onChange={handleInputChange}
                   required
                 >
-                  <option value="">Seleccione...</option>
+                  <option value="">Seleccione</option>
                   <option value="Indefinido">Indefinido</option>
                   <option value="Plazo Fijo">Plazo Fijo</option>
                   <option value="Por Obra">Por Obra</option>

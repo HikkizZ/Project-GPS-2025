@@ -126,7 +126,7 @@ export async function createTrabajadorService(trabajadorData: Partial<Trabajador
             cargo: trabajadorData.fichaEmpresa?.cargo ?? "Sin cargo",
             area: trabajadorData.fichaEmpresa?.area ?? "Sin área", 
             empresa: trabajadorData.fichaEmpresa?.empresa ?? "GPS",
-            tipoContrato: trabajadorData.fichaEmpresa?.tipoContrato ?? "Indefinido",
+            tipoContrato: trabajadorData.fichaEmpresa?.tipoContrato ?? "Por definir",
             jornadaLaboral: trabajadorData.fichaEmpresa?.jornadaLaboral ?? "Por definir",
             sueldoBase: trabajadorData.fichaEmpresa?.sueldoBase ?? 0,
             trabajador: trabajadorGuardado,
