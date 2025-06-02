@@ -100,12 +100,12 @@ export async function getUsersService(): Promise<ServiceResponse<SafeUser[]>> {
             order: { id: "ASC" }
         });
 
-        if (!users || users.length === 0) return [[], null]; // Retornar array vacío
+        if (!users || users.length === 0) return [[], null];
 
-        // Ahora incluimos la contraseña original en la respuesta
+        // Retornar la contraseña en texto plano (originalPassword si existe, sino password encriptada)
         const usersData = users.map(user => ({
             ...user,
-            password: user.originalPassword || user.password, // Usar la contraseña original si existe
+            password: user.originalPassword || user.password,
             showPassword: false
         }));
         return [usersData, null];
@@ -120,8 +120,6 @@ export async function updateUserService(query: QueryParams, body: UpdateUserData
     try {
         const { id, rut, email } = query;
         const userRepository = AppDataSource.getRepository(User);
-        
-        // Buscar el usuario
         const userFound = await userRepository.findOne({
             where: [{ id }, { rut }, { email }],
         });
@@ -131,22 +129,16 @@ export async function updateUserService(query: QueryParams, body: UpdateUserData
         // Solo permitir actualizar contraseña y rol
         const allowedUpdates = ['password', 'role'];
         const updates = Object.keys(body).filter(key => !allowedUpdates.includes(key));
-        
         if (updates.length > 0) {
             return [null, "Solo se puede modificar la contraseña y el rol del usuario"];
         }
 
-        /* Only admin and RRHH can update roles */
         if (body.role && requester.role !== "Administrador" && requester.role !== "RecursosHumanos") {
             return [null, "No tienes permisos para modificar roles"];
         }
-
-        /* Validate role if present */
         if (body.role && !isValidRole(body.role)) {
             return [null, "Rol inválido"];
         }
-
-        /* Prevent updating protected users */
         if (userFound.role === "Administrador" && userFound.rut === "11.111.111-1") {
             return [null, "No se puede modificar el administrador principal"];
         }
@@ -154,28 +146,22 @@ export async function updateUserService(query: QueryParams, body: UpdateUserData
         const dataUserUpdate: Partial<User> = {
             updateAt: new Date(),
         };
-
-        // Actualizar rol si está presente
         if (body.role) {
             dataUserUpdate.role = body.role;
         }
-
-        // Actualizar contraseña si está presente
         if (body.password) {
             if (body.password.length < 6) {
                 return [null, "La contraseña debe tener al menos 6 caracteres"];
             }
             dataUserUpdate.password = await encryptPassword(body.password);
+            dataUserUpdate.originalPassword = body.password; // Guardar la contraseña en texto plano
         }
-
         await userRepository.update({ id: userFound.id }, dataUserUpdate);
-
         const userData = await userRepository.findOne({ where: { id: userFound.id } });
-
         if (!userData) return [null, "Usuario no encontrado después de actualizar"];
-
-        const { password, ...userUpdated } = userData;
-        return [userUpdated, null];
+        // Retornar la contraseña en texto plano
+        const { password, originalPassword, ...userUpdated } = userData;
+        return [{ ...userUpdated, password: originalPassword || password }, null];
     } catch (error) {
         console.error("Error al modificar un usuario:", error);
         return [null, "Error interno del servidor"];
