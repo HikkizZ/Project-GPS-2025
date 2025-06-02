@@ -5,6 +5,7 @@ import { Supplier } from '../../entity/supplier.entity.js';
 import { Product } from '../../entity/inventory/product.entity.js';
 import { CreateInventoryEntryDTO } from '../../types/index.js';
 import { ServiceResponse } from '../../../types.js';
+import { incrementInventory } from './inventory.service.js';
 
 export async function createInventoryEntryService(entryData: CreateInventoryEntryDTO): Promise<ServiceResponse<InventoryEntry>> {
     try {
@@ -30,6 +31,9 @@ export async function createInventoryEntryService(entryData: CreateInventoryEntr
             entryDetail.quantity = detail.quantity;
             entryDetail.purchasePrice = detail.purchasePrice;
             entryDetail.totalPrice = detail.quantity * detail.purchasePrice;
+
+            const [_, inventoryError] = await incrementInventory(detail.productId, detail.quantity);
+            if (inventoryError) return [null, inventoryError];
 
             entry.details.push(entryDetail);
         }
