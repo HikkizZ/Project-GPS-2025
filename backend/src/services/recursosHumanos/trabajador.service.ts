@@ -9,6 +9,7 @@ import { FindOptionsWhere } from "typeorm";
 import { User } from "../../entity/user.entity.js";
 import { HistorialLaboral } from "../../entity/recursosHumanos/historialLaboral.entity.js";
 import { encryptPassword } from "../../helpers/bcrypt.helper.js";
+import { Between } from "typeorm";
 
 // Función para generar una contraseña de exactamente 8 caracteres
 function generateRandomPassword(): string {
@@ -207,6 +208,7 @@ export async function searchTrabajadoresService(query: any): Promise<ServiceResp
             whereClause.fechaNacimiento = query.fechaNacimiento;
         }
         if (query.fechaIngreso) {
+            // Comparar directamente el string YYYY-MM-DD para evitar desfases
             whereClause.fechaIngreso = query.fechaIngreso;
         }
         
