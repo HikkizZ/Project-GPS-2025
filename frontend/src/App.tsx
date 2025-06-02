@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTrabajador } from './hooks/useTrabajador';
-import { type CreateTrabajadorData, type Trabajador } from './types/trabajador';
+import { type CreateTrabajadorData, type Trabajador } from './types/trabajador.types';
 import { FichasEmpresaPage } from './pages/FichasEmpresaPage';
 import { UsersPage } from './pages/UsersPage';
 import { TrabajadoresPage } from './pages/TrabajadoresPage';
