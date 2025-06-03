@@ -71,11 +71,12 @@ export async function procesarCambioLaboral(req: Request, res: Response) {
         });
 
         if (error) {
-            handleErrorClient(res, 400, error);
+            const errorMessage = typeof error === 'string' ? error : error.message;
+            handleErrorClient(res, 400, errorMessage);
             return;
         }
 
-        handleSuccess(res, 200, "Cambio laboral procesado exitosamente", respuesta);
+        handleSuccess(res, 200, "Cambio laboral procesado exitosamente", respuesta || {});
     } catch (error) {
         console.error("Error en procesarCambioLaboral:", error);
         handleErrorServer(res, 500, "Error interno del servidor");

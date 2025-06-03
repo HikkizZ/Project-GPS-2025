@@ -10,7 +10,7 @@ export async function createHistorialLaboral(req: Request, res: Response): Promi
     try {
         const { error, value } = CreateHistorialLaboralValidation.validate(req.body);
         if (error) {
-            handleErrorClient(res, error.details[0].message);
+            handleErrorClient(res, 400, error.details[0].message);
             return;
         }
 
@@ -20,13 +20,19 @@ export async function createHistorialLaboral(req: Request, res: Response): Promi
 
         const [historial, errorMsg] = await createHistorialLaboralService(data);
         if (errorMsg) {
-            handleErrorClient(res, 400, errorMsg);
+            handleErrorClient(res, 400, typeof errorMsg === 'string' ? errorMsg : errorMsg.message);
+            return;
+        }
+
+        if (!historial) {
+            handleErrorClient(res, 400, "No se pudo crear el historial laboral");
             return;
         }
 
         handleSuccess(res, 201, "Historial laboral creado exitosamente", historial);
     } catch (error) {
-        handleErrorServer(res, "Error al crear registro de historial laboral.");
+        console.error("Error al crear historial laboral:", error);
+        handleErrorServer(res, 500, "Error al crear registro de historial laboral.");
     }
 }
 
@@ -59,15 +65,16 @@ export async function getHistorialLaboral(req: Request, res: Response): Promise<
         }
 
         if (errorMsg) {
-            const statusCode = errorMsg.includes("no encontrado") ? 404 : 400;
-            handleErrorClient(res, statusCode, errorMsg);
+            const errorMessage = typeof errorMsg === 'string' ? errorMsg : errorMsg.message;
+            const statusCode = errorMessage.includes("no encontrado") ? 404 : 400;
+            handleErrorClient(res, statusCode, errorMessage);
             return;
         }
 
         handleSuccess(res, 200, "Historial laboral obtenido exitosamente", historial || []);
     } catch (error) {
         console.error("Error al obtener historial laboral:", error);
-        handleErrorServer(res, "Error al obtener historial laboral.");
+        handleErrorServer(res, 500, "Error al obtener historial laboral.");
     }
 }
 
@@ -75,26 +82,33 @@ export async function updateHistorialLaboral(req: Request, res: Response): Promi
     try {
         const { error, value } = UpdateHistorialLaboralValidation.validate(req.body);
         if (error) {
-            handleErrorClient(res, error.details[0].message);
+            handleErrorClient(res, 400, error.details[0].message);
             return;
         }
 
         const id = parseInt(req.params.id);
         if (isNaN(id)) {
-            handleErrorClient(res, "ID inválido.");
+            handleErrorClient(res, 400, "ID inválido");
             return;
         }
 
         const [historial, errorMsg] = await updateHistorialLaboralService(id, value);
         if (errorMsg) {
-            const statusCode = errorMsg.includes("no encontrado") ? 404 : 400;
-            handleErrorClient(res, statusCode, errorMsg);
+            const errorMessage = typeof errorMsg === 'string' ? errorMsg : errorMsg.message;
+            const statusCode = errorMessage.includes("no encontrado") ? 404 : 400;
+            handleErrorClient(res, statusCode, errorMessage);
+            return;
+        }
+
+        if (!historial) {
+            handleErrorClient(res, 404, "No se pudo actualizar el historial laboral");
             return;
         }
 
         handleSuccess(res, 200, "Historial laboral actualizado exitosamente", historial);
     } catch (error) {
-        handleErrorServer(res, "Error al actualizar registro de historial laboral.");
+        console.error("Error al actualizar historial laboral:", error);
+        handleErrorServer(res, 500, "Error al actualizar registro de historial laboral.");
     }
 }
 
@@ -102,18 +116,24 @@ export async function descargarContrato(req: Request, res: Response): Promise<vo
     try {
         const id = parseInt(req.params.id);
         if (isNaN(id)) {
-            handleErrorClient(res, "ID inválido.");
+            handleErrorClient(res, 400, "ID inválido");
             return;
         }
 
         const [contratoURL, errorMsg] = await descargarContratoService(id);
         if (errorMsg) {
-            handleErrorClient(res, errorMsg);
+            handleErrorClient(res, 400, typeof errorMsg === 'string' ? errorMsg : errorMsg.message);
             return;
         }
 
-        handleSuccess(res, { contratoURL });
+        if (!contratoURL) {
+            handleErrorClient(res, 404, "No se encontró el contrato");
+            return;
+        }
+
+        handleSuccess(res, 200, "Contrato obtenido exitosamente", { contratoURL });
     } catch (error) {
-        handleErrorServer(res, "Error al descargar contrato.");
+        console.error("Error al descargar contrato:", error);
+        handleErrorServer(res, 500, "Error al descargar contrato.");
     }
 } 

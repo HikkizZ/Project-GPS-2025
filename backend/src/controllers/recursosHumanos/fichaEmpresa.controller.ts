@@ -333,9 +333,10 @@ export async function searchFichas(req: Request, res: Response): Promise<void> {
 
         if (error) {
             console.log("❌ Error en la búsqueda:", error);
+            const errorMessage = typeof error === 'string' ? error : error.message;
             res.status(404).json({
                 status: "error",
-                message: error.message
+                message: errorMessage
             });
             return;
         }
