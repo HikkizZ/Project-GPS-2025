@@ -573,7 +573,7 @@ function App() {
       <Route path="/trabajadores" element={<MainLayout user={user} onLogout={handleLogout}><TrabajadoresPage /></MainLayout>} />
       <Route path="/fichas-empresa" element={<MainLayout user={user} onLogout={handleLogout}><FichasEmpresaPage /></MainLayout>} />
       <Route path="/usuarios" element={<MainLayout user={user} onLogout={handleLogout}><UsersPage /></MainLayout>} />
-      <Route path="/gestion-personal" element={<GestionPersonalPage />} />
+      <Route path="/gestion-personal" element={<MainLayout user={user} onLogout={handleLogout}><GestionPersonalPage /></MainLayout>} />
       <Route path="/gestion-sueldos" element={<GestionSueldosPage />} />
     </Routes>
   ) : <LoginPage />;
