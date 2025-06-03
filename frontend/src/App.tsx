@@ -493,11 +493,7 @@ const Dashboard: React.FC = () => {
                     
                     <Row>
                       <Col md={3} className="mb-4">
-                        <Card 
-                          className="h-100 shadow-sm hover-card" 
-                          onClick={() => navigate('/recursos-humanos')}
-                          style={{ cursor: 'pointer' }}
-                        >
+                        <Card className="h-100 shadow-sm border-primary" style={{ cursor: 'pointer', borderTop: '4px solid #2563eb' }} onClick={() => navigate('/recursos-humanos')}>
                           <Card.Body className="d-flex flex-column align-items-center justify-content-center text-center">
                             <i className="bi bi-people-fill fs-1 mb-3 text-primary"></i>
                             <Card.Title>Recursos Humanos</Card.Title>
@@ -506,27 +502,27 @@ const Dashboard: React.FC = () => {
                         </Card>
                       </Col>
                       <Col md={3} className="mb-4">
-                        <Card className="h-100 shadow-sm">
+                        <Card className="h-100 shadow-sm border-success" style={{ borderTop: '4px solid #059669' }}>
                           <Card.Body className="d-flex flex-column align-items-center justify-content-center text-center">
-                            <i className="bi bi-box-seam-fill fs-1 mb-3 text-muted"></i>
+                            <i className="bi bi-box-seam-fill fs-1 mb-3 text-success"></i>
                             <Card.Title>Inventario</Card.Title>
                             <Card.Text className="text-muted">Próximamente</Card.Text>
                           </Card.Body>
                         </Card>
                       </Col>
                       <Col md={3} className="mb-4">
-                        <Card className="h-100 shadow-sm">
+                        <Card className="h-100 shadow-sm border-info" style={{ borderTop: '4px solid #8b5cf6' }}>
                           <Card.Body className="d-flex flex-column align-items-center justify-content-center text-center">
-                            <i className="bi bi-truck-fill fs-1 mb-3 text-muted"></i>
+                            <i className="bi bi-truck-fill fs-1 mb-3 text-info"></i>
                             <Card.Title>Maquinaria</Card.Title>
                             <Card.Text className="text-muted">Próximamente</Card.Text>
                           </Card.Body>
                         </Card>
                       </Col>
                       <Col md={3} className="mb-4">
-                        <Card className="h-100 shadow-sm">
+                        <Card className="h-100 shadow-sm border-warning" style={{ borderTop: '4px solid #f59e42' }}>
                           <Card.Body className="d-flex flex-column align-items-center justify-content-center text-center">
-                            <i className="bi bi-graph-up-fill fs-1 mb-3 text-muted"></i>
+                            <i className="bi bi-graph-up-fill fs-1 mb-3 text-warning"></i>
                             <Card.Title>Reportes</Card.Title>
                             <Card.Text className="text-muted">Próximamente</Card.Text>
                           </Card.Body>
