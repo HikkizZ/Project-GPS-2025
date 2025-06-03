@@ -242,7 +242,7 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
           <div className="alert alert-info">
             <strong>Trabajador:</strong>
             <span className="ms-2">{ficha.trabajador.nombres} {ficha.trabajador.apellidoPaterno} {ficha.trabajador.apellidoMaterno}</span>
-            <span className="mx-3 fw-bold">|</span>
+            <span className="mx-4"></span>
             <strong>RUT:</strong>
             <span className="ms-2">{ficha.trabajador.rut}</span>
           </div>
