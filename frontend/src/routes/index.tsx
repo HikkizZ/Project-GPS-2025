@@ -4,11 +4,6 @@ import { LoginPage } from '@/pages/LoginPage';
 import { UsersPage } from '@/pages/UsersPage';
 import { authService } from '@/services/auth.service';
 
-const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const isAuthenticated = authService.isAuthenticated();
-  return isAuthenticated ? <>{children}</> : <Navigate to="/login" />;
-};
-
 const AdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const isAuthenticated = authService.isAuthenticated();
   const user = authService.getCurrentUser();
