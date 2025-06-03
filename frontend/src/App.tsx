@@ -574,7 +574,7 @@ function App() {
       <Route path="/fichas-empresa" element={<MainLayout user={user} onLogout={handleLogout}><FichasEmpresaPage /></MainLayout>} />
       <Route path="/usuarios" element={<MainLayout user={user} onLogout={handleLogout}><UsersPage /></MainLayout>} />
       <Route path="/gestion-personal" element={<MainLayout user={user} onLogout={handleLogout}><GestionPersonalPage /></MainLayout>} />
-      <Route path="/gestion-sueldos" element={<GestionSueldosPage />} />
+      <Route path="/gestion-sueldos" element={<MainLayout user={user} onLogout={handleLogout}><GestionSueldosPage /></MainLayout>} />
     </Routes>
   ) : <LoginPage />;
 }
