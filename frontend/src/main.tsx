@@ -2,6 +2,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './App.tsx'
 import { AuthProvider } from './context/AuthContext.tsx'
+import { BrowserRouter } from 'react-router-dom'
 
 // Importar Bootstrap completo
 import 'bootstrap/dist/css/bootstrap.min.css'
@@ -17,9 +18,11 @@ if (rootElement) {
   const root = createRoot(rootElement);
   root.render(
     <StrictMode>
-      <AuthProvider>
-        <App />
-      </AuthProvider>
+      <BrowserRouter>
+        <AuthProvider>
+          <App />
+        </AuthProvider>
+      </BrowserRouter>
     </StrictMode>
   );
   console.log('App renderizada!');

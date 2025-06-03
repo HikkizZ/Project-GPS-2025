@@ -6,6 +6,9 @@ import { FichasEmpresaPage } from './pages/FichasEmpresaPage';
 import { UsersPage } from './pages/UsersPage';
 import { TrabajadoresPage } from './pages/TrabajadoresPage';
 import { authService } from './services/auth.service';
+import { Card, Row, Col } from 'react-bootstrap';
+import { useNavigate, Routes, Route, Navigate } from 'react-router-dom';
+import DashboardRecursosHumanos from './pages/DashboardRecursosHumanos';
 
 // Componente simple de Login
 const LoginPage: React.FC = () => {
@@ -413,6 +416,7 @@ const Dashboard: React.FC = () => {
   const [currentPage, setCurrentPage] = useState('home');
   const [successMessage, setSuccessMessage] = useState('');
   const [recienRegistrado, setRecienRegistrado] = useState<Trabajador | null>(null);
+  const navigate = useNavigate();
 
   const handleLogout = () => {
     localStorage.removeItem('authToken');
@@ -487,117 +491,48 @@ const Dashboard: React.FC = () => {
                       </div>
                     </div>
                     
-                    <div className="row">
-                      {/* Tarjeta de Trabajadores */}
-                      <div className="col-md-4 mb-3">
-                        <div 
-                          className="card h-100 shadow-sm border-success"
+                    <Row>
+                      <Col md={3} className="mb-4">
+                        <Card 
+                          className="h-100 shadow-sm hover-card" 
+                          onClick={() => navigate('/recursos-humanos')}
                           style={{ cursor: 'pointer' }}
-                          onClick={() => setCurrentPage('trabajadores')}
                         >
-                          <div className="card-body text-center">
-                            <i className="bi bi-people-fill display-4 text-success mb-3"></i>
-                            <h5>Trabajadores</h5>
-                            <p className="text-muted">Gestionar información del personal</p>
-                            <button className="btn btn-success">
-                              <i className="bi bi-person-gear me-2"></i>
-                              Administrar
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Tarjeta de Fichas de Empresa */}
-                      <div className="col-md-4 mb-3">
-                        <div 
-                          className="card h-100 shadow-sm border-primary"
-                          style={{ cursor: 'pointer' }}
-                          onClick={() => setCurrentPage('fichas-empresa')}
-                        >
-                          <div className="card-body text-center">
-                            <i className="bi bi-clipboard-data display-4 text-primary mb-3"></i>
-                            <h5>Fichas de Empresa</h5>
-                            <p className="text-muted">Editar información laboral de trabajadores</p>
-                            <button className="btn btn-primary">
-                              <i className="bi bi-pencil-square me-2"></i>
-                              Gestionar
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Tarjeta de Gestión de Usuarios */}
-                      {(user?.role === 'Administrador' || user?.role === 'RecursosHumanos') && (
-                        <div className="col-md-4 mb-3">
-                          <div 
-                            className="card h-100 shadow-sm border-warning"
-                            style={{ cursor: 'pointer' }}
-                            onClick={() => setCurrentPage('users')}
-                          >
-                            <div className="card-body text-center">
-                              <i className="bi bi-people display-4 text-warning mb-3"></i>
-                              <h5>Gestión de Usuarios</h5>
-                              <p className="text-muted">Administrar cuentas y permisos del sistema</p>
-                              <button className="btn btn-warning">
-                                <i className="bi bi-shield-lock me-2"></i>
-                                Gestionar
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Otros Módulos */}
-                    <div className="row mt-4">
-                      <div className="col-12">
-                        <h6 className="text-secondary mb-3">
-                          <i className="bi bi-gear me-2"></i>
-                          Otros Módulos
-                        </h6>
-                      </div>
-                    </div>
-                    
-                    <div className="row">
-                      <div className="col-md-4 mb-3">
-                        <div className="card h-100 bg-light">
-                          <div className="card-body text-center">
-                            <i className="bi bi-box display-4 text-muted mb-3"></i>
-                            <h5>Inventario</h5>
-                            <p className="text-muted">Gestión de productos</p>
-                            <button className="btn btn-outline-secondary" disabled>
-                              Próximamente
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div className="col-md-4 mb-3">
-                        <div className="card h-100 bg-light">
-                          <div className="card-body text-center">
-                            <i className="bi bi-wrench display-4 text-muted mb-3"></i>
-                            <h5>Maquinaria</h5>
-                            <p className="text-muted">Control de equipos</p>
-                            <button className="btn btn-outline-secondary" disabled>
-                              Próximamente
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div className="col-md-4 mb-3">
-                        <div className="card h-100 bg-light">
-                          <div className="card-body text-center">
-                            <i className="bi bi-graph-up display-4 text-muted mb-3"></i>
-                            <h5>Reportes</h5>
-                            <p className="text-muted">Análisis y estadísticas</p>
-                            <button className="btn btn-outline-secondary" disabled>
-                              Próximamente
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+                          <Card.Body className="d-flex flex-column align-items-center justify-content-center text-center">
+                            <i className="bi bi-people-fill fs-1 mb-3 text-primary"></i>
+                            <Card.Title>Recursos Humanos</Card.Title>
+                            <Card.Text>Gestiona trabajadores, fichas y usuarios</Card.Text>
+                          </Card.Body>
+                        </Card>
+                      </Col>
+                      <Col md={3} className="mb-4">
+                        <Card className="h-100 shadow-sm">
+                          <Card.Body className="d-flex flex-column align-items-center justify-content-center text-center">
+                            <i className="bi bi-box-seam-fill fs-1 mb-3 text-muted"></i>
+                            <Card.Title>Inventario</Card.Title>
+                            <Card.Text className="text-muted">Próximamente</Card.Text>
+                          </Card.Body>
+                        </Card>
+                      </Col>
+                      <Col md={3} className="mb-4">
+                        <Card className="h-100 shadow-sm">
+                          <Card.Body className="d-flex flex-column align-items-center justify-content-center text-center">
+                            <i className="bi bi-truck-fill fs-1 mb-3 text-muted"></i>
+                            <Card.Title>Maquinaria</Card.Title>
+                            <Card.Text className="text-muted">Próximamente</Card.Text>
+                          </Card.Body>
+                        </Card>
+                      </Col>
+                      <Col md={3} className="mb-4">
+                        <Card className="h-100 shadow-sm">
+                          <Card.Body className="d-flex flex-column align-items-center justify-content-center text-center">
+                            <i className="bi bi-graph-up-fill fs-1 mb-3 text-muted"></i>
+                            <Card.Title>Reportes</Card.Title>
+                            <Card.Text className="text-muted">Próximamente</Card.Text>
+                          </Card.Body>
+                        </Card>
+                      </Col>
+                    </Row>
                   </div>
                 </div>
               </div>
@@ -685,7 +620,16 @@ function App() {
     }
   })();
 
-  return isAuthenticated ? <Dashboard /> : <LoginPage />;
+  return isAuthenticated ? (
+    <Routes>
+      <Route path="/" element={<Navigate to="/dashboard" replace />} />
+      <Route path="/dashboard" element={<Dashboard />} />
+      <Route path="/recursos-humanos" element={<DashboardRecursosHumanos />} />
+      <Route path="/trabajadores" element={<TrabajadoresPage />} />
+      <Route path="/fichas-empresa" element={<FichasEmpresaPage />} />
+      <Route path="/usuarios" element={<UsersPage />} />
+    </Routes>
+  ) : <LoginPage />;
 }
 
 export default App; 
