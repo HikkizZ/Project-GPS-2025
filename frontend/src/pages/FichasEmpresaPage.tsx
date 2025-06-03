@@ -329,7 +329,7 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
 
   // Vista para RRHH/Admin
   return (
-    <div className="container-fluid py-4">
+    <div className="container py-4">
       {/* Mostrar mensaje de éxito si existe */}
       {successMessage && (
         <div className="alert alert-success alert-dismissible fade show" role="alert">
