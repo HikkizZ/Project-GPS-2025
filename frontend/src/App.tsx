@@ -9,6 +9,7 @@ import { authService } from './services/auth.service';
 import { Card, Row, Col } from 'react-bootstrap';
 import { useNavigate, Routes, Route, Navigate } from 'react-router-dom';
 import DashboardRecursosHumanos from './pages/DashboardRecursosHumanos';
+import MainLayout from './components/common/MainLayout';
 
 // Componente simple de Login
 const LoginPage: React.FC = () => {
@@ -398,7 +399,6 @@ const RegistrarTrabajadorPage: React.FC<{
 
 // Dashboard principal simplificado
 const Dashboard: React.FC = () => {
-  // Manejo seguro de localStorage
   const getUserFromStorage = () => {
     try {
       const userStr = localStorage.getItem('userData');
@@ -418,18 +418,10 @@ const Dashboard: React.FC = () => {
   const [recienRegistrado, setRecienRegistrado] = useState<Trabajador | null>(null);
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('userData');
-    window.location.reload();
-  };
-
   const handleTrabajadorCreated = (trabajador: Trabajador) => {
     setSuccessMessage(`Trabajador ${trabajador.nombres} ${trabajador.apellidoPaterno} registrado exitosamente. Completa ahora su información laboral.`);
     setRecienRegistrado(trabajador);
     setCurrentPage('fichas-empresa');
-    
-    // Limpiar mensaje después de 5 segundos
     setTimeout(() => setSuccessMessage(''), 5000);
   };
 
@@ -469,7 +461,6 @@ const Dashboard: React.FC = () => {
                     ></button>
                   </div>
                 )}
-                
                 <div className="card">
                   <div className="card-header bg-primary text-white">
                     <h4 className="mb-0">
@@ -480,7 +471,6 @@ const Dashboard: React.FC = () => {
                   <div className="card-body">
                     <h5>¡Bienvenido, {user.name}!</h5>
                     <p className="text-muted">Rol: <strong>{user.role}</strong> • RUT: {user.rut}</p>
-                    
                     {/* Sección de Recursos Humanos */}
                     <div className="row mt-4">
                       <div className="col-12">
@@ -490,7 +480,6 @@ const Dashboard: React.FC = () => {
                         </h6>
                       </div>
                     </div>
-                    
                     <Row>
                       <Col md={3} className="mb-4">
                         <Card className="h-100 shadow-sm border-primary" style={{ cursor: 'pointer', borderTop: '4px solid #2563eb' }} onClick={() => navigate('/recursos-humanos')}>
@@ -538,73 +527,11 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  return (
-    <div className="min-vh-100 d-flex flex-column">
-      {/* Navbar */}
-      <nav className="navbar navbar-expand-lg navbar-dark bg-primary">
-        <div className="container">
-          <span className="navbar-brand mb-0 h1">
-            <i className="bi bi-geo-alt me-2"></i>
-            Sistema GPS 2025
-          </span>
-          
-          <div className="navbar-nav ms-auto d-flex flex-row">
-            <button 
-              className="btn btn-outline-light me-3"
-              onClick={() => setCurrentPage('home')}
-            >
-              <i className="bi bi-house me-2"></i>
-              Dashboard
-            </button>
-            
-            <div className="nav-item dropdown">
-              <button 
-                className="btn btn-outline-light dropdown-toggle" 
-                type="button" 
-                data-bs-toggle="dropdown"
-              >
-                <i className="bi bi-person-circle me-2"></i>
-                {user.name}
-              </button>
-              <ul className="dropdown-menu dropdown-menu-end">
-                <li>
-                  <span className="dropdown-item-text">
-                    <strong>Usuario:</strong> {user.name}<br />
-                    <strong>Rol:</strong> {user.role}<br />
-                    <strong>RUT:</strong> {user.rut}
-                  </span>
-                </li>
-                <li><hr className="dropdown-divider" /></li>
-                <li>
-                  <button className="dropdown-item" onClick={handleLogout}>
-                    <i className="bi bi-box-arrow-right me-2"></i>
-                    Cerrar Sesión
-                  </button>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </nav>
-
-      {/* Contenido */}
-      <main className="flex-grow-1 bg-light">
-        {renderPage()}
-      </main>
-
-      {/* Footer */}
-      <footer className="bg-dark text-light py-2">
-        <div className="container text-center">
-          <small>&copy; 2025 Sistema GPS - Gestión de Procesos Empresariales</small>
-        </div>
-      </footer>
-    </div>
-  );
+  return renderPage();
 };
 
 // App principal
 function App() {
-  // Manejo seguro de autenticación
   const isAuthenticated = (() => {
     try {
       const authStr = localStorage.getItem('authToken');
@@ -616,14 +543,34 @@ function App() {
     }
   })();
 
+  // Obtener usuario y función de logout para pasar al layout
+  const getUserFromStorage = () => {
+    try {
+      const userStr = localStorage.getItem('userData');
+      if (!userStr || userStr === 'undefined' || userStr === 'null') {
+        return { name: 'Usuario', role: 'Invitado', rut: 'N/A' };
+      }
+      return JSON.parse(userStr);
+    } catch (error) {
+      console.error('Error parsing user from localStorage:', error);
+      return { name: 'Usuario', role: 'Invitado', rut: 'N/A' };
+    }
+  };
+  const user = getUserFromStorage();
+  const handleLogout = () => {
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('userData');
+    window.location.reload();
+  };
+
   return isAuthenticated ? (
     <Routes>
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
-      <Route path="/dashboard" element={<Dashboard />} />
-      <Route path="/recursos-humanos" element={<DashboardRecursosHumanos />} />
-      <Route path="/trabajadores" element={<TrabajadoresPage />} />
-      <Route path="/fichas-empresa" element={<FichasEmpresaPage />} />
-      <Route path="/usuarios" element={<UsersPage />} />
+      <Route path="/dashboard" element={<MainLayout user={user} onLogout={handleLogout}><Dashboard /></MainLayout>} />
+      <Route path="/recursos-humanos" element={<MainLayout user={user} onLogout={handleLogout}><DashboardRecursosHumanos /></MainLayout>} />
+      <Route path="/trabajadores" element={<MainLayout user={user} onLogout={handleLogout}><TrabajadoresPage /></MainLayout>} />
+      <Route path="/fichas-empresa" element={<MainLayout user={user} onLogout={handleLogout}><FichasEmpresaPage /></MainLayout>} />
+      <Route path="/usuarios" element={<MainLayout user={user} onLogout={handleLogout}><UsersPage /></MainLayout>} />
     </Routes>
   ) : <LoginPage />;
 }
