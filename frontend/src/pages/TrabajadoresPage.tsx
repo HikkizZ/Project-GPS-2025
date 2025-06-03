@@ -497,9 +497,11 @@ export const TrabajadoresPage: React.FC = () => {
             </Alert>
           )}
           <Alert variant="warning" className="mb-3">
-            <i className="bi bi-exclamation-triangle me-2"></i>
             <div>
-              <strong>Advertencia:</strong>
+              <span className="me-2 align-middle">
+                <i className="bi bi-exclamation-triangle"></i>
+              </span>
+              <strong className="align-middle">Advertencia:</strong>
               <br />
               Esta acción:
               <ul className="mb-0 mt-2">
