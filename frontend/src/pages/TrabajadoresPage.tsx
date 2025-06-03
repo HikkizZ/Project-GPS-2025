@@ -353,30 +353,27 @@ export const TrabajadoresPage: React.FC = () => {
                       <td>{trabajador.direccion}</td>
                       <td>{new Date(trabajador.fechaIngreso).toLocaleDateString()}</td>
                       <td className="text-center">
-                        {/* Ocultar acciones si es el admin principal */}
-                        {(trabajador.correo !== 'admin.principal@gmail.com' && trabajador.rut !== '11.111.111-1') && (
-                          <div className="btn-group">
-                            <Button
-                              variant="outline-primary"
-                              size="sm"
-                              className="me-2"
-                              onClick={() => handleEditClick(trabajador)}
-                              title="Editar trabajador"
-                              disabled={!trabajador.enSistema}
-                            >
-                              <i className="bi bi-pencil"></i>
-                            </Button>
-                            <Button
-                              variant="outline-danger"
-                              size="sm"
-                              onClick={() => handleDesvincularClick(trabajador)}
-                              title="Desvincular trabajador"
-                              disabled={!trabajador.enSistema}
-                            >
-                              <i className="bi bi-person-x"></i>
-                            </Button>
-                          </div>
-                        )}
+                        <div className="btn-group">
+                          <Button 
+                            variant="outline-primary" 
+                            size="sm" 
+                            className="me-2"
+                            onClick={() => handleEditClick(trabajador)}
+                            title="Editar trabajador"
+                            disabled={!trabajador.enSistema}
+                          >
+                            <i className="bi bi-pencil"></i>
+                          </Button>
+                          <Button 
+                            variant="outline-danger" 
+                            size="sm"
+                            onClick={() => handleDesvincularClick(trabajador)}
+                            title="Desvincular trabajador"
+                            disabled={!trabajador.enSistema}
+                          >
+                            <i className="bi bi-person-x"></i>
+                          </Button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -501,13 +498,17 @@ export const TrabajadoresPage: React.FC = () => {
           )}
           <Alert variant="warning" className="mb-3">
             <i className="bi bi-exclamation-triangle me-2"></i>
-            <strong>Advertencia:</strong> Esta acción:
-            <ul className="mb-0 mt-2">
-              <li>Marcará al trabajador como desvinculado en el sistema</li>
-              <li>Cambiará el estado de su ficha a "Desvinculado"</li>
-              <li>Desactivará su cuenta de usuario</li>
-              <li>Registrará el motivo de desvinculación en el historial laboral</li>
-            </ul>
+            <div>
+              <strong>Advertencia:</strong>
+              <br />
+              Esta acción:
+              <ul className="mb-0 mt-2">
+                <li>Marcará al trabajador como desvinculado en el sistema</li>
+                <li>Cambiará el estado de su ficha a "Desvinculado"</li>
+                <li>Desactivará su cuenta de usuario</li>
+                <li>Registrará el motivo de desvinculación en el historial laboral</li>
+              </ul>
+            </div>
           </Alert>
           <p>¿Estás seguro que deseas desvincular al trabajador?</p>
           <p className="mb-3">
