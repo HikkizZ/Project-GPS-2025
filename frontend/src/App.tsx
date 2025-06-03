@@ -502,29 +502,29 @@ const Dashboard: React.FC = () => {
                         </Card>
                       </Col>
                       <Col md={3} className="mb-4">
-                        <Card className="h-100 shadow-sm border-success" style={{ borderTop: '4px solid #059669' }}>
+                        <Card className="h-100 shadow-sm border-success" style={{ border: '1.5px solid #059669', borderTop: '3px solid #059669' }}>
                           <Card.Body className="d-flex flex-column align-items-center justify-content-center text-center">
-                            <i className="bi bi-box-seam-fill fs-1 mb-3 text-success"></i>
-                            <Card.Title>Inventario</Card.Title>
-                            <Card.Text className="text-muted">Próximamente</Card.Text>
+                            <i className="bi bi-box-seam fs-1 mb-3" style={{ color: '#059669' }}></i>
+                            <Card.Title className="fw-bold">Inventario</Card.Title>
+                            <Card.Text className="text-secondary">Próximamente</Card.Text>
                           </Card.Body>
                         </Card>
                       </Col>
                       <Col md={3} className="mb-4">
-                        <Card className="h-100 shadow-sm border-info" style={{ borderTop: '4px solid #8b5cf6' }}>
+                        <Card className="h-100 shadow-sm border-info" style={{ border: '1.5px solid #0ea5e9', borderTop: '3px solid #0ea5e9' }}>
                           <Card.Body className="d-flex flex-column align-items-center justify-content-center text-center">
-                            <i className="bi bi-truck-fill fs-1 mb-3 text-info"></i>
-                            <Card.Title>Maquinaria</Card.Title>
-                            <Card.Text className="text-muted">Próximamente</Card.Text>
+                            <i className="bi bi-truck fs-1 mb-3" style={{ color: '#0ea5e9' }}></i>
+                            <Card.Title className="fw-bold">Maquinaria</Card.Title>
+                            <Card.Text className="text-secondary">Próximamente</Card.Text>
                           </Card.Body>
                         </Card>
                       </Col>
                       <Col md={3} className="mb-4">
-                        <Card className="h-100 shadow-sm border-warning" style={{ borderTop: '4px solid #f59e42' }}>
+                        <Card className="h-100 shadow-sm border-warning" style={{ border: '1.5px solid #fbbf24', borderTop: '3px solid #fbbf24' }}>
                           <Card.Body className="d-flex flex-column align-items-center justify-content-center text-center">
-                            <i className="bi bi-graph-up-fill fs-1 mb-3 text-warning"></i>
-                            <Card.Title>Reportes</Card.Title>
-                            <Card.Text className="text-muted">Próximamente</Card.Text>
+                            <i className="bi bi-bar-chart fs-1 mb-3" style={{ color: '#fbbf24' }}></i>
+                            <Card.Title className="fw-bold">Reportes</Card.Title>
+                            <Card.Text className="text-secondary">Próximamente</Card.Text>
                           </Card.Body>
                         </Card>
                       </Col>
