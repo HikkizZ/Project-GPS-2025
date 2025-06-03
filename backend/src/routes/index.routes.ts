@@ -7,6 +7,9 @@ import supplierRoutes from './supplier.routes.js';
 import fichaEmpresaRoutes from './recursosHumanos/fichaEmpresa.routes.js';
 import licenciaPermisoRoutes from './recursosHumanos/licenciaPermiso.routes.js';
 import trabajadorRoutes from './recursosHumanos/trabajador.routes.js';
+import inventoryEntryRoutes from './inventoryEntry.routes.js';
+import inventoryExitRoutes from './inventoryExit.routes.js';
+import inventoryRoutes from './inventory.routes.js';
 
 const router: Router = Router();
 
@@ -24,5 +27,8 @@ router.use('/supplier', supplierRoutes);
 router.use('/ficha-empresa', fichaEmpresaRoutes);
 router.use('/licencia-permiso', licenciaPermisoRoutes);
 router.use('/trabajador', trabajadorRoutes);
+router.use('/inventory-entry', inventoryEntryRoutes);
+router.use('/inventory-exit', inventoryExitRoutes);
+router.use('/inventory', inventoryRoutes);
 
 export default router;
