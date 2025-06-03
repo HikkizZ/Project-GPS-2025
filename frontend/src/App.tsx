@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useTrabajador } from './hooks/useTrabajador';
+import { useTrabajador } from './hooks/recursosHumanos/useTrabajador';
 import { useRut } from './hooks/useRut';
 import { type CreateTrabajadorData, type Trabajador } from './types/trabajador.types';
 import { FichasEmpresaPage } from './pages/recursosHumanos/FichasEmpresaPage';

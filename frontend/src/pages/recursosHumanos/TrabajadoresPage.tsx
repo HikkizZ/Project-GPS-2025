@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Table, Button, Form, Alert, Spinner, Modal } from 'react-bootstrap';
-import { useTrabajadores } from '@/hooks/useTrabajadores';
+import { useTrabajadores } from '@/hooks/recursosHumanos/useTrabajadores';
 import { Trabajador, TrabajadorSearchQuery } from '@/types/trabajador.types';
 import { useRut } from '@/hooks/useRut';
 import { RegisterTrabajadorForm } from '@/components/trabajador/RegisterTrabajadorForm';

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Form, Button, Alert, Row, Col } from 'react-bootstrap';
 import { useRut } from '@/hooks/useRut';
-import { useTrabajadores } from '@/hooks/useTrabajadores';
+import { useTrabajadores } from '@/hooks/recursosHumanos/useTrabajadores';
 import { CreateTrabajadorData } from '@/types/trabajador.types';
 
 interface RegisterTrabajadorFormProps {
