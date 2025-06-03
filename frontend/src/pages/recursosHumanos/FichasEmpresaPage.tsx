@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { useFichaEmpresa } from '@/hooks/useFichaEmpresa';
+import { useFichaEmpresa } from '@/hooks/recursosHumanos/useFichaEmpresa';
 import { useAuth } from '@/context/AuthContext';
 import { useRut } from '@/hooks/useRut';
 import { 
   FichaEmpresa, 
   FichaEmpresaSearchParams,
   EstadoLaboral
-} from '@/types/fichaEmpresa.types';
-import { Trabajador } from '@/types/trabajador.types';
+} from '@/types/recursosHumanos/fichaEmpresa.types';
+import { Trabajador } from '@/types/recursosHumanos/trabajador.types';
 import { EditarFichaEmpresaModal } from '@/components/recursosHumanos/EditarFichaEmpresaModal';
 import { OverlayTrigger, Tooltip } from 'react-bootstrap';
 

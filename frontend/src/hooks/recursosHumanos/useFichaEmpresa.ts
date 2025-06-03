@@ -4,11 +4,11 @@ import type {
   FichaEmpresaSearchQuery,
   UpdateFichaEmpresaData,
   EstadoLaboral
-} from '../types/fichaEmpresa.types';
+} from '../../types/recursosHumanos/fichaEmpresa.types';
 import fichaEmpresaService, { 
   FichaEmpresaService, 
   downloadContrato as downloadContratoService 
-} from '../services/recursosHumanos/fichaEmpresa.service';
+} from '../../services/recursosHumanos/fichaEmpresa.service';
 
 interface UseFichaEmpresaState {
   fichas: FichaEmpresa[];

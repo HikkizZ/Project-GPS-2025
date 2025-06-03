@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useRut } from './hooks/useRut';
 import { useTrabajadores } from './hooks/recursosHumanos/useTrabajadores';
-import { type CreateTrabajadorData, type Trabajador } from './types/trabajador.types';
+import { type CreateTrabajadorData, type Trabajador } from './types/recursosHumanos/trabajador.types';
 import { FichasEmpresaPage } from './pages/recursosHumanos/FichasEmpresaPage';
 import { UsersPage } from './pages/UsersPage';
 import { TrabajadoresPage } from './pages/recursosHumanos/TrabajadoresPage';

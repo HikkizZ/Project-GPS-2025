@@ -5,7 +5,7 @@ import {
   CreateTrabajadorData,
   TrabajadorSearchQuery,
   TrabajadorResponse
-} from '@/types/trabajador.types';
+} from '@/types/recursosHumanos/trabajador.types';
 
 class TrabajadorService {
   private baseURL = API_CONFIG.BASE_URL + '/trabajadores';

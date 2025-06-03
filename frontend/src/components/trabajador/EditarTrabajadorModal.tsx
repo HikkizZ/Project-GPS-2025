@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Form, Button, Alert } from 'react-bootstrap';
-import { Trabajador } from '@/types/trabajador.types';
+import { Trabajador } from '@/types/recursosHumanos/trabajador.types';
 import { useTrabajadores } from '@/hooks/recursosHumanos/useTrabajadores';
 import { useRut } from '@/hooks/useRut';
 

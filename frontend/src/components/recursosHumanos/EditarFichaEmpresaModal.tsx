@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Button, Form, Alert, Spinner, Row, Col, OverlayTrigger, Tooltip } from 'react-bootstrap';
-import { FichaEmpresa, UpdateFichaEmpresaData, EstadoLaboral } from '@/types/fichaEmpresa.types';
+import { FichaEmpresa, UpdateFichaEmpresaData, EstadoLaboral } from '@/types/recursosHumanos/fichaEmpresa.types';
 import { updateFichaEmpresa, uploadContrato, downloadContrato, deleteContrato, getFichaEmpresa } from '@/services/recursosHumanos/fichaEmpresa.service';
 
 interface EditarFichaEmpresaModalProps {

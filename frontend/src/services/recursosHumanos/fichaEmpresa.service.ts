@@ -7,7 +7,7 @@ import {
   CreateFichaEmpresaData,
   ActualizarEstadoData,
   EstadoLaboral
-} from '@/types/fichaEmpresa.types';
+} from '@/types/recursosHumanos/fichaEmpresa.types';
 import axios from 'axios';
 
 // Configurar axios con interceptor para token
