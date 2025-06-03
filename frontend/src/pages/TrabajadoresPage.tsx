@@ -399,9 +399,11 @@ export const TrabajadoresPage: React.FC = () => {
         </Modal.Header>
         <Modal.Body>
           <div className="alert alert-info">
-            <i className="bi bi-info-circle me-2"></i>
-            <strong>Nota:</strong> Al registrar un trabajador se creará automáticamente una ficha de empresa 
-            con valores por defecto que podrás editar inmediatamente.
+            <span className="me-2 align-middle">
+              <i className="bi bi-info-circle"></i>
+            </span>
+            <strong className="align-middle me-2">Nota:</strong>
+            Al registrar un trabajador se creará automáticamente una ficha de empresa con valores por defecto que podrás editar inmediatamente.
           </div>
           <RegisterTrabajadorForm
             onSuccess={() => {
