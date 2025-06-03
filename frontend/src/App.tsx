@@ -488,7 +488,7 @@ const Dashboard: React.FC = () => {
                           <Card.Body className="d-flex flex-column align-items-center justify-content-center text-center">
                             <i className="bi bi-people-fill fs-1 mb-3 text-primary"></i>
                             <Card.Title>Recursos Humanos</Card.Title>
-                            <Card.Text>Gestiona trabajadores, fichas y usuarios</Card.Text>
+                            <Card.Text>Gestión del personal y Gestión de sueldos</Card.Text>
                           </Card.Body>
                         </Card>
                       </Col>
