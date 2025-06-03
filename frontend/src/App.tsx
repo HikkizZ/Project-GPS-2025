@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { useTrabajador } from './hooks/recursosHumanos/useTrabajador';
 import { useRut } from './hooks/useRut';
+import { useTrabajadores } from './hooks/recursosHumanos/useTrabajadores';
 import { type CreateTrabajadorData, type Trabajador } from './types/trabajador.types';
 import { FichasEmpresaPage } from './pages/recursosHumanos/FichasEmpresaPage';
 import { UsersPage } from './pages/UsersPage';
@@ -119,7 +119,7 @@ const RegistrarTrabajadorPage: React.FC<{
   onSuccess: (trabajador: Trabajador) => void;
   onCancel: () => void;
 }> = ({ onSuccess, onCancel }) => {
-  const { createTrabajador: createTrabajadorService, isLoading: isCreating, error: createError, clearError } = useTrabajador();
+  const { createTrabajador: createTrabajadorService, isLoading: isCreating, error: createError, clearError } = useTrabajadores();
   const { validateRUT, formatRUT } = useRut();
   
   const [formData, setFormData] = useState<CreateTrabajadorData>({
