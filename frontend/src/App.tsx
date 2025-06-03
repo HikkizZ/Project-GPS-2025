@@ -2,13 +2,13 @@ import React, { useState } from 'react';
 import { useTrabajador } from './hooks/useTrabajador';
 import { useRut } from './hooks/useRut';
 import { type CreateTrabajadorData, type Trabajador } from './types/trabajador.types';
-import { FichasEmpresaPage } from './pages/FichasEmpresaPage';
+import { FichasEmpresaPage } from './pages/recursosHumanos/FichasEmpresaPage';
 import { UsersPage } from './pages/UsersPage';
-import { TrabajadoresPage } from './pages/TrabajadoresPage';
+import { TrabajadoresPage } from './pages/recursosHumanos/TrabajadoresPage';
 import { authService } from './services/auth.service';
 import { Card, Row, Col } from 'react-bootstrap';
 import { useNavigate, Routes, Route, Navigate } from 'react-router-dom';
-import DashboardRecursosHumanos from './pages/DashboardRecursosHumanos';
+import DashboardRecursosHumanos from './pages/recursosHumanos/DashboardRecursosHumanos';
 import MainLayout from './components/common/MainLayout';
 
 // Componente simple de Login

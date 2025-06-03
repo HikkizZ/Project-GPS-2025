@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { trabajadorService } from '@/services/trabajador.service';
+import { trabajadorService } from '@/services/recursosHumanos/trabajador.service';
 import type { Trabajador, CreateTrabajadorData } from '@/types/trabajador.types';
 
 export const useTrabajador = () => {

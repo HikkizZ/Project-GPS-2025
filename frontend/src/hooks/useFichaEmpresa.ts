@@ -8,7 +8,7 @@ import type {
 import fichaEmpresaService, { 
   FichaEmpresaService, 
   downloadContrato as downloadContratoService 
-} from '../services/fichaEmpresa.service';
+} from '../services/recursosHumanos/fichaEmpresa.service';
 
 interface UseFichaEmpresaState {
   fichas: FichaEmpresa[];
