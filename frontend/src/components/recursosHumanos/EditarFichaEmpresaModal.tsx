@@ -20,6 +20,15 @@ const InfoIcon: React.FC<{ text: string }> = ({ text }) => (
   </OverlayTrigger>
 );
 
+// Función para formatear el RUT con puntos y guion
+function formatearRut(rut: string): string {
+  rut = rut.replace(/[^\dkK]/g, '').toUpperCase();
+  if (rut.length < 2) return rut;
+  const cuerpo = rut.slice(0, -1).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  const dv = rut.slice(-1);
+  return `${cuerpo}-${dv}`;
+}
+
 export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = ({
   show,
   onHide,
@@ -244,7 +253,7 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
             <span className="ms-2">{ficha.trabajador.nombres} {ficha.trabajador.apellidoPaterno} {ficha.trabajador.apellidoMaterno}</span>
             <span className="mx-4"></span>
             <strong>RUT:</strong>
-            <span className="ms-2">{ficha.trabajador.rut}</span>
+            <span className="ms-2">{formatearRut(ficha.trabajador.rut)}</span>
           </div>
 
           <h5 className="mb-3">Información Laboral</h5>
