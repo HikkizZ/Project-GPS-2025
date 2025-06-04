@@ -15,7 +15,7 @@ interface UserSearchParams {
 
 export const UsersPage: React.FC = () => {
   const { user } = useAuth();
-  const { formatRUT, validateRUT } = useRut();
+  const { formatRUT } = useRut();
   const [showFilters, setShowFilters] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
