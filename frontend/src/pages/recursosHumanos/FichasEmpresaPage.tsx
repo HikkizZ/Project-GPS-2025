@@ -20,7 +20,7 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
   trabajadorRecienRegistrado, 
   onTrabajadorModalClosed 
 }) => {
-  const { user, isAuthenticated } = useAuth();
+  const { user } = useAuth();
   const { formatRUT } = useRut();
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -111,7 +111,7 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
     } else {
       handleSearch();
     }
-  }, [user]);
+  }, [user, loadMiFicha]);
 
   // Detectar trabajador recién registrado y abrir modal automáticamente
   useEffect(() => {
@@ -655,14 +655,6 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                             <span className={`badge ${getEstadoBadgeClass(ficha.estado)}`}>
                               {ficha.estado}
                             </span>
-                            {ficha.estado === EstadoLaboral.DESVINCULADO && ficha.motivoDesvinculacion && (
-                              <OverlayTrigger
-                                placement="top"
-                                overlay={<Tooltip>{ficha.motivoDesvinculacion}</Tooltip>}
-                              >
-                                <i className="bi bi-info-circle ms-2 text-muted"></i>
-                              </OverlayTrigger>
-                            )}
                           </td>
                           <td>
                             <span className={getTipoContratoColor(ficha.tipoContrato)}>
@@ -679,7 +671,7 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                           </td>
                           <td>
                             {/* Ocultar acciones si es el admin principal */}
-                            {(ficha.trabajador.correo !== 'admin.principal@gmail.com' && ficha.trabajador.rut !== '11.111.111-1') && (
+                            {(ficha.trabajador.rut !== '11.111.111-1') && (
                               <div className="btn-group btn-group-sm">
                                 <button
                                   className={`btn ${ficha.contratoURL ? 'btn-outline-danger' : 'btn-outline-secondary'}`}
