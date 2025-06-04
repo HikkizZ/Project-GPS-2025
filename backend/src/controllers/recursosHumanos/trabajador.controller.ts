@@ -5,7 +5,6 @@ import {
     getTrabajadoresService,
     searchTrabajadoresService,
     updateTrabajadorService,
-    deleteTrabajadorService,
     desvincularTrabajadorService
 } from "../../services/recursosHumanos/trabajador.service.js";
 import { TrabajadorBodyValidation, TrabajadorQueryValidation, TrabajadorUpdateValidation } from "../../validations/recursosHumanos/trabajador.validation.js";

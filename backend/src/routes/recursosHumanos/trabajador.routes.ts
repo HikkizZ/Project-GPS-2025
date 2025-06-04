@@ -6,7 +6,6 @@ import {
     getTrabajadores,
     searchTrabajadores,
     updateTrabajador,
-    deleteTrabajador,
     desvincularTrabajador
 } from "../../controllers/recursosHumanos/trabajador.controller.js";
 import { verifyToken } from '../../middlewares/auth.middleware.js';
