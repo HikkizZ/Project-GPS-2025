@@ -11,7 +11,6 @@ import { useNavigate, Routes, Route, Navigate } from 'react-router-dom';
 import DashboardRecursosHumanos from './pages/recursosHumanos/DashboardRecursosHumanos';
 import MainLayout from './components/common/MainLayout';
 import GestionPersonalPage from './pages/GestionPersonalPage';
-import GestionSueldosPage from './pages/GestionSueldosPage';
 
 // Componente simple de Login
 const LoginPage: React.FC = () => {
@@ -574,7 +573,6 @@ function App() {
       <Route path="/fichas-empresa" element={<MainLayout user={user} onLogout={handleLogout}><FichasEmpresaPage /></MainLayout>} />
       <Route path="/usuarios" element={<MainLayout user={user} onLogout={handleLogout}><UsersPage /></MainLayout>} />
       <Route path="/gestion-personal" element={<MainLayout user={user} onLogout={handleLogout}><GestionPersonalPage /></MainLayout>} />
-      <Route path="/gestion-sueldos" element={<MainLayout user={user} onLogout={handleLogout}><GestionSueldosPage /></MainLayout>} />
     </Routes>
   ) : <LoginPage />;
 }

@@ -19,15 +19,13 @@ const DashboardRecursosHumanos: React.FC = () => {
           </Link>
         </Col>
         <Col md={6}>
-          <Link to="/gestion-sueldos" style={{ textDecoration: 'none' }}>
-            <Card className="h-100 shadow-sm dashboard-card">
-              <Card.Body className="d-flex flex-column align-items-center justify-content-center text-center">
-                <i className="bi bi-cash-stack fs-1 mb-3 text-success"></i>
-                <Card.Title>Gestión de Sueldos</Card.Title>
-                <Card.Text>Próximamente</Card.Text>
-              </Card.Body>
-            </Card>
-          </Link>
+          <Card className="h-100 shadow-sm dashboard-card bg-light text-muted" style={{ cursor: 'not-allowed', opacity: 0.7 }}>
+            <Card.Body className="d-flex flex-column align-items-center justify-content-center text-center">
+              <i className="bi bi-cash-stack fs-1 mb-3"></i>
+              <Card.Title>Gestión de Sueldos</Card.Title>
+              <Card.Text>Próximamente</Card.Text>
+            </Card.Body>
+          </Card>
         </Col>
       </Row>
     </div>
