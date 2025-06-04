@@ -380,7 +380,7 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                 {/* Checkboxes de estado */}
                 <div className="row mb-4">
                   <div className="col-12">
-                    <h6 className="mb-3">Estados a mostrar:</h6>
+                    <h6 className="mb-3">Estados a incluir en la búsqueda:</h6>
                     <div className="form-check form-check-inline">
                       <input
                         className="form-check-input"
