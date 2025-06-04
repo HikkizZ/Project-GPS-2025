@@ -350,7 +350,7 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
               <Form.Group className="mb-3">
                 <Form.Label>
                   Sueldo Base *
-                  <InfoIcon text="El sueldo base debe ser mayor a 0 y no puede ser menor al sueldo actual" />
+                  <InfoIcon text="El sueldo base debe ser mayor a 0" />
                 </Form.Label>
                 <Form.Control
                   type="text"

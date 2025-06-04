@@ -49,7 +49,7 @@ export async function procesarCambioLaboral(req: Request, res: Response) {
 
             case TipoCambioLaboral.CAMBIO_SUELDO:
                 if (!datosAdicionales.sueldoBase || datosAdicionales.sueldoBase <= 0) {
-                    handleErrorClient(res, 400, "El sueldo base es requerido y debe ser mayor a cero");
+                    handleErrorClient(res, 400, "El sueldo base debe ser mayor a 0");
                     return;
                 }
                 break;

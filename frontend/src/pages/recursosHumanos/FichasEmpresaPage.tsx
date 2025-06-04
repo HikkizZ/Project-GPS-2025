@@ -9,7 +9,6 @@ import {
 } from '@/types/recursosHumanos/fichaEmpresa.types';
 import { Trabajador } from '@/types/recursosHumanos/trabajador.types';
 import { EditarFichaEmpresaModal } from '@/components/recursosHumanos/EditarFichaEmpresaModal';
-import { OverlayTrigger, Tooltip } from 'react-bootstrap';
 
 interface FichasEmpresaPageProps {
   trabajadorRecienRegistrado?: Trabajador | null;
@@ -31,7 +30,6 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
     isLoading,
     loadFichas: searchFichas,
     loadFichaById: loadMiFicha,
-    updateFicha,
     formatSalario: formatSueldo,
     formatFecha,
     searchByRUT,
@@ -48,11 +46,6 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
   const [incluirDesvinculados, setIncluirDesvinculados] = useState(false);
   const [incluirLicencias, setIncluirLicencias] = useState(false);
   const [incluirPermisos, setIncluirPermisos] = useState(false);
-
-  // Función para limpiar el RUT (eliminar puntos y guión)
-  const cleanRUT = (rut: string) => {
-    return rut.replace(/\./g, '').replace(/-/g, '');
-  };
 
   // Función para filtrar las fichas según los estados seleccionados
   const fichasFiltradas = fichas.filter(ficha => {

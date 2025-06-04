@@ -289,7 +289,7 @@ export async function updateFichaEmpresaService(
         // 4. Validar cambios específicos
         if ('sueldoBase' in fichaData && fichaData.sueldoBase !== undefined) {
             if (fichaData.sueldoBase <= 0) {
-                return [null, { message: "El sueldo base debe ser mayor a cero" }];
+                return [null, { message: "El sueldo base debe ser mayor a 0" }];
             }
         }
 

@@ -91,7 +91,7 @@ export async function procesarCambioLaboralService(
             case TipoCambioLaboral.CAMBIO_SUELDO:
                 if (!datos.sueldoBase || datos.sueldoBase <= 0) {
                     await queryRunner.release();
-                    return [null, "El sueldo base es requerido y debe ser mayor a cero"];
+                    return [null, "El sueldo base debe ser mayor a 0"];
                 }
                 if (datos.sueldoBase < fichaEmpresa.sueldoBase) {
                     await queryRunner.release();
