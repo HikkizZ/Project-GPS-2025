@@ -130,22 +130,6 @@ export async function updateTrabajador(req: Request, res: Response): Promise<voi
     }
 }
 
-export async function deleteTrabajador(req: Request, res: Response): Promise<void> {
-    try {
-        const [success, serviceError] = await deleteTrabajadorService(parseInt(req.params.id));
-        
-        if (serviceError) {
-            handleErrorClient(res, 404, typeof serviceError === 'string' ? serviceError : serviceError.message);
-            return;
-        }
-
-        handleSuccess(res, 200, "Trabajador eliminado exitosamente");
-    } catch (error) {
-        console.error("Error al eliminar trabajador:", error);
-        handleErrorServer(res, 500, "Error interno del servidor");
-    }
-}
-
 export async function desvincularTrabajador(req: Request, res: Response): Promise<void> {
     try {
         const id = parseInt(req.params.id);

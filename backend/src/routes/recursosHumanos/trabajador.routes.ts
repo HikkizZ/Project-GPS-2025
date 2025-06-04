@@ -25,7 +25,6 @@ router
     .get("/all", getTrabajadores)
     .get("/detail/", searchTrabajadores)
     .put("/:id", updateTrabajador)
-    .delete("/:id", deleteTrabajador)
     .post("/:id/desvincular", desvincularTrabajador);
 
 export default router; 

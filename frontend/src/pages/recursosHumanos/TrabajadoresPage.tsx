@@ -7,22 +7,17 @@ import { RegisterTrabajadorForm } from '@/components/trabajador/RegisterTrabajad
 import { EditarTrabajadorModal } from '@/components/trabajador/EditarTrabajadorModal';
 
 export const TrabajadoresPage: React.FC = () => {
-  const { trabajadores, isLoading, error, loadTrabajadores, searchTrabajadores, deleteTrabajador, desvincularTrabajador } = useTrabajadores();
+  const { trabajadores, isLoading, error, loadTrabajadores, searchTrabajadores, desvincularTrabajador } = useTrabajadores();
   const { formatRUT } = useRut();
   
   // Estados para los modales y filtros
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
   const [showDesvincularModal, setShowDesvincularModal] = useState(false);
-  const [trabajadorToDelete, setTrabajadorToDelete] = useState<Trabajador | null>(null);
   const [trabajadorToEdit, setTrabajadorToEdit] = useState<Trabajador | null>(null);
   const [trabajadorToDesvincular, setTrabajadorToDesvincular] = useState<Trabajador | null>(null);
   const [motivoDesvinculacion, setMotivoDesvinculacion] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [searchParams, setSearchParams] = useState<TrabajadorSearchQuery>({});
-  const [deleteError, setDeleteError] = useState<string>('');
-  const [isDeleting, setIsDeleting] = useState(false);
   const [desvincularError, setDesvincularError] = useState<string>('');
   const [isDesvinculando, setIsDesvinculando] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string>('');
@@ -46,7 +41,9 @@ export const TrabajadoresPage: React.FC = () => {
   // Función para editar trabajador
   const handleEditClick = (trabajador: Trabajador) => {
     setTrabajadorToEdit(trabajador);
-    setShowEditModal(true);
+    setShowDesvincularModal(false);
+    setDesvincularError('');
+    setMotivoDesvinculacion('');
   };
 
   // Función para manejar la desvinculación
@@ -55,27 +52,6 @@ export const TrabajadoresPage: React.FC = () => {
     setShowDesvincularModal(true);
     setDesvincularError('');
     setMotivoDesvinculacion('');
-  };
-
-  // Función para ejecutar la eliminación
-  const handleDeleteConfirm = async () => {
-    if (!trabajadorToDelete) return;
-
-    try {
-      setIsDeleting(true);
-      setDeleteError('');
-      const result = await deleteTrabajador(trabajadorToDelete.id);
-      if (result.success) {
-        setShowDeleteModal(false);
-        loadTrabajadores(); // Recargar la lista
-      } else {
-        setDeleteError(result.error || 'Error al eliminar trabajador');
-      }
-    } catch (error) {
-      setDeleteError('Error al eliminar trabajador');
-    } finally {
-      setIsDeleting(false);
-    }
   };
 
   // Función para ejecutar la desvinculación
@@ -413,68 +389,6 @@ export const TrabajadoresPage: React.FC = () => {
         </Modal.Body>
       </Modal>
 
-      {/* Modal de confirmación de eliminación */}
-      <Modal
-        show={showDeleteModal}
-        onHide={() => setShowDeleteModal(false)}
-        centered
-      >
-        <Modal.Header closeButton className="bg-danger text-white">
-          <Modal.Title>
-            <i className="bi bi-exclamation-triangle me-2"></i>
-            Confirmar Eliminación
-          </Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          {deleteError && (
-            <Alert variant="danger" className="mb-3">
-              <i className="bi bi-exclamation-circle me-2"></i>
-              {deleteError}
-            </Alert>
-          )}
-          <p>¿Estás seguro que deseas eliminar (soft delete) al trabajador?</p>
-          <p className="mb-0">
-            <strong>Nombre:</strong> {trabajadorToDelete ? `${trabajadorToDelete.nombres} ${trabajadorToDelete.apellidoPaterno} ${trabajadorToDelete.apellidoMaterno}` : ''}
-            <br />
-            <strong>RUT:</strong> {trabajadorToDelete ? formatRUT(trabajadorToDelete.rut) : ''}
-          </p>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button 
-            variant="secondary" 
-            onClick={() => setShowDeleteModal(false)}
-            disabled={isDeleting}
-          >
-            <i className="bi bi-x-circle me-2"></i>
-            Cancelar
-          </Button>
-          <Button 
-            variant="danger" 
-            onClick={handleDeleteConfirm}
-            disabled={isDeleting}
-          >
-            {isDeleting ? (
-              <>
-                <Spinner
-                  as="span"
-                  animation="border"
-                  size="sm"
-                  role="status"
-                  aria-hidden="true"
-                  className="me-2"
-                />
-                Eliminando...
-              </>
-            ) : (
-              <>
-                <i className="bi bi-trash me-2"></i>
-                Eliminar
-              </>
-            )}
-          </Button>
-        </Modal.Footer>
-      </Modal>
-
       {/* Modal de desvinculación */}
       <Modal
         show={showDesvincularModal}
@@ -567,9 +481,9 @@ export const TrabajadoresPage: React.FC = () => {
       {/* Modal de edición */}
       {trabajadorToEdit && (
         <EditarTrabajadorModal
-          show={showEditModal}
+          show={showDesvincularModal}
           onHide={() => {
-            setShowEditModal(false);
+            setShowDesvincularModal(false);
             setTrabajadorToEdit(null);
           }}
           trabajador={trabajadorToEdit}

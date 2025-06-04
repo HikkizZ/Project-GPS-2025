@@ -286,42 +286,6 @@ export async function updateTrabajadorService(id: number, trabajadorData: Partia
     }
 }
 
-export async function deleteTrabajadorService(id: number): Promise<ServiceResponse<boolean>> {
-    try {
-        const trabajadorRepo = AppDataSource.getRepository(Trabajador);
-        const userRepo = AppDataSource.getRepository(User);
-
-        // Buscar el trabajador con su usuario asociado
-        const trabajador = await trabajadorRepo.findOne({
-            where: { id, enSistema: true },
-            relations: ["usuario"]
-        });
-
-        if (!trabajador) {
-            return [null, "Trabajador no encontrado"];
-        }
-
-        // En lugar de eliminar, marcamos como inactivo
-        trabajador.enSistema = false;
-        await trabajadorRepo.save(trabajador);
-
-        // Si el trabajador tiene un usuario asociado, eliminarlo
-        if (trabajador.usuario) {
-            // No eliminar al administrador principal
-            if (trabajador.usuario.role === "Administrador" && trabajador.usuario.rut === "11.111.111-1") {
-                return [null, "No se puede eliminar el administrador principal"];
-            }
-
-            await userRepo.remove(trabajador.usuario);
-        }
-
-        return [true, null];
-    } catch (error) {
-        console.error("Error en deleteTrabajadorService:", error);
-        return [null, "Error interno del servidor"];
-    }
-}
-
 export async function desvincularTrabajadorService(
     id: number,
     motivo: string,
