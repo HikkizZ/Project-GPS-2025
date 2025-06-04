@@ -155,6 +155,9 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
 
   const handleReset = () => {
     setSearchQuery({});
+    setIncluirDesvinculados(false);
+    setIncluirLicencias(false);
+    setIncluirPermisos(false);
     if (user?.role !== 'Usuario') {
       searchFichas({});
     }
