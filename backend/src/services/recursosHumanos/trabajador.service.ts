@@ -21,7 +21,7 @@ function generateRandomPassword(): string {
     return password;
 }
 
-export async function createTrabajadorService(trabajadorData: Partial<Trabajador>): Promise<ServiceResponse<Trabajador>> {
+export async function createTrabajadorService(trabajadorData: Partial<Trabajador>): Promise<ServiceResponse<{ trabajador: Trabajador, tempPassword: string }>> {
     try {
         const trabajadorRepo = AppDataSource.getRepository(Trabajador);
         const fichaRepo = AppDataSource.getRepository(FichaEmpresa);
@@ -158,7 +158,7 @@ export async function createTrabajadorService(trabajadorData: Partial<Trabajador
         }
 
         // Devolver la contraseña generada junto con el trabajador
-        return [{ ...trabajadorCompleto, tempPassword: randomPassword }, null];
+        return [{ trabajador: trabajadorCompleto, tempPassword: randomPassword }, null];
     } catch (error) {
         console.error("Error en createTrabajadorService:", error);
         return [null, "Error interno del servidor"];
@@ -350,10 +350,10 @@ export async function desvincularTrabajadorService(
         historialLaboral.area = trabajador.fichaEmpresa?.area || "No especificada";
         historialLaboral.tipoContrato = trabajador.fichaEmpresa?.tipoContrato || "No especificado";
         historialLaboral.sueldoBase = trabajador.fichaEmpresa?.sueldoBase || 0;
-        historialLaboral.fechaInicio = trabajador.fichaEmpresa?.fechaInicio || new Date().toISOString();
-        historialLaboral.fechaFin = new Date().toISOString();
+        historialLaboral.fechaInicio = trabajador.fichaEmpresa?.fechaInicioContrato || new Date();
+        historialLaboral.fechaFin = new Date();
         historialLaboral.motivoTermino = motivo;
-        historialLaboral.registradoPor = registrador;
+        if (registrador) historialLaboral.registradoPor = registrador;
 
         await queryRunner.manager.save(HistorialLaboral, historialLaboral);
 
