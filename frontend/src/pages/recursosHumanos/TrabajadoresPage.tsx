@@ -43,13 +43,6 @@ export const TrabajadoresPage: React.FC = () => {
     loadTrabajadores();
   };
 
-  // Función para confirmar eliminación
-  const handleDeleteClick = (trabajador: Trabajador) => {
-    setTrabajadorToDelete(trabajador);
-    setShowDeleteModal(true);
-    setDeleteError('');
-  };
-
   // Función para editar trabajador
   const handleEditClick = (trabajador: Trabajador) => {
     setTrabajadorToEdit(trabajador);
