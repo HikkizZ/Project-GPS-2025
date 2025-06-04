@@ -21,6 +21,7 @@ export const TrabajadoresPage: React.FC = () => {
   const [desvincularError, setDesvincularError] = useState<string>('');
   const [isDesvinculando, setIsDesvinculando] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string>('');
+  const [showEditModal, setShowEditModal] = useState(false);
 
   // Cargar trabajadores al montar el componente
   useEffect(() => {
@@ -41,9 +42,7 @@ export const TrabajadoresPage: React.FC = () => {
   // Función para editar trabajador
   const handleEditClick = (trabajador: Trabajador) => {
     setTrabajadorToEdit(trabajador);
-    setShowDesvincularModal(false);
-    setDesvincularError('');
-    setMotivoDesvinculacion('');
+    setShowEditModal(true);
   };
 
   // Función para manejar la desvinculación
@@ -481,9 +480,9 @@ export const TrabajadoresPage: React.FC = () => {
       {/* Modal de edición */}
       {trabajadorToEdit && (
         <EditarTrabajadorModal
-          show={showDesvincularModal}
+          show={showEditModal}
           onHide={() => {
-            setShowDesvincularModal(false);
+            setShowEditModal(false);
             setTrabajadorToEdit(null);
           }}
           trabajador={trabajadorToEdit}
