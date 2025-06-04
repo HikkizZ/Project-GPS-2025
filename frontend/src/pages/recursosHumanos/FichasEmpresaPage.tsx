@@ -56,16 +56,16 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
 
   // Función para filtrar las fichas según los estados seleccionados
   const fichasFiltradas = fichas.filter(ficha => {
-    // Primero filtrar por estado
-    if (ficha.estado === EstadoLaboral.ACTIVO) {
-      if (!incluirDesvinculados && !incluirLicencias && !incluirPermisos) return true;
+    // Si el select de estado tiene un valor, filtra solo por ese estado
+    if (searchQuery.estado) {
+      return ficha.estado === searchQuery.estado;
     }
+    // Si no, usa los checkboxes
     if (ficha.estado === EstadoLaboral.DESVINCULADO && !incluirDesvinculados) return false;
     if (ficha.estado === EstadoLaboral.LICENCIA && !incluirLicencias) return false;
     if (ficha.estado === EstadoLaboral.PERMISO && !incluirPermisos) return false;
 
     // Resto de los filtros
-    if (searchQuery.estado && ficha.estado !== searchQuery.estado) return false;
     if (searchQuery.cargo && !ficha.cargo.toLowerCase().includes(searchQuery.cargo.toLowerCase())) return false;
     if (searchQuery.area && !ficha.area.toLowerCase().includes(searchQuery.area.toLowerCase())) return false;
     if (searchQuery.empresa && !ficha.empresa.toLowerCase().includes(searchQuery.empresa.toLowerCase())) return false;
@@ -380,7 +380,7 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                 {/* Checkboxes de estado */}
                 <div className="row mb-4">
                   <div className="col-12">
-                    <h6 className="mb-3">Estados a incluir en la búsqueda:</h6>
+                    <h6 className="mb-3">Estados a mostrar:</h6>
                     <div className="form-check form-check-inline">
                       <input
                         className="form-check-input"
