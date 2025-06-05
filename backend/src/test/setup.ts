@@ -8,7 +8,7 @@ import passport from "passport";
 import indexRoutes from "../routes/index.routes.js";
 import { cookieKey } from "../config/configEnv.js";
 import { passportJWTSetup } from "../auth/passport.auth.js";
-import { connectDB, AppDataSource } from "../config/configDB.js";
+import { AppDataSource, initializeDatabase } from "../config/configDB.js";
 import { initialSetup } from "../utils/initialSetup.js";
 import { User } from "../entity/user.entity.js";
 import { Trabajador } from "../entity/recursosHumanos/trabajador.entity.js";
@@ -63,7 +63,6 @@ export async function setupTestApp(): Promise<{ app: Application; server: any }>
 
         app.use("/api", indexRoutes);
 
-        await connectDB();
         await initialSetup();
 
         server = app.listen(0); // Usar puerto aleatorio para pruebas
@@ -162,4 +161,12 @@ export function setupGlobalTestHooks() {
 // Auto-ejecutar los hooks si estamos en ambiente de test
 if (process.env.NODE_ENV === 'test') {
     setupGlobalTestHooks();
-} 
+}
+
+before(async () => {
+    await initializeDatabase();
+});
+
+after(async () => {
+    await AppDataSource.destroy();
+}); 

@@ -10,6 +10,8 @@ import { User } from "../../entity/user.entity.js";
 import { HistorialLaboral } from "../../entity/recursosHumanos/historialLaboral.entity.js";
 import { encryptPassword } from "../../helpers/bcrypt.helper.js";
 import { Between } from "typeorm";
+import { userRole } from '../../types/auth.types.js';
+import { hashPassword } from '../../utils/password.utils.js';
 
 // Función para generar una contraseña de exactamente 8 caracteres
 function generateRandomPassword(): string {
@@ -110,13 +112,14 @@ export async function createTrabajadorService(trabajadorData: Partial<Trabajador
         const hashedPassword = await encryptPassword(randomPassword);
         
         const newUser = userRepo.create({
-            name: `${trabajadorData.nombres} ${trabajadorData.apellidoPaterno} ${trabajadorData.apellidoMaterno}`,
-            rut: trabajadorData.rut,
-            email: trabajadorData.correo,
+            name: `${trabajador.nombres} ${trabajador.apellidoPaterno} ${trabajador.apellidoMaterno}`,
+            email: trabajador.correo,
             password: hashedPassword,
-            originalPassword: randomPassword,
-            role: "Usuario",
-            trabajador: trabajadorGuardado
+            role: "Trabajador" as userRole,
+            rut: trabajador.rut,
+            estadoCuenta: "Activa",
+            createAt: new Date(),
+            updateAt: new Date()
         });
 
         await userRepo.save(newUser);

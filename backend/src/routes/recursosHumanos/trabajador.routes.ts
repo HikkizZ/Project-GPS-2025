@@ -8,7 +8,7 @@ import {
     updateTrabajador,
     desvincularTrabajador
 } from "../../controllers/recursosHumanos/trabajador.controller.js";
-import { verifyToken } from '../../middlewares/auth.middleware.js';
+import { verifyToken } from '../../middlewares/authentication.middleware.js';
 import { checkRole } from '../../middlewares/roles.middleware.js';
 
 const router: Router = Router();

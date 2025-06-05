@@ -210,9 +210,7 @@ export async function actualizarEstadoFichaService(
             const userRepo = queryRunner.manager.getRepository(User);
             const user = await userRepo.findOne({ where: { id: userId } });
             if (!user || (user.role !== "RecursosHumanos" && user.role !== "Administrador")) {
-                await queryRunner.rollbackTransaction();
-                await queryRunner.release();
-                return [null, { message: "No tiene permiso para cambiar el estado de la ficha" }];
+                throw new Error('No tienes permisos para realizar esta acción');
             }
         }
 

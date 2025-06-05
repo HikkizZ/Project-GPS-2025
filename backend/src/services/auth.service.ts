@@ -4,9 +4,10 @@ import { AppDataSource } from "../config/configDB.js";
 import { comparePassword, encryptPassword } from "../helpers/bcrypt.helper.js";
 import { ACCESS_TOKEN_SECRET } from "../config/configEnv.js";
 import { formatToLocalTime } from "../utils/formatDate.js";
-import { UserResponse, userRole } from '../../types.d.js';
+import { UserResponse, UserData, userRole } from "../types/auth.types.js";
 import { formatRut } from "../helpers/rut.helper.js";
 import { Trabajador } from "../entity/recursosHumanos/trabajador.entity.js";
+import bcrypt from "bcrypt";
 
 /* Interface for the user data */
 interface LoginData {
@@ -232,21 +233,26 @@ export async function registerService(user: RegisterData, userRole: string): Pro
 
         const newUser = userRepository.create({
             name,
-            rut: rutNormalizado,
             email,
             password: hashedPassword,
-            role,
-            createdAt: formatToLocalTime(new Date())
+            role: role as userRole,
+            rut,
+            estadoCuenta: "Activa",
+            createAt: new Date(),
+            updateAt: new Date()
         });
 
         await userRepository.save(newUser);
 
         const userResponse: UserResponse = {
+            id: newUser.id,
             name: newUser.name,
-            rut: newUser.rut,
             email: newUser.email,
             role: newUser.role,
-            createdAt: newUser.createdAt
+            rut: newUser.rut,
+            estadoCuenta: newUser.estadoCuenta,
+            createAt: newUser.createAt,
+            updateAt: newUser.updateAt
         };
 
         return [userResponse, null];
@@ -255,3 +261,50 @@ export async function registerService(user: RegisterData, userRole: string): Pro
         return [null, "Error interno del servidor."];
     }
 }
+
+export const createUserService = async (userData: UserData): Promise<[UserResponse | null, string | null]> => {
+    try {
+        const { name, email, password, role, rut } = userData;
+
+        // Verificar si el usuario ya existe
+        const existingUser = await AppDataSource.getRepository(User).findOne({
+            where: [
+                { email },
+                { rut }
+            ]
+        });
+
+        if (existingUser) {
+            return [null, "El usuario ya existe"];
+        }
+
+        // Crear nuevo usuario
+        const newUser = new User();
+        newUser.name = name;
+        newUser.email = email;
+        newUser.password = await encryptPassword(password);
+        newUser.role = role;
+        newUser.rut = rut;
+        newUser.estadoCuenta = "Activa";
+
+        // Guardar usuario
+        const savedUser = await AppDataSource.getRepository(User).save(newUser);
+
+        // Retornar usuario sin contraseña
+        const userResponse: UserResponse = {
+            id: savedUser.id,
+            name: savedUser.name,
+            email: savedUser.email,
+            role: savedUser.role,
+            rut: savedUser.rut,
+            estadoCuenta: savedUser.estadoCuenta,
+            createAt: savedUser.createAt,
+            updateAt: savedUser.updateAt
+        };
+
+        return [userResponse, null];
+    } catch (error) {
+        console.error("Error en createUserService:", error);
+        return [null, "Error al crear el usuario"];
+    }
+};

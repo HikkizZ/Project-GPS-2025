@@ -4,7 +4,8 @@ import {
   Column,
   ManyToOne,
   CreateDateColumn,
-  JoinColumn
+  JoinColumn,
+  UpdateDateColumn
 } from "typeorm";
 import { Trabajador } from "./trabajador.entity.js";
 import { User } from "../user.entity.js";
@@ -14,15 +15,14 @@ export class HistorialLaboral {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @ManyToOne(() => Trabajador, trabajador => trabajador.historialLaboral, { nullable: false })
-  @JoinColumn({ name: "trabajadorId" })
-  trabajador!: Trabajador;
-
   @Column({ type: "varchar", length: 100, nullable: false })
   cargo!: string;
 
   @Column({ type: "varchar", length: 100, nullable: false })
   area!: string;
+
+  @Column({ type: "varchar", length: 100, nullable: false })
+  departamento!: string;
 
   @Column({ type: "varchar", length: 50, nullable: false })
   tipoContrato!: string;
@@ -39,13 +39,23 @@ export class HistorialLaboral {
   @Column({ type: "text", nullable: true })
   motivoTermino!: string;
 
+  @Column({ type: "text", nullable: true })
+  observaciones!: string;
+
   @Column({ type: "varchar", length: 255, nullable: true })
   contratoURL!: string;
 
-  @CreateDateColumn({ type: "timestamp" })
-  fechaRegistro!: Date;
+  @ManyToOne(() => Trabajador, { onDelete: "CASCADE" })
+  @JoinColumn({ name: "trabajadorId" })
+  trabajador!: Trabajador;
 
-  @ManyToOne(() => User, { nullable: false })
+  @ManyToOne(() => User, { onDelete: "SET NULL", nullable: true })
   @JoinColumn({ name: "registradoPorId" })
   registradoPor!: User;
+
+  @CreateDateColumn({ type: "timestamp" })
+  createAt!: Date;
+
+  @UpdateDateColumn({ type: "timestamp" })
+  updateAt!: Date;
 } 

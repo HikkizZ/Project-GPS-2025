@@ -1,5 +1,12 @@
 /* Import the required modules. */
 import { DataSource } from "typeorm";
+import { config } from "dotenv";
+import { User } from "../entity/user.entity.js";
+import { Trabajador } from "../entity/recursosHumanos/trabajador.entity.js";
+import { HistorialLaboral } from "../entity/recursosHumanos/historialLaboral.entity.js";
+import { FichaEmpresa } from "../entity/recursosHumanos/fichaEmpresa.entity.js";
+import { LicenciaPermiso } from "../entity/recursosHumanos/licenciaPermiso.entity.js";
+import { Capacitacion } from "../entity/recursosHumanos/capacitacion.entity.js";
 
 /* Import custom modules. */
 import { PORT, HOST, DATABASE, DB_USERNAME, DB_PASSWORD } from "./configEnv.js";
@@ -12,6 +19,8 @@ const isTest = process.env.NODE_ENV === "test";
 const entitiesPath = isProduction
     ? "build/entity/**/*.js" // For production
     : "src/entity/**/*.ts"; // For development
+
+config();
 
 // Crear una conexión temporal para gestionar el esquema
 async function createTestSchema() {
@@ -43,39 +52,27 @@ async function createTestSchema() {
 
 export const AppDataSource = new DataSource({
     type: "postgres",
-    host: "127.0.0.1",
-    port: 5432,
-    username: DB_USERNAME as string,
-    password: DB_PASSWORD as string,
-    database: DATABASE as string,
-    schema: isTest ? "test" : "public", // Usa esquema 'test' para pruebas
+    host: process.env.HOST || "localhost",
+    port: parseInt(process.env.DB_PORT || "5432"),
+    username: process.env.DB_USERNAME || "postgres",
+    password: process.env.DB_PASSWORD || "postgres",
+    database: process.env.DATABASE || "gps_db",
     synchronize: true,
-    logging: false,
-    entities: [entitiesPath]
+    logging: true,
+    entities: [User, Trabajador, HistorialLaboral, FichaEmpresa, LicenciaPermiso, Capacitacion],
+    subscribers: [],
+    migrations: [],
+    ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false
 });
 
-export async function connectDB(): Promise<void> {
+export const initializeDatabase = async () => {
     try {
-        // Si ya está inicializada, no hacer nada
-        if (AppDataSource.isInitialized) {
-            console.log("✅ Database already connected.");
-            return;
+        if (!AppDataSource.isInitialized) {
+            await AppDataSource.initialize();
+            console.log("✅ Database connection established");
         }
-
-        // Crear esquema de pruebas si es necesario
-        if (isTest) {
-            await createTestSchema();
-        }
-        
-        // Inicializar la conexión principal
-        await AppDataSource.initialize();
-        console.log(`✅ Database connected successfully to ${isTest ? 'test' : 'public'} schema.`);
     } catch (error) {
-        if (error instanceof Error && error.message.includes("AlreadyConnectedError")) {
-            console.log("✅ Database already connected.");
-            return;
-        }
-        console.error("❌ Error connecting to the database: ", error);
+        console.error("❌ Error connecting to the database:", error);
         throw error;
     }
-}
+};

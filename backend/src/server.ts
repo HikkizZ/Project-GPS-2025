@@ -7,18 +7,23 @@ import morgan from "morgan";
 import cookieParser from "cookie-parser";
 import session from "express-session";
 import passport from "passport";
+import { config } from "dotenv";
 
 import indexRoutes from "./routes/index.routes.js";
-import { connectDB } from "./config/configDB.js";
+import { AppDataSource, initializeDatabase } from "./config/configDB.js";
 import { cookieKey, PORT, HOST } from "./config/configEnv.js";
 import { passportJWTSetup } from "./auth/passport.auth.js";
 import { initialSetup } from "./utils/initialSetup.js";
 import { authenticateJWT } from "./middlewares/authentication.middleware.js";
 import { FileManagementService } from "./services/fileManagement.service.js";
+import userRoutes from "./routes/user.routes.js";
 
 // Exportar la aplicación y el servidor para las pruebas
 export const app: Application = express();
 let server: any;
+
+// Configuración de variables de entorno
+config();
 
 async function setupServer(): Promise<void> {
     try {
@@ -64,6 +69,7 @@ async function setupServer(): Promise<void> {
 
         // Configurar todas las rutas bajo /api
         app.use("/api", indexRoutes);
+        app.use("/api/users", userRoutes);
 
         server = app.listen(PORT, () => {
             console.log(`✅ Server running on http://${HOST}:${PORT}/api`);
@@ -116,8 +122,9 @@ export async function setupTestServer(): Promise<{ app: Application; server: any
 
         // Configurar todas las rutas bajo /api
         app.use("/api", indexRoutes);
+        app.use("/api/users", userRoutes);
 
-        await connectDB();
+        await initializeDatabase();
         await initialSetup();
 
         server = app.listen(0); // Usar puerto aleatorio para pruebas
@@ -134,7 +141,7 @@ export async function setupTestServer(): Promise<{ app: Application; server: any
 async function setupAPI(): Promise<void> {
     try {
         // Primero conectar a la base de datos
-        await connectDB();
+        await initializeDatabase();
         console.log("✅ Base de datos conectada");
 
         // Luego ejecutar la configuración inicial
