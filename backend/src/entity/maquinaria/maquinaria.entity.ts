@@ -1,4 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column, Index } from "typeorm"
+import { Entity, PrimaryGeneratedColumn, Column, Index, ManyToMany } from "typeorm"
+import { Conductor } from "./conductor.entity.js"
 
 export enum GrupoMaquinaria {
   CAMION_TOLVA = "camion_tolva",
@@ -52,4 +53,11 @@ export class Maquinaria {
 
   @Column({ type: "int", nullable: false })
   kilometrajeActual!: number
+
+  // Relación con Conductores (muchos a muchos)
+  @ManyToMany(
+    () => Conductor,
+    (conductor) => conductor.maquinarias,
+  )
+  conductores!: Conductor[]
 }

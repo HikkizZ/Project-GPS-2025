@@ -1,8 +1,8 @@
 import { Router } from 'express';
 import  authRoutes from './auth.routes.js';
 import userRoutes from './user.routes.js';
-import maquinariaRoutes from './maquinaria/maquinaria.routes.js'
-
+import { maquinariaRoutes } from './maquinaria/maquinaria.routes.js';
+import { conductorRoutes } from './maquinaria/conductor.routes.js';
 const router: Router = Router();
 
 /* Test route */
@@ -14,5 +14,6 @@ router.get('/', (req, res) => {
 router.use('/auth', authRoutes);
 router.use('/user', userRoutes);
 router.use('/maquinaria', maquinariaRoutes);
+router.use('/conductor',conductorRoutes)
 
 export default router;
