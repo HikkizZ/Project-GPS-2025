@@ -10,6 +10,7 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { AppDataSource } from '../config/configDB.js';
 import { User } from '../entity/user.entity.js';
+import { ACCESS_TOKEN_SECRET } from '../config/configEnv.js';
 
 export const verifyToken = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
@@ -23,7 +24,7 @@ export const verifyToken = async (req: Request, res: Response, next: NextFunctio
             return;
         }
 
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'default_secret') as { id: number };
+        const decoded = jwt.verify(token, ACCESS_TOKEN_SECRET as string) as { id: number };
         const userRepository = AppDataSource.getRepository(User);
         const user = await userRepository.findOne({ where: { id: decoded.id } });
 
