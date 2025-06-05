@@ -6,7 +6,7 @@ class UserService {
 
   async getAllUsers(): Promise<SafeUser[]> {
     try {
-      const response = await fetch(`${this.baseURL}/users/all`, {
+      const response = await fetch(`${this.baseURL}/users/`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
