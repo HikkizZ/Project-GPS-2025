@@ -6,7 +6,7 @@ export interface UserResponse {
     id: number;
     name: string;
     email: string;
-    role: userRole;
+    role: string;
     rut: string;
     estadoCuenta: string;
     createAt: Date | string;
