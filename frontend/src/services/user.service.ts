@@ -1,5 +1,5 @@
 import { API_CONFIG } from '@/config/api.config';
-import { SafeUser, UpdateUserData } from '@/types/auth.types';
+import { SafeUser, UpdateUserData } from '@/types.d';
 
 class UserService {
   private baseURL = API_CONFIG.BASE_URL;

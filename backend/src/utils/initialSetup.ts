@@ -3,7 +3,6 @@ import { User } from "../entity/user.entity.js";
 import { Trabajador } from "../entity/recursosHumanos/trabajador.entity.js";
 import { FichaEmpresa, EstadoLaboral } from "../entity/recursosHumanos/fichaEmpresa.entity.js";
 import { encryptPassword } from "../utils/encrypt.js";
-import { userRole } from "../types/auth.types.js";
 
 export async function initialSetup(): Promise<void> {
     try {
@@ -75,7 +74,7 @@ export async function initialSetup(): Promise<void> {
             name: "Administrador",
             email: "admin.principal@gmail.com",
             password: hashedPassword,
-            role: userRole.Administrador,
+            role: 'Administrador',
             rut: "11111111-1",
             estadoCuenta: "Activa"
         });

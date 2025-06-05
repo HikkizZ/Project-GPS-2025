@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToOne, JoinColumn } from "typeorm";
-import { userRole } from "../types/auth.types.js";
+import { userRole } from "../../types.d.js";
 import { Trabajador } from "./recursosHumanos/trabajador.entity.js";
 
 @Entity()
@@ -19,8 +19,16 @@ export class User {
     @Column({ type: "varchar", length: 100, nullable: true })
     originalPassword: string;
 
-    @Column({ type: "enum", enum: userRole, default: userRole.Trabajador })
-    role: userRole;
+    @Column({ type: "enum", enum: [
+        'Administrador',
+        'Usuario',
+        'RecursosHumanos',
+        'Gerencia',
+        'Ventas',
+        'Arriendo',
+        'Finanzas'
+    ], default: 'Usuario' })
+    role: string;
 
     @Column({ type: "varchar", length: 20, unique: true })
     rut: string;

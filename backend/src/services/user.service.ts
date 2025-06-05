@@ -1,7 +1,7 @@
 import { User } from "../entity/user.entity.js";
 import { AppDataSource } from "../config/configDB.js";
 import { comparePassword, encryptPassword } from "../helpers/bcrypt.helper.js";
-import { userRole, ServiceResponse, QueryParams, UpdateUserData, SafeUser } from '../../types.d.js';
+import { ServiceResponse, QueryParams, UpdateUserData, SafeUser } from '../../types.d.js';
 import { Not, ILike, FindOptionsWhere, FindOperator, Equal } from "typeorm";
 import { hashPassword } from '../utils/password.utils.js';
 
@@ -79,7 +79,7 @@ export async function searchUsersService(query: QueryParams): Promise<ServiceRes
 }
 
 /* Obtener usuario(s) por ID, RUT, Email o Role */
-export const getUserService = async (query: { id?: number; role?: userRole }) => {
+export const getUserService = async (query: { id?: number; role?: string }) => {
     try {
         const userRepo = AppDataSource.getRepository(User);
         const whereClause: any = {};
@@ -136,7 +136,7 @@ export const updateUserService = async (id: number, body: UpdateUserData, reques
             dataUserUpdate.password = body.password;
         }
         if (body.role) {
-            dataUserUpdate.role = body.role as userRole;
+            dataUserUpdate.role = body.role as string;
         }
         if (body.rut) {
             dataUserUpdate.rut = body.rut;

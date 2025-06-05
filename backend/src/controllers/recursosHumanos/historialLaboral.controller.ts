@@ -42,7 +42,7 @@ export async function getHistorialLaboral(req: Request, res: Response): Promise<
         let historial, errorMsg;
 
         // Si es un trabajador, solo puede ver su propio historial
-        if (user.role === "Trabajador" || req.path.includes("mi-historial")) {
+        if (user.role === "Usuario" || req.path.includes("mi-historial")) {
             const trabajadorRepo = AppDataSource.getRepository(Trabajador);
             const trabajador = await trabajadorRepo.findOne({
                 where: { rut: user.rut }

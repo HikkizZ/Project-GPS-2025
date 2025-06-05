@@ -4,7 +4,7 @@ import { AppDataSource } from "../config/configDB.js";
 import { comparePassword, encryptPassword } from "../helpers/bcrypt.helper.js";
 import { ACCESS_TOKEN_SECRET } from "../config/configEnv.js";
 import { formatToLocalTime } from "../utils/formatDate.js";
-import { UserResponse, UserData, userRole } from "../types/auth.types.js";
+import { UserResponse, UserData } from "../../types.d.js";
 import { formatRut } from "../helpers/rut.helper.js";
 import { Trabajador } from "../entity/recursosHumanos/trabajador.entity.js";
 import bcrypt from "bcrypt";
@@ -20,7 +20,7 @@ interface RegisterData {
   rut: string;
   email: string;
   password: string;
-  role: userRole;
+  role: string;
 }
 
 /* Interface for JWT Payload */
@@ -235,7 +235,7 @@ export async function registerService(user: RegisterData, userRole: string): Pro
             name,
             email,
             password: hashedPassword,
-            role: role as userRole,
+            role: role as string,
             rut,
             estadoCuenta: "Activa",
             createAt: new Date(),
