@@ -5,7 +5,8 @@ import {
     createHistorialLaboral,
     getHistorialLaboral,
     updateHistorialLaboral,
-    descargarContrato
+    descargarContrato,
+    procesarCambioLaboral
 } from "../../controllers/recursosHumanos/historialLaboral.controller.js";
 
 const router: Router = Router();
@@ -13,17 +14,14 @@ const router: Router = Router();
 // Rutas protegidas - requieren autenticación
 router.use(authenticateJWT);
 
-// Rutas específicas para trabajadores
-router.get("/mi-historial", getHistorialLaboral);
-
-// Rutas que requieren rol de RRHH
-router.use("/trabajador", verifyRole(["RecursosHumanos"]));
-router.use("/", verifyRole(["RecursosHumanos"]));
+// Rutas para RRHH
+router.use(verifyRole(["RRHH"]));
 
 router
     .post("/", createHistorialLaboral)
     .put("/:id", updateHistorialLaboral)
     .get("/trabajador/:id", getHistorialLaboral)
-    .get("/:id/contrato", descargarContrato);
+    .get("/:id/contrato", descargarContrato)
+    .post("/trabajador/:trabajadorId/cambio", procesarCambioLaboral);
 
 export default router; 

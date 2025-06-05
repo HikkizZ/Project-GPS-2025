@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { handleSuccess, handleErrorClient, handleErrorServer } from "../../handlers/responseHandlers.js";
 import { HistorialLaboralQueryValidation, CreateHistorialLaboralValidation, UpdateHistorialLaboralValidation } from "../../validations/recursosHumanos/historialLaboral.validation.js";
-import { createHistorialLaboralService, getHistorialLaboralByTrabajadorService, getHistorialLaboralByIdService, updateHistorialLaboralService, descargarContratoService } from "../../services/recursosHumanos/historialLaboral.service.js";
+import { createHistorialLaboralService, getHistorialLaboralByTrabajadorService, getHistorialLaboralByIdService, updateHistorialLaboralService, descargarContratoService, procesarCambioLaboralService } from "../../services/recursosHumanos/historialLaboral.service.js";
 import { User } from "../../entity/user.entity.js";
 import { AppDataSource } from "../../config/configDB.js";
 import { Trabajador } from "../../entity/recursosHumanos/trabajador.entity.js";
@@ -135,5 +135,56 @@ export async function descargarContrato(req: Request, res: Response): Promise<vo
     } catch (error) {
         console.error("Error al descargar contrato:", error);
         handleErrorServer(res, 500, "Error al descargar contrato.");
+    }
+}
+
+export async function procesarCambioLaboral(req: Request, res: Response): Promise<void> {
+    try {
+        const trabajadorId = parseInt(req.params.trabajadorId);
+        if (isNaN(trabajadorId)) {
+            handleErrorClient(res, 400, "ID de trabajador inválido");
+            return;
+        }
+
+        const { tipo, fechaInicio, motivo, cargo, area, tipoContrato, sueldoBase } = req.body;
+        
+        // Validar tipo de cambio
+        const tiposValidos = ['DESVINCULACION', 'CAMBIO_CARGO', 'CAMBIO_AREA', 'CAMBIO_CONTRATO', 'CAMBIO_SUELDO'];
+        if (!tiposValidos.includes(tipo)) {
+            handleErrorClient(res, 400, "Tipo de cambio no válido");
+            return;
+        }
+
+        // Validar campos requeridos según el tipo
+        if (!fechaInicio || !motivo) {
+            handleErrorClient(res, 400, "Fecha de inicio y motivo son requeridos");
+            return;
+        }
+
+        const registradoPor = req.user as User;
+        const [historial, errorMsg] = await procesarCambioLaboralService(trabajadorId, tipo, {
+            fechaInicio: new Date(fechaInicio),
+            motivo,
+            registradoPor,
+            cargo,
+            area,
+            tipoContrato,
+            sueldoBase
+        });
+
+        if (errorMsg) {
+            handleErrorClient(res, 400, typeof errorMsg === 'string' ? errorMsg : errorMsg.message);
+            return;
+        }
+
+        if (!historial) {
+            handleErrorClient(res, 400, "No se pudo procesar el cambio laboral");
+            return;
+        }
+
+        handleSuccess(res, 200, "Cambio laboral procesado exitosamente", historial);
+    } catch (error) {
+        console.error("Error al procesar cambio laboral:", error);
+        handleErrorServer(res, 500, "Error al procesar cambio laboral");
     }
 } 
