@@ -242,11 +242,9 @@ export async function updateTrabajadorService(id: number, data: any): Promise<Se
 
         // Si se actualiza el nombre o apellidos, actualizar el campo name en usuario
         if (
-            (data.nombres && data.nombres !== trabajador.nombres) ||
-            (data.apellidoPaterno && data.apellidoPaterno !== trabajador.apellidoPaterno) ||
-            (data.apellidoMaterno && data.apellidoMaterno !== trabajador.apellidoMaterno)
+            data.nombres || data.apellidoPaterno || data.apellidoMaterno
         ) {
-            trabajador.usuario.name = `${trabajador.nombres} ${trabajador.apellidoPaterno} ${trabajador.apellidoMaterno}`;
+            trabajador.usuario.name = `${data.nombres || trabajador.nombres} ${data.apellidoPaterno || trabajador.apellidoPaterno} ${data.apellidoMaterno || trabajador.apellidoMaterno}`;
             updated = true;
         }
 
