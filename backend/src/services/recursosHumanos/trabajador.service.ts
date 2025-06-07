@@ -219,26 +219,46 @@ export async function searchTrabajadoresService(query: any): Promise<ServiceResp
     }
 }
 
-// Actualizar trabajador: solo permite cambiar rol y contraseña del usuario asociado
-export async function updateTrabajadorService(id: number, data: { role?: string; password?: string }): Promise<ServiceResponse<Trabajador>> {
+// Actualizar trabajador: permite actualizar campos permitidos y sincroniza con usuario
+export async function updateTrabajadorService(id: number, data: any): Promise<ServiceResponse<Trabajador>> {
     try {
         const trabajadorRepo = AppDataSource.getRepository(Trabajador);
         const userRepo = AppDataSource.getRepository(User);
-        const trabajador = await trabajadorRepo.findOne({ where: { id }, relations: ["usuario"] });
+        const trabajador = await trabajadorRepo.findOne({ where: { id }, relations: ["usuario", "fichaEmpresa"] });
         if (!trabajador) return [null, "Trabajador no encontrado"];
         if (!trabajador.usuario) return [null, "El trabajador no tiene usuario asociado"];
 
         let updated = false;
-        if (data.role && data.role !== trabajador.usuario.role) {
-            trabajador.usuario.role = data.role;
+        // Actualizar campos permitidos del trabajador
+        const camposPermitidos = [
+            "nombres", "apellidoPaterno", "apellidoMaterno", "telefono", "numeroEmergencia", "direccion"
+        ];
+        for (const campo of camposPermitidos) {
+            if (data[campo] && data[campo] !== (trabajador as any)[campo]) {
+                (trabajador as any)[campo] = data[campo];
+                updated = true;
+            }
+        }
+
+        // Si se actualiza el nombre o apellidos, actualizar el campo name en usuario
+        if (
+            (data.nombres && data.nombres !== trabajador.nombres) ||
+            (data.apellidoPaterno && data.apellidoPaterno !== trabajador.apellidoPaterno) ||
+            (data.apellidoMaterno && data.apellidoMaterno !== trabajador.apellidoMaterno)
+        ) {
+            trabajador.usuario.name = `${trabajador.nombres} ${trabajador.apellidoPaterno} ${trabajador.apellidoMaterno}`;
             updated = true;
         }
-        if (data.password && data.password.length === 8) {
-            trabajador.usuario.password = await encryptPassword(data.password);
-            updated = true;
+
+        // Guardar cambios en trabajador y usuario
+        if (updated) {
+            await trabajadorRepo.save(trabajador);
+            await userRepo.save(trabajador.usuario);
         }
-        if (updated) await userRepo.save(trabajador.usuario);
-        return [trabajador, null];
+
+        // Devolver el trabajador actualizado con relaciones
+        const trabajadorActualizado = await trabajadorRepo.findOne({ where: { id }, relations: ["usuario", "fichaEmpresa"] });
+        return [trabajadorActualizado, null];
     } catch (error) {
         console.error("Error en updateTrabajadorService:", error);
         return [null, "Error interno del servidor"];
