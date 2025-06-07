@@ -28,7 +28,7 @@ class UserService {
 
   async updateUser(id: number, rut: string, updates: { role?: string, password?: string }): Promise<void> {
     try {
-      const response = await fetch(`${this.baseURL}/users/update?id=${id}&rut=${rut}`, {
+      const response = await fetch(`${this.baseURL}/users/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
