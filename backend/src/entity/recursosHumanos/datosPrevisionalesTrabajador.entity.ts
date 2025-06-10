@@ -5,24 +5,24 @@ import {
     OneToOne,
     JoinColumn
 } from "typeorm";
-import { Trabajador } from "./trabajador.entity.ts";
-import { PrevisionAFP } from "./previsionAFP.entity.ts";
-import { PrevisionSalud } from "./previsionSalud.entity.ts";
+import { Trabajador } from "./trabajador.entity.js";
+import { PrevisionAFP } from "./previsionAFP.entity.js";
+import { PrevisionSalud } from "./previsionSalud.entity.js";
 
 @Entity("datosPrevisionalesTrabajadores")
 export class DatosPrevisionalesTrabajador {
     @PrimaryGeneratedColumn()
     id!: number;
 
-    @OneToOne(() => Trabajador, trabajador => trabajador.datosPrevisionales, { nullable: false })
+    @OneToOne(() => Trabajador, trabajador => trabajador.rut, { nullable: false })
     @JoinColumn({ name: "trabajadorId" })
     rutTrabajador!: Trabajador;
 
-    @OneToOne(() => PrevisionAFP, previsionAFP => previsionAFP.datosPrevisionales, { nullable: false })
+    @OneToOne(() => PrevisionAFP, previsionAFP => previsionAFP.id, { nullable: false })
     @JoinColumn({ name: "idAFP" })
     idAFP!: string;
 
-    @OneToOne(() => PrevisionSalud, previsionSalud => previsionSalud.datosPrevisionales, { nullable: false })
+    @OneToOne(() => PrevisionSalud, previsionSalud => previsionSalud.id, { nullable: false })
     @JoinColumn({ name: "idSalud" })
     idSalud!: string;
 
