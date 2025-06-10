@@ -8,8 +8,7 @@ import {
 import { DatosPrevisionalesTrabajador } from "./datosPrevisionalesTrabajador.entity.js";
 export enum TipoPrevisionSalud {
     ISAPRE = "ISAPRE",
-    FONASA = "FONASA",
-    OTRO = "Otro"
+    FONASA = "FONASA"
 }
 
 @Entity ("prevision_salud")
@@ -37,6 +36,6 @@ export class PrevisionSalud {
     },
     default: 0
     })
-    descuento!: string;
+    comision!: string;
 
 }
