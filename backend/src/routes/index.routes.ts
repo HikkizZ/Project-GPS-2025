@@ -11,6 +11,9 @@ import historialLaboralRoutes from './recursosHumanos/historialLaboral.routes.js
 import capacitacionRoutes from './recursosHumanos/capacitacion.routes.js';
 import filesRoutes from './files.routes.js';
 import { authenticateJWT } from '../middlewares/authentication.middleware.js';
+import inventoryEntryRoutes from './inventoryEntry.routes.js';
+import inventoryExitRoutes from './inventoryExit.routes.js';
+import inventoryRoutes from './inventory.routes.js';
 
 const router: Router = Router();
 
@@ -40,5 +43,9 @@ router.use('/trabajadores', trabajadorRoutes);
 router.use('/historial-laboral', historialLaboralRoutes);
 router.use('/capacitacion', capacitacionRoutes);
 router.use('/files', filesRoutes);
+router.use('/trabajador', trabajadorRoutes);
+router.use('/inventory-entry', inventoryEntryRoutes);
+router.use('/inventory-exit', inventoryExitRoutes);
+router.use('/inventory', inventoryRoutes);
 
 export default router;
