@@ -68,6 +68,9 @@ export class Trabajador {
   @Column({ type: "varchar", length: 12, nullable: true })
   numeroEmergencia!: string;
 
+  @Column({ type: "varchar", length: 100, nullable: true })
+    datosPrevisionales!: string;
+
   @Column({ type: "varchar", length: 255, nullable: false })
   direccion!: string;
 
