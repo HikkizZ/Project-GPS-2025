@@ -8,11 +8,12 @@ import {
 
 import { DatosPrevisionalesTrabajador } from "./datosPrevisionalesTrabajador.entity.js";
 
-export enum TipoAFP {
-    AFP = "AFP",
-    ISAPRE = "ISAPRE",
-    INP = "INP",
-    OTRO = "Otro"
+export enum TipoFondoAFP {
+    A = "A",
+    B = "B",
+    C = "C",
+    D = "D",
+    E = "E"
 }
 
 @Entity("prevision_afp")
@@ -23,8 +24,8 @@ export class PrevisionAFP {
     @OneToOne(() => DatosPrevisionalesTrabajador, datosPrevisionales => datosPrevisionales.idAFP, { nullable: false })
     @JoinColumn({ name: "datosPrevisionalesId" })
 
-    @Column({ type: "enum", enum: TipoAFP, default: TipoAFP.AFP })
-    tipo!: TipoAFP;
+    @Column({ type: "enum", enum: TipoFondoAFP, default: TipoFondoAFP.A })
+    tipo!: TipoFondoAFP;
 
     @Column({ 
     type: "integer", 
@@ -40,6 +41,6 @@ export class PrevisionAFP {
     },
     default: 0
     })
-    descuento!: string;
+    comision!: string;
 
 }
