@@ -1,12 +1,12 @@
 import { API_CONFIG } from '@/config/api.config';
-import { SafeUser, UpdateUserData } from '@/types/auth.types';
+import { SafeUser, UpdateUserData } from '@/types.d';
 
 class UserService {
   private baseURL = API_CONFIG.BASE_URL;
 
   async getAllUsers(): Promise<SafeUser[]> {
     try {
-      const response = await fetch(`${this.baseURL}/users/all`, {
+      const response = await fetch(`${this.baseURL}/users/`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -28,7 +28,7 @@ class UserService {
 
   async updateUser(id: number, rut: string, updates: { role?: string, password?: string }): Promise<void> {
     try {
-      const response = await fetch(`${this.baseURL}/users/update?id=${id}&rut=${rut}`, {
+      const response = await fetch(`${this.baseURL}/users/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

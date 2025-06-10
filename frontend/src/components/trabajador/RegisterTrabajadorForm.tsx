@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Form, Button, Alert, Row, Col } from 'react-bootstrap';
 import { useRut } from '@/hooks/useRut';
-import { useTrabajadores } from '@/hooks/useTrabajadores';
-import { CreateTrabajadorData } from '@/types/trabajador.types';
+import { useTrabajadores } from '@/hooks/recursosHumanos/useTrabajadores';
+import { CreateTrabajadorData } from '@/types/recursosHumanos/trabajador.types';
 
 interface RegisterTrabajadorFormProps {
   onSuccess: () => void;

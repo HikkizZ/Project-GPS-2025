@@ -2,8 +2,7 @@ import { AppDataSource } from "../config/configDB.js";
 import { User } from "../entity/user.entity.js";
 import { Trabajador } from "../entity/recursosHumanos/trabajador.entity.js";
 import { FichaEmpresa, EstadoLaboral } from "../entity/recursosHumanos/fichaEmpresa.entity.js";
-import { encryptPassword } from "../helpers/bcrypt.helper.js";
-import { userRole } from "../../types.js";
+import { encryptPassword } from "../utils/encrypt.js";
 
 export async function initialSetup(): Promise<void> {
     try {
@@ -13,92 +12,91 @@ export async function initialSetup(): Promise<void> {
         const trabajadorRepo = AppDataSource.getRepository(Trabajador);
         const fichaEmpresaRepo = AppDataSource.getRepository(FichaEmpresa);
 
-        let adminUser: User | null = null;
-        let adminTrabajador: Trabajador | null = null;
+        await AppDataSource.transaction(async transactionalEntityManager => {
+            console.log("=> Iniciando proceso de eliminación en transacción...");
 
-        // Buscar usuario admin existente
-        console.log("=> Verificando usuario admin existente...");
-        adminUser = await userRepo.findOne({
-            where: { email: "admin.principal@gmail.com" }
+            // 1. Eliminar fichas de empresa del admin
+            console.log("=> Eliminando fichas de empresa del admin...");
+            await transactionalEntityManager.query(
+                'DELETE FROM "fichas_empresa" WHERE "trabajadorId" IN (SELECT id FROM trabajadores WHERE rut = $1 OR correo = $2)',
+                ["11111111-1", "admin.principal@gmail.com"]
+            );
+            console.log("✅ Fichas de empresa eliminadas");
+
+            // 2. Eliminar todos los registros de userauth relacionados con el rut del admin
+            console.log("=> Eliminando TODOS los registros de userauth del admin por rut...");
+            await transactionalEntityManager.query(
+                'DELETE FROM "userauth" WHERE "rut" = $1',
+                ["11111111-1"]
+            );
+            console.log("✅ Registros de userauth eliminados");
+
+            // 3. Eliminar usuario admin
+            console.log("=> Eliminando usuario admin...");
+            await transactionalEntityManager.query(
+                'DELETE FROM "user" WHERE "rut" = $1',
+                ["11111111-1"]
+            );
+            console.log("✅ Usuario admin eliminado");
+
+            // 4. Eliminar trabajador admin
+            console.log("=> Eliminando trabajador admin...");
+            await transactionalEntityManager.query(
+                'DELETE FROM "trabajadores" WHERE "rut" = $1 OR "correo" = $2',
+                ["11111111-1", "admin.principal@gmail.com"]
+            );
+            console.log("✅ Trabajador admin eliminado");
         });
 
-        if (adminUser) {
-            console.log("=> Usuario admin encontrado, actualizando estado...");
-            // Si existe, asegurarse de que esté activo
-            adminUser.estadoCuenta = "Activa";
-            await userRepo.save(adminUser);
-
-            // Buscar el trabajador asociado
-            adminTrabajador = await trabajadorRepo.findOne({
-                where: { rut: "11.111.111-1" }
-            });
-        } else {
-            // Si no existe, crear el usuario admin
-            console.log("=> Creando usuario admin...");
-            const hashedPassword = await encryptPassword("admin123");
-            adminUser = userRepo.create({
-                name: "Administrador Principal",
-                rut: "11.111.111-1",
-                email: "admin.principal@gmail.com",
-                password: hashedPassword,
-                role: "Administrador",
-                estadoCuenta: "Activa"
-            });
-
-            await userRepo.save(adminUser);
-            console.log("✅ Usuario admin creado exitosamente");
-
-            // Crear el trabajador admin
-            console.log("=> Creando trabajador admin...");
-            adminTrabajador = trabajadorRepo.create({
-                rut: "11.111.111-1",
-                nombres: "Administrador",
-                apellidoPaterno: "Principal",
-                apellidoMaterno: "Sistema",
-                fechaNacimiento: new Date("1990-01-01"),
-                telefono: "+56911111111",
-                correo: "admin.principal@gmail.com",
-                numeroEmergencia: "+56911111111",
-                direccion: "Dirección Principal 123",
-                fechaIngreso: new Date(),
-                enSistema: true
-            });
-
-            adminTrabajador = await trabajadorRepo.save(adminTrabajador);
-            console.log("✅ Trabajador admin creado con RUT:", "11.111.111-1");
-
-            // Actualizar la referencia en el trabajador
-            adminTrabajador.usuario = adminUser;
-            await trabajadorRepo.save(adminTrabajador);
-        }
-
-        // Verificar si ya existe la ficha de empresa del admin
-        console.log("=> Verificando ficha de empresa del admin...");
-        const fichaAdminExistente = await fichaEmpresaRepo.findOne({
-            where: { trabajador: { rut: "11.111.111-1" } },
-            relations: ["trabajador"]
+        // 5. Crear el trabajador admin
+        console.log("=> Creando trabajador admin...");
+        const adminTrabajador = trabajadorRepo.create({
+            rut: "11111111-1",
+            nombres: "Administrador",
+            apellidoPaterno: "Principal",
+            apellidoMaterno: "Sistema",
+            fechaNacimiento: new Date("1990-01-01"),
+            telefono: "+56911111111",
+            correo: "admin.principal@gmail.com",
+            numeroEmergencia: "+56911111111",
+            direccion: "Dirección Principal 123",
+            fechaIngreso: new Date(),
+            enSistema: true
         });
+        await trabajadorRepo.save(adminTrabajador);
+        console.log("✅ Trabajador admin creado con RUT: 11111111-1");
 
-        if (!fichaAdminExistente && adminTrabajador) {
-            // Crear la ficha de empresa del admin
-            console.log("=> Creando ficha de empresa para admin...");
-            const fichaAdmin = fichaEmpresaRepo.create({
-                trabajador: adminTrabajador,
-                cargo: "Administrador Principal",
-                area: "Administración",
-                empresa: "GPS 2025",
-                tipoContrato: "Indefinido",
-                jornadaLaboral: "Completa",
-                sueldoBase: 2500000, // Sueldo base ejemplo
-                fechaInicioContrato: new Date(),
-                estado: EstadoLaboral.ACTIVO
-            });
+        // 6. Crear el usuario admin
+        console.log("=> Creando usuario admin...");
+        const adminPlainPassword = "204dm1n8";
+        const hashedPassword = await encryptPassword(adminPlainPassword);
+        const adminUser = userRepo.create({
+            name: "Administrador",
+            email: "admin.principal@gmail.com",
+            password: hashedPassword,
+            role: 'Administrador',
+            rut: "11111111-1",
+            estadoCuenta: "Activa"
+        });
+        await userRepo.save(adminUser);
+        console.log("✅ Usuario admin creado exitosamente");
 
-            await fichaEmpresaRepo.save(fichaAdmin);
-            console.log("✅ Ficha de empresa del admin creada exitosamente");
-        } else {
-            console.log("=> Ficha de empresa del admin ya existe");
-        }
+        // 7. Crear ficha de empresa admin
+        console.log("=> Creando ficha de empresa admin...");
+        const fichaAdmin = fichaEmpresaRepo.create({
+            cargo: "Administrador Principal",
+            area: "Administración",
+            empresa: "GPS",
+            tipoContrato: "Indefinido",
+            jornadaLaboral: "Completa",
+            sueldoBase: 2000000,
+            trabajador: adminTrabajador,
+            estado: EstadoLaboral.ACTIVO,
+            fechaInicioContrato: new Date(),
+            contratoURL: null
+        });
+        await fichaEmpresaRepo.save(fichaAdmin);
+        console.log("✅ Ficha de empresa admin creada");
 
         console.log("✅ Configuración inicial completada con éxito");
     } catch (error) {

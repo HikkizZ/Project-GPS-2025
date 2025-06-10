@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Button, Form, Alert, Spinner, Row, Col, OverlayTrigger, Tooltip } from 'react-bootstrap';
-import { FichaEmpresa, UpdateFichaEmpresaData, EstadoLaboral } from '@/types/fichaEmpresa.types';
-import { updateFichaEmpresa, uploadContrato, downloadContrato, deleteContrato, getFichaEmpresa } from '@/services/fichaEmpresa.service';
+import { FichaEmpresa, UpdateFichaEmpresaData, EstadoLaboral } from '@/types/recursosHumanos/fichaEmpresa.types';
+import { updateFichaEmpresa, uploadContrato, downloadContrato, deleteContrato, getFichaEmpresa } from '@/services/recursosHumanos/fichaEmpresa.service';
 
 interface EditarFichaEmpresaModalProps {
   show: boolean;
@@ -19,6 +19,15 @@ const InfoIcon: React.FC<{ text: string }> = ({ text }) => (
     <i className="bi bi-info-circle ms-2" style={{ cursor: 'help' }}></i>
   </OverlayTrigger>
 );
+
+// Función para formatear el RUT con puntos y guion
+function formatearRut(rut: string): string {
+  rut = rut.replace(/[^\dkK]/g, '').toUpperCase();
+  if (rut.length < 2) return rut;
+  const cuerpo = rut.slice(0, -1).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  const dv = rut.slice(-1);
+  return `${cuerpo}-${dv}`;
+}
 
 export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = ({
   show,
@@ -240,9 +249,11 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
 
           <h5 className="mb-3 mt-4">Información del Trabajador</h5>
           <div className="alert alert-info">
-            <strong>Trabajador:</strong> {ficha.trabajador.nombres} {ficha.trabajador.apellidoPaterno} {ficha.trabajador.apellidoMaterno}
-            <br />
-            <strong>RUT:</strong> {ficha.trabajador.rut}
+            <strong>Trabajador:</strong>
+            <span className="ms-2">{ficha.trabajador.nombres} {ficha.trabajador.apellidoPaterno} {ficha.trabajador.apellidoMaterno}</span>
+            <span className="mx-4"></span>
+            <strong>RUT:</strong>
+            <span className="ms-2">{formatearRut(ficha.trabajador.rut)}</span>
           </div>
 
           <h5 className="mb-3">Información Laboral</h5>
@@ -306,7 +317,7 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
                   onChange={handleInputChange}
                   required
                 >
-                  <option value="">Seleccione...</option>
+                  <option value="">Seleccione</option>
                   <option value="Indefinido">Indefinido</option>
                   <option value="Plazo Fijo">Plazo Fijo</option>
                   <option value="Por Obra">Por Obra</option>
@@ -339,7 +350,7 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
               <Form.Group className="mb-3">
                 <Form.Label>
                   Sueldo Base *
-                  <InfoIcon text="El sueldo base debe ser mayor a 0 y no puede ser menor al sueldo actual" />
+                  <InfoIcon text="El sueldo base debe ser mayor a 0" />
                 </Form.Label>
                 <Form.Control
                   type="text"

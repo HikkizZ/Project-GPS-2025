@@ -1,11 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import { useTrabajador } from './hooks/useTrabajador';
-import { type CreateTrabajadorData, type Trabajador } from './types/trabajador';
-import { FichasEmpresaPage } from './pages/FichasEmpresaPage';
+import React, { useState } from 'react';
+import { useRut } from './hooks/useRut';
+import { useTrabajadores } from './hooks/recursosHumanos/useTrabajadores';
+import { type CreateTrabajadorData, type Trabajador } from './types/recursosHumanos/trabajador.types';
+import { FichasEmpresaPage } from './pages/recursosHumanos/FichasEmpresaPage';
 import { UsersPage } from './pages/UsersPage';
-import { TrabajadoresPage } from './pages/TrabajadoresPage';
+import { TrabajadoresPage } from './pages/recursosHumanos/TrabajadoresPage';
 import { authService } from './services/auth.service';
-import { EditarTrabajadorModal } from './components/trabajador/EditarTrabajadorModal';
+import { Card, Row, Col } from 'react-bootstrap';
+import { useNavigate, Routes, Route, Navigate } from 'react-router-dom';
+import DashboardRecursosHumanos from './pages/recursosHumanos/DashboardRecursosHumanos';
+import MainLayout from './components/common/MainLayout';
+import GestionPersonalPage from './pages/GestionPersonalPage';
 
 // Componente simple de Login
 const LoginPage: React.FC = () => {
@@ -76,7 +81,7 @@ const LoginPage: React.FC = () => {
                       className="form-control"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      placeholder="Admin2024"
+                      placeholder="204dm1n8"
                       required
                       disabled={isLoading}
                     />
@@ -98,7 +103,7 @@ const LoginPage: React.FC = () => {
                 <div className="mt-3">
                   <small className="text-muted">
                     <strong>Credenciales de prueba:</strong><br/>
-                    <strong>Admin:</strong> admin.principal@gmail.com / Admin2024
+                    <strong>Admin:</strong> admin.principal@gmail.com / 204dm1n8
                   </small>
                 </div>
               </div>
@@ -115,7 +120,8 @@ const RegistrarTrabajadorPage: React.FC<{
   onSuccess: (trabajador: Trabajador) => void;
   onCancel: () => void;
 }> = ({ onSuccess, onCancel }) => {
-  const { createTrabajador, isLoading, error, clearError, validateRUT, formatRUT } = useTrabajador();
+  const { createTrabajador: createTrabajadorService, isLoading: isCreating, error: createError, clearError } = useTrabajadores();
+  const { validateRUT, formatRUT } = useRut();
   
   const [formData, setFormData] = useState<CreateTrabajadorData>({
     rut: '',
@@ -127,7 +133,7 @@ const RegistrarTrabajadorPage: React.FC<{
     correo: '',
     numeroEmergencia: '',
     direccion: '',
-    fechaIngreso: new Date().toISOString().split('T')[0], // Fecha actual por defecto
+    fechaIngreso: new Date().toISOString().split('T')[0],
   });
 
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
@@ -171,7 +177,7 @@ const RegistrarTrabajadorPage: React.FC<{
     setValidationErrors({});
     
     try {
-      const result = await createTrabajador(formData);
+      const result = await createTrabajadorService(formData);
       if (result.success && result.trabajador) {
         onSuccess(result.trabajador);
       } else {
@@ -210,10 +216,10 @@ const RegistrarTrabajadorPage: React.FC<{
               </h4>
             </div>
             <div className="card-body">
-              {error && (
+              {createError && (
                 <div className="alert alert-danger alert-dismissible fade show">
                   <i className="bi bi-exclamation-triangle me-2"></i>
-                  {error}
+                  {createError}
                   <button type="button" className="btn-close" onClick={clearError}></button>
                 </div>
               )}
@@ -365,8 +371,8 @@ const RegistrarTrabajadorPage: React.FC<{
                 </div>
 
                 <div className="d-flex gap-2 mt-4">
-                  <button type="submit" className="btn btn-primary" disabled={isLoading}>
-                    {isLoading ? (
+                  <button type="submit" className="btn btn-primary" disabled={isCreating}>
+                    {isCreating ? (
                       <>
                         <span className="spinner-border spinner-border-sm me-2" />
                         Registrando...
@@ -394,7 +400,6 @@ const RegistrarTrabajadorPage: React.FC<{
 
 // Dashboard principal simplificado
 const Dashboard: React.FC = () => {
-  // Manejo seguro de localStorage
   const getUserFromStorage = () => {
     try {
       const userStr = localStorage.getItem('userData');
@@ -412,19 +417,12 @@ const Dashboard: React.FC = () => {
   const [currentPage, setCurrentPage] = useState('home');
   const [successMessage, setSuccessMessage] = useState('');
   const [recienRegistrado, setRecienRegistrado] = useState<Trabajador | null>(null);
-
-  const handleLogout = () => {
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('userData');
-    window.location.reload();
-  };
+  const navigate = useNavigate();
 
   const handleTrabajadorCreated = (trabajador: Trabajador) => {
     setSuccessMessage(`Trabajador ${trabajador.nombres} ${trabajador.apellidoPaterno} registrado exitosamente. Completa ahora su información laboral.`);
     setRecienRegistrado(trabajador);
     setCurrentPage('fichas-empresa');
-    
-    // Limpiar mensaje después de 5 segundos
     setTimeout(() => setSuccessMessage(''), 5000);
   };
 
@@ -464,7 +462,6 @@ const Dashboard: React.FC = () => {
                     ></button>
                   </div>
                 )}
-                
                 <div className="card">
                   <div className="card-header bg-primary text-white">
                     <h4 className="mb-0">
@@ -475,7 +472,6 @@ const Dashboard: React.FC = () => {
                   <div className="card-body">
                     <h5>¡Bienvenido, {user.name}!</h5>
                     <p className="text-muted">Rol: <strong>{user.role}</strong> • RUT: {user.rut}</p>
-                    
                     {/* Sección de Recursos Humanos */}
                     <div className="row mt-4">
                       <div className="col-12">
@@ -485,118 +481,44 @@ const Dashboard: React.FC = () => {
                         </h6>
                       </div>
                     </div>
-                    
-                    <div className="row">
-                      {/* Tarjeta de Trabajadores */}
-                      <div className="col-md-4 mb-3">
-                        <div 
-                          className="card h-100 shadow-sm border-success"
-                          style={{ cursor: 'pointer' }}
-                          onClick={() => setCurrentPage('trabajadores')}
-                        >
-                          <div className="card-body text-center">
-                            <i className="bi bi-people-fill display-4 text-success mb-3"></i>
-                            <h5>Trabajadores</h5>
-                            <p className="text-muted">Gestionar información del personal</p>
-                            <button className="btn btn-success">
-                              <i className="bi bi-person-gear me-2"></i>
-                              Administrar
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Tarjeta de Fichas de Empresa */}
-                      <div className="col-md-4 mb-3">
-                        <div 
-                          className="card h-100 shadow-sm border-primary"
-                          style={{ cursor: 'pointer' }}
-                          onClick={() => setCurrentPage('fichas-empresa')}
-                        >
-                          <div className="card-body text-center">
-                            <i className="bi bi-clipboard-data display-4 text-primary mb-3"></i>
-                            <h5>Fichas de Empresa</h5>
-                            <p className="text-muted">Editar información laboral de trabajadores</p>
-                            <button className="btn btn-primary">
-                              <i className="bi bi-pencil-square me-2"></i>
-                              Gestionar
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Tarjeta de Gestión de Usuarios */}
-                      {(user?.role === 'Administrador' || user?.role === 'RecursosHumanos') && (
-                        <div className="col-md-4 mb-3">
-                          <div 
-                            className="card h-100 shadow-sm border-warning"
-                            style={{ cursor: 'pointer' }}
-                            onClick={() => setCurrentPage('users')}
-                          >
-                            <div className="card-body text-center">
-                              <i className="bi bi-people display-4 text-warning mb-3"></i>
-                              <h5>Gestión de Usuarios</h5>
-                              <p className="text-muted">Administrar cuentas y permisos del sistema</p>
-                              <button className="btn btn-warning">
-                                <i className="bi bi-shield-lock me-2"></i>
-                                Gestionar
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Otros Módulos */}
-                    <div className="row mt-4">
-                      <div className="col-12">
-                        <h6 className="text-secondary mb-3">
-                          <i className="bi bi-gear me-2"></i>
-                          Otros Módulos
-                        </h6>
-                      </div>
-                    </div>
-                    
-                    <div className="row">
-                      <div className="col-md-4 mb-3">
-                        <div className="card h-100 bg-light">
-                          <div className="card-body text-center">
-                            <i className="bi bi-box display-4 text-muted mb-3"></i>
-                            <h5>Inventario</h5>
-                            <p className="text-muted">Gestión de productos</p>
-                            <button className="btn btn-outline-secondary" disabled>
-                              Próximamente
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div className="col-md-4 mb-3">
-                        <div className="card h-100 bg-light">
-                          <div className="card-body text-center">
-                            <i className="bi bi-wrench display-4 text-muted mb-3"></i>
-                            <h5>Maquinaria</h5>
-                            <p className="text-muted">Control de equipos</p>
-                            <button className="btn btn-outline-secondary" disabled>
-                              Próximamente
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div className="col-md-4 mb-3">
-                        <div className="card h-100 bg-light">
-                          <div className="card-body text-center">
-                            <i className="bi bi-graph-up display-4 text-muted mb-3"></i>
-                            <h5>Reportes</h5>
-                            <p className="text-muted">Análisis y estadísticas</p>
-                            <button className="btn btn-outline-secondary" disabled>
-                              Próximamente
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+                    <Row>
+                      <Col md={3} className="mb-4">
+                        <Card className="h-100 shadow-sm border-primary" style={{ cursor: 'pointer', borderTop: '4px solid #2563eb' }} onClick={() => navigate('/recursos-humanos')}>
+                          <Card.Body className="d-flex flex-column align-items-center justify-content-center text-center">
+                            <i className="bi bi-people-fill fs-1 mb-3 text-primary"></i>
+                            <Card.Title>Recursos Humanos</Card.Title>
+                            <Card.Text>Gestión del personal y Gestión de sueldos</Card.Text>
+                          </Card.Body>
+                        </Card>
+                      </Col>
+                      <Col md={3} className="mb-4">
+                        <Card className="h-100 shadow-sm border-success" style={{ border: '1.5px solid #059669', borderTop: '3px solid #059669' }}>
+                          <Card.Body className="d-flex flex-column align-items-center justify-content-center text-center">
+                            <i className="bi bi-box-seam fs-1 mb-3" style={{ color: '#059669' }}></i>
+                            <Card.Title className="fw-bold">Inventario</Card.Title>
+                            <Card.Text className="text-secondary">Próximamente</Card.Text>
+                          </Card.Body>
+                        </Card>
+                      </Col>
+                      <Col md={3} className="mb-4">
+                        <Card className="h-100 shadow-sm border-info" style={{ border: '1.5px solid #0ea5e9', borderTop: '3px solid #0ea5e9' }}>
+                          <Card.Body className="d-flex flex-column align-items-center justify-content-center text-center">
+                            <i className="bi bi-truck fs-1 mb-3" style={{ color: '#0ea5e9' }}></i>
+                            <Card.Title className="fw-bold">Maquinaria</Card.Title>
+                            <Card.Text className="text-secondary">Próximamente</Card.Text>
+                          </Card.Body>
+                        </Card>
+                      </Col>
+                      <Col md={3} className="mb-4">
+                        <Card className="h-100 shadow-sm border-warning" style={{ border: '1.5px solid #fbbf24', borderTop: '3px solid #fbbf24' }}>
+                          <Card.Body className="d-flex flex-column align-items-center justify-content-center text-center">
+                            <i className="bi bi-bar-chart fs-1 mb-3" style={{ color: '#fbbf24' }}></i>
+                            <Card.Title className="fw-bold">Reportes</Card.Title>
+                            <Card.Text className="text-secondary">Próximamente</Card.Text>
+                          </Card.Body>
+                        </Card>
+                      </Col>
+                    </Row>
                   </div>
                 </div>
               </div>
@@ -606,73 +528,11 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  return (
-    <div className="min-vh-100 d-flex flex-column">
-      {/* Navbar */}
-      <nav className="navbar navbar-expand-lg navbar-dark bg-primary">
-        <div className="container">
-          <span className="navbar-brand mb-0 h1">
-            <i className="bi bi-geo-alt me-2"></i>
-            Sistema GPS 2025
-          </span>
-          
-          <div className="navbar-nav ms-auto d-flex flex-row">
-            <button 
-              className="btn btn-outline-light me-3"
-              onClick={() => setCurrentPage('home')}
-            >
-              <i className="bi bi-house me-2"></i>
-              Dashboard
-            </button>
-            
-            <div className="nav-item dropdown">
-              <button 
-                className="btn btn-outline-light dropdown-toggle" 
-                type="button" 
-                data-bs-toggle="dropdown"
-              >
-                <i className="bi bi-person-circle me-2"></i>
-                {user.name}
-              </button>
-              <ul className="dropdown-menu dropdown-menu-end">
-                <li>
-                  <span className="dropdown-item-text">
-                    <strong>Usuario:</strong> {user.name}<br />
-                    <strong>Rol:</strong> {user.role}<br />
-                    <strong>RUT:</strong> {user.rut}
-                  </span>
-                </li>
-                <li><hr className="dropdown-divider" /></li>
-                <li>
-                  <button className="dropdown-item" onClick={handleLogout}>
-                    <i className="bi bi-box-arrow-right me-2"></i>
-                    Cerrar Sesión
-                  </button>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </nav>
-
-      {/* Contenido */}
-      <main className="flex-grow-1 bg-light">
-        {renderPage()}
-      </main>
-
-      {/* Footer */}
-      <footer className="bg-dark text-light py-2">
-        <div className="container text-center">
-          <small>&copy; 2025 Sistema GPS - Gestión de Procesos Empresariales</small>
-        </div>
-      </footer>
-    </div>
-  );
+  return renderPage();
 };
 
 // App principal
 function App() {
-  // Manejo seguro de autenticación
   const isAuthenticated = (() => {
     try {
       const authStr = localStorage.getItem('authToken');
@@ -684,7 +544,37 @@ function App() {
     }
   })();
 
-  return isAuthenticated ? <Dashboard /> : <LoginPage />;
+  // Obtener usuario y función de logout para pasar al layout
+  const getUserFromStorage = () => {
+    try {
+      const userStr = localStorage.getItem('userData');
+      if (!userStr || userStr === 'undefined' || userStr === 'null') {
+        return { name: 'Usuario', role: 'Invitado', rut: 'N/A' };
+      }
+      return JSON.parse(userStr);
+    } catch (error) {
+      console.error('Error parsing user from localStorage:', error);
+      return { name: 'Usuario', role: 'Invitado', rut: 'N/A' };
+    }
+  };
+  const user = getUserFromStorage();
+  const handleLogout = () => {
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('userData');
+    window.location.reload();
+  };
+
+  return isAuthenticated ? (
+    <Routes>
+      <Route path="/" element={<Navigate to="/dashboard" replace />} />
+      <Route path="/dashboard" element={<MainLayout user={user} onLogout={handleLogout}><Dashboard /></MainLayout>} />
+      <Route path="/recursos-humanos" element={<MainLayout user={user} onLogout={handleLogout}><DashboardRecursosHumanos /></MainLayout>} />
+      <Route path="/trabajadores" element={<MainLayout user={user} onLogout={handleLogout}><TrabajadoresPage /></MainLayout>} />
+      <Route path="/fichas-empresa" element={<MainLayout user={user} onLogout={handleLogout}><FichasEmpresaPage /></MainLayout>} />
+      <Route path="/usuarios" element={<MainLayout user={user} onLogout={handleLogout}><UsersPage /></MainLayout>} />
+      <Route path="/gestion-personal" element={<MainLayout user={user} onLogout={handleLogout}><GestionPersonalPage /></MainLayout>} />
+    </Routes>
+  ) : <LoginPage />;
 }
 
 export default App; 

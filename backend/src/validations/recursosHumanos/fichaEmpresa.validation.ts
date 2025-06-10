@@ -84,7 +84,7 @@ export const FichaEmpresaBodyValidation = Joi.object({
     sueldoBase: Joi.number()
         .min(1)
         .messages({
-            "number.base": "El sueldo base debe ser un número",
+            "number.base": "El sueldo base debe ser mayor a 0",
             "number.min": "El sueldo base debe ser mayor a 0"
         }),
 
@@ -170,7 +170,7 @@ export const FichaEmpresaUpdateValidation = Joi.object({
     sueldoBase: Joi.number()
         .min(1)
         .messages({
-            "number.base": "El sueldo base debe ser un número",
+            "number.base": "El sueldo base debe ser mayor a 0",
             "number.min": "El sueldo base debe ser mayor a 0"
         }),
 

@@ -260,7 +260,8 @@ export async function updateCapacitacion(req: Request, res: Response): Promise<v
         // Verificar permisos antes de actualizar
         const [capacitacionExistente, errorBusqueda] = await getCapacitacionByIdService(capacitacionId);
         if (errorBusqueda) {
-            handleErrorClient(res, 404, errorBusqueda);
+            const errorMessage = typeof errorBusqueda === 'string' ? errorBusqueda : errorBusqueda.message;
+            handleErrorClient(res, 404, errorMessage);
             return;
         }
 
@@ -277,7 +278,8 @@ export async function updateCapacitacion(req: Request, res: Response): Promise<v
         const [capacitacionActualizada, error] = await updateCapacitacionService(capacitacionId, validationResult.value);
 
         if (error) {
-            handleErrorClient(res, 400, error);
+            const errorMessage = typeof error === 'string' ? error : error.message;
+            handleErrorClient(res, 400, errorMessage);
             return;
         }
 
@@ -307,7 +309,8 @@ export async function deleteCapacitacion(req: Request, res: Response): Promise<v
         // Verificar permisos antes de eliminar
         const [capacitacionExistente, errorBusqueda] = await getCapacitacionByIdService(capacitacionId);
         if (errorBusqueda) {
-            handleErrorClient(res, 404, errorBusqueda);
+            const errorMessage = typeof errorBusqueda === 'string' ? errorBusqueda : errorBusqueda.message;
+            handleErrorClient(res, 404, errorMessage);
             return;
         }
 
@@ -324,7 +327,8 @@ export async function deleteCapacitacion(req: Request, res: Response): Promise<v
         const [capacitacionEliminada, error] = await deleteCapacitacionService(capacitacionId);
 
         if (error) {
-            handleErrorClient(res, 404, error as string);
+            const errorMessage = typeof error === 'string' ? error : error.message;
+            handleErrorClient(res, 404, errorMessage);
             return;
         }
 
@@ -354,9 +358,11 @@ export async function descargarCertificado(req: Request, res: Response): Promise
         const [certificadoURL, error] = await descargarCertificadoService(id, req.user.rut);
         
         if (error) {
-            const statusCode = error.includes("no encontrado") ? 404 : 
-                            error.includes("permisos") ? 403 : 400;
-            handleErrorClient(res, statusCode, error);
+            const errorMessage = typeof error === 'string' ? error : error.message;
+            const statusCode = typeof error === 'string'
+                ? (error.includes("no encontrado") ? 404 : error.includes("permisos") ? 403 : 400)
+                : (error.message.includes("no encontrado") ? 404 : error.message.includes("permisos") ? 403 : 400);
+            handleErrorClient(res, statusCode, errorMessage);
             return;
         }
 

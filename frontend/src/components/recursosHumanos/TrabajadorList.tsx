@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { useTrabajadores } from '@/hooks/useTrabajadores';
+import { useTrabajadores } from '@/hooks/recursosHumanos/useTrabajadores';
 import { TrabajadorCard } from './TrabajadorCard';
-import { Trabajador, TrabajadorSearchQuery } from '@/types/trabajador.types';
+import { Trabajador, TrabajadorSearchQuery } from '@/types/recursosHumanos/trabajador.types';
 
 export const TrabajadorList: React.FC = () => {
   const {

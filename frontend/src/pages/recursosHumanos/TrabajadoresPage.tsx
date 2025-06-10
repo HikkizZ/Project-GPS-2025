@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Table, Button, Form, Alert, Spinner, Modal } from 'react-bootstrap';
-import { useTrabajadores } from '@/hooks/useTrabajadores';
-import { Trabajador, TrabajadorSearchQuery } from '@/types/trabajador.types';
+import { useTrabajadores } from '@/hooks/recursosHumanos/useTrabajadores';
+import { Trabajador, TrabajadorSearchQuery } from '@/types/recursosHumanos/trabajador.types';
 import { useRut } from '@/hooks/useRut';
 import { RegisterTrabajadorForm } from '@/components/trabajador/RegisterTrabajadorForm';
 import { EditarTrabajadorModal } from '@/components/trabajador/EditarTrabajadorModal';
@@ -12,15 +12,16 @@ export const TrabajadoresPage: React.FC = () => {
   
   // Estados para los modales y filtros
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [selectedTrabajador, setSelectedTrabajador] = useState<Trabajador | null>(null);
   const [showDesvincularModal, setShowDesvincularModal] = useState(false);
+  const [trabajadorToEdit, setTrabajadorToEdit] = useState<Trabajador | null>(null);
   const [trabajadorToDesvincular, setTrabajadorToDesvincular] = useState<Trabajador | null>(null);
   const [motivoDesvinculacion, setMotivoDesvinculacion] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [searchParams, setSearchParams] = useState<TrabajadorSearchQuery>({});
   const [desvincularError, setDesvincularError] = useState<string>('');
-  const [isDesvinculating, setIsDesvinculating] = useState(false);
+  const [isDesvinculando, setIsDesvinculando] = useState(false);
+  const [successMessage, setSuccessMessage] = useState<string>('');
+  const [showEditModal, setShowEditModal] = useState(false);
 
   // Cargar trabajadores al montar el componente
   useEffect(() => {
@@ -38,7 +39,13 @@ export const TrabajadoresPage: React.FC = () => {
     loadTrabajadores();
   };
 
-  // Función para abrir modal de desvinculación
+  // Función para editar trabajador
+  const handleEditClick = (trabajador: Trabajador) => {
+    setTrabajadorToEdit(trabajador);
+    setShowEditModal(true);
+  };
+
+  // Función para manejar la desvinculación
   const handleDesvincularClick = (trabajador: Trabajador) => {
     setTrabajadorToDesvincular(trabajador);
     setShowDesvincularModal(true);
@@ -46,32 +53,44 @@ export const TrabajadoresPage: React.FC = () => {
     setMotivoDesvinculacion('');
   };
 
-  // Función para confirmar desvinculación
-  const handleConfirmDesvincular = async () => {
-    if (!trabajadorToDesvincular || !motivoDesvinculacion.trim()) {
-      setDesvincularError('El motivo de desvinculación es requerido');
-      return;
+  // Función para ejecutar la desvinculación
+  const handleDesvincularConfirm = async () => {
+    if (!trabajadorToDesvincular || !motivoDesvinculacion.trim()) return;
+
+    try {
+      setIsDesvinculando(true);
+      setDesvincularError('');
+      const result = await desvincularTrabajador(trabajadorToDesvincular.id, motivoDesvinculacion);
+      if (result.success) {
+        setShowDesvincularModal(false);
+        loadTrabajadores(); // Recargar la lista
+        setSuccessMessage('Trabajador desvinculado exitosamente');
+        setTimeout(() => setSuccessMessage(''), 3000);
+      } else {
+        setDesvincularError(result.error || 'Error al desvincular trabajador');
+      }
+    } catch (error) {
+      setDesvincularError('Error al desvincular trabajador');
+    } finally {
+      setIsDesvinculando(false);
     }
-
-    setIsDesvinculating(true);
-    setDesvincularError('');
-
-    const result = await desvincularTrabajador(trabajadorToDesvincular.id, motivoDesvinculacion.trim());
-    
-    if (result.success) {
-      setShowDesvincularModal(false);
-      setTrabajadorToDesvincular(null);
-      setMotivoDesvinculacion('');
-      await loadTrabajadores(); // Recargar la lista después de desvincular
-    } else {
-      setDesvincularError(result.error || 'Error al desvincular trabajador');
-    }
-
-    setIsDesvinculating(false);
   };
 
   return (
     <div className="container py-4">
+      {/* Mensaje de éxito */}
+      {successMessage && (
+        <div className="alert alert-success alert-dismissible fade show mb-4">
+          <i className="bi bi-check-circle me-2"></i>
+          {successMessage}
+          <button 
+            type="button" 
+            className="btn-close" 
+            onClick={() => setSuccessMessage('')}
+          ></button>
+        </div>
+      )}
+
       {/* Header principal */}
       <div className="d-flex justify-content-between align-items-center mb-4">
         <div>
@@ -102,60 +121,10 @@ export const TrabajadoresPage: React.FC = () => {
 
       {/* Sección de filtros */}
       {showFilters && (
-        <div className="card border-light shadow-sm mb-4">
+        <div className="card mb-4 border-primary">
           <div className="card-body">
-            <h6 className="card-title mb-3">
-              <i className="bi bi-search me-2"></i>
-              Filtros de Búsqueda
-            </h6>
-
-            {/* Checkboxes de estado */}
-            <div className="row mb-4">
-              <div className="col-12">
-                <h6 className="mb-3">Estado del trabajador:</h6>
-                <div className="form-check form-check-inline">
-                  <input
-                    className="form-check-input"
-                    type="checkbox"
-                    id="incluirEliminados"
-                    checked={searchParams.todos || false}
-                    onChange={(e) => {
-                      setSearchParams({ 
-                        ...searchParams, 
-                        todos: e.target.checked,
-                        soloEliminados: false 
-                      });
-                    }}
-                    disabled={searchParams.soloEliminados}
-                  />
-                  <label className="form-check-label" htmlFor="incluirEliminados">
-                    Incluir trabajadores desvinculados
-                  </label>
-                </div>
-                <div className="form-check form-check-inline">
-                  <input
-                    className="form-check-input"
-                    type="checkbox"
-                    id="soloEliminados"
-                    checked={searchParams.soloEliminados || false}
-                    onChange={(e) => {
-                      setSearchParams({ 
-                        ...searchParams, 
-                        soloEliminados: e.target.checked,
-                        todos: false 
-                      });
-                    }}
-                    disabled={searchParams.todos}
-                  />
-                  <label className="form-check-label" htmlFor="soloEliminados">
-                    Ver solo trabajadores desvinculados
-                  </label>
-                </div>
-              </div>
-            </div>
-
-            {/* Resto de los filtros */}
             <div className="row g-3">
+              {/* Primera fila */}
               <div className="col-md-3">
                 <Form.Group>
                   <Form.Label>RUT</Form.Label>
@@ -200,6 +169,7 @@ export const TrabajadoresPage: React.FC = () => {
                   />
                 </Form.Group>
               </div>
+              {/* Segunda fila */}
               <div className="col-md-3">
                 <Form.Group>
                   <Form.Label>Correo</Form.Label>
@@ -244,6 +214,7 @@ export const TrabajadoresPage: React.FC = () => {
                   />
                 </Form.Group>
               </div>
+              {/* Tercera fila */}
               <div className="col-md-3">
                 <Form.Group>
                   <Form.Label>Fecha de Nacimiento</Form.Label>
@@ -265,16 +236,33 @@ export const TrabajadoresPage: React.FC = () => {
                 </Form.Group>
               </div>
             </div>
-
-            <div className="mt-3">
-              <Button variant="primary" className="me-2" onClick={handleSearch}>
-                <i className="bi bi-search me-2"></i>
-                Buscar
-              </Button>
-              <Button variant="secondary" onClick={clearFilters}>
-                <i className="bi bi-arrow-counterclockwise me-2"></i>
-                Limpiar
-              </Button>
+            <div className="d-flex justify-content-between align-items-center mt-3">
+              <div>
+                <Button variant="primary" onClick={handleSearch}>
+                  <i className="bi bi-search me-2"></i>
+                  Buscar
+                </Button>
+                <Button variant="secondary" className="ms-2" onClick={clearFilters}>
+                  <i className="bi bi-x-circle me-2"></i>
+                  Limpiar
+                </Button>
+              </div>
+              <div className="d-flex gap-3">
+                <Form.Check
+                  type="checkbox"
+                  label="Incluir trabajadores eliminados (soft delete)"
+                  checked={searchParams.todos || false}
+                  onChange={(e) => setSearchParams({ ...searchParams, todos: e.target.checked })}
+                  id="includeInactive"
+                />
+                <Form.Check
+                  type="checkbox"
+                  label="Sólo mostrar trabajadores eliminados (soft delete)"
+                  checked={searchParams.soloEliminados || false}
+                  onChange={(e) => setSearchParams({ ...searchParams, soloEliminados: e.target.checked })}
+                  id="onlyInactive"
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -321,7 +309,7 @@ export const TrabajadoresPage: React.FC = () => {
                         {`${trabajador.nombres} ${trabajador.apellidoPaterno} ${trabajador.apellidoMaterno}`}
                         {!trabajador.enSistema && (
                           <span className="badge bg-secondary bg-opacity-25 text-secondary ms-2" style={{ fontSize: '0.8em' }}>
-                            <i className="bi bi-trash me-1"></i>
+                            <i className="bi bi-person-x me-1"></i>
                             Desvinculado
                           </span>
                         )}
@@ -333,29 +321,30 @@ export const TrabajadoresPage: React.FC = () => {
                       <td>{trabajador.direccion}</td>
                       <td>{new Date(trabajador.fechaIngreso).toLocaleDateString()}</td>
                       <td className="text-center">
-                        <div className="btn-group">
-                          <Button 
-                            variant="outline-primary" 
-                            size="sm" 
-                            className="me-2"
-                            onClick={() => {
-                              setSelectedTrabajador(trabajador);
-                              setShowEditModal(true);
-                            }}
-                            title="Editar trabajador"
-                          >
-                            <i className="bi bi-pencil"></i>
-                          </Button>
-                          <Button 
-                            variant="outline-danger" 
-                            size="sm"
-                            onClick={() => handleDesvincularClick(trabajador)}
-                            title="Desvincular trabajador"
-                            disabled={!trabajador.enSistema}
-                          >
-                            <i className="bi bi-person-x"></i>
-                          </Button>
-                        </div>
+                        {/* Ocultar acciones si es el admin principal */}
+                        {(trabajador.correo !== 'admin.principal@gmail.com' && trabajador.rut !== '11.111.111-1') && (
+                          <div className="btn-group">
+                            <Button 
+                              variant="outline-primary" 
+                              size="sm" 
+                              className="me-2"
+                              onClick={() => handleEditClick(trabajador)}
+                              title="Editar trabajador"
+                              disabled={!trabajador.enSistema}
+                            >
+                              <i className="bi bi-pencil"></i>
+                            </Button>
+                            <Button 
+                              variant="outline-danger" 
+                              size="sm"
+                              onClick={() => handleDesvincularClick(trabajador)}
+                              title="Desvincular trabajador"
+                              disabled={!trabajador.enSistema}
+                            >
+                              <i className="bi bi-person-x"></i>
+                            </Button>
+                          </div>
+                        )}
                       </td>
                     </tr>
                   ))}
@@ -381,22 +370,30 @@ export const TrabajadoresPage: React.FC = () => {
         </Modal.Header>
         <Modal.Body>
           <div className="alert alert-info">
-            <i className="bi bi-info-circle me-2"></i>
-            <strong>Nota:</strong> Al registrar un trabajador se creará automáticamente una ficha de empresa 
-            con valores por defecto que podrás editar inmediatamente.
+            <span className="me-2 align-middle">
+              <i className="bi bi-info-circle"></i>
+            </span>
+            <strong className="align-middle me-2">Nota:</strong>
+            Al registrar un trabajador se creará automáticamente una ficha de empresa con valores por defecto que podrás editar inmediatamente.
           </div>
           <RegisterTrabajadorForm
             onSuccess={() => {
               setShowCreateModal(false);
               loadTrabajadores();
+              setSuccessMessage('Trabajador registrado exitosamente');
+              setTimeout(() => setSuccessMessage(''), 3000);
             }}
             onCancel={() => setShowCreateModal(false)}
           />
         </Modal.Body>
       </Modal>
 
-      {/* Modal de Desvinculación */}
-      <Modal show={showDesvincularModal} onHide={() => setShowDesvincularModal(false)}>
+      {/* Modal de desvinculación */}
+      <Modal
+        show={showDesvincularModal}
+        onHide={() => setShowDesvincularModal(false)}
+        centered
+      >
         <Modal.Header closeButton className="bg-danger text-white">
           <Modal.Title>
             <i className="bi bi-person-x me-2"></i>
@@ -404,48 +401,61 @@ export const TrabajadoresPage: React.FC = () => {
           </Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          {trabajadorToDesvincular && (
-            <>
-              <p>¿Está seguro que desea desvincular a <strong>{trabajadorToDesvincular.nombres} {trabajadorToDesvincular.apellidoPaterno}</strong>?</p>
-              <div className="alert alert-warning">
-                <i className="bi bi-exclamation-triangle me-2"></i>
-                Esta acción:
-                <ul className="mb-0 mt-2">
-                  <li>Desactivará el acceso del trabajador al sistema</li>
-                  <li>Actualizará su estado laboral a "Desvinculado"</li>
-                  <li>Registrará el motivo en su historial laboral</li>
-                  <li>No se podrá deshacer</li>
-                </ul>
-              </div>
-              
-              <Form.Group className="mb-3">
-                <Form.Label>Motivo de desvinculación *</Form.Label>
-                <Form.Control
-                  as="textarea"
-                  rows={3}
-                  value={motivoDesvinculacion}
-                  onChange={(e) => setMotivoDesvinculacion(e.target.value)}
-                  placeholder="Ingrese el motivo de la desvinculación"
-                  isInvalid={!!desvincularError}
-                />
-                <Form.Control.Feedback type="invalid">
-                  {desvincularError}
-                </Form.Control.Feedback>
-              </Form.Group>
-            </>
+          {desvincularError && (
+            <Alert variant="danger" className="mb-3">
+              <i className="bi bi-exclamation-circle me-2"></i>
+              {desvincularError}
+            </Alert>
           )}
+          <Alert variant="warning" className="mb-3">
+            <div>
+              <span className="me-2 align-middle">
+                <i className="bi bi-exclamation-triangle"></i>
+              </span>
+              <strong className="align-middle">Advertencia:</strong>
+              <br />
+              Esta acción:
+              <ul className="mb-0 mt-2">
+                <li>Marcará al trabajador como desvinculado en el sistema</li>
+                <li>Cambiará el estado de su ficha a "Desvinculado"</li>
+                <li>Desactivará su cuenta de usuario</li>
+                <li>Registrará el motivo de desvinculación en el historial laboral</li>
+              </ul>
+            </div>
+          </Alert>
+          <p>¿Estás seguro que deseas desvincular al trabajador?</p>
+          <p className="mb-3">
+            <strong>Nombre:</strong> {trabajadorToDesvincular ? `${trabajadorToDesvincular.nombres} ${trabajadorToDesvincular.apellidoPaterno} ${trabajadorToDesvincular.apellidoMaterno}` : ''}
+            <br />
+            <strong>RUT:</strong> {trabajadorToDesvincular ? formatRUT(trabajadorToDesvincular.rut) : ''}
+          </p>
+          <Form.Group>
+            <Form.Label>Motivo de Desvinculación</Form.Label>
+            <Form.Control
+              as="textarea"
+              rows={3}
+              value={motivoDesvinculacion}
+              onChange={(e) => setMotivoDesvinculacion(e.target.value)}
+              placeholder="Ingrese el motivo de la desvinculación..."
+              required
+            />
+          </Form.Group>
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowDesvincularModal(false)}>
+          <Button 
+            variant="secondary" 
+            onClick={() => setShowDesvincularModal(false)}
+            disabled={isDesvinculando}
+          >
             <i className="bi bi-x-circle me-2"></i>
             Cancelar
           </Button>
-          <Button
-            variant="danger"
-            onClick={handleConfirmDesvincular}
-            disabled={isDesvinculating || !motivoDesvinculacion.trim()}
+          <Button 
+            variant="danger" 
+            onClick={handleDesvincularConfirm}
+            disabled={isDesvinculando || !motivoDesvinculacion.trim()}
           >
-            {isDesvinculating ? (
+            {isDesvinculando ? (
               <>
                 <Spinner
                   as="span"
@@ -460,26 +470,26 @@ export const TrabajadoresPage: React.FC = () => {
             ) : (
               <>
                 <i className="bi bi-person-x me-2"></i>
-                Confirmar Desvinculación
+                Desvincular
               </>
             )}
           </Button>
         </Modal.Footer>
       </Modal>
 
-      {/* Modal de Edición */}
-      {showEditModal && selectedTrabajador && (
+      {/* Modal de edición */}
+      {trabajadorToEdit && (
         <EditarTrabajadorModal
           show={showEditModal}
           onHide={() => {
             setShowEditModal(false);
-            setSelectedTrabajador(null);
+            setTrabajadorToEdit(null);
           }}
-          trabajador={selectedTrabajador}
+          trabajador={trabajadorToEdit}
           onSuccess={() => {
             loadTrabajadores();
-            setShowEditModal(false);
-            setSelectedTrabajador(null);
+            setSuccessMessage('Trabajador actualizado exitosamente');
+            setTimeout(() => setSuccessMessage(''), 3000);
           }}
         />
       )}

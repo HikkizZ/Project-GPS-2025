@@ -15,20 +15,18 @@ interface UserSearchParams {
 
 export const UsersPage: React.FC = () => {
   const { user } = useAuth();
-  const { formatRUT, validateRUT } = useRut();
+  const { formatRUT } = useRut();
   const [showFilters, setShowFilters] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState<string>('');
   const [success, setSuccess] = useState<string>('');
   const [users, setUsers] = useState<SafeUser[]>([]);
   const [showUpdateModal, setShowUpdateModal] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<SafeUser | null>(null);
   const [newRole, setNewRole] = useState<string>('');
   const [newPassword, setNewPassword] = useState<string>('');
   const [searchParams, setSearchParams] = useState<UserSearchParams>({});
+  const [selectedUser, setSelectedUser] = useState<SafeUser | null>(null);
 
   // Estados para los checkboxes de filtrado
   const [incluirInactivos, setIncluirInactivos] = useState(false);
@@ -115,15 +113,10 @@ export const UsersPage: React.FC = () => {
   };
 
   const handleUpdateClick = (selectedUser: SafeUser) => {
-    setSelectedUser(selectedUser);
     setNewRole(selectedUser.role);
     setNewPassword('');
-    setShowUpdateModal(true);
-  };
-
-  const handleDeleteClick = (selectedUser: SafeUser) => {
     setSelectedUser(selectedUser);
-    setShowDeleteModal(true);
+    setShowUpdateModal(true);
   };
 
   const handleUpdateUser = async () => {
@@ -156,30 +149,17 @@ export const UsersPage: React.FC = () => {
     }
   };
 
-  const handleDeleteUser = async () => {
-    if (!selectedUser) return;
-
-    try {
-      setIsDeleting(true);
-      setError('');
-      await userService.deleteUser(selectedUser.id, selectedUser.rut);
-      setSuccess(`Usuario ${selectedUser.name} eliminado exitosamente`);
-      setTimeout(() => setSuccess(''), 3000);
-      setShowDeleteModal(false);
-      loadUsers(); // Recargar la lista después de eliminar
-    } catch (err: any) {
-      setError(err.message || 'Error al eliminar usuario');
-    } finally {
-      setIsDeleting(false);
-    }
-  };
-
   // Función para filtrar usuarios según el estado de cuenta
   const usuariosFiltrados = users.filter(user => {
     if (soloInactivos) return user.estadoCuenta === 'Inactiva';
     if (!incluirInactivos) return user.estadoCuenta === 'Activa';
     return true;
   });
+
+  const handleRutChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formattedRut = formatRUT(e.target.value);
+    setSearchParams({ ...searchParams, rut: formattedRut });
+  };
 
   // Verificar permisos
   if (user?.role !== 'Administrador' && user?.role !== 'RecursosHumanos') {
@@ -267,7 +247,20 @@ export const UsersPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="row g-3">
+            <div className="row g-3 mb-3">
+              <div className="col-md-3">
+                <label className="form-label d-flex align-items-center">
+                  <i className="bi bi-credit-card me-2"></i>
+                  RUT
+                </label>
+                <Form.Control
+                  type="text"
+                  name="rut"
+                  placeholder="12.345.678-9"
+                  value={searchParams.rut || ''}
+                  onChange={handleRutChange}
+                />
+              </div>
               <div className="col-md-3">
                 <label className="form-label d-flex align-items-center">
                   <i className="bi bi-person me-2"></i>
@@ -283,25 +276,6 @@ export const UsersPage: React.FC = () => {
                     setSearchParams(prev => ({
                       ...prev,
                       name: value
-                    }));
-                  }}
-                />
-              </div>
-              <div className="col-md-3">
-                <label className="form-label d-flex align-items-center">
-                  <i className="bi bi-credit-card me-2"></i>
-                  RUT
-                </label>
-                <Form.Control
-                  type="text"
-                  name="rut"
-                  placeholder="12.345.678-9"
-                  value={searchParams.rut || ''}
-                  onChange={(e) => {
-                    const { value } = e.target;
-                    setSearchParams(prev => ({
-                      ...prev,
-                      rut: value
                     }));
                   }}
                 />
@@ -436,37 +410,34 @@ export const UsersPage: React.FC = () => {
                           {user.showPassword ? user.password : '••••••••'}
                         </td>
                         <td className="text-center">
-                          <div className="btn-group">
-                            <Button
-                              variant="outline-info"
-                              size="sm"
-                              onClick={() => {
-                                const updatedUsers = users.map(u => 
-                                  u.id === user.id ? { ...u, showPassword: !u.showPassword } : u
-                                );
-                                setUsers(updatedUsers);
-                              }}
-                              title={user.showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
-                            >
-                              <i className={`bi bi-eye${user.showPassword ? '-slash' : ''}`}></i>
-                            </Button>
-                            <Button
-                              variant="outline-primary"
-                              size="sm"
-                              onClick={() => handleUpdateClick(user)}
-                              title="Editar rol"
-                            >
-                              <i className="bi bi-pencil-square"></i>
-                            </Button>
-                            <Button
-                              variant="outline-danger"
-                              size="sm"
-                              onClick={() => handleDeleteClick(user)}
-                              title="Eliminar usuario"
-                            >
-                              <i className="bi bi-trash"></i>
-                            </Button>
-                          </div>
+                          {/* Ocultar acciones si es el admin principal */}
+                          {(user.email !== 'admin.principal@gmail.com' && user.rut !== '11.111.111-1') && (
+                            <div className="btn-group">
+                              <Button
+                                variant="outline-info"
+                                size="sm"
+                                onClick={() => {
+                                  const updatedUsers = users.map(u => 
+                                    u.id === user.id ? { ...u, showPassword: !u.showPassword } : u
+                                  );
+                                  setUsers(updatedUsers);
+                                }}
+                                title={user.showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                                disabled={user.estadoCuenta === 'Inactiva'}
+                              >
+                                <i className={`bi bi-eye${user.showPassword ? '-slash' : ''}`}></i>
+                              </Button>
+                              <Button
+                                variant="outline-primary"
+                                size="sm"
+                                onClick={() => handleUpdateClick(user)}
+                                title="Editar rol"
+                                disabled={user.estadoCuenta === 'Inactiva'}
+                              >
+                                <i className="bi bi-pencil-square"></i>
+                              </Button>
+                            </div>
+                          )}
                         </td>
                       </tr>
                     ))}
@@ -478,7 +449,7 @@ export const UsersPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Mantener solo los modales de actualización y eliminación */}
+      {/* Mantener solo los modales de actualización */}
       <Modal show={showUpdateModal} onHide={() => {
         setShowUpdateModal(false);
         setNewPassword('');
@@ -574,55 +545,6 @@ export const UsersPage: React.FC = () => {
                 <i className="bi bi-check-circle me-2"></i>
                 Guardar Cambios
               </>
-            )}
-          </Button>
-        </Modal.Footer>
-      </Modal>
-
-      <Modal show={showDeleteModal} onHide={() => setShowDeleteModal(false)}>
-        <Modal.Header closeButton>
-          <Modal.Title>Confirmar Eliminación</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          {selectedUser && (
-            <div>
-              <p>¿Estás seguro que deseas eliminar al siguiente usuario?</p>
-              <ul className="list-unstyled">
-                <li><strong>Nombre:</strong> {selectedUser.name}</li>
-                <li><strong>RUT:</strong> {formatRUT(selectedUser.rut)}</li>
-                <li><strong>Email:</strong> {selectedUser.email}</li>
-                <li><strong>Rol:</strong> {selectedUser.role}</li>
-              </ul>
-              <Alert variant="warning">
-                <i className="bi bi-exclamation-triangle me-2"></i>
-                Esta acción no se puede deshacer.
-              </Alert>
-            </div>
-          )}
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowDeleteModal(false)}>
-            Cancelar
-          </Button>
-          <Button
-            variant="danger"
-            onClick={handleDeleteUser}
-            disabled={isDeleting}
-          >
-            {isDeleting ? (
-              <>
-                <Spinner
-                  as="span"
-                  animation="border"
-                  size="sm"
-                  role="status"
-                  aria-hidden="true"
-                  className="me-2"
-                />
-                Eliminando...
-              </>
-            ) : (
-              'Eliminar Usuario'
             )}
           </Button>
         </Modal.Footer>

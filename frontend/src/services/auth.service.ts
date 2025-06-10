@@ -1,5 +1,5 @@
 import { API_CONFIG, getAuthHeaders } from '@/config/api.config';
-import { LoginData, RegisterData, AuthResponse, User } from '@/types/auth.types';
+import { LoginData, RegisterData, AuthResponse, User } from '@/types.d';
 
 class AuthService {
   private baseURL = API_CONFIG.BASE_URL;

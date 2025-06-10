@@ -30,7 +30,7 @@ describe('🔒 Auth API - Registro y Login', () => {
                 .post('/api/auth/login')
                 .send({
                     email: "admin.principal@gmail.com",
-                    password: "Admin2024"
+                    password: "204dm1n8"
                 });
 
             adminToken = adminLogin.body.data.token;
@@ -503,7 +503,7 @@ describe('🔒 Auth API - Registro y Login', () => {
                 .post('/api/auth/login')
                 .send({
                     email: "admin.principal@gmail.com",
-                    password: "Admin2024"
+                    password: "204dm1n8"
                 });
 
             expect(res.status).to.equal(200);
@@ -518,7 +518,7 @@ describe('🔒 Auth API - Registro y Login', () => {
                 .post('/api/auth/login')
                 .send({
                     email: "admin.principal@gmail.com",
-                    password: "Admin2024"
+                    password: "204dm1n8"
                 });
 
             const token = res.body.data.token;
@@ -531,7 +531,7 @@ describe('🔒 Auth API - Registro y Login', () => {
                 .post('/api/auth/login')
                 .send({
                     email: "admin.principal@gmail.com",
-                    password: "Admin2024"
+                    password: "204dm1n8"
                 });
 
             const token = res.body.data.token;

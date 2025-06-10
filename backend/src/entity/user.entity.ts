@@ -1,42 +1,48 @@
-import { Entity, PrimaryGeneratedColumn, Column, Index, OneToOne, JoinColumn, CreateDateColumn, UpdateDateColumn } from "typeorm";
-import { userRole } from "../types/auth.types.js";
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToOne, JoinColumn } from "typeorm";
+import { userRole } from "../../types.d.js";
 import { Trabajador } from "./recursosHumanos/trabajador.entity.js";
 
-@Entity("userauth") // Table name
+@Entity()
 export class User {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column({ type: "varchar", length: 255, nullable: false })
+    @Column({ type: "varchar", length: 100 })
     name: string;
 
-    @Index("IDX_USER_RUT", { unique: true }) // Unique index for the rut column
-    @Column({ type: "varchar", length: 12, unique: true, nullable: false })
-    rut: string;
-
-    @Index("IDX_USER_EMAIL", { unique: true }) // Unique index for the email column
-    @Column({ type: "varchar", length: 255, unique: true, nullable: false })
+    @Column({ type: "varchar", length: 100, unique: true })
     email: string;
 
-    @Column({ type: "varchar", length: 50, nullable: false })
-    role: userRole;
-
-    @Column({ type: "varchar", length: 255, nullable: false })
+    @Column({ type: "varchar", length: 100 })
     password: string;
 
-    @Column({ type: "varchar", length: 8, nullable: true })
+    @Column({ type: "varchar", length: 100, nullable: true })
     originalPassword: string;
 
-    @Column({ type: "varchar", length: 10, default: "Activa" })
+    @Column({ type: "enum", enum: [
+        'Administrador',
+        'Usuario',
+        'RecursosHumanos',
+        'Gerencia',
+        'Ventas',
+        'Arriendo',
+        'Finanzas'
+    ], default: 'Usuario' })
+    role: string;
+
+    @Column({ type: "varchar", length: 20, unique: true })
+    rut: string;
+
+    @Column({ type: "varchar", length: 50, default: "Activa" })
     estadoCuenta: string;
 
-    @CreateDateColumn({ type: "timestamp with time zone" })
+    @CreateDateColumn()
     createAt: Date;
 
-    @UpdateDateColumn({ type: "timestamp with time zone" })
+    @UpdateDateColumn()
     updateAt: Date;
 
     @OneToOne(() => Trabajador)
     @JoinColumn({ name: "rut", referencedColumnName: "rut" })
-    trabajador: Trabajador;
+    trabajador!: Trabajador;
 }

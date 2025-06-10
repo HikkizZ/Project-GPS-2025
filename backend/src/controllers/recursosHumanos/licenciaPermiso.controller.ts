@@ -180,11 +180,16 @@ export async function updateLicenciaPermiso(req: Request, res: Response): Promis
     const [licenciaActualizada, error] = await updateLicenciaPermisoService(licenciaId, updateData);
 
     if (error) {
-      handleErrorClient(res, 400, error);
+      handleErrorClient(res, 400, typeof error === 'string' ? error : error.message);
       return;
     }
 
-    handleSuccess(res, 200, "Solicitud actualizada exitosamente", licenciaActualizada || {});
+    if (!licenciaActualizada) {
+      handleErrorClient(res, 404, "No se pudo actualizar la licencia");
+      return;
+    }
+
+    handleSuccess(res, 200, "Solicitud actualizada exitosamente", licenciaActualizada);
   } catch (error) {
     console.error("Error al actualizar licencia/permiso:", error);
     handleErrorServer(res, 500, "Error interno del servidor");
@@ -234,9 +239,10 @@ export async function descargarArchivoLicencia(req: Request, res: Response): Pro
     const [archivoURL, error] = await descargarArchivoLicenciaService(id, req.user.rut);
     
     if (error) {
-      const statusCode = error.includes("no encontrado") ? 404 : 
-                        error.includes("permisos") ? 403 : 400;
-      handleErrorClient(res, statusCode, error);
+      const errorMessage = typeof error === 'string' ? error : error.message;
+      const statusCode = errorMessage.includes("no encontrado") ? 404 : 
+                        errorMessage.includes("permisos") ? 403 : 400;
+      handleErrorClient(res, statusCode, errorMessage);
       return;
     }
 
@@ -285,7 +291,7 @@ export async function verificarLicenciasVencidas(req: Request, res: Response): P
         const [actualizaciones, error] = await verificarLicenciasVencidasService();
 
         if (error) {
-            handleErrorServer(res, 500, error);
+            handleErrorServer(res, 500, typeof error === 'string' ? error : error.message);
             return;
         }
 

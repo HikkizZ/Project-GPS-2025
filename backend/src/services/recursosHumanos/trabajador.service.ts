@@ -9,6 +9,8 @@ import { FindOptionsWhere } from "typeorm";
 import { User } from "../../entity/user.entity.js";
 import { HistorialLaboral } from "../../entity/recursosHumanos/historialLaboral.entity.js";
 import { encryptPassword } from "../../helpers/bcrypt.helper.js";
+import { Between } from "typeorm";
+import { hashPassword } from '../../utils/password.utils.js';
 
 // Función para generar una contraseña de exactamente 8 caracteres
 function generateRandomPassword(): string {
@@ -20,7 +22,7 @@ function generateRandomPassword(): string {
     return password;
 }
 
-export async function createTrabajadorService(trabajadorData: Partial<Trabajador>): Promise<ServiceResponse<Trabajador>> {
+export async function createTrabajadorService(trabajadorData: Partial<Trabajador>): Promise<ServiceResponse<{ trabajador: Trabajador, tempPassword: string }>> {
     try {
         const trabajadorRepo = AppDataSource.getRepository(Trabajador);
         const fichaRepo = AppDataSource.getRepository(FichaEmpresa);
@@ -109,13 +111,14 @@ export async function createTrabajadorService(trabajadorData: Partial<Trabajador
         const hashedPassword = await encryptPassword(randomPassword);
         
         const newUser = userRepo.create({
-            name: `${trabajadorData.nombres} ${trabajadorData.apellidoPaterno} ${trabajadorData.apellidoMaterno}`,
-            rut: trabajadorData.rut,
-            email: trabajadorData.correo,
+            name: `${trabajador.nombres} ${trabajador.apellidoPaterno} ${trabajador.apellidoMaterno}`,
+            email: trabajador.correo,
             password: hashedPassword,
-            originalPassword: randomPassword,
             role: "Usuario",
-            trabajador: trabajadorGuardado
+            rut: trabajador.rut,
+            estadoCuenta: "Activa",
+            createAt: new Date(),
+            updateAt: new Date()
         });
 
         await userRepo.save(newUser);
@@ -125,7 +128,7 @@ export async function createTrabajadorService(trabajadorData: Partial<Trabajador
             cargo: trabajadorData.fichaEmpresa?.cargo ?? "Sin cargo",
             area: trabajadorData.fichaEmpresa?.area ?? "Sin área", 
             empresa: trabajadorData.fichaEmpresa?.empresa ?? "GPS",
-            tipoContrato: trabajadorData.fichaEmpresa?.tipoContrato ?? "Indefinido",
+            tipoContrato: trabajadorData.fichaEmpresa?.tipoContrato ?? "Por definir",
             jornadaLaboral: trabajadorData.fichaEmpresa?.jornadaLaboral ?? "Por definir",
             sueldoBase: trabajadorData.fichaEmpresa?.sueldoBase ?? 0,
             trabajador: trabajadorGuardado,
@@ -157,7 +160,7 @@ export async function createTrabajadorService(trabajadorData: Partial<Trabajador
         }
 
         // Devolver la contraseña generada junto con el trabajador
-        return [{ ...trabajadorCompleto, tempPassword: randomPassword }, null];
+        return [{ trabajador: trabajadorCompleto, tempPassword: randomPassword }, null];
     } catch (error) {
         console.error("Error en createTrabajadorService:", error);
         return [null, "Error interno del servidor"];
@@ -199,34 +202,16 @@ export async function searchTrabajadoresService(query: any): Promise<ServiceResp
         // Campos de contacto
         if (query.correo) whereClause.correo = ILike(`%${query.correo}%`);
         if (query.telefono) whereClause.telefono = ILike(`%${query.telefono}%`);
-        if (query.numeroEmergencia) whereClause.numeroEmergencia = ILike(`%${query.numeroEmergencia}%`);
-        if (query.direccion) whereClause.direccion = ILike(`%${query.direccion}%`);
-        
-        // Campos de fechas
-        if (query.fechaNacimiento) {
-            whereClause.fechaNacimiento = query.fechaNacimiento;
-        }
-        if (query.fechaIngreso) {
-            whereClause.fechaIngreso = query.fechaIngreso;
-        }
-        
-        // Manejar el filtro de estado del sistema
-        if (query.soloEliminados === true || query.soloEliminados === 'true') {
-            whereClause.enSistema = false;
-        } else if (query.todos !== true && query.todos !== 'true') {
-            whereClause.enSistema = true;
-        }
-        // Si query.todos es true, no agregamos ningún filtro de enSistema
-
-        console.log('Query recibida:', query);
-        console.log('Where clause generada:', whereClause);
 
         const trabajadores = await trabajadorRepo.find({
-            where: whereClause,
-            relations: ["fichaEmpresa", "historialLaboral", "licenciasPermisos", "capacitaciones"]
+            relations: ["fichaEmpresa", "historialLaboral", "licenciasPermisos", "capacitaciones"],
+            where: whereClause
         });
 
-        console.log('Trabajadores encontrados:', trabajadores.length);
+        if (!trabajadores.length) {
+            return [null, "No se encontraron trabajadores"];
+        }
+
         return [trabajadores, null];
     } catch (error) {
         console.error("Error en searchTrabajadoresService:", error);
@@ -234,37 +219,43 @@ export async function searchTrabajadoresService(query: any): Promise<ServiceResp
     }
 }
 
-export async function updateTrabajadorService(id: number, trabajadorData: Partial<Trabajador>): Promise<ServiceResponse<Trabajador>> {
+// Actualizar trabajador: permite actualizar campos permitidos y sincroniza con usuario
+export async function updateTrabajadorService(id: number, data: any): Promise<ServiceResponse<Trabajador>> {
     try {
         const trabajadorRepo = AppDataSource.getRepository(Trabajador);
-        
-        // Buscar el trabajador
-        const trabajador = await trabajadorRepo.findOne({
-            where: { id, enSistema: true }
-        });
+        const userRepo = AppDataSource.getRepository(User);
+        const trabajador = await trabajadorRepo.findOne({ where: { id }, relations: ["usuario", "fichaEmpresa"] });
+        if (!trabajador) return [null, "Trabajador no encontrado"];
+        if (!trabajador.usuario) return [null, "El trabajador no tiene usuario asociado"];
 
-        if (!trabajador) {
-            return [null, "Trabajador no encontrado"];
-        }
-
-        // Si se está actualizando el RUT o correo, verificar que no exista otro trabajador con esos datos
-        if (trabajadorData.rut || trabajadorData.correo) {
-            const existingTrabajador = await trabajadorRepo.findOne({
-                where: [
-                    { rut: trabajadorData.rut || "", id: Not(id) },
-                    { correo: trabajadorData.correo || "", id: Not(id) }
-                ]
-            });
-
-            if (existingTrabajador) {
-                return [null, "Ya existe un trabajador con ese RUT o correo"];
+        let updated = false;
+        // Actualizar campos permitidos del trabajador
+        const camposPermitidos = [
+            "nombres", "apellidoPaterno", "apellidoMaterno", "telefono", "numeroEmergencia", "direccion"
+        ];
+        for (const campo of camposPermitidos) {
+            if (data[campo] && data[campo] !== (trabajador as any)[campo]) {
+                (trabajador as any)[campo] = data[campo];
+                updated = true;
             }
         }
 
-        // Actualizar campos
-        Object.assign(trabajador, trabajadorData);
-        const trabajadorActualizado = await trabajadorRepo.save(trabajador);
+        // Si se actualiza el nombre o apellidos, actualizar el campo name en usuario
+        if (
+            data.nombres || data.apellidoPaterno || data.apellidoMaterno
+        ) {
+            trabajador.usuario.name = `${data.nombres || trabajador.nombres} ${data.apellidoPaterno || trabajador.apellidoPaterno} ${data.apellidoMaterno || trabajador.apellidoMaterno}`;
+            updated = true;
+        }
 
+        // Guardar cambios en trabajador y usuario
+        if (updated) {
+            await trabajadorRepo.save(trabajador);
+            await userRepo.save(trabajador.usuario);
+        }
+
+        // Devolver el trabajador actualizado con relaciones
+        const trabajadorActualizado = await trabajadorRepo.findOne({ where: { id }, relations: ["usuario", "fichaEmpresa"] });
         return [trabajadorActualizado, null];
     } catch (error) {
         console.error("Error en updateTrabajadorService:", error);
@@ -272,131 +263,33 @@ export async function updateTrabajadorService(id: number, trabajadorData: Partia
     }
 }
 
-export async function deleteTrabajadorService(id: number): Promise<ServiceResponse<boolean>> {
-    try {
-        const trabajadorRepo = AppDataSource.getRepository(Trabajador);
-        const userRepo = AppDataSource.getRepository(User);
-
-        // Buscar el trabajador con su usuario asociado
-        const trabajador = await trabajadorRepo.findOne({
-            where: { id, enSistema: true },
-            relations: ["usuario"]
-        });
-
-        if (!trabajador) {
-            return [null, "Trabajador no encontrado"];
-        }
-
-        // En lugar de eliminar, marcamos como inactivo
-        trabajador.enSistema = false;
-        await trabajadorRepo.save(trabajador);
-
-        // Si el trabajador tiene un usuario asociado, eliminarlo
-        if (trabajador.usuario) {
-            // No eliminar al administrador principal
-            if (trabajador.usuario.role === "Administrador" && trabajador.usuario.rut === "11.111.111-1") {
-                return [null, "No se puede eliminar el administrador principal"];
-            }
-
-            await userRepo.remove(trabajador.usuario);
-        }
-
-        return [true, null];
-    } catch (error) {
-        console.error("Error en deleteTrabajadorService:", error);
-        return [null, "Error interno del servidor"];
-    }
-}
-
-export async function desvincularTrabajadorService(
-    id: number,
-    motivo: string,
-    userId?: number
-): Promise<ServiceResponse<Trabajador>> {
+// Desvincular trabajador: soft delete, ficha en estado desvinculado, usuario inactivo
+export async function desvincularTrabajadorService(id: number, motivo: string, userId?: number): Promise<ServiceResponse<Trabajador>> {
     const queryRunner = AppDataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
-
     try {
-        // 1. Obtener el trabajador con sus relaciones
-        const trabajador = await queryRunner.manager.findOne(Trabajador, {
-            where: { id, enSistema: true },
-            relations: ["fichaEmpresa", "usuario"]
-        });
-
+        const trabajador = await queryRunner.manager.findOne(Trabajador, { where: { id, enSistema: true }, relations: ["fichaEmpresa", "usuario"] });
         if (!trabajador) {
             await queryRunner.rollbackTransaction();
             await queryRunner.release();
             return [null, "Trabajador no encontrado o ya desvinculado"];
         }
-
-        console.log('Estado inicial de la ficha:', trabajador.fichaEmpresa?.estado);
-
-        // 2. Actualizar el estado del trabajador
         trabajador.enSistema = false;
         await queryRunner.manager.save(Trabajador, trabajador);
-
-        // 3. Actualizar el estado de la cuenta de usuario si existe
         if (trabajador.usuario) {
-            const usuario = await queryRunner.manager.findOne(User, {
-                where: { rut: trabajador.rut }
-            });
-            if (usuario) {
-                usuario.estadoCuenta = "Inactiva";
-                await queryRunner.manager.save(User, usuario);
-            }
+            trabajador.usuario.estadoCuenta = "Inactiva";
+            await queryRunner.manager.save(User, trabajador.usuario);
         }
-
-        // 4. Actualizar el estado de la ficha de empresa
         if (trabajador.fichaEmpresa) {
-            const fichaRepo = queryRunner.manager.getRepository(FichaEmpresa);
-            const ficha = await fichaRepo.findOne({
-                where: { id: trabajador.fichaEmpresa.id }
-            });
-
-            if (ficha) {
-                ficha.estado = EstadoLaboral.DESVINCULADO;
-                ficha.fechaFinContrato = new Date();
-                ficha.motivoDesvinculacion = motivo;
-                await queryRunner.manager.save(FichaEmpresa, ficha);
-                console.log('Estado actualizado de la ficha:', ficha.estado);
-            }
+            trabajador.fichaEmpresa.estado = EstadoLaboral.DESVINCULADO;
+            trabajador.fichaEmpresa.fechaFinContrato = new Date();
+            trabajador.fichaEmpresa.motivoDesvinculacion = motivo;
+            await queryRunner.manager.save(FichaEmpresa, trabajador.fichaEmpresa);
         }
-
-        // 5. Registrar en el historial laboral
-        const registrador = userId ? await queryRunner.manager.findOne(User, { where: { id: userId } }) : null;
-        
-        const historialLaboral = new HistorialLaboral();
-        historialLaboral.trabajador = trabajador;
-        historialLaboral.cargo = trabajador.fichaEmpresa?.cargo || "No especificado";
-        historialLaboral.area = trabajador.fichaEmpresa?.area || "No especificada";
-        historialLaboral.tipoContrato = trabajador.fichaEmpresa?.tipoContrato || "No especificado";
-        historialLaboral.sueldoBase = trabajador.fichaEmpresa?.sueldoBase || 0;
-        historialLaboral.fechaInicio = trabajador.fichaEmpresa?.fechaInicio || new Date().toISOString();
-        historialLaboral.fechaFin = new Date().toISOString();
-        historialLaboral.motivoTermino = motivo;
-        historialLaboral.registradoPor = registrador;
-
-        await queryRunner.manager.save(HistorialLaboral, historialLaboral);
-
-        // 6. Commit de la transacción
         await queryRunner.commitTransaction();
-
-        // 7. Verificar el estado final de la ficha
-        const fichaFinal = await queryRunner.manager.findOne(FichaEmpresa, {
-            where: { id: trabajador.fichaEmpresa?.id }
-        });
-        console.log('Estado final de la ficha después del commit:', fichaFinal?.estado);
-
         await queryRunner.release();
-
-        // 8. Recargar el trabajador con todas sus relaciones actualizadas
-        const trabajadorActualizado = await AppDataSource.getRepository(Trabajador).findOne({
-            where: { id },
-            relations: ["fichaEmpresa", "usuario"]
-        });
-
-        return [trabajadorActualizado || trabajador, null];
+        return [trabajador, null];
     } catch (error) {
         console.error("Error en desvincularTrabajadorService:", error);
         await queryRunner.rollbackTransaction();

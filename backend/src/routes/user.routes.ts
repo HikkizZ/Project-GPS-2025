@@ -1,23 +1,29 @@
-import { Router } from "express";
-import { getUser, getUsers, updateUser, deleteUser, updateUserByTrabajador } from "../controllers/user.controller.js";
+import { Router, Request, Response } from "express";
 import { authenticateJWT } from "../middlewares/authentication.middleware.js";
-import { verifyRole } from "../middlewares/authorization.middleware.js";
+import { checkRole } from "../middlewares/roles.middleware.js";
+import { searchUsers, getUser, getUsers, updateUser, updateUserByTrabajador } from "../controllers/user.controller.js";
 
 const router = Router();
 
-/* Rutas protegidas - requieren token */
-router.use(authenticateJWT);
+// Rutas de usuario
+router.get("/search", authenticateJWT, async (req: Request, res: Response) => {
+    await searchUsers(req, res);
+});
 
-/* Rutas para usuarios - requieren rol Administrador o RRHH */
-router.use(verifyRole(["Administrador", "RecursosHumanos"]));
+router.get("/:id", authenticateJWT, async (req: Request, res: Response) => {
+    await getUser(req, res);
+});
 
-/* Rutas para usuarios */
-router.get("/detail/", getUser);
-router.get("/all", getUsers);
-router.put("/update/", updateUser);
-router.delete("/delete/", deleteUser);
+router.get("/", authenticateJWT, async (req: Request, res: Response) => {
+    await getUsers(req, res);
+});
 
-// Actualizar nombre de usuario por trabajador
-router.put('/actualizar-por-trabajador/:id', updateUserByTrabajador);
+router.put("/:id", authenticateJWT, async (req: Request, res: Response) => {
+    await updateUser(req, res);
+});
+
+router.put("/trabajador/:id", authenticateJWT, checkRole(['RecursosHumanos', 'Administrador']), async (req: Request, res: Response) => {
+    await updateUserByTrabajador(req, res);
+});
 
 export default router;

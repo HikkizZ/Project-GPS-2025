@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { trabajadorService } from '@/services/trabajador.service';
-import { Trabajador, TrabajadorSearchQuery, CreateTrabajadorData } from '@/types/trabajador.types';
+import { trabajadorService } from '@/services/recursosHumanos/trabajador.service';
+import { Trabajador, TrabajadorSearchQuery, CreateTrabajadorData } from '@/types/recursosHumanos/trabajador.types';
 
 export const useTrabajadores = () => {
   const [trabajadores, setTrabajadores] = useState<Trabajador[]>([]);
@@ -77,8 +77,9 @@ export const useTrabajadores = () => {
         await loadTrabajadores(); // Recargar la lista
         return { success: true, trabajador: result.trabajador };
       } else {
-        setError(result.error || 'Error al actualizar trabajador');
-        return { success: false, error: result.error };
+        const errorMsg = result.error || 'Error al actualizar trabajador';
+        setError(errorMsg);
+        return { success: false, error: errorMsg };
       }
     } catch (error) {
       const errorMsg = 'Error al actualizar trabajador';

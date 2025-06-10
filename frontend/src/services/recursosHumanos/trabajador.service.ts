@@ -5,7 +5,7 @@ import {
   CreateTrabajadorData,
   TrabajadorSearchQuery,
   TrabajadorResponse
-} from '@/types/trabajador.types';
+} from '@/types/recursosHumanos/trabajador.types';
 
 class TrabajadorService {
   private baseURL = API_CONFIG.BASE_URL + '/trabajadores';
@@ -130,7 +130,7 @@ class TrabajadorService {
         return { trabajador };
       }
 
-      return { error: response.data.message };
+      return { error: response.data.message || 'Error al actualizar trabajador' };
     } catch (error: any) {
       console.error('Error al actualizar trabajador:', error);
       if (error.response?.data?.message) {

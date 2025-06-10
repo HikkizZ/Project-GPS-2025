@@ -25,7 +25,8 @@ export async function downloadFile(req: Request, res: Response): Promise<void> {
         const [fileInfo, error] = FileManagementService.getFileForDownload(`uploads/${filePath}`);
         
         if (error || !fileInfo) {
-            handleErrorClient(res, 404, error || "Archivo no encontrado");
+            const errorMessage = typeof error === 'string' ? error : error?.message || "Archivo no encontrado";
+            handleErrorClient(res, 404, errorMessage);
             return;
         }
 

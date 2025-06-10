@@ -13,18 +13,18 @@ export interface HistorialLaboral {
   area: string;
   tipoContrato: string;
   sueldoBase: number;
-  fechaInicio: string;
-  fechaFin?: string;
+  fechaInicio: string | Date;
+  fechaFin?: string | Date;
   motivoTermino?: string;
   contratoURL?: string;
-  fechaRegistro: string;
+  fechaRegistro: string | Date;
 }
 
 export interface LicenciaPermiso {
   id: number;
   tipo: string;
-  fechaInicio: string;
-  fechaFin: string;
+  fechaInicio: string | Date;
+  fechaFin: string | Date;
   motivo: string;
   estado: string;
 }
@@ -33,8 +33,8 @@ export interface Capacitacion {
   id: number;
   nombre: string;
   institucion: string;
-  fechaInicio: string;
-  fechaFin?: string;
+  fechaInicio: string | Date;
+  fechaFin?: string | Date;
   certificadoURL?: string;
 }
 
@@ -44,14 +44,14 @@ export interface Trabajador {
   nombres: string;
   apellidoPaterno: string;
   apellidoMaterno: string;
-  fechaNacimiento: string;
+  fechaNacimiento: string | Date;
   telefono: string;
   correo: string;
   numeroEmergencia?: string;
   direccion: string;
-  fechaIngreso: string;
+  fechaIngreso: string | Date;
   enSistema: boolean;
-  fechaRegistro: string;
+  fechaRegistro: string | Date;
   fichaEmpresa?: FichaEmpresa;
   historialLaboral?: HistorialLaboral[];
   licenciasPermisos?: LicenciaPermiso[];
@@ -70,6 +70,8 @@ export interface CreateTrabajadorData {
   direccion: string;
   fechaIngreso: string;
 }
+
+export interface UpdateTrabajadorData extends Partial<CreateTrabajadorData> {}
 
 export interface TrabajadorSearchQuery {
   rut?: string;
@@ -90,4 +92,12 @@ export interface TrabajadorResponse {
   status: 'success' | 'error';
   message?: string;
   data?: Trabajador | Trabajador[];
+}
+
+export interface PaginatedTrabajadores {
+  data: Trabajador[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
 } 

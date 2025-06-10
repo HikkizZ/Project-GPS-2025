@@ -1,8 +1,9 @@
 import { User } from "../entity/user.entity.js";
 import { AppDataSource } from "../config/configDB.js";
 import { comparePassword, encryptPassword } from "../helpers/bcrypt.helper.js";
-import { userRole, ServiceResponse, QueryParams, UpdateUserData, SafeUser } from '../../types.d.js';
-import { Not, ILike, FindOptionsWhere } from "typeorm";
+import { ServiceResponse, QueryParams, UpdateUserData, SafeUser } from '../../types.d.js';
+import { Not, ILike, FindOptionsWhere, FindOperator, Equal } from "typeorm";
+import { hashPassword } from '../utils/password.utils.js';
 
 /* Validar formato de RUT */
 function isValidRut(rut: string): boolean {
@@ -53,7 +54,7 @@ export async function searchUsersService(query: QueryParams): Promise<ServiceRes
             if (!isValidRole(query.role)) {
                 return [null, "Rol inválido"];
             }
-            whereClause.role = query.role as userRole;
+            whereClause.role = query.role as any;
         }
 
         if (query.name) {
@@ -78,134 +79,121 @@ export async function searchUsersService(query: QueryParams): Promise<ServiceRes
 }
 
 /* Obtener usuario(s) por ID, RUT, Email o Role */
-export async function getUserService(query: QueryParams): Promise<ServiceResponse<SafeUser[]>> {
+export const getUserService = async (query: { id?: number; role?: string }) => {
     try {
-        const [users, error] = await searchUsersService(query);
-        
-        if (error) return [null, error];
-        if (!users) return [[], null]; // Retornar array vacío
-        
-        return [users, null];
+        const userRepo = AppDataSource.getRepository(User);
+        const whereClause: any = {};
+
+        if (query.id) {
+            whereClause.id = query.id;
+        }
+
+        if (query.role) {
+            whereClause.role = query.role;
+        }
+
+        const user = await userRepo.findOne({ where: whereClause });
+        return user;
     } catch (error) {
         console.error("Error in getUserService:", error);
-        return [null, "Error interno del servidor"];
+        throw error;
     }
-}
+};
 
 /* Obtener todos los usuarios */
-export async function getUsersService(): Promise<ServiceResponse<SafeUser[]>> {
+export async function getUsersService(): Promise<User[]> {
     try {
         const userRepository = AppDataSource.getRepository(User);
-        const users = await userRepository.find({
-            order: { id: "ASC" }
-        });
-
-        if (!users || users.length === 0) return [[], null]; // Retornar array vacío
-
-        // Ahora incluimos la contraseña original en la respuesta
-        const usersData = users.map(user => ({
-            ...user,
-            password: user.originalPassword || user.password, // Usar la contraseña original si existe
-            showPassword: false
-        }));
-        return [usersData, null];
+        const users = await userRepository.find();
+        return users;
     } catch (error) {
-        console.error("Error in getUsersService:", error);
-        return [null, "Error interno del servidor"];
+        console.error('Error en getUsersService:', error);
+        throw error;
     }
 }
 
 /* Actualizar datos de usuario */
-export async function updateUserService(query: QueryParams, body: UpdateUserData, requester: User): Promise<ServiceResponse<SafeUser>> {
+export const updateUserService = async (id: number, body: UpdateUserData, requester: User): Promise<User | null> => {
     try {
-        const { id, rut, email } = query;
         const userRepository = AppDataSource.getRepository(User);
-        
-        // Buscar el usuario
-        const userFound = await userRepository.findOne({
-            where: [{ id }, { rut }, { email }],
+        const user = await userRepository.findOne({
+            where: { id }
         });
 
-        if (!userFound) return [null, "Usuario no encontrado"];
-
-        // Solo permitir actualizar contraseña y rol
-        const allowedUpdates = ['password', 'role'];
-        const updates = Object.keys(body).filter(key => !allowedUpdates.includes(key));
-        
-        if (updates.length > 0) {
-            return [null, "Solo se puede modificar la contraseña y el rol del usuario"];
+        if (!user) {
+            return null;
         }
 
-        /* Only admin and RRHH can update roles */
-        if (body.role && requester.role !== "Administrador" && requester.role !== "RecursosHumanos") {
-            return [null, "No tienes permisos para modificar roles"];
+        const dataUserUpdate: any = {};
+
+        if (body.name) {
+            dataUserUpdate.name = body.name;
         }
-
-        /* Validate role if present */
-        if (body.role && !isValidRole(body.role)) {
-            return [null, "Rol inválido"];
+        if (body.email) {
+            dataUserUpdate.email = body.email;
         }
-
-        /* Prevent updating protected users */
-        if (userFound.role === "Administrador" && userFound.rut === "11.111.111-1") {
-            return [null, "No se puede modificar el administrador principal"];
-        }
-
-        const dataUserUpdate: Partial<User> = {
-            updateAt: new Date(),
-        };
-
-        // Actualizar rol si está presente
-        if (body.role) {
-            dataUserUpdate.role = body.role;
-        }
-
-        // Actualizar contraseña si está presente
         if (body.password) {
-            if (body.password.length < 6) {
-                return [null, "La contraseña debe tener al menos 6 caracteres"];
-            }
-            dataUserUpdate.password = await encryptPassword(body.password);
+            dataUserUpdate.password = body.password;
+        }
+        if (body.role) {
+            dataUserUpdate.role = body.role as string;
+        }
+        if (body.rut) {
+            dataUserUpdate.rut = body.rut;
         }
 
-        await userRepository.update({ id: userFound.id }, dataUserUpdate);
+        dataUserUpdate.updateAt = new Date();
 
-        const userData = await userRepository.findOne({ where: { id: userFound.id } });
+        await userRepository.update(id, dataUserUpdate);
 
-        if (!userData) return [null, "Usuario no encontrado después de actualizar"];
+        const updatedUser = await userRepository.findOne({
+            where: { id }
+        });
 
-        const { password, ...userUpdated } = userData;
-        return [userUpdated, null];
+        return updatedUser;
     } catch (error) {
-        console.error("Error al modificar un usuario:", error);
-        return [null, "Error interno del servidor"];
+        console.error('Error en updateUserService:', error);
+        throw error;
     }
-}
+};
 
-/* Eliminar un usuario, validando el rol del solicitante */
-export async function deleteUserService(id: number, rut: string): Promise<ServiceResponse<boolean>> {
+export const updateUserByTrabajadorService = async (id: number, body: UpdateUserData): Promise<User | null> => {
     try {
         const userRepository = AppDataSource.getRepository(User);
-        
-        // Buscar el usuario
-        const user = await userRepository.findOne({ where: { id, rut } });
-        
+        const user = await userRepository.findOne({
+            where: { id }
+        });
+
         if (!user) {
-            return [null, "Usuario no encontrado"];
+            return null;
         }
 
-        // No permitir eliminar al administrador principal
-        if (user.role === "Administrador" && user.rut === "11.111.111-1") {
-            return [null, "No se puede eliminar el administrador principal"];
+        const dataUserUpdate: any = {};
+
+        if (body.name) {
+            dataUserUpdate.name = body.name;
+        }
+        if (body.email) {
+            dataUserUpdate.email = body.email;
+        }
+        if (body.password) {
+            dataUserUpdate.password = body.password;
+        }
+        if (body.rut) {
+            dataUserUpdate.rut = body.rut;
         }
 
-        // En lugar de eliminar, marcar como inactivo
-        user.estadoCuenta = "Inactiva";
-        await userRepository.save(user);
+        dataUserUpdate.updateAt = new Date();
 
-        return [true, null];
+        await userRepository.update(id, dataUserUpdate);
+
+        const updatedUser = await userRepository.findOne({
+            where: { id }
+        });
+
+        return updatedUser;
     } catch (error) {
-        console.error("Error en deleteUserService:", error);
-        return [null, "Error interno del servidor"];
+        console.error('Error en updateUserByTrabajadorService:', error);
+        throw error;
     }
-}
+};

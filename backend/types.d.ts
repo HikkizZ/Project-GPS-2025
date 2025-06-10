@@ -5,11 +5,12 @@ export type userRole = 'Administrador' | 'Usuario' | 'RecursosHumanos' | 'Gerenc
 export interface UserResponse {
     id: number;
     name: string;
-    rut: string;
     email: string;
     role: string;
-    createAt: string;
-    updateAt: string; 
+    rut: string;
+    estadoCuenta: string;
+    createAt: Date | string;
+    updateAt: Date | string;
 }
 
 import { User } from '../entity/user.entity.js';
@@ -33,10 +34,40 @@ export type QueryParams = {
 export type UpdateUserData = {
     name?: string;
     email?: string;
-    rut?: string;
     password?: string;
-    newPassword?: string;
     role?: userRole;
+    rut?: string;
+    estadoCuenta?: string;
+}
+
+export interface UserData {
+    name: string;
+    email: string;
+    password: string;
+    role: userRole;
+    rut: string;
+    estadoCuenta?: string;
+}
+
+export interface LoginData {
+    email: string;
+    password: string;
+}
+
+export interface LoginResponse {
+    token: string;
+    user: UserResponse;
+}
+
+/* userResponse Interface (legacy, keep for compatibility) */
+export interface LegacyUserResponse {
+    id: number;
+    name: string;
+    rut: string;
+    email: string;
+    role: string;
+    createAt: string;
+    updateAt: string;
 }
 
 export interface SafeUser extends Omit<User, 'password'> {

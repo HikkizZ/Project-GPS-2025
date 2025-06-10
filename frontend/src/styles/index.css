@@ -1,21 +1,64 @@
-:root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+/*
+========================================
+Sistema de Diseño Global - GPS 2025 (titulo por mientras, no se que poner xd
+========================================
 
-  --primary-color: #2563eb;
-  --primary-dark: #1d4ed8;
-  --secondary-color: #64748b;
-  --success-color: #059669;
-  --warning-color: #d97706;
-  --danger-color: #dc2626;
-  --background: #f8fafc;
-  --surface: #ffffff;
-  --text-primary: #1e293b;
-  --text-secondary: #64748b;
-  --border: #e2e8f0;
-  --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+¡Hola los k!!!!!!!
+
+Este archivo contiene TODAS las variables y estilos globales de la app.
+Si quieren cambiar colores, fuentes o detalles visuales, este es el lugar correcto.
+
+- Las variables en :root definen los colores y estilos principales de TODO el sistema.
+- Si cambian un color aquí, se verá reflejado en todas las páginas y módulos.
+- Usen las clases de Bootstrap para la estructura (botones, tarjetas, etc.) y estas variables para personalizar.
+- Si agregan una variable nueva, dejen un comentario explicando para qué sirve.
+
+Abajo les dejo comentarios para que sepan qué hace cada línea y dónde impacta en el frontend.
+
+¡Cualquier cambio que se haga aqui, se verá reflejado en todas las paginas y modulos!
+
+¡Cualquier duda o cambio que hagan, avisen al grupo de whatsapp porfis, gracias!
+*/
+
+:root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif; /* Fuente principal de toda la app */
+  line-height: 1.5; /* Espaciado vertical entre líneas de texto */
+  font-weight: 400; /* Grosor base del texto */
+
+  --primary-color: #2563eb;      /* Color principal: botones, enlaces, acentos */
+  --primary-dark: #1d4ed8;       /* Variante más oscura del color principal: hover, bordes activos */
+  --secondary-color: #64748b;    /* Color secundario: detalles, badges, etc. */
+  --success-color: #059669;      /* Verde: mensajes de éxito, badges, etc. */
+  --warning-color: #d97706;      /* Naranja: advertencias, alertas */
+  --danger-color: #dc2626;       /* Rojo: errores, botones de eliminar */
+
+  --background: #f8fafc;         /* Fondo general de la app */
+  --surface: #ffffff;            /* Fondo de tarjetas, modales, formularios */
+
+  --text-primary: #1e293b;       /* Color de texto principal: títulos, contenido */
+  --text-secondary: #64748b;     /* Color de texto secundario: descripciones, detalles */
+
+  --border: #e2e8f0;             /* Color de bordes: tarjetas, inputs, etc. */
+  --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1); /* Sombra suave: tarjetas, modales */
 }
+
+/*
+========================================
+Ajuste para alinear las alertas a la izquierda
+========================================
+*/
+.alert {
+  justify-content: flex-start !important;
+  text-align: left !important;
+}
+
+/*
+========================================
+ESTILOS GLOBALES
+========================================
+- Todo lo que está aquí afecta a toda la app.
+- Si quieren cambiar el fondo, el color de los textos, o el estilo de los botones, háganlo aquí.
+*/
 
 * {
   margin: 0;
@@ -26,13 +69,38 @@
 body {
   margin: 0;
   min-height: 100vh;
-  background-color: var(--background);
-  color: var(--text-primary);
+  background-color: var(--background); /* Fondo general */
+  color: var(--text-primary);          /* Color de texto principal */
 }
 
 .App {
   min-height: 100vh;
 }
+
+/*
+========================================
+EJEMPLOS DE USO DE VARIABLES
+========================================
+- Si quieren cambiar el color de los botones principales, editen --primary-color arriba.
+- Si quieren que las tarjetas tengan otro fondo, cambien --surface.
+- Si agregan un nuevo módulo y necesitan un color especial, definan una variable aquí y explíquenla.
+*/
+
+/*
+========================================
+SECCIONES DE LA APP (pueden agregar más comentarios así)
+========================================
+- Loading spinner: animación de carga general
+- Pantalla de carga: fondo y alineación del loader
+- Página de login: estilos de la página y formulario de inicio de sesión
+- Formulario de login: inputs, botones, mensajes de error
+- Aplicación autenticada: layout general, header, nav, contenido
+- Páginas: home, trabajadores, usuarios, etc.
+- Tarjeta de trabajador: estilos de las cards de trabajadores
+- Página de usuarios: estilos de la gestión de usuarios
+- Página 404: estilos para la página de error
+- Responsive: media queries para móviles
+*/
 
 /* Loading spinner */
 .loading-spinner {

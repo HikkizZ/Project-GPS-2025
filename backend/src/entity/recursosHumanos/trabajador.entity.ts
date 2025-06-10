@@ -74,19 +74,21 @@ export class Trabajador {
   @Column({ 
     type: "date",
     transformer: {
-      to: (value: Date): string => {
-        // Forzar la zona horaria a Chile/Santiago
-        process.env.TZ = 'America/Santiago';
-        // Asegurar que la fecha se guarde en formato YYYY-MM-DD
-        const year = value.getFullYear();
-        const month = String(value.getMonth() + 1).padStart(2, '0');
-        const day = String(value.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
+      to: (value: Date | string | null): string | null => {
+        if (!value) return null;
+        if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+          return value;
+        }
+        const date = typeof value === 'string' ? new Date(value) : value;
+        return date.toISOString().split('T')[0];
       },
-      from: (value: string): Date => {
-        // Forzar la zona horaria a Chile/Santiago al leer
-        process.env.TZ = 'America/Santiago';
-        return new Date(value + 'T12:00:00');
+      from: (value: string | Date | null): Date | null => {
+        if (!value) return null;
+        if (typeof value === 'string') {
+          const [year, month, day] = value.split('-').map(Number);
+          return new Date(year, month - 1, day);
+        }
+        return value;
       }
     }
   })

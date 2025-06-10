@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { useFichaEmpresa } from '@/hooks/useFichaEmpresa';
+import { useFichaEmpresa } from '@/hooks/recursosHumanos/useFichaEmpresa';
 import { useAuth } from '@/context/AuthContext';
+import { useRut } from '@/hooks/useRut';
 import { 
   FichaEmpresa, 
   FichaEmpresaSearchParams,
   EstadoLaboral
-} from '@/types/fichaEmpresa.types';
-import { Trabajador } from '@/types/trabajador.types';
+} from '@/types/recursosHumanos/fichaEmpresa.types';
+import { Trabajador } from '@/types/recursosHumanos/trabajador.types';
 import { EditarFichaEmpresaModal } from '@/components/recursosHumanos/EditarFichaEmpresaModal';
-import { OverlayTrigger, Tooltip } from 'react-bootstrap';
 
 interface FichasEmpresaPageProps {
   trabajadorRecienRegistrado?: Trabajador | null;
@@ -19,7 +19,8 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
   trabajadorRecienRegistrado, 
   onTrabajadorModalClosed 
 }) => {
-  const { user, isAuthenticated } = useAuth();
+  const { user } = useAuth();
+  const { formatRUT } = useRut();
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   
@@ -29,7 +30,6 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
     isLoading,
     loadFichas: searchFichas,
     loadFichaById: loadMiFicha,
-    updateFicha,
     formatSalario: formatSueldo,
     formatFecha,
     searchByRUT,
@@ -49,11 +49,24 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
 
   // Función para filtrar las fichas según los estados seleccionados
   const fichasFiltradas = fichas.filter(ficha => {
-    if (ficha.estado === EstadoLaboral.ACTIVO) return true;
-    if (ficha.estado === EstadoLaboral.DESVINCULADO) return incluirDesvinculados;
-    if (ficha.estado === EstadoLaboral.LICENCIA) return incluirLicencias;
-    if (ficha.estado === EstadoLaboral.PERMISO) return incluirPermisos;
-    return false;
+    // Si el select de estado tiene un valor, filtra solo por ese estado
+    if (searchQuery.estado) {
+      return ficha.estado === searchQuery.estado;
+    }
+    // Si no, usa los checkboxes
+    if (ficha.estado === EstadoLaboral.DESVINCULADO && !incluirDesvinculados) return false;
+    if (ficha.estado === EstadoLaboral.LICENCIA && !incluirLicencias) return false;
+    if (ficha.estado === EstadoLaboral.PERMISO && !incluirPermisos) return false;
+
+    // Resto de los filtros
+    if (searchQuery.cargo && !ficha.cargo.toLowerCase().includes(searchQuery.cargo.toLowerCase())) return false;
+    if (searchQuery.area && !ficha.area.toLowerCase().includes(searchQuery.area.toLowerCase())) return false;
+    if (searchQuery.empresa && !ficha.empresa.toLowerCase().includes(searchQuery.empresa.toLowerCase())) return false;
+    if (searchQuery.tipoContrato && ficha.tipoContrato !== searchQuery.tipoContrato) return false;
+    if (searchQuery.sueldoBaseDesde && ficha.sueldoBase < searchQuery.sueldoBaseDesde) return false;
+    if (searchQuery.sueldoBaseHasta && ficha.sueldoBase > searchQuery.sueldoBaseHasta) return false;
+
+    return true;
   });
 
   // Verificar autenticación
@@ -91,7 +104,7 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
     } else {
       handleSearch();
     }
-  }, [user]);
+  }, [user, loadMiFicha]);
 
   // Detectar trabajador recién registrado y abrir modal automáticamente
   useEffect(() => {
@@ -129,11 +142,15 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
   }, [trabajadorRecienRegistrado, searchByRUT, onTrabajadorModalClosed]);
 
   const handleSearch = async () => {
+    // Siempre usar searchFichas, sin importar si hay RUT o no
     await searchFichas(searchQuery);
   };
 
   const handleReset = () => {
     setSearchQuery({});
+    setIncluirDesvinculados(false);
+    setIncluirLicencias(false);
+    setIncluirPermisos(false);
     if (user?.role !== 'Usuario') {
       searchFichas({});
     }
@@ -197,6 +214,11 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
       default:
         return 'text-muted';
     }
+  };
+
+  const handleRutChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formattedRut = formatRUT(e.target.value);
+    setSearchQuery({ ...searchQuery, rut: formattedRut });
   };
 
   // Si es usuario normal, mostrar solo su ficha
@@ -281,7 +303,7 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                           <p className="mb-1"><strong>Nombre:</strong></p>
                           <p className="mb-2">{miFicha.trabajador.nombres} {miFicha.trabajador.apellidoPaterno} {miFicha.trabajador.apellidoMaterno}</p>
                           <p className="mb-1"><strong>RUT:</strong></p>
-                          <p className="mb-0">{miFicha.trabajador.rut}</p>
+                          <p className="mb-0">{formatRUT(miFicha.trabajador.rut)}</p>
                         </div>
                       </div>
                     </div>
@@ -303,7 +325,7 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
 
   // Vista para RRHH/Admin
   return (
-    <div className="container-fluid py-4">
+    <div className="container py-4">
       {/* Mostrar mensaje de éxito si existe */}
       {successMessage && (
         <div className="alert alert-success alert-dismissible fade show" role="alert">
@@ -396,13 +418,13 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
 
                 <div className="row g-3">
                   <div className="col-md-3">
-                    <label className="form-label">RUT del Trabajador:</label>
+                    <label className="form-label">RUT:</label>
                     <input
                       type="text"
                       className="form-control"
-                      placeholder="12.345.678-9"
+                      placeholder="Ej: 12.345.678-9"
                       value={searchQuery.rut || ''}
-                      onChange={(e) => setSearchQuery({ ...searchQuery, rut: e.target.value })}
+                      onChange={handleRutChange}
                     />
                   </div>
                   <div className="col-md-3">
@@ -616,7 +638,7 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                             <div>
                               <strong>{ficha.trabajador.nombres} {ficha.trabajador.apellidoPaterno} {ficha.trabajador.apellidoMaterno}</strong>
                               <br />
-                              <small className="text-muted">{ficha.trabajador.rut}</small>
+                              <small className="text-muted">{formatRUT(ficha.trabajador.rut)}</small>
                             </div>
                           </td>
                           <td>{ficha.cargo || '-'}</td>
@@ -626,14 +648,6 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                             <span className={`badge ${getEstadoBadgeClass(ficha.estado)}`}>
                               {ficha.estado}
                             </span>
-                            {ficha.estado === EstadoLaboral.DESVINCULADO && ficha.motivoDesvinculacion && (
-                              <OverlayTrigger
-                                placement="top"
-                                overlay={<Tooltip>{ficha.motivoDesvinculacion}</Tooltip>}
-                              >
-                                <i className="bi bi-info-circle ms-2 text-muted"></i>
-                              </OverlayTrigger>
-                            )}
                           </td>
                           <td>
                             <span className={getTipoContratoColor(ficha.tipoContrato)}>
@@ -649,23 +663,27 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                             </span>
                           </td>
                           <td>
-                            <div className="btn-group btn-group-sm">
-                              <button
-                                className={`btn ${ficha.contratoURL ? 'btn-outline-danger' : 'btn-outline-secondary'}`}
-                                onClick={() => handleDownloadContrato(ficha.id)}
-                                title={ficha.contratoURL ? "Descargar contrato" : "No hay contrato disponible"}
-                                disabled={!ficha.contratoURL}
-                              >
-                                <i className="bi bi-file-earmark-pdf"></i>
-                              </button>
-                              <button
-                                className="btn btn-outline-warning"
-                                onClick={() => handleEditFicha(ficha)}
-                                title="Editar"
-                              >
-                                <i className="bi bi-pencil"></i>
-                              </button>
-                            </div>
+                            {/* Ocultar acciones si es el admin principal */}
+                            {(ficha.trabajador.rut !== '11.111.111-1') && (
+                              <div className="btn-group btn-group-sm">
+                                <button
+                                  className={`btn ${ficha.contratoURL ? 'btn-outline-danger' : 'btn-outline-secondary'}`}
+                                  onClick={() => handleDownloadContrato(ficha.id)}
+                                  title={ficha.contratoURL ? "Descargar contrato" : "No hay contrato disponible"}
+                                  disabled={!ficha.contratoURL || ficha.estado === EstadoLaboral.DESVINCULADO}
+                                >
+                                  <i className="bi bi-file-earmark-pdf"></i>
+                                </button>
+                                <button
+                                  className="btn btn-outline-warning"
+                                  onClick={() => handleEditFicha(ficha)}
+                                  title="Editar"
+                                  disabled={ficha.estado === EstadoLaboral.DESVINCULADO}
+                                >
+                                  <i className="bi bi-pencil"></i>
+                                </button>
+                              </div>
+                            )}
                           </td>
                         </tr>
                       ))}
