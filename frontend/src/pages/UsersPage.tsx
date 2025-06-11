@@ -560,6 +560,8 @@ export const UsersPage: React.FC = () => {
 // Función auxiliar para determinar el color del badge según el rol
 const getRoleBadgeColor = (role: string): string => {
   switch (role) {
+    case 'SuperAdministrador':
+      return 'primary';
     case 'Administrador':
       return 'danger';
     case 'RecursosHumanos':

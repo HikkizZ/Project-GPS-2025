@@ -48,54 +48,96 @@ export async function initialSetup(): Promise<void> {
             console.log("✅ Trabajador admin eliminado");
         });
 
-        // 5. Crear el trabajador admin
-        console.log("=> Creando trabajador admin...");
-        const adminTrabajador = trabajadorRepo.create({
-            rut: "20.882.865-7",
-            nombres: "Patricia Yulihana",
-            apellidoPaterno: "González",
-            apellidoMaterno: "Caamaño",
-            fechaNacimiento: new Date("2001-10-15"),
-            telefono: "+56923847562",
-            correo: "patricia.gonzalez@gmail.com",
-            numeroEmergencia: "+56938374625",
-            direccion: "Dirección Principal 123",
-            fechaIngreso: new Date(),
-            enSistema: true
-        });
-        await trabajadorRepo.save(adminTrabajador);
-        console.log("✅ Trabajador admin creado con RUT: 20.882.865-7");
+        // 5. Crear o actualizar el trabajador admin
+        console.log("=> Creando o actualizando trabajador admin...");
+        let adminTrabajador = await trabajadorRepo.findOne({ where: { rut: "20.882.865-7" } });
+        if (adminTrabajador) {
+            adminTrabajador.nombres = "Patricia Yulihana";
+            adminTrabajador.apellidoPaterno = "González";
+            adminTrabajador.apellidoMaterno = "Caamaño";
+            adminTrabajador.fechaNacimiento = new Date("2001-10-15");
+            adminTrabajador.telefono = "+56923847562";
+            adminTrabajador.correo = "patricia.gonzalez@gmail.com";
+            adminTrabajador.numeroEmergencia = "+56938374625";
+            adminTrabajador.direccion = "Dirección Principal 123";
+            adminTrabajador.fechaIngreso = new Date();
+            adminTrabajador.enSistema = true;
+            await trabajadorRepo.save(adminTrabajador);
+            console.log("✅ Trabajador admin actualizado con RUT: 20.882.865-7");
+        } else {
+            adminTrabajador = trabajadorRepo.create({
+                rut: "20.882.865-7",
+                nombres: "Patricia Yulihana",
+                apellidoPaterno: "González",
+                apellidoMaterno: "Caamaño",
+                fechaNacimiento: new Date("2001-10-15"),
+                telefono: "+56923847562",
+                correo: "patricia.gonzalez@gmail.com",
+                numeroEmergencia: "+56938374625",
+                direccion: "Dirección Principal 123",
+                fechaIngreso: new Date(),
+                enSistema: true
+            });
+            await trabajadorRepo.save(adminTrabajador);
+            console.log("✅ Trabajador admin creado con RUT: 20.882.865-7");
+        }
 
-        // 6. Crear el usuario admin
-        console.log("=> Creando usuario admin...");
+        // 6. Crear o actualizar el usuario admin
+        console.log("=> Creando o actualizando usuario admin...");
+        let adminUser = await userRepo.findOne({ where: { rut: "20.882.865-7" } });
         const adminPlainPassword = "204dm1n8";
         const hashedPassword = await encryptPassword(adminPlainPassword);
-        const adminUser = userRepo.create({
-            name: "Patricia Yulihana González Caamaño",
-            email: "patricia.gonzalez@gmail.com",
-            password: hashedPassword,
-            role: 'SuperAdministrador',
-            rut: "20.882.865-7",
-            estadoCuenta: "Activa"
-        });
-        await userRepo.save(adminUser);
-        console.log("✅ Usuario admin creado exitosamente");
+        if (adminUser) {
+            adminUser.name = "Patricia Yulihana González Caamaño";
+            adminUser.email = "patricia.gonzalez@gmail.com";
+            adminUser.password = hashedPassword;
+            adminUser.role = 'SuperAdministrador';
+            adminUser.estadoCuenta = "Activa";
+            await userRepo.save(adminUser);
+            console.log("✅ Usuario admin actualizado exitosamente");
+        } else {
+            adminUser = userRepo.create({
+                name: "Patricia Yulihana González Caamaño",
+                email: "patricia.gonzalez@gmail.com",
+                password: hashedPassword,
+                role: 'SuperAdministrador',
+                rut: "20.882.865-7",
+                estadoCuenta: "Activa"
+            });
+            await userRepo.save(adminUser);
+            console.log("✅ Usuario admin creado exitosamente");
+        }
 
-        // 7. Crear ficha de empresa admin
-        console.log("=> Creando ficha de empresa admin...");
-        const fichaAdmin = fichaEmpresaRepo.create({
-            cargo: "Desarrollador Full Stack",
-            area: "TI",
-            tipoContrato: "Indefinido",
-            jornadaLaboral: "Completa",
-            sueldoBase: 4000000,
-            trabajador: adminTrabajador,
-            estado: EstadoLaboral.ACTIVO,
-            fechaInicioContrato: new Date(),
-            contratoURL: null
-        });
-        await fichaEmpresaRepo.save(fichaAdmin);
-        console.log("✅ Ficha de empresa admin creada");
+        // 7. Crear o actualizar ficha de empresa admin
+        console.log("=> Creando o actualizando ficha de empresa admin...");
+        let fichaAdmin = await fichaEmpresaRepo.findOne({ where: { trabajador: { rut: "20.882.865-7" } }, relations: ["trabajador"] });
+        if (fichaAdmin) {
+            fichaAdmin.cargo = "Desarrollador Full Stack";
+            fichaAdmin.area = "TI";
+            fichaAdmin.tipoContrato = "Indefinido";
+            fichaAdmin.jornadaLaboral = "Completa";
+            fichaAdmin.sueldoBase = 4000000;
+            fichaAdmin.trabajador = adminTrabajador;
+            fichaAdmin.estado = EstadoLaboral.ACTIVO;
+            fichaAdmin.fechaInicioContrato = new Date();
+            fichaAdmin.contratoURL = null;
+            await fichaEmpresaRepo.save(fichaAdmin);
+            console.log("✅ Ficha de empresa admin actualizada");
+        } else {
+            fichaAdmin = fichaEmpresaRepo.create({
+                cargo: "Desarrollador Full Stack",
+                area: "TI",
+                tipoContrato: "Indefinido",
+                jornadaLaboral: "Completa",
+                sueldoBase: 4000000,
+                trabajador: adminTrabajador,
+                estado: EstadoLaboral.ACTIVO,
+                fechaInicioContrato: new Date(),
+                contratoURL: null
+            });
+            await fichaEmpresaRepo.save(fichaAdmin);
+            console.log("✅ Ficha de empresa admin creada");
+        }
 
         console.log("✅ Configuración inicial completada con éxito");
     } catch (error) {
