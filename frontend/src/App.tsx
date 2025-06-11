@@ -44,8 +44,8 @@ const LoginPage: React.FC = () => {
             <div className="card shadow">
               <div className="card-header bg-primary text-white text-center">
                 <h4 className="mb-0">
-                  <i className="bi bi-geo-alt me-2"></i>
-                  Sistema GPS 2025
+                  <i className="bi bi-truck me-2"></i>
+                  S.G. Lamas
                 </h4>
               </div>
               <div className="card-body">

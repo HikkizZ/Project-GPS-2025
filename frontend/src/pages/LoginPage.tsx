@@ -5,7 +5,7 @@ export const LoginPage: React.FC = () => {
   return (
     <div className="login-page">
       <header className="login-header">
-        <h1>Sistema GPS 2025</h1>
+        <h1>S.G. Lamas</h1>
         <p>Sistema de Gestión de Personal</p>
       </header>
       

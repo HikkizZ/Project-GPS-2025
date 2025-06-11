@@ -16,8 +16,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ user, onLogout, children }) => 
       <nav className="navbar navbar-expand-lg navbar-dark bg-primary">
         <div className="container">
           <span className="navbar-brand mb-0 h1" style={{ cursor: 'pointer' }} onClick={() => navigate('/dashboard')}>
-            <i className="bi bi-geo-alt me-2"></i>
-            Sistema GPS 2025
+            <i className="bi bi-truck me-2"></i>
+            S.G. Lamas
           </span>
           <div className="navbar-nav ms-auto d-flex flex-row">
             <button 
