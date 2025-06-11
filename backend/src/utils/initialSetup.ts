@@ -86,7 +86,6 @@ export async function initialSetup(): Promise<void> {
         const fichaAdmin = fichaEmpresaRepo.create({
             cargo: "Administrador Principal",
             area: "Administración",
-            empresa: "Lamas",
             tipoContrato: "Indefinido",
             jornadaLaboral: "Completa",
             sueldoBase: 2000000,
