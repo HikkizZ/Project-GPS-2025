@@ -69,7 +69,7 @@ const LoginPage: React.FC = () => {
                       className="form-control"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      placeholder="admin.principal@gmail.com"
+                      placeholder="patricia.gonzalez@gmail.com"
                       required
                       disabled={isLoading}
                     />
@@ -103,7 +103,7 @@ const LoginPage: React.FC = () => {
                 <div className="mt-3">
                   <small className="text-muted">
                     <strong>Credenciales de prueba:</strong><br/>
-                    <strong>Admin:</strong> admin.principal@gmail.com / 204dm1n8
+                    <strong>Admin:</strong> patricia.gonzalez@gmail.com / 204dm1n8
                   </small>
                 </div>
               </div>

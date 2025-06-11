@@ -51,7 +51,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
             onChange={handleChange}
             required
             disabled={isLoading}
-            placeholder="usuario@gmail.com"
+            placeholder="patricia.gonzalez@gmail.com"
           />
         </div>
 

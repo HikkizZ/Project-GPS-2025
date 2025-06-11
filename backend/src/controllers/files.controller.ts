@@ -66,8 +66,8 @@ export async function downloadFile(req: Request, res: Response): Promise<void> {
  */
 async function validateFileAccess(user: any, filePath: string): Promise<boolean> {
     try {
-        // Administradores y RRHH tienen acceso a todos los archivos
-        if (user.role === 'Administrador' || user.role === 'RecursosHumanos') {
+        // SuperAdministrador, Administradores y RRHH tienen acceso a todos los archivos
+        if (user.role === 'SuperAdministrador' || user.role === 'Administrador' || user.role === 'RecursosHumanos') {
             return true;
         }
 

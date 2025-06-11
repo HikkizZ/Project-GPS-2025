@@ -13,6 +13,12 @@ export const checkRole = (roles: string[]) => {
             return;
         }
 
+        // SuperAdministrador tiene acceso a todo
+        if (user.role === 'SuperAdministrador') {
+            next();
+            return;
+        }
+
         if (!roles.includes(user.role)) {
             res.status(403).json({
                 status: "error",

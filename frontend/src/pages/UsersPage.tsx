@@ -162,7 +162,11 @@ export const UsersPage: React.FC = () => {
   };
 
   // Verificar permisos
-  if (user?.role !== 'Administrador' && user?.role !== 'RecursosHumanos') {
+  if (
+    user?.role !== 'Administrador' &&
+    user?.role !== 'RecursosHumanos' &&
+    user?.role !== 'SuperAdministrador'
+  ) {
     return (
       <div className="container py-4">
         <div className="card">

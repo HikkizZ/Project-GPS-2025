@@ -38,7 +38,7 @@ interface authError {
 }
 
 /* Definición de roles permitidos */
-const allowedRoles = ["Administrador", "Usuario", "RecursosHumanos", "Gerencia", "Ventas", "Arriendo", "Finanzas"];
+const allowedRoles = ["SuperAdministrador", "Administrador", "Usuario", "RecursosHumanos", "Gerencia", "Ventas", "Arriendo", "Finanzas"];
 
 /* Auxiliar function for creating error messages */
 const createErrorMessage = (dataInfo: Partial<LoginData | RegisterData>, message: string): authError => ({ dataInfo, message });

@@ -19,6 +19,12 @@ export function verifyRole(requiredRoles: string | string[]): RequestHandler {
             return;
         }
 
+        // SuperAdministrador tiene acceso a todo
+        if (user.role === 'SuperAdministrador') {
+            next();
+            return;
+        }
+
         const roles = Array.isArray(requiredRoles) ? requiredRoles : [requiredRoles];
 
         if (!roles.includes(user.role)) {

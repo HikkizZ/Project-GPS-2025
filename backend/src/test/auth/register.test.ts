@@ -502,7 +502,7 @@ describe('🔒 Auth API - Registro y Login', () => {
             const res = await request(app)
                 .post('/api/auth/login')
                 .send({
-                    email: "admin.principal@gmail.com",
+                    email: "patricia.gonzalez@gmail.com",
                     password: "204dm1n8"
                 });
 
@@ -513,30 +513,30 @@ describe('🔒 Auth API - Registro y Login', () => {
             expect(res.body.data).to.have.property('token');
         });
 
-        it('debe tener el rol de Administrador', async () => {
+        it('debe tener el rol de SuperAdministrador', async () => {
             const res = await request(app)
                 .post('/api/auth/login')
                 .send({
-                    email: "admin.principal@gmail.com",
+                    email: "patricia.gonzalez@gmail.com",
                     password: "204dm1n8"
                 });
 
             const token = res.body.data.token;
             const payload: any = jwt.decode(token);
-            expect(payload).to.have.property('role').to.equal('Administrador');
+            expect(payload).to.have.property('role').to.equal('SuperAdministrador');
         });
 
         it('debe tener el RUT correcto', async () => {
             const res = await request(app)
                 .post('/api/auth/login')
                 .send({
-                    email: "admin.principal@gmail.com",
+                    email: "patricia.gonzalez@gmail.com",
                     password: "204dm1n8"
                 });
 
             const token = res.body.data.token;
             const payload: any = jwt.decode(token);
-            expect(payload).to.have.property('rut').to.equal('11.111.111-1');
+            expect(payload).to.have.property('rut').to.equal('20.882.865-7');
         });
     });
 

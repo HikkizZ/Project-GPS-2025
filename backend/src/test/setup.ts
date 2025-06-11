@@ -102,7 +102,7 @@ export async function cleanupAllTestData(): Promise<void> {
             .createQueryBuilder()
             .delete()
             .where("rut NOT IN (:...ruts)", { 
-                ruts: ['11.111.111-1'] 
+                ruts: ['20.882.865-7'] 
             })
             .execute();
 
@@ -111,7 +111,7 @@ export async function cleanupAllTestData(): Promise<void> {
             .createQueryBuilder()
             .delete()
             .where("rut NOT IN (:...ruts)", { 
-                ruts: ['11.111.111-1'] 
+                ruts: ['20.882.865-7'] 
             })
             .execute();
 

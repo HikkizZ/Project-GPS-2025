@@ -51,31 +51,31 @@ export async function initialSetup(): Promise<void> {
         // 5. Crear el trabajador admin
         console.log("=> Creando trabajador admin...");
         const adminTrabajador = trabajadorRepo.create({
-            rut: "11111111-1",
-            nombres: "Administrador",
-            apellidoPaterno: "Principal",
-            apellidoMaterno: "Sistema",
-            fechaNacimiento: new Date("1990-01-01"),
-            telefono: "+56911111111",
-            correo: "admin.principal@gmail.com",
-            numeroEmergencia: "+56911111111",
+            rut: "20.882.865-7",
+            nombres: "Patricia Yulihana",
+            apellidoPaterno: "González",
+            apellidoMaterno: "Caamaño",
+            fechaNacimiento: new Date("2001-10-15"),
+            telefono: "+56923847562",
+            correo: "patricia.gonzalez@gmail.com",
+            numeroEmergencia: "+56938374625",
             direccion: "Dirección Principal 123",
             fechaIngreso: new Date(),
             enSistema: true
         });
         await trabajadorRepo.save(adminTrabajador);
-        console.log("✅ Trabajador admin creado con RUT: 11111111-1");
+        console.log("✅ Trabajador admin creado con RUT: 20.882.865-7");
 
         // 6. Crear el usuario admin
         console.log("=> Creando usuario admin...");
         const adminPlainPassword = "204dm1n8";
         const hashedPassword = await encryptPassword(adminPlainPassword);
         const adminUser = userRepo.create({
-            name: "Administrador",
-            email: "admin.principal@gmail.com",
+            name: "Patricia Yulihana González Caamaño",
+            email: "patricia.gonzalez@gmail.com",
             password: hashedPassword,
-            role: 'Administrador',
-            rut: "11111111-1",
+            role: 'SuperAdministrador',
+            rut: "20.882.865-7",
             estadoCuenta: "Activa"
         });
         await userRepo.save(adminUser);
@@ -84,11 +84,11 @@ export async function initialSetup(): Promise<void> {
         // 7. Crear ficha de empresa admin
         console.log("=> Creando ficha de empresa admin...");
         const fichaAdmin = fichaEmpresaRepo.create({
-            cargo: "Administrador Principal",
-            area: "Administración",
+            cargo: "Desarrollador Full Stack",
+            area: "TI",
             tipoContrato: "Indefinido",
             jornadaLaboral: "Completa",
-            sueldoBase: 2000000,
+            sueldoBase: 4000000,
             trabajador: adminTrabajador,
             estado: EstadoLaboral.ACTIVO,
             fechaInicioContrato: new Date(),

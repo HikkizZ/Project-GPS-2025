@@ -20,6 +20,7 @@ export class User {
     originalPassword: string;
 
     @Column({ type: "enum", enum: [
+        'SuperAdministrador',
         'Administrador',
         'Usuario',
         'RecursosHumanos',
