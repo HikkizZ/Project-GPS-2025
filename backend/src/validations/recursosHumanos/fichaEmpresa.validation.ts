@@ -53,16 +53,6 @@ export const FichaEmpresaBodyValidation = Joi.object({
             "string.max": "El área no puede exceder los 100 caracteres."
         }),
 
-    empresa: Joi.string()
-        .min(3)
-        .max(100)
-        .allow(null)
-        .messages({
-            "string.base": "La empresa debe ser una cadena de texto.",
-            "string.min": "La empresa debe tener al menos 3 caracteres.",
-            "string.max": "La empresa no puede exceder los 100 caracteres."
-        }),
-
     tipoContrato: Joi.string()
         .min(2)
         .max(50)
@@ -138,15 +128,6 @@ export const FichaEmpresaUpdateValidation = Joi.object({
             "string.base": "El área debe ser una cadena de texto",
             "string.min": "El área debe tener al menos 2 caracteres",
             "string.max": "El área no puede exceder los 100 caracteres"
-        }),
-
-    empresa: Joi.string()
-        .min(2)
-        .max(100)
-        .messages({
-            "string.base": "La empresa debe ser una cadena de texto",
-            "string.min": "La empresa debe tener al menos 2 caracteres",
-            "string.max": "La empresa no puede exceder los 100 caracteres"
         }),
 
     tipoContrato: Joi.string()

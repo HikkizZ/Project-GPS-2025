@@ -44,7 +44,6 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
   const [formData, setFormData] = useState<UpdateFichaEmpresaData>({
     cargo: ficha.cargo || '',
     area: ficha.area || '',
-    empresa: ficha.empresa || '',
     tipoContrato: ficha.tipoContrato || '',
     jornadaLaboral: ficha.jornadaLaboral || '',
     sueldoBase: typeof ficha.sueldoBase === 'string' ? 
@@ -63,7 +62,6 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
       setFormData({
         cargo: ficha.cargo || '',
         area: ficha.area || '',
-        empresa: ficha.empresa || '',
         tipoContrato: ficha.tipoContrato || '',
         jornadaLaboral: ficha.jornadaLaboral || '',
         sueldoBase: typeof ficha.sueldoBase === 'string' ? 
@@ -190,7 +188,6 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
       const dataToSubmit = {
         cargo: formData.cargo.trim(),
         area: formData.area.trim(),
-        empresa: formData.empresa.trim(),
         tipoContrato: formData.tipoContrato,
         jornadaLaboral: formData.jornadaLaboral,
         sueldoBase: sueldoBase,
@@ -291,21 +288,6 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
           </Row>
 
           <Row>
-            <Col md={6}>
-              <Form.Group className="mb-3">
-                <Form.Label>
-                  Empresa *
-                  <InfoIcon text="La empresa debe tener entre 3 y 100 caracteres" />
-                </Form.Label>
-                <Form.Control
-                  type="text"
-                  name="empresa"
-                  value={formData.empresa}
-                  onChange={handleInputChange}
-                  required
-                />
-              </Form.Group>
-            </Col>
             <Col md={6}>
               <Form.Group className="mb-3">
                 <Form.Label>

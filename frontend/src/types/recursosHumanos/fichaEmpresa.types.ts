@@ -45,7 +45,6 @@ export interface FichaEmpresaSearchQuery {
   estado?: EstadoLaboral;
   cargo?: string;
   area?: string;
-  empresa?: string;
   tipoContrato?: string;
   jornadaLaboral?: string;
   sueldoBaseDesde?: number;
@@ -59,7 +58,7 @@ export interface FichaEmpresaSearchQuery {
 export interface UpdateFichaEmpresaData {
   cargo?: string;
   area?: string;
-  empresa?: string;
+  empresa: string;
   tipoContrato?: string;
   jornadaLaboral?: string;
   sueldoBase?: number;
@@ -83,7 +82,6 @@ export interface FichaEmpresaSearchParams {
   estado?: EstadoLaboral;
   cargo?: string;
   area?: string;
-  empresa?: string;
   tipoContrato?: string;
   sueldoBaseDesde?: number;
   sueldoBaseHasta?: number;

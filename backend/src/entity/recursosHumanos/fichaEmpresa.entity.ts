@@ -29,9 +29,6 @@ export class FichaEmpresa {
   @Column({ type: "varchar", length: 100, nullable: false })
   area!: string;
 
-  @Column({ type: "varchar", length: 100, nullable: true })
-  empresa!: string;
-
   @Column({ type: "varchar", length: 50, nullable: false })
   tipoContrato!: string;
 

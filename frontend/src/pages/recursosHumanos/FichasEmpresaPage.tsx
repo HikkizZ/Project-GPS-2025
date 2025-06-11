@@ -61,7 +61,6 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
     // Resto de los filtros
     if (searchQuery.cargo && !ficha.cargo.toLowerCase().includes(searchQuery.cargo.toLowerCase())) return false;
     if (searchQuery.area && !ficha.area.toLowerCase().includes(searchQuery.area.toLowerCase())) return false;
-    if (searchQuery.empresa && !ficha.empresa.toLowerCase().includes(searchQuery.empresa.toLowerCase())) return false;
     if (searchQuery.tipoContrato && ficha.tipoContrato !== searchQuery.tipoContrato) return false;
     if (searchQuery.sueldoBaseDesde && ficha.sueldoBase < searchQuery.sueldoBaseDesde) return false;
     if (searchQuery.sueldoBaseHasta && ficha.sueldoBase > searchQuery.sueldoBaseHasta) return false;
@@ -461,16 +460,6 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                     />
                   </div>
                   <div className="col-md-3">
-                    <label className="form-label">Empresa:</label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      placeholder="Nombre de empresa"
-                      value={searchQuery.empresa || ''}
-                      onChange={(e) => setSearchQuery({ ...searchQuery, empresa: e.target.value })}
-                    />
-                  </div>
-                  <div className="col-md-3">
                     <label className="form-label">Tipo de Contrato:</label>
                     <select
                       className="form-select"
@@ -621,7 +610,6 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                         <th>Trabajador</th>
                         <th>Cargo</th>
                         <th>Área</th>
-                        <th>Empresa</th>
                         <th>Estado</th>
                         <th>Tipo Contrato</th>
                         <th>Jornada</th>
@@ -643,7 +631,6 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                           </td>
                           <td>{ficha.cargo || '-'}</td>
                           <td>{ficha.area || '-'}</td>
-                          <td>{ficha.empresa || '-'}</td>
                           <td>
                             <span className={`badge ${getEstadoBadgeClass(ficha.estado)}`}>
                               {ficha.estado}
