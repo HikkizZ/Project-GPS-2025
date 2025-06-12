@@ -30,7 +30,7 @@ class TrabajadorService {
       if (response.data.status === 'success' && response.data.data) {
         // Asegurarnos de que data es un único trabajador y no un array
         const trabajador = Array.isArray(response.data.data) ? response.data.data[0] : response.data.data;
-        return { trabajador };
+        return { trabajador, advertencias: response.data.advertencias || [] };
       }
 
       return { error: response.data.message || 'Error al crear trabajador' };

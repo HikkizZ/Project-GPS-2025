@@ -11,6 +11,7 @@ import { HistorialLaboral } from "../../entity/recursosHumanos/historialLaboral.
 import { encryptPassword } from "../../helpers/bcrypt.helper.js";
 import { Between } from "typeorm";
 import { hashPassword } from '../../utils/password.utils.js';
+import { sendCredentialsEmail } from '../../utils/email.service.js';
 
 // Función para generar una contraseña de exactamente 8 caracteres
 function generateRandomPassword(): string {
@@ -22,7 +23,7 @@ function generateRandomPassword(): string {
     return password;
 }
 
-export async function createTrabajadorService(trabajadorData: Partial<Trabajador>): Promise<ServiceResponse<{ trabajador: Trabajador, tempPassword: string }>> {
+export async function createTrabajadorService(trabajadorData: Partial<Trabajador>): Promise<ServiceResponse<{ trabajador: Trabajador, tempPassword: string, advertencias: string[] }>> {
     try {
         const trabajadorRepo = AppDataSource.getRepository(Trabajador);
         const fichaRepo = AppDataSource.getRepository(FichaEmpresa);
@@ -30,7 +31,7 @@ export async function createTrabajadorService(trabajadorData: Partial<Trabajador
 
         // Validar datos requeridos
         if (!trabajadorData.rut || !trabajadorData.nombres || !trabajadorData.apellidoPaterno || 
-            !trabajadorData.apellidoMaterno || !trabajadorData.telefono || !trabajadorData.correo || 
+            !trabajadorData.apellidoMaterno || !trabajadorData.telefono || !trabajadorData.correoPersonal || 
             !trabajadorData.direccion) {
             return [null, "Faltan campos requeridos"];
         }
@@ -55,8 +56,8 @@ export async function createTrabajadorService(trabajadorData: Partial<Trabajador
 
         // Validar formato de correo
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(trabajadorData.correo)) {
-            return [null, "Formato de correo inválido"];
+        if (!emailRegex.test(trabajadorData.correoPersonal)) {
+            return [null, "Formato de correo personal inválido"];
         }
 
         // Validar formato de teléfono (debe tener entre 9 y 12 dígitos)
@@ -69,7 +70,7 @@ export async function createTrabajadorService(trabajadorData: Partial<Trabajador
         const existingTrabajador = await trabajadorRepo.findOne({
             where: [
                 { rut: trabajadorData.rut },
-                { correo: trabajadorData.correo }
+                { correoPersonal: trabajadorData.correoPersonal }
             ]
         });
 
@@ -77,16 +78,16 @@ export async function createTrabajadorService(trabajadorData: Partial<Trabajador
             if (existingTrabajador.rut === trabajadorData.rut) {
                 return [null, "Ya existe un trabajador con ese RUT"];
             }
-            if (existingTrabajador.correo === trabajadorData.correo) {
-                return [null, "Ya existe un trabajador con ese correo"];
-            }
+            // if (existingTrabajador.correoPersonal === trabajadorData.correoPersonal) {
+            //     return [null, "Ya existe un trabajador con ese correo personal"];
+            // }
         }
 
         // Verificar si ya existe un usuario con el mismo RUT o correo
         const existingUser = await userRepo.findOne({
             where: [
                 { rut: trabajadorData.rut },
-                { email: trabajadorData.correo }
+                { email: trabajadorData.correoPersonal }
             ]
         });
 
@@ -94,9 +95,9 @@ export async function createTrabajadorService(trabajadorData: Partial<Trabajador
             if (existingUser.rut === trabajadorData.rut) {
                 return [null, "Ya existe un usuario con ese RUT"];
             }
-            if (existingUser.email === trabajadorData.correo) {
-                return [null, "Ya existe un usuario con ese correo"];
-            }
+            // if (existingUser.email === trabajadorData.correoPersonal) {
+            //     return [null, "Ya existe un usuario con ese correo personal"];
+            // }
         }
 
         // Crear el trabajador
@@ -106,13 +107,17 @@ export async function createTrabajadorService(trabajadorData: Partial<Trabajador
         });
         const trabajadorGuardado = await trabajadorRepo.save(trabajador);
 
+        // Generar correo de usuario automáticamente
+        const primerNombre = trabajadorData.nombres.split(' ')[0].toLowerCase().normalize('NFD').replace(/[^a-zA-Z]/g, '');
+        const apellidoPaterno = trabajadorData.apellidoPaterno.toLowerCase().normalize('NFD').replace(/[^a-zA-Z]/g, '');
+        const correoUsuario = `${primerNombre}.${apellidoPaterno}@lamas.com`;
+
         // Crear usuario automáticamente
         const randomPassword = generateRandomPassword();
         const hashedPassword = await encryptPassword(randomPassword);
-        
         const newUser = userRepo.create({
             name: `${trabajador.nombres} ${trabajador.apellidoPaterno} ${trabajador.apellidoMaterno}`,
-            email: trabajador.correo,
+            email: correoUsuario,
             password: hashedPassword,
             role: "Usuario",
             rut: trabajador.rut,
@@ -120,28 +125,48 @@ export async function createTrabajadorService(trabajadorData: Partial<Trabajador
             createAt: new Date(),
             updateAt: new Date()
         });
-
         await userRepo.save(newUser);
 
-        // SIEMPRE crear la ficha de empresa con valores por defecto
-        const fichaData: DeepPartial<FichaEmpresa> = {
-            cargo: trabajadorData.fichaEmpresa?.cargo ?? "Sin cargo",
-            area: trabajadorData.fichaEmpresa?.area ?? "Sin área", 
-            tipoContrato: trabajadorData.fichaEmpresa?.tipoContrato ?? "Por definir",
-            jornadaLaboral: trabajadorData.fichaEmpresa?.jornadaLaboral ?? "Por definir",
-            sueldoBase: trabajadorData.fichaEmpresa?.sueldoBase ?? 0,
-            trabajador: trabajadorGuardado,
-            estado: EstadoLaboral.ACTIVO,
-            fechaInicioContrato: trabajadorGuardado.fechaIngreso,
-            contratoURL: trabajadorData.fichaEmpresa?.contratoURL
-        };
+        // Enviar correo con credenciales (excepto superadmin)
+        let correoError = null;
+        if (!(trabajador.rut === "20.882.865-7")) {
+            try {
+                await sendCredentialsEmail({
+                    to: trabajador.correoPersonal,
+                    nombre: trabajador.nombres,
+                    correoUsuario,
+                    passwordTemporal: randomPassword
+                });
+            } catch (err) {
+                console.error("Error enviando correo de credenciales:", err);
+                correoError = "Trabajador creado, pero no se pudo enviar el correo de credenciales.";
+            }
+        }
 
-        const ficha = fichaRepo.create(fichaData);
-        const fichaGuardada = await fichaRepo.save(ficha);
-
-        // Actualizar el trabajador con la referencia a la ficha
-        trabajadorGuardado.fichaEmpresa = fichaGuardada;
-        await trabajadorRepo.save(trabajadorGuardado);
+        // Crear ficha de empresa con manejo de error
+        let fichaGuardada = null;
+        let fichaError = null;
+        try {
+            const fichaData: DeepPartial<FichaEmpresa> = {
+                cargo: trabajadorData.fichaEmpresa?.cargo ?? "Sin cargo",
+                area: trabajadorData.fichaEmpresa?.area ?? "Sin área", 
+                tipoContrato: trabajadorData.fichaEmpresa?.tipoContrato ?? "Por definir",
+                jornadaLaboral: trabajadorData.fichaEmpresa?.jornadaLaboral ?? "Por definir",
+                sueldoBase: trabajadorData.fichaEmpresa?.sueldoBase ?? 0,
+                trabajador: trabajadorGuardado,
+                estado: EstadoLaboral.ACTIVO,
+                fechaInicioContrato: trabajadorGuardado.fechaIngreso,
+                contratoURL: trabajadorData.fichaEmpresa?.contratoURL
+            };
+            const ficha = fichaRepo.create(fichaData);
+            fichaGuardada = await fichaRepo.save(ficha);
+            // Actualizar el trabajador con la referencia a la ficha
+            trabajadorGuardado.fichaEmpresa = fichaGuardada;
+            await trabajadorRepo.save(trabajadorGuardado);
+        } catch (err) {
+            console.error("Error creando ficha de empresa:", err);
+            fichaError = "Trabajador creado, pero no se pudo crear la ficha de empresa.";
+        }
 
         // Recargar el trabajador con todas sus relaciones
         const trabajadorCompleto = await trabajadorRepo.findOne({
@@ -158,8 +183,11 @@ export async function createTrabajadorService(trabajadorData: Partial<Trabajador
             throw new Error("No se pudo cargar la ficha de empresa del trabajador");
         }
 
-        // Devolver la contraseña generada junto con el trabajador
-        return [{ trabajador: trabajadorCompleto, tempPassword: randomPassword }, null];
+        // Devolver la contraseña generada junto con el trabajador y advertencias si las hay
+        let advertencias = [];
+        if (correoError) advertencias.push(correoError);
+        if (fichaError) advertencias.push(fichaError);
+        return [{ trabajador: trabajadorCompleto, tempPassword: randomPassword, advertencias }, null];
     } catch (error) {
         console.error("Error en createTrabajadorService:", error);
         return [null, "Error interno del servidor"];
@@ -199,7 +227,7 @@ export async function searchTrabajadoresService(query: any): Promise<ServiceResp
         if (query.apellidoMaterno) whereClause.apellidoMaterno = ILike(`%${query.apellidoMaterno}%`);
         
         // Campos de contacto
-        if (query.correo) whereClause.correo = ILike(`%${query.correo}%`);
+        if (query.correoPersonal) whereClause.correoPersonal = ILike(`%${query.correoPersonal}%`);
         if (query.telefono) whereClause.telefono = ILike(`%${query.telefono}%`);
 
         const trabajadores = await trabajadorRepo.find({
@@ -228,9 +256,13 @@ export async function updateTrabajadorService(id: number, data: any): Promise<Se
         if (!trabajador.usuario) return [null, "El trabajador no tiene usuario asociado"];
 
         let updated = false;
+        let correoUsuarioAnterior = trabajador.usuario.email;
+        let correoPersonalAnterior = trabajador.correoPersonal;
+        let passwordTemporal: string | null = null;
+
         // Actualizar campos permitidos del trabajador
         const camposPermitidos = [
-            "nombres", "apellidoPaterno", "apellidoMaterno", "telefono", "numeroEmergencia", "direccion"
+            "nombres", "apellidoPaterno", "apellidoMaterno", "telefono", "numeroEmergencia", "direccion", "correoPersonal"
         ];
         for (const campo of camposPermitidos) {
             if (data[campo] && data[campo] !== (trabajador as any)[campo]) {
@@ -239,12 +271,68 @@ export async function updateTrabajadorService(id: number, data: any): Promise<Se
             }
         }
 
+        // Si se actualiza el nombre o apellidoPaterno, actualizar el correo de usuario automáticamente
+        if (data.nombres || data.apellidoPaterno) {
+            const primerNombre = (data.nombres || trabajador.nombres).split(' ')[0].toLowerCase().normalize('NFD').replace(/[^a-zA-Z]/g, '');
+            const apellidoPaterno = (data.apellidoPaterno || trabajador.apellidoPaterno).toLowerCase().normalize('NFD').replace(/[^a-zA-Z]/g, '');
+            const nuevoCorreoUsuario = `${primerNombre}.${apellidoPaterno}@lamas.com`;
+            trabajador.usuario.email = nuevoCorreoUsuario;
+            updated = true;
+        }
+
         // Si se actualiza el nombre o apellidos, actualizar el campo name en usuario
         if (
             data.nombres || data.apellidoPaterno || data.apellidoMaterno
         ) {
             trabajador.usuario.name = `${data.nombres || trabajador.nombres} ${data.apellidoPaterno || trabajador.apellidoPaterno} ${data.apellidoMaterno || trabajador.apellidoMaterno}`;
             updated = true;
+        }
+
+        // Si se actualiza el correoPersonal, generar nueva contraseña y enviar correo
+        if (data.correoPersonal && data.correoPersonal !== correoPersonalAnterior) {
+            // Generar nueva contraseña
+            passwordTemporal = generateRandomPassword();
+            const hashedPassword = await encryptPassword(passwordTemporal);
+            trabajador.usuario.password = hashedPassword;
+            // Enviar correo con credenciales (excepto superadmin)
+            if (!(trabajador.rut === "20.882.865-7")) {
+                await sendCredentialsEmail({
+                    to: data.correoPersonal,
+                    nombre: data.nombres || trabajador.nombres,
+                    correoUsuario: trabajador.usuario.email,
+                    passwordTemporal
+                });
+            }
+            updated = true;
+        }
+
+        // Registrar cambios en historial laboral
+        const historialRepo = AppDataSource.getRepository(HistorialLaboral);
+        const cambios: string[] = [];
+        if (data.nombres && data.nombres !== trabajador.nombres) {
+            cambios.push(`Cambio de nombres: de "${trabajador.nombres}" a "${data.nombres}"`);
+        }
+        if (data.apellidoPaterno && data.apellidoPaterno !== trabajador.apellidoPaterno) {
+            cambios.push(`Cambio de apellido paterno: de "${trabajador.apellidoPaterno}" a "${data.apellidoPaterno}"`);
+        }
+        if (data.apellidoMaterno && data.apellidoMaterno !== trabajador.apellidoMaterno) {
+            cambios.push(`Cambio de apellido materno: de "${trabajador.apellidoMaterno}" a "${data.apellidoMaterno}"`);
+        }
+        if (data.correoPersonal && data.correoPersonal !== correoPersonalAnterior) {
+            cambios.push(`Cambio de correo personal: de "${correoPersonalAnterior}" a "${data.correoPersonal}"`);
+        }
+        if (cambios.length > 0) {
+            await historialRepo.save(historialRepo.create({
+                trabajador: trabajador,
+                cargo: 'Actualización de datos personales',
+                area: 'N/A',
+                departamento: 'N/A',
+                tipoContrato: 'N/A',
+                sueldoBase: 0,
+                fechaInicio: new Date(),
+                observaciones: cambios.join(' | '),
+                registradoPor: data.registradoPor || null
+            }));
         }
 
         // Guardar cambios en trabajador y usuario

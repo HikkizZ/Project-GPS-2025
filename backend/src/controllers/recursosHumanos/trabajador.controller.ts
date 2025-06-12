@@ -29,7 +29,13 @@ export async function createTrabajador(req: Request, res: Response): Promise<voi
             return;
         }
 
-        handleSuccess(res, 201, "Trabajador creado exitosamente", trabajador);
+        // Incluir advertencias en la respuesta si existen
+        const responseData = {
+            ...trabajador,
+            advertencias: trabajador.advertencias || []
+        };
+
+        handleSuccess(res, 201, "Trabajador creado exitosamente", responseData);
     } catch (error) {
         console.error("Error al crear trabajador:", error);
         handleErrorServer(res, 500, "Error interno del servidor");

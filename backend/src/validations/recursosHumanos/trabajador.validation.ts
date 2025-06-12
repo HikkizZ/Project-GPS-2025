@@ -61,11 +61,13 @@ export const TrabajadorQueryValidation = Joi.object({
             "string.pattern.base": "El teléfono debe tener entre 9 y 12 dígitos y puede incluir el símbolo +."
         }),
 
-    correo: Joi.string()
+    correoPersonal: Joi.string()
         .email()
+        .required()
         .messages({
-            "string.base": "El correo debe ser una cadena de texto.",
-            "string.email": "El correo debe tener un formato válido."
+            "string.base": "El correo personal debe ser una cadena de texto.",
+            "string.email": "El correo personal debe tener un formato válido.",
+            "any.required": "El correo personal es requerido."
         }),
 
     numeroEmergencia: Joi.string()
@@ -158,13 +160,13 @@ export const TrabajadorBodyValidation = Joi.object({
             "any.invalid": "El RUT no es válido."
         }),
 
-    correo: Joi.string()
+    correoPersonal: Joi.string()
         .email()
         .required()
         .messages({
-            "string.base": "El correo debe ser una cadena de texto.",
-            "string.email": "El correo debe tener un formato válido.",
-            "any.required": "El correo es requerido."
+            "string.base": "El correo personal debe ser una cadena de texto.",
+            "string.email": "El correo personal debe tener un formato válido.",
+            "any.required": "El correo personal es requerido."
         }),
 
     telefono: Joi.string()
@@ -281,8 +283,8 @@ export const TrabajadorUpdateValidation = Joi.object({
         "any.unknown": "No se puede modificar el RUT"
     }),
 
-    correo: Joi.any().forbidden().messages({
-        "any.unknown": "No se puede modificar el correo"
+    correoPersonal: Joi.any().forbidden().messages({
+        "any.unknown": "No se puede modificar el correo personal"
     }),
 
     fechaIngreso: Joi.any().forbidden().messages({

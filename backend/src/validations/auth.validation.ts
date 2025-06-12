@@ -1,7 +1,7 @@
 import Joi, { CustomHelpers } from 'joi';
 import { validateRut } from '../helpers/rut.helper.js';
 
-const allowedEmailDomains = ["gmail.com", "outlook.com", "hotmail.com", "gmail.cl", "outlook.cl", "hotmail.cl"];
+const allowedEmailDomains = ["gmail.com", "outlook.com", "hotmail.com", "gmail.cl", "outlook.cl", "hotmail.cl", "lamas.com"];
 const allowedRoles = ["SuperAdministrador", "Administrador", "Usuario", "RecursosHumanos", "Gerencia", "Ventas", "Arriendo", "Finanzas"];
 
 /* Custom validator for email domains */

@@ -172,11 +172,11 @@ export const TrabajadoresPage: React.FC = () => {
               {/* Segunda fila */}
               <div className="col-md-3">
                 <Form.Group>
-                  <Form.Label>Correo</Form.Label>
+                  <Form.Label>Correo personal</Form.Label>
                   <Form.Control
                     type="email"
-                    value={searchParams.correo || ''}
-                    onChange={(e) => setSearchParams({ ...searchParams, correo: e.target.value })}
+                    value={searchParams.correoPersonal || ''}
+                    onChange={(e) => setSearchParams({ ...searchParams, correoPersonal: e.target.value })}
                     placeholder="correo@ejemplo.com"
                   />
                 </Form.Group>
@@ -293,7 +293,7 @@ export const TrabajadoresPage: React.FC = () => {
                     <th>RUT</th>
                     <th>Nombre Completo</th>
                     <th>Fecha Nacimiento</th>
-                    <th>Correo</th>
+                    <th>Correo personal</th>
                     <th>Teléfono</th>
                     <th>N° Emergencia</th>
                     <th>Dirección</th>
@@ -315,14 +315,14 @@ export const TrabajadoresPage: React.FC = () => {
                         )}
                       </td>
                       <td>{new Date(trabajador.fechaNacimiento).toLocaleDateString()}</td>
-                      <td>{trabajador.correo}</td>
+                      <td>{trabajador.correoPersonal}</td>
                       <td>{trabajador.telefono}</td>
                       <td>{trabajador.numeroEmergencia || '-'}</td>
                       <td>{trabajador.direccion}</td>
                       <td>{new Date(trabajador.fechaIngreso).toLocaleDateString()}</td>
                       <td className="text-center">
                         {/* Ocultar acciones si es el admin principal */}
-                        {(trabajador.correo !== 'admin.principal@gmail.com' && trabajador.rut !== '11.111.111-1') && (
+                        {(trabajador.correoPersonal !== 'admin.principal@gmail.com' && trabajador.rut !== '11.111.111-1') && (
                           <div className="btn-group">
                             <Button 
                               variant="outline-primary" 

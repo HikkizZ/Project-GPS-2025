@@ -62,7 +62,7 @@ describe('🎓 Capacitación API', () => {
                         rut: "20.123.456-7",
                         fechaNacimiento: "1985-05-15",
                         telefono: "+56912345678",
-                        correo: "juan.perez.capacitacion@gmail.com", // Email único
+                        correoPersonal: "juan.perez.capacitacion@gmail.com", // Email único
                         numeroEmergencia: "+56987654321",
                         direccion: "Av. Las Capacitaciones 123",
                         fechaIngreso: "2024-01-01",
@@ -341,7 +341,7 @@ describe('🎓 Capacitación API', () => {
                     rut: "18.456.789-2", // RUT válido
                     fechaNacimiento: "1990-08-20",
                     telefono: "+56987654321",
-                    correo: "maria.garcia@test.com",
+                    correoPersonal: "maria.garcia@test.com",
                     direccion: "Calle Test 456",
                     fechaIngreso: "2024-01-01",
                     fichaEmpresa: {

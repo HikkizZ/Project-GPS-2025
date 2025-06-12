@@ -11,109 +11,8 @@ import { useNavigate, Routes, Route, Navigate } from 'react-router-dom';
 import DashboardRecursosHumanos from './pages/recursosHumanos/DashboardRecursosHumanos';
 import MainLayout from './components/common/MainLayout';
 import GestionPersonalPage from './pages/GestionPersonalPage';
-
-// Componente simple de Login
-const LoginPage: React.FC = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
-
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError('');
-
-    try {
-      await authService.login({ email, password });
-      // Recargar la página para mostrar el dashboard
-      window.location.reload();
-    } catch (error: any) {
-      console.error('Error de conexión:', error);
-      setError(error.message || 'Error de conexión. Verifica que el backend esté funcionando.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  return (
-    <div className="min-vh-100 d-flex align-items-center justify-content-center bg-light">
-      <div className="container">
-        <div className="row justify-content-center">
-          <div className="col-md-6 col-lg-4">
-            <div className="card shadow">
-              <div className="card-header bg-primary text-white text-center">
-                <h4 className="mb-0">
-                  <i className="bi bi-truck me-2"></i>
-                  S.G. Lamas
-                </h4>
-              </div>
-              <div className="card-body">
-                {error && (
-                  <div className="alert alert-danger alert-dismissible fade show">
-                    <i className="bi bi-exclamation-triangle me-2"></i>
-                    {error}
-                    <button 
-                      type="button" 
-                      className="btn-close" 
-                      onClick={() => setError('')}
-                    ></button>
-                  </div>
-                )}
-
-                <form onSubmit={handleLogin}>
-                  <div className="mb-3">
-                    <label className="form-label">Email:</label>
-                    <input
-                      type="email"
-                      className="form-control"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="patricia.gonzalez@gmail.com"
-                      required
-                      disabled={isLoading}
-                    />
-                  </div>
-                  <div className="mb-3">
-                    <label className="form-label">Contraseña:</label>
-                    <input
-                      type="password"
-                      className="form-control"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="204dm1n8"
-                      required
-                      disabled={isLoading}
-                    />
-                  </div>
-                  <button type="submit" className="btn btn-primary w-100" disabled={isLoading}>
-                    {isLoading ? (
-                      <>
-                        <span className="spinner-border spinner-border-sm me-2" />
-                        Iniciando Sesión...
-                      </>
-                    ) : (
-                      <>
-                        <i className="bi bi-box-arrow-in-right me-2"></i>
-                        Iniciar Sesión
-                      </>
-                    )}
-                  </button>
-                </form>
-                <div className="mt-3">
-                  <small className="text-muted">
-                    <strong>Credenciales de prueba:</strong><br/>
-                    <strong>Admin:</strong> patricia.gonzalez@gmail.com / 204dm1n8
-                  </small>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
+import { LoginPage } from './pages/LoginPage';
+import { useAuth } from './context/AuthContext';
 
 // Componente de Registro de Trabajadores
 const RegistrarTrabajadorPage: React.FC<{
@@ -130,7 +29,7 @@ const RegistrarTrabajadorPage: React.FC<{
     apellidoMaterno: '',
     fechaNacimiento: '',
     telefono: '',
-    correo: '',
+    correoPersonal: '',
     numeroEmergencia: '',
     direccion: '',
     fechaIngreso: new Date().toISOString().split('T')[0],
@@ -161,8 +60,8 @@ const RegistrarTrabajadorPage: React.FC<{
     }
     
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(formData.correo)) {
-      errors.correo = 'Email inválido';
+    if (!emailRegex.test(formData.correoPersonal)) {
+      errors.correoPersonal = 'Email inválido';
     }
     
     if (formData.telefono.length < 9) {
@@ -320,14 +219,14 @@ const RegistrarTrabajadorPage: React.FC<{
                     <label className="form-label">Email: <span className="text-danger">*</span></label>
                     <input
                       type="email"
-                      className={`form-control ${validationErrors.correo ? 'is-invalid' : ''}`}
-                      value={formData.correo}
-                      onChange={(e) => handleChange('correo', e.target.value)}
+                      className={`form-control ${validationErrors.correoPersonal ? 'is-invalid' : ''}`}
+                      value={formData.correoPersonal}
+                      onChange={(e) => handleChange('correoPersonal', e.target.value)}
                       placeholder="juan.perez@gmail.com"
                       required
                     />
-                    {validationErrors.correo && (
-                      <div className="invalid-feedback">{validationErrors.correo}</div>
+                    {validationErrors.correoPersonal && (
+                      <div className="invalid-feedback">{validationErrors.correoPersonal}</div>
                     )}
                   </div>
                   <div className="col-md-6 mb-3">
@@ -399,21 +298,10 @@ const RegistrarTrabajadorPage: React.FC<{
 };
 
 // Dashboard principal simplificado
-const Dashboard: React.FC = () => {
-  const getUserFromStorage = () => {
-    try {
-      const userStr = localStorage.getItem('userData');
-      if (!userStr || userStr === 'undefined' || userStr === 'null') {
-        return { name: 'Usuario', role: 'Invitado', rut: 'N/A' };
-      }
-      return JSON.parse(userStr);
-    } catch (error) {
-      console.error('Error parsing user from localStorage:', error);
-      return { name: 'Usuario', role: 'Invitado', rut: 'N/A' };
-    }
-  };
-
-  const user = getUserFromStorage();
+interface DashboardProps {
+  user: { name: string; role: string; rut: string };
+}
+const Dashboard: React.FC<DashboardProps> = ({ user }) => {
   const [currentPage, setCurrentPage] = useState('home');
   const [successMessage, setSuccessMessage] = useState('');
   const [recienRegistrado, setRecienRegistrado] = useState<Trabajador | null>(null);
@@ -533,46 +421,27 @@ const Dashboard: React.FC = () => {
 
 // App principal
 function App() {
-  const isAuthenticated = (() => {
-    try {
-      const authStr = localStorage.getItem('authToken');
-      const userStr = localStorage.getItem('userData');
-      return authStr && userStr && authStr !== 'undefined' && userStr !== 'undefined';
-    } catch (error) {
-      console.error('Error checking authentication:', error);
-      return false;
-    }
-  })();
+  const { isAuthenticated, user, logout, isLoading } = useAuth();
 
-  // Obtener usuario y función de logout para pasar al layout
-  const getUserFromStorage = () => {
-    try {
-      const userStr = localStorage.getItem('userData');
-      if (!userStr || userStr === 'undefined' || userStr === 'null') {
-        return { name: 'Usuario', role: 'Invitado', rut: 'N/A' };
-      }
-      return JSON.parse(userStr);
-    } catch (error) {
-      console.error('Error parsing user from localStorage:', error);
-      return { name: 'Usuario', role: 'Invitado', rut: 'N/A' };
-    }
-  };
-  const user = getUserFromStorage();
+  if (isLoading) {
+    return <div className="loading-screen"><div className="loader">Cargando...</div></div>;
+  }
+
   const handleLogout = () => {
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('userData');
-    window.location.reload();
+    logout();
+    window.location.href = '/login';
   };
 
+  const safeUser = user ?? { name: 'Usuario', role: 'Invitado', rut: 'N/A' };
   return isAuthenticated ? (
     <Routes>
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
-      <Route path="/dashboard" element={<MainLayout user={user} onLogout={handleLogout}><Dashboard /></MainLayout>} />
-      <Route path="/recursos-humanos" element={<MainLayout user={user} onLogout={handleLogout}><DashboardRecursosHumanos /></MainLayout>} />
-      <Route path="/trabajadores" element={<MainLayout user={user} onLogout={handleLogout}><TrabajadoresPage /></MainLayout>} />
-      <Route path="/fichas-empresa" element={<MainLayout user={user} onLogout={handleLogout}><FichasEmpresaPage /></MainLayout>} />
-      <Route path="/usuarios" element={<MainLayout user={user} onLogout={handleLogout}><UsersPage /></MainLayout>} />
-      <Route path="/gestion-personal" element={<MainLayout user={user} onLogout={handleLogout}><GestionPersonalPage /></MainLayout>} />
+      <Route path="/dashboard" element={<MainLayout user={safeUser} onLogout={handleLogout}><Dashboard user={safeUser} /></MainLayout>} />
+      <Route path="/recursos-humanos" element={<MainLayout user={safeUser} onLogout={handleLogout}><DashboardRecursosHumanos /></MainLayout>} />
+      <Route path="/trabajadores" element={<MainLayout user={safeUser} onLogout={handleLogout}><TrabajadoresPage /></MainLayout>} />
+      <Route path="/fichas-empresa" element={<MainLayout user={safeUser} onLogout={handleLogout}><FichasEmpresaPage /></MainLayout>} />
+      <Route path="/usuarios" element={<MainLayout user={safeUser} onLogout={handleLogout}><UsersPage /></MainLayout>} />
+      <Route path="/gestion-personal" element={<MainLayout user={safeUser} onLogout={handleLogout}><GestionPersonalPage /></MainLayout>} />
     </Routes>
   ) : <LoginPage />;
 }

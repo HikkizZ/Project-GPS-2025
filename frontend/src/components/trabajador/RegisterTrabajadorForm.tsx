@@ -17,6 +17,7 @@ export const RegisterTrabajadorForm: React.FC<RegisterTrabajadorFormProps> = ({
   const { formatRUT, validateRUT } = useRut();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string>('');
+  const [advertencias, setAdvertencias] = useState<string[]>([]);
   
   const [formData, setFormData] = useState<CreateTrabajadorData>({
     rut: '',
@@ -25,7 +26,7 @@ export const RegisterTrabajadorForm: React.FC<RegisterTrabajadorFormProps> = ({
     apellidoMaterno: '',
     fechaNacimiento: '',
     telefono: '',
-    correo: '',
+    correoPersonal: '',
     numeroEmergencia: '',
     direccion: '',
     fechaIngreso: (() => {
@@ -40,6 +41,7 @@ export const RegisterTrabajadorForm: React.FC<RegisterTrabajadorFormProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setAdvertencias([]);
 
     // Validaciones
     if (!validateRUT(formData.rut)) {
@@ -52,8 +54,8 @@ export const RegisterTrabajadorForm: React.FC<RegisterTrabajadorFormProps> = ({
       return;
     }
 
-    if (!formData.correo.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
-      setError('Correo electrónico inválido');
+    if (!formData.correoPersonal.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+      setError('Correo personal inválido');
       return;
     }
 
@@ -61,6 +63,9 @@ export const RegisterTrabajadorForm: React.FC<RegisterTrabajadorFormProps> = ({
       setIsLoading(true);
       const result = await createTrabajador(formData);
       if (result.success) {
+        if (result.advertencias && result.advertencias.length > 0) {
+          setAdvertencias(result.advertencias);
+        }
         onSuccess();
       } else {
         setError(result.error || 'Error al crear trabajador');
@@ -87,6 +92,16 @@ export const RegisterTrabajadorForm: React.FC<RegisterTrabajadorFormProps> = ({
   return (
     <Form onSubmit={handleSubmit} className="px-2">
       {error && <Alert variant="danger">{error}</Alert>}
+      {advertencias.length > 0 && (
+        <Alert variant="warning">
+          <strong>Advertencias:</strong>
+          <ul className="mb-0">
+            {advertencias.map((adv, index) => (
+              <li key={index}>{adv}</li>
+            ))}
+          </ul>
+        </Alert>
+      )}
 
       {/* Primera fila - Identificación */}
       <Row className="mb-2">
@@ -183,13 +198,13 @@ export const RegisterTrabajadorForm: React.FC<RegisterTrabajadorFormProps> = ({
       <Row className="mb-2">
         <Col md={6}>
           <Form.Group>
-            <Form.Label>Email: <span className="text-danger">*</span></Form.Label>
+            <Form.Label>Correo Personal: <span className="text-danger">*</span></Form.Label>
             <Form.Control
               type="email"
-              name="correo"
-              value={formData.correo}
+              name="correoPersonal"
+              value={formData.correoPersonal}
               onChange={handleInputChange}
-              placeholder="correo@empresa.com"
+              placeholder="correo.personal@gmail.com"
               required
             />
           </Form.Group>
@@ -198,7 +213,7 @@ export const RegisterTrabajadorForm: React.FC<RegisterTrabajadorFormProps> = ({
           <Form.Group>
             <Form.Label>Teléfono: <span className="text-danger">*</span></Form.Label>
             <Form.Control
-              type="tel"
+              type="text"
               name="telefono"
               value={formData.telefono}
               onChange={handleInputChange}

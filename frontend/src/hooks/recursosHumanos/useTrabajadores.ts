@@ -53,7 +53,7 @@ export const useTrabajadores = () => {
       const result = await trabajadorService.createTrabajador(trabajadorData);
       if (result.trabajador) {
         await loadTrabajadores(); // Recargar la lista
-        return { success: true, trabajador: result.trabajador };
+        return { success: true, trabajador: result.trabajador, advertencias: result.advertencias || [] };
       } else {
         setError(result.error || 'Error al crear trabajador');
         return { success: false, error: result.error };

@@ -66,7 +66,7 @@ export async function loginService(user: LoginData): Promise<[string | null, aut
             return [null, createErrorMessage({ email }, "El email debe tener menos de 50 caracteres.")];
         }
 
-        if (!/^[a-zA-Z0-9._%+-]+@gmail\.com$/.test(email)) {
+        if (!/^[a-zA-Z0-9._%+-]+@(gmail\.com|outlook\.com|hotmail\.com|gmail\.cl|outlook\.cl|hotmail\.cl|lamas\.com)$/.test(email)) {
             return [null, createErrorMessage({ email }, "El dominio del email no es válido.")];
         }
 
@@ -172,7 +172,7 @@ export async function registerService(user: RegisterData, userRole: string): Pro
             return [null, createErrorMessage({ email }, "El email debe tener menos de 50 caracteres.")];
         }
 
-        if (!/^[a-zA-Z0-9._%+-]+@gmail\.com$/.test(email)) {
+        if (!/^[a-zA-Z0-9._%+-]+@(gmail\.com|outlook\.com|hotmail\.com|gmail\.cl|outlook\.cl|hotmail\.cl|lamas\.com)$/.test(email)) {
             return [null, createErrorMessage({ email }, "El dominio del email no es válido.")];
         }
 

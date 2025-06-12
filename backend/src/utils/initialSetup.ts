@@ -18,7 +18,7 @@ export async function initialSetup(): Promise<void> {
             // 1. Eliminar fichas de empresa del admin
             console.log("=> Eliminando fichas de empresa del admin...");
             await transactionalEntityManager.query(
-                'DELETE FROM "fichas_empresa" WHERE "trabajadorId" IN (SELECT id FROM trabajadores WHERE rut = $1 OR correo = $2)',
+                'DELETE FROM "fichas_empresa" WHERE "trabajadorId" IN (SELECT id FROM trabajadores WHERE rut = $1 OR "correoPersonal" = $2)',
                 ["11111111-1", "admin.principal@gmail.com"]
             );
             console.log("✅ Fichas de empresa eliminadas");
@@ -42,7 +42,7 @@ export async function initialSetup(): Promise<void> {
             // 4. Eliminar trabajador admin
             console.log("=> Eliminando trabajador admin...");
             await transactionalEntityManager.query(
-                'DELETE FROM "trabajadores" WHERE "rut" = $1 OR "correo" = $2',
+                'DELETE FROM "trabajadores" WHERE "rut" = $1 OR "correoPersonal" = $2',
                 ["11111111-1", "admin.principal@gmail.com"]
             );
             console.log("✅ Trabajador admin eliminado");
@@ -57,7 +57,7 @@ export async function initialSetup(): Promise<void> {
             adminTrabajador.apellidoMaterno = "Caamaño";
             adminTrabajador.fechaNacimiento = new Date("2001-10-15");
             adminTrabajador.telefono = "+56923847562";
-            adminTrabajador.correo = "patricia.gonzalez@gmail.com";
+            adminTrabajador.correoPersonal = "pgonzalezcaamano@gmail.com";
             adminTrabajador.numeroEmergencia = "+56938374625";
             adminTrabajador.direccion = "Dirección Principal 123";
             adminTrabajador.fechaIngreso = new Date();
@@ -72,7 +72,7 @@ export async function initialSetup(): Promise<void> {
                 apellidoMaterno: "Caamaño",
                 fechaNacimiento: new Date("2001-10-15"),
                 telefono: "+56923847562",
-                correo: "patricia.gonzalez@gmail.com",
+                correoPersonal: "pgonzalezcaamano@gmail.com",
                 numeroEmergencia: "+56938374625",
                 direccion: "Dirección Principal 123",
                 fechaIngreso: new Date(),
@@ -89,7 +89,7 @@ export async function initialSetup(): Promise<void> {
         const hashedPassword = await encryptPassword(adminPlainPassword);
         if (adminUser) {
             adminUser.name = "Patricia Yulihana González Caamaño";
-            adminUser.email = "patricia.gonzalez@gmail.com";
+            adminUser.email = "patricia.gonzalez@lamas.com";
             adminUser.password = hashedPassword;
             adminUser.role = 'SuperAdministrador';
             adminUser.estadoCuenta = "Activa";
@@ -98,7 +98,7 @@ export async function initialSetup(): Promise<void> {
         } else {
             adminUser = userRepo.create({
                 name: "Patricia Yulihana González Caamaño",
-                email: "patricia.gonzalez@gmail.com",
+                email: "patricia.gonzalez@lamas.com",
                 password: hashedPassword,
                 role: 'SuperAdministrador',
                 rut: "20.882.865-7",

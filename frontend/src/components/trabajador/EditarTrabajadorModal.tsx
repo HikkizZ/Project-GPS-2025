@@ -30,6 +30,7 @@ export const EditarTrabajadorModal: React.FC<EditarTrabajadorModalProps> = ({
     telefono: trabajador.telefono,
     numeroEmergencia: trabajador.numeroEmergencia || '',
     direccion: trabajador.direccion,
+    correoPersonal: trabajador.correoPersonal,
   });
 
   // Actualizar el estado del formulario cuando cambia el trabajador
@@ -41,6 +42,7 @@ export const EditarTrabajadorModal: React.FC<EditarTrabajadorModalProps> = ({
       telefono: trabajador.telefono,
       numeroEmergencia: trabajador.numeroEmergencia || '',
       direccion: trabajador.direccion,
+      correoPersonal: trabajador.correoPersonal,
     });
   }, [trabajador]);
 
@@ -146,14 +148,29 @@ export const EditarTrabajadorModal: React.FC<EditarTrabajadorModalProps> = ({
             {/* Contacto */}
             <div className="col-md-4">
               <Form.Group>
-                <Form.Label>Correo</Form.Label>
+                <Form.Label>Correo de Usuario (Lamas)</Form.Label>
                 <Form.Control
                   type="email"
-                  value={trabajador.correo}
+                  value={`${trabajador.nombres.split(' ')[0].toLowerCase().normalize('NFD').replace(/[^a-zA-Z]/g, '')}.${trabajador.apellidoPaterno.toLowerCase().normalize('NFD').replace(/[^a-zA-Z]/g, '')}@lamas.com`}
                   disabled
                 />
                 <Form.Text className="text-muted">
-                  El correo no se puede modificar por seguridad
+                  Este correo se genera automáticamente y se actualiza si cambias nombre o apellido paterno
+                </Form.Text>
+              </Form.Group>
+            </div>
+            <div className="col-md-4">
+              <Form.Group>
+                <Form.Label>Correo personal (editable)</Form.Label>
+                <Form.Control
+                  type="email"
+                  name="correoPersonal"
+                  value={formData.correoPersonal}
+                  onChange={handleInputChange}
+                  required
+                />
+                <Form.Text className="text-muted">
+                  Si cambias el correo personal, se enviará un nuevo correo con credenciales a la nueva dirección
                 </Form.Text>
               </Form.Group>
             </div>

@@ -46,7 +46,7 @@ export interface Trabajador {
   apellidoMaterno: string;
   fechaNacimiento: string | Date;
   telefono: string;
-  correo: string;
+  correoPersonal: string;
   numeroEmergencia?: string;
   direccion: string;
   fechaIngreso: string | Date;
@@ -65,7 +65,7 @@ export interface CreateTrabajadorData {
   apellidoMaterno: string;
   fechaNacimiento?: string;
   telefono: string;
-  correo: string;
+  correoPersonal: string;
   numeroEmergencia?: string;
   direccion: string;
   fechaIngreso: string;
@@ -80,7 +80,7 @@ export interface TrabajadorSearchQuery {
   apellidoMaterno?: string;
   fechaNacimiento?: string;
   telefono?: string;
-  correo?: string;
+  correoPersonal?: string;
   numeroEmergencia?: string;
   direccion?: string;
   fechaIngreso?: string;
@@ -92,6 +92,7 @@ export interface TrabajadorResponse {
   status: 'success' | 'error';
   message?: string;
   data?: Trabajador | Trabajador[];
+  advertencias?: string[];
 }
 
 export interface PaginatedTrabajadores {
