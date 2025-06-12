@@ -6,6 +6,7 @@ import {
   CreateDateColumn,
   JoinColumn
 } from "typeorm";
+import { Trabajador } from "./trabajador.entity.js";
 import { User } from "../user.entity.js"; // Usuario que revisa (RRHH)
 
 export enum TipoSolicitud {
@@ -25,8 +26,10 @@ export class LicenciaPermiso {
   id!: number;
 
   // Relación con el trabajador solicitante
-  @ManyToOne('Trabajador', 'licenciasPermisos')
-  trabajador!: any;
+  @ManyToOne(() => Trabajador, trabajador => trabajador.licenciasPermisos, { nullable: false })
+  @JoinColumn({ name: "trabajadorId" })
+  trabajador!: Trabajador;
+
 
   @Column({ type: "enum", enum: TipoSolicitud })
   tipo!: TipoSolicitud;

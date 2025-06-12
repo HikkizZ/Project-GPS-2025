@@ -2,10 +2,10 @@ import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateCol
 import { userRole } from "../../types.d.js";
 import { Trabajador } from "./recursosHumanos/trabajador.entity.js";
 
-@Entity("users")
+@Entity()
 export class User {
     @PrimaryGeneratedColumn()
-    id!: number;
+    id: number;
 
     @Column({ type: "varchar", length: 100 })
     name: string;
@@ -43,6 +43,7 @@ export class User {
     @UpdateDateColumn()
     updateAt: Date;
 
-    @OneToOne('Trabajador', 'usuario')
-    trabajador!: any;
+    @OneToOne(() => Trabajador)
+    @JoinColumn({ name: "rut", referencedColumnName: "rut" })
+    trabajador!: Trabajador;
 }

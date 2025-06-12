@@ -6,14 +6,16 @@ import {
     CreateDateColumn,
     JoinColumn
 } from "typeorm";
+import { Trabajador } from "./trabajador.entity.js";
 
 @Entity("capacitaciones")
 export class Capacitacion {
     @PrimaryGeneratedColumn()
     id!: number;
 
-    @ManyToOne('Trabajador', 'capacitaciones')
-    trabajador!: any;
+    @ManyToOne(() => Trabajador, trabajador => trabajador.capacitaciones, { nullable: false })
+    @JoinColumn({ name: "trabajadorId" })
+    trabajador!: Trabajador;
 
     @Column({ type: "varchar", length: 200, nullable: false })
     nombreCurso!: string;

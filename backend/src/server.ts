@@ -1,6 +1,3 @@
-import { config } from "dotenv";
-config();
-console.log("ACCESS_TOKEN_SECRET:", process.env.ACCESS_TOKEN_SECRET);
 import "reflect-metadata"; // Import reflect-metadata for TypeORM decorators
 
 /* Import the required modules. */
@@ -10,6 +7,7 @@ import morgan from "morgan";
 import cookieParser from "cookie-parser";
 import session from "express-session";
 import passport from "passport";
+import { config } from "dotenv";
 
 import indexRoutes from "./routes/index.routes.js";
 import { AppDataSource, initializeDatabase } from "./config/configDB.js";
@@ -23,6 +21,9 @@ import userRoutes from "./routes/user.routes.js";
 // Exportar la aplicación y el servidor para las pruebas
 export const app: Application = express();
 let server: any;
+
+// Configuración de variables de entorno
+config();
 
 async function setupServer(): Promise<void> {
     try {

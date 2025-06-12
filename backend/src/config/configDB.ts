@@ -7,8 +7,6 @@ import { HistorialLaboral } from "../entity/recursosHumanos/historialLaboral.ent
 import { FichaEmpresa } from "../entity/recursosHumanos/fichaEmpresa.entity.js";
 import { LicenciaPermiso } from "../entity/recursosHumanos/licenciaPermiso.entity.js";
 import { Capacitacion } from "../entity/recursosHumanos/capacitacion.entity.js";
-import { RenameCorreoToCorreoPersonal1710000000000 } from "../migrations/1710000000000-RenameCorreoToCorreoPersonal.js";
-import { CreateUsersTable1710000001000 } from "../migrations/1710000001000-CreateUsersTable.js";
 
 /* Import custom modules. */
 import { PORT, HOST, DATABASE, DB_USERNAME, DB_PASSWORD } from "./configEnv.js";
@@ -58,15 +56,12 @@ export const AppDataSource = new DataSource({
     port: parseInt(process.env.DB_PORT || "5432"),
     username: process.env.DB_USERNAME || "postgres",
     password: process.env.DB_PASSWORD || "postgres",
-    database: process.env.DATABASE || "gps",
-    synchronize: false,
+    database: process.env.DATABASE || "gps_db",
+    synchronize: true,
     logging: true,
-    entities: [User, Trabajador, FichaEmpresa, HistorialLaboral, LicenciaPermiso, Capacitacion],
-    migrations: [
-        CreateUsersTable1710000001000,
-        RenameCorreoToCorreoPersonal1710000000000
-    ],
+    entities: [User, Trabajador, HistorialLaboral, FichaEmpresa, LicenciaPermiso, Capacitacion],
     subscribers: [],
+    migrations: [],
     ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false
 });
 

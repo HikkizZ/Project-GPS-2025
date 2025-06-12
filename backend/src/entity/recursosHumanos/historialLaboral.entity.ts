@@ -7,6 +7,7 @@ import {
   JoinColumn,
   UpdateDateColumn
 } from "typeorm";
+import { Trabajador } from "./trabajador.entity.js";
 import { User } from "../user.entity.js";
 
 @Entity("historial_laboral")
@@ -44,8 +45,9 @@ export class HistorialLaboral {
   @Column({ type: "varchar", length: 255, nullable: true })
   contratoURL!: string;
 
-  @ManyToOne('Trabajador', 'historialLaboral')
-  trabajador!: any;
+  @ManyToOne(() => Trabajador, { onDelete: "CASCADE" })
+  @JoinColumn({ name: "trabajadorId" })
+  trabajador!: Trabajador;
 
   @ManyToOne(() => User, { onDelete: "SET NULL", nullable: true })
   @JoinColumn({ name: "registradoPorId" })
