@@ -23,7 +23,7 @@ export async function sendCredentialsEmail({
     passwordTemporal: string;
 }) {
     const mailOptions = {
-        from: 'S.G. Lamas <pgonzalezcaamano@gmail.com>',
+        from: 'S.G. Lamas <equipo.sglamas@gmail.com>',
         to,
         subject: 'Tus credenciales de acceso a S.G. Lamas',
         html: `

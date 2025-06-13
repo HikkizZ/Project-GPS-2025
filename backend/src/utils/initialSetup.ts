@@ -57,7 +57,7 @@ export async function initialSetup(): Promise<void> {
             adminTrabajador.apellidoMaterno = "Caamaño";
             adminTrabajador.fechaNacimiento = new Date("2001-10-15");
             adminTrabajador.telefono = "+56923847562";
-            adminTrabajador.correoPersonal = "pgonzalezcaamano@gmail.com";
+            adminTrabajador.correoPersonal = "equipo.sglamas@gmail.com";
             adminTrabajador.numeroEmergencia = "+56938374625";
             adminTrabajador.direccion = "Dirección Principal 123";
             adminTrabajador.fechaIngreso = new Date();
@@ -72,7 +72,7 @@ export async function initialSetup(): Promise<void> {
                 apellidoMaterno: "Caamaño",
                 fechaNacimiento: new Date("2001-10-15"),
                 telefono: "+56923847562",
-                correoPersonal: "pgonzalezcaamano@gmail.com",
+                correoPersonal: "equipo.sglamas@gmail.com",
                 numeroEmergencia: "+56938374625",
                 direccion: "Dirección Principal 123",
                 fechaIngreso: new Date(),
