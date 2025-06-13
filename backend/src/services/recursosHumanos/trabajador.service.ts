@@ -23,6 +23,29 @@ function generateRandomPassword(): string {
     return password;
 }
 
+// Función para generar correo corporativo y manejar duplicados
+async function generateCorporateEmail(primerNombre: string, apellidoPaterno: string): Promise<string> {
+    const userRepo = AppDataSource.getRepository(User);
+    const baseEmail = `${primerNombre}.${apellidoPaterno}@lamas.com`;
+    
+    // Verificar si el correo base ya existe
+    let existingUser = await userRepo.findOne({ where: { email: baseEmail } });
+    if (!existingUser) {
+        return baseEmail;
+    }
+
+    // Si existe, buscar el último número usado
+    let counter = 1;
+    let newEmail = `${primerNombre}.${apellidoPaterno}${counter}@lamas.com`;
+    
+    while (await userRepo.findOne({ where: { email: newEmail } })) {
+        counter++;
+        newEmail = `${primerNombre}.${apellidoPaterno}${counter}@lamas.com`;
+    }
+    
+    return newEmail;
+}
+
 export async function createTrabajadorService(trabajadorData: Partial<Trabajador>): Promise<ServiceResponse<{ trabajador: Trabajador, tempPassword: string, advertencias: string[] }>> {
     try {
         const trabajadorRepo = AppDataSource.getRepository(Trabajador);
@@ -107,10 +130,10 @@ export async function createTrabajadorService(trabajadorData: Partial<Trabajador
         });
         const trabajadorGuardado = await trabajadorRepo.save(trabajador);
 
-        // Generar correo de usuario automáticamente
-        const primerNombre = trabajadorData.nombres.split(' ')[0].toLowerCase().normalize('NFD').replace(/[^a-zA-Z]/g, '');
-        const apellidoPaterno = trabajadorData.apellidoPaterno.toLowerCase().normalize('NFD').replace(/[^a-zA-Z]/g, '');
-        const correoUsuario = `${primerNombre}.${apellidoPaterno}@lamas.com`;
+        // Generar correo corporativo
+        const primerNombre = trabajador.nombres.split(' ')[0].toLowerCase().normalize('NFD').replace(/[^a-zA-Z]/g, '');
+        const apellidoPaterno = trabajador.apellidoPaterno.toLowerCase().normalize('NFD').replace(/[^a-zA-Z]/g, '');
+        const correoUsuario = await generateCorporateEmail(primerNombre, apellidoPaterno);
 
         // Crear usuario automáticamente
         const randomPassword = generateRandomPassword();
@@ -198,7 +221,7 @@ export async function getTrabajadoresService(incluirInactivos: boolean = false):
     try {
         const trabajadorRepo = AppDataSource.getRepository(Trabajador);
         const trabajadores = await trabajadorRepo.find({
-            relations: ["fichaEmpresa", "historialLaboral", "licenciasPermisos", "capacitaciones"],
+            relations: ["usuario", "fichaEmpresa", "historialLaboral", "licenciasPermisos", "capacitaciones"],
             where: incluirInactivos ? {} : { enSistema: true }
         });
 
@@ -275,7 +298,7 @@ export async function updateTrabajadorService(id: number, data: any): Promise<Se
         if (data.nombres || data.apellidoPaterno) {
             const primerNombre = (data.nombres || trabajador.nombres).split(' ')[0].toLowerCase().normalize('NFD').replace(/[^a-zA-Z]/g, '');
             const apellidoPaterno = (data.apellidoPaterno || trabajador.apellidoPaterno).toLowerCase().normalize('NFD').replace(/[^a-zA-Z]/g, '');
-            const nuevoCorreoUsuario = `${primerNombre}.${apellidoPaterno}@lamas.com`;
+            const nuevoCorreoUsuario = await generateCorporateEmail(primerNombre, apellidoPaterno);
             trabajador.usuario.email = nuevoCorreoUsuario;
             updated = true;
         }

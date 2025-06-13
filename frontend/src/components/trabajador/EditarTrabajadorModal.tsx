@@ -151,7 +151,7 @@ export const EditarTrabajadorModal: React.FC<EditarTrabajadorModalProps> = ({
                 <Form.Label>Correo de Usuario (Lamas)</Form.Label>
                 <Form.Control
                   type="email"
-                  value={`${trabajador.nombres.split(' ')[0].toLowerCase().normalize('NFD').replace(/[^a-zA-Z]/g, '')}.${trabajador.apellidoPaterno.toLowerCase().normalize('NFD').replace(/[^a-zA-Z]/g, '')}@lamas.com`}
+                  value={trabajador.usuario?.email || ''}
                   disabled
                 />
                 <Form.Text className="text-muted">
