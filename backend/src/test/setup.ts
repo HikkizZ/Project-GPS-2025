@@ -66,8 +66,6 @@ export async function setupTestApp(): Promise<{ app: Application; server: any }>
         await initialSetup();
 
         server = app.listen(0); // Usar puerto aleatorio para pruebas
-
-        console.log("✅ Test server running. DB connected, initial setup done.");
     }
 
     return { app, server };
@@ -85,8 +83,6 @@ export async function closeTestApp(): Promise<void> {
  */
 export async function cleanupAllTestData(): Promise<void> {
     try {
-        console.log("🧹 Limpiando datos de prueba...");
-
         if (!AppDataSource.isInitialized) {
             return;
         }
@@ -114,9 +110,6 @@ export async function cleanupAllTestData(): Promise<void> {
                 ruts: ['20.882.865-7'] 
             })
             .execute();
-
-        console.log("✅ Datos de prueba limpiados exitosamente");
-
     } catch (error) {
         console.error("❌ Error limpiando datos de prueba:", error);
     }
@@ -136,25 +129,20 @@ export function setupGlobalTestHooks() {
     before(function() {
         const stats = (this as any).parent.stats || {};
         globalTestCount = stats.total || 0;
-        console.log(`🧪 Iniciando ${globalTestCount} tests...`);
     });
 
     // Hook que se ejecuta después de CADA test individual
     afterEach(function() {
         completedTests++;
-        console.log(`✅ Test ${completedTests}/${globalTestCount} completado`);
     });
 
     // Hook que se ejecuta AL FINAL de TODOS los tests
     after(async function() {
-        console.log("🔄 Ejecutando limpieza global después de todos los tests...");
         await cleanupAllTestData();
         
         if (AppDataSource.isInitialized) {
             await AppDataSource.destroy();
         }
-        
-        console.log("🎉 TODOS los tests completados. Base de datos limpiada automáticamente.");
     });
 }
 

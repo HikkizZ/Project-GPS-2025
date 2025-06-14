@@ -10,10 +10,7 @@ import 'bootstrap/dist/css/bootstrap.min.css'
 import 'bootstrap-icons/font/bootstrap-icons.css'
 import './styles/index.css'
 
-console.log('main.tsx cargado correctamente!');
-
 const rootElement = document.getElementById('root');
-console.log('Root element:', rootElement);
 
 if (rootElement) {
   const root = createRoot(rootElement);
@@ -28,7 +25,4 @@ if (rootElement) {
       </BrowserRouter>
     </StrictMode>
   );
-  console.log('App renderizada!');
-} else {
-  console.error('No se encontró el elemento root!');
 } 

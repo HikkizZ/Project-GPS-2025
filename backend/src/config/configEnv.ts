@@ -15,5 +15,4 @@ export const DATABASE: string | undefined = process.env.DATABASE;
 export const DB_USERNAME: string | undefined = process.env.DB_USERNAME;
 export const DB_PASSWORD: string | undefined = process.env.DB_PASSWORD;
 export const ACCESS_TOKEN_SECRET: string | undefined = process.env.ACCESS_TOKEN_SECRET;
-console.log('ACCESS_TOKEN_SECRET:', ACCESS_TOKEN_SECRET);
 export const cookieKey: string | undefined = process.env.cookieKey;

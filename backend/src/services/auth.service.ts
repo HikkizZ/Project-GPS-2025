@@ -115,7 +115,7 @@ export async function loginService(user: LoginData): Promise<[string | null, aut
         return [accessToken, null];
   } catch (error) {
         console.error("❌ Error en login: ", error);
-    return [null, "Error interno del servidor."];
+        return [null, "Error interno del servidor."];
   }
 }
 

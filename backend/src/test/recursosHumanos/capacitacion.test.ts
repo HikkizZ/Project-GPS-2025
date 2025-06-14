@@ -88,7 +88,6 @@ describe('🎓 Capacitación API', () => {
                 }
 
                 trabajadorId = trabajadorResponse.body.data.id;
-                console.log('✅ Trabajador creado con ID:', trabajadorId);
             }
 
             // Registrar usuario para el trabajador

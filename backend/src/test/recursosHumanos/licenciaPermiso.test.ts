@@ -109,7 +109,7 @@ describe('📋 Licencias y Permisos API', () => {
                     password: "Maria2024"
                 });
 
-            console.log('�� Response login licenciaPermiso:', {
+            console.log('📊 Response login licenciaPermiso:', {
                 status: userLogin.status,
                 hasToken: !!userLogin.body.data?.token
             });
@@ -293,6 +293,8 @@ describe('📋 Licencias y Permisos API', () => {
                 .post('/api/licencia-permiso/verificar-vencimientos')
                 .set('Authorization', `Bearer ${rrhToken}`);
 
+            console.log('📊 Response verificación vencimientos:', { status: response.status, message: response.body.message });
+
             expect(response.status).to.equal(200);
             expect(response.body.status).to.equal("success");
 
@@ -349,10 +351,7 @@ describe('📋 Licencias y Permisos API', () => {
                 .post('/api/licencia-permiso/verificar-vencimientos')
                 .set('Authorization', `Bearer ${rrhToken}`);
 
-            console.log('📊 Response verificación vencimientos:', {
-                status: response.status,
-                message: response.body.message || 'Sin mensaje'
-            });
+            console.log('📊 Response verificación vencimientos:', { status: response.status, message: response.body.message });
 
             expect(response.status).to.equal(200);
             expect(response.body.status).to.equal("success");

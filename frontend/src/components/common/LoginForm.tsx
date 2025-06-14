@@ -18,9 +18,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, error, setError
   const navigate = useNavigate();
 
   useEffect(() => {
-    console.log('LoginForm MONTADO');
     return () => {
-      console.log('LoginForm DESMONTADO');
     };
   }, []);
 
@@ -42,21 +40,16 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, error, setError
 
     try {
       const result = await login(formData);
-      console.log('Resultado de login:', result);
       if (result.success) {
         onSuccess?.();
         navigate('/dashboard');
       } else {
-        console.log('Seteando error:', result.error);
         setError(result.error || 'Error al iniciar sesión');
       }
     } catch (err: any) {
-      console.log('Error en catch de handleSubmit:', err);
       setError(err?.message || 'Error inesperado al iniciar sesión');
     }
   };
-
-  console.log('Valor de error en render:', error);
 
   return (
     <div className="bg-light d-flex justify-content-center" style={{ minHeight: '100vh', paddingTop: '15vh' }}>

@@ -10,7 +10,6 @@ class AuthService {
   // Login de usuario
   async login(credentials: LoginData): Promise<any> {
     try {
-      console.log('Intentando login con:', this.baseURL + '/auth/login');
       const response = await fetch(`${this.baseURL}/auth/login`, {
         method: 'POST',
         headers: {

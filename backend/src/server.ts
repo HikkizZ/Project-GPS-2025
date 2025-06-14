@@ -134,7 +134,6 @@ export async function setupTestServer(): Promise<{ app: Application; server: any
         await initialSetup();
 
         server = app.listen(0); // Usar puerto aleatorio para pruebas
-
         console.log("✅ Test server running. DB connected, initial setup done.");
 
         return { app, server };

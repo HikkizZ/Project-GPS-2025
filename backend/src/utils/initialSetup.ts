@@ -37,7 +37,6 @@ export async function initialSetup(): Promise<void> {
                 'DELETE FROM "user" WHERE "rut" = $1',
                 ["11111111-1"]
             );
-            console.log("✅ Usuario admin eliminado");
 
             // 4. Eliminar trabajador admin
             console.log("=> Eliminando trabajador admin...");
@@ -45,7 +44,6 @@ export async function initialSetup(): Promise<void> {
                 'DELETE FROM "trabajadores" WHERE "rut" = $1 OR "correoPersonal" = $2',
                 ["11111111-1", "admin.principal@gmail.com"]
             );
-            console.log("✅ Trabajador admin eliminado");
         });
 
         // 5. Crear o actualizar el trabajador superadmin ficticio
@@ -63,7 +61,6 @@ export async function initialSetup(): Promise<void> {
             superAdminTrabajador.fechaIngreso = new Date();
             superAdminTrabajador.enSistema = true;
             await trabajadorRepo.save(superAdminTrabajador);
-            console.log("✅ Trabajador superadmin ficticio actualizado con RUT: 11.111.111-1");
         } else {
             superAdminTrabajador = trabajadorRepo.create({
                 rut: "11.111.111-1",
@@ -79,7 +76,6 @@ export async function initialSetup(): Promise<void> {
                 enSistema: true
             });
             await trabajadorRepo.save(superAdminTrabajador);
-            console.log("✅ Trabajador superadmin ficticio creado con RUT: 11.111.111-1");
         }
 
         // 6. Crear o actualizar el usuario superadmin ficticio
@@ -94,7 +90,6 @@ export async function initialSetup(): Promise<void> {
             superAdminUser.role = 'SuperAdministrador';
             superAdminUser.estadoCuenta = "Activa";
             await userRepo.save(superAdminUser);
-            console.log("✅ Usuario superadmin ficticio actualizado exitosamente");
         } else {
             superAdminUser = userRepo.create({
                 name: "Super Administrador Técnico",
@@ -105,7 +100,6 @@ export async function initialSetup(): Promise<void> {
                 estadoCuenta: "Activa"
             });
             await userRepo.save(superAdminUser);
-            console.log("✅ Usuario superadmin ficticio creado exitosamente");
         }
 
         // 7. Crear o actualizar ficha de empresa superadmin ficticio
@@ -122,7 +116,6 @@ export async function initialSetup(): Promise<void> {
             fichaSuperAdmin.fechaInicioContrato = new Date();
             fichaSuperAdmin.contratoURL = null;
             await fichaEmpresaRepo.save(fichaSuperAdmin);
-            console.log("✅ Ficha de empresa superadmin ficticio actualizada");
         } else {
             fichaSuperAdmin = fichaEmpresaRepo.create({
                 cargo: "Superadministrador Técnico",
@@ -136,12 +129,11 @@ export async function initialSetup(): Promise<void> {
                 contratoURL: null
             });
             await fichaEmpresaRepo.save(fichaSuperAdmin);
-            console.log("✅ Ficha de empresa superadmin ficticio creada");
         }
 
         console.log("✅ Configuración inicial completada con éxito");
     } catch (error) {
-        console.error("❌ Error en la configuración inicial:", error);
+        console.error("❌ Error en initialSetup:", error);
         throw error;
     }
 }
