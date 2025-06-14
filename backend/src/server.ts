@@ -63,6 +63,12 @@ async function setupServer(): Promise<void> {
         app.use(passport.initialize());
         passportJWTSetup();
 
+        // Middleware global para encoding UTF-8 en todas las respuestas JSON
+        app.use((req, res, next) => {
+            res.setHeader('Content-Type', 'application/json; charset=utf-8');
+            next();
+        });
+
         // Inicializar directorios de archivos
         FileManagementService.ensureUploadDirectories();
         console.log("✅ Directorios de archivos inicializados");

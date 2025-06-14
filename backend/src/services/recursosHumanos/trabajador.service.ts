@@ -278,6 +278,10 @@ export async function updateTrabajadorService(id: number, data: any): Promise<Se
         if (!trabajador) return [null, "Trabajador no encontrado"];
         if (!trabajador.usuario) return [null, "El trabajador no tiene usuario asociado"];
 
+        if (trabajador.rut === "11.111.111-1") {
+            return [null, "No se puede modificar, eliminar ni desvincular al superadministrador."];
+        }
+
         let updated = false;
         let correoUsuarioAnterior = trabajador.usuario.email;
         let correoPersonalAnterior = trabajador.correoPersonal;
@@ -384,6 +388,9 @@ export async function desvincularTrabajadorService(id: number, motivo: string, u
             await queryRunner.rollbackTransaction();
             await queryRunner.release();
             return [null, "Trabajador no encontrado o ya desvinculado"];
+        }
+        if (trabajador.rut === "11.111.111-1") {
+            return [null, "No se puede modificar, eliminar ni desvincular al superadministrador."];
         }
         trabajador.enSistema = false;
         await queryRunner.manager.save(Trabajador, trabajador);

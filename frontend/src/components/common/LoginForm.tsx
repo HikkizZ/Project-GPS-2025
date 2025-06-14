@@ -1,20 +1,32 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { LoginData } from '@/types/auth.types';
 import { useNavigate } from 'react-router-dom';
 
 interface LoginFormProps {
   onSuccess?: () => void;
+  error: string;
+  setError: (msg: string) => void;
 }
 
-export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
+export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, error, setError }) => {
   const { login, isLoading } = useAuth();
   const [formData, setFormData] = useState<LoginData>({
     email: '',
     password: ''
   });
-  const [error, setError] = useState<string>('');
   const navigate = useNavigate();
+
+  useEffect(() => {
+    console.log('LoginForm MONTADO');
+    return () => {
+      console.log('LoginForm DESMONTADO');
+    };
+  }, []);
+
+  // useEffect(() => {
+  //   setError('Este es un mensaje de error de prueba');
+  // }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -22,23 +34,29 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
       ...prev,
       [name]: value
     }));
-    // Limpiar error cuando el usuario empiece a escribir
-    if (error) setError('');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
-    const result = await login(formData);
-    
-    if (result.success) {
-      onSuccess?.();
-      navigate('/dashboard');
-    } else {
-      setError(result.error || 'Error al iniciar sesión');
+    try {
+      const result = await login(formData);
+      console.log('Resultado de login:', result);
+      if (result.success) {
+        onSuccess?.();
+        navigate('/dashboard');
+      } else {
+        console.log('Seteando error:', result.error);
+        setError(result.error || 'Error al iniciar sesión');
+      }
+    } catch (err: any) {
+      console.log('Error en catch de handleSubmit:', err);
+      setError(err?.message || 'Error inesperado al iniciar sesión');
     }
   };
+
+  console.log('Valor de error en render:', error);
 
   return (
     <div className="bg-light d-flex justify-content-center" style={{ minHeight: '100vh', paddingTop: '15vh' }}>
@@ -52,10 +70,16 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
           </div>
           <div className="card-body">
             {error && (
-              <div className="alert alert-danger alert-dismissible fade show">
+              <div className="alert alert-danger alert-dismissible fade show" style={{ border: '2px solid #dc3545', background: '#fff0f0' }}>
                 <i className="bi bi-exclamation-triangle me-2"></i>
                 {error}
                 <button type="button" className="btn-close" onClick={() => setError('')}></button>
+              </div>
+            )}
+            {/* Log visual para depuración */}
+            {error && (
+              <div style={{ color: 'red', fontWeight: 'bold', marginBottom: 8 }}>
+                [DEBUG] Mensaje de error: {error}
               </div>
             )}
             <form onSubmit={handleSubmit}>
@@ -67,7 +91,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
-                  placeholder="patricia.gonzalez@lamas.com"
+                  placeholder="super.administrador@lamas.com"
                   required
                   disabled={isLoading}
                 />
@@ -102,7 +126,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
             <div className="mt-3">
               <small className="text-muted">
                 <strong>Credenciales de prueba:</strong><br/>
-                <strong>Admin:</strong> patricia.gonzalez@lamas.com / 204dm1n8
+                <strong>Admin:</strong> super.administrador@lamas.com / 204dm1n8
               </small>
             </div>
           </div>

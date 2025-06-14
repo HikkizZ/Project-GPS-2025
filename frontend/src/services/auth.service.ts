@@ -1,5 +1,6 @@
 import { API_CONFIG, getAuthHeaders } from '@/config/api.config';
 import { LoginData, RegisterData, AuthResponse, User } from '@/types.d';
+import { jwtDecode } from "jwt-decode";
 
 class AuthService {
   private baseURL = API_CONFIG.BASE_URL;
@@ -22,12 +23,12 @@ class AuthService {
 
       if (!response.ok) {
         if (response.status === 404) {
-          throw new Error('No se puede conectar con el servidor. Por favor, verifica que el servidor esté corriendo.');
+          return { error: 'No se puede conectar con el servidor. Por favor, verifica que el servidor esté corriendo.' };
         }
         const errorData = await response.json().catch(() => ({
           message: 'Error de conexión con el servidor'
         }));
-        throw new Error(errorData.message || 'Error al iniciar sesión');
+        return { error: errorData.message || 'Error al iniciar sesión' };
       }
 
       const data = await response.json();
@@ -37,7 +38,7 @@ class AuthService {
         localStorage.setItem(this.tokenKey, token);
         
         try {
-          const payload = JSON.parse(atob(token.split('.')[1]));
+          const payload = jwtDecode(token);
           const userData = {
             name: payload.name || 'Usuario',
             email: payload.email || credentials.email,
@@ -49,15 +50,15 @@ class AuthService {
         } catch (decodeError) {
           console.error('Error decodificando token:', decodeError);
           this.logout();
-          throw new Error('Error al procesar la información del usuario');
+          return { error: 'Error al procesar la información del usuario' };
         }
       } else {
-        throw new Error(data.message || 'Error al iniciar sesión');
+        return { error: data.message || 'Error al iniciar sesión' };
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error en login:', error);
       this.logout();
-      throw error;
+      return { error: error.message || 'Error de conexión' };
     }
   }
 
@@ -124,7 +125,7 @@ class AuthService {
 
     try {
       // Verificar si el token no está expirado
-      const payload = JSON.parse(atob(token.split('.')[1]));
+      const payload = jwtDecode(token);
       const currentTime = Date.now() / 1000;
       return payload.exp > currentTime;
     } catch {

@@ -63,7 +63,10 @@ export const updateUser = async (req: Request, res: Response) => {
             return res.status(404).json({ message: "Usuario no encontrado" });
         }
         return res.json(user);
-    } catch (error) {
+    } catch (error: any) {
+        if (error.status === 403 && error.message) {
+            return res.status(403).json({ message: error.message });
+        }
         return res.status(500).json({ message: "Error al actualizar usuario" });
     }
 };
@@ -76,7 +79,10 @@ export const updateUserByTrabajador = async (req: Request, res: Response) => {
             return res.status(404).json({ message: "Usuario no encontrado" });
         }
         return res.json(user);
-    } catch (error) {
+    } catch (error: any) {
+        if (error.status === 403 && error.message) {
+            return res.status(403).json({ message: error.message });
+        }
         return res.status(500).json({ message: "Error al actualizar usuario" });
     }
 };   

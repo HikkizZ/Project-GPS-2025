@@ -47,9 +47,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       
       return { success: false, error: response.error || 'Error desconocido' };
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error en login:', error);
-      return { success: false, error: 'Error de conexión' };
+      return { success: false, error: error.message || 'Error de conexión' };
     } finally {
       setIsLoading(false);
     }

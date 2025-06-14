@@ -48,95 +48,95 @@ export async function initialSetup(): Promise<void> {
             console.log("✅ Trabajador admin eliminado");
         });
 
-        // 5. Crear o actualizar el trabajador admin
-        console.log("=> Creando o actualizando trabajador admin...");
-        let adminTrabajador = await trabajadorRepo.findOne({ where: { rut: "20.882.865-7" } });
-        if (adminTrabajador) {
-            adminTrabajador.nombres = "Patricia Yulihana";
-            adminTrabajador.apellidoPaterno = "González";
-            adminTrabajador.apellidoMaterno = "Caamaño";
-            adminTrabajador.fechaNacimiento = new Date("2001-10-15");
-            adminTrabajador.telefono = "+56923847562";
-            adminTrabajador.correoPersonal = "pgonzalezcaamano@gmail.com";
-            adminTrabajador.numeroEmergencia = "+56938374625";
-            adminTrabajador.direccion = "Dirección Principal 123";
-            adminTrabajador.fechaIngreso = new Date();
-            adminTrabajador.enSistema = true;
-            await trabajadorRepo.save(adminTrabajador);
-            console.log("✅ Trabajador admin actualizado con RUT: 20.882.865-7");
+        // 5. Crear o actualizar el trabajador superadmin ficticio
+        console.log("=> Creando o actualizando trabajador superadmin ficticio...");
+        let superAdminTrabajador = await trabajadorRepo.findOne({ where: { rut: "11.111.111-1" } });
+        if (superAdminTrabajador) {
+            superAdminTrabajador.nombres = "Super";
+            superAdminTrabajador.apellidoPaterno = "Administrador";
+            superAdminTrabajador.apellidoMaterno = "Técnico";
+            superAdminTrabajador.fechaNacimiento = new Date("1990-01-01");
+            superAdminTrabajador.telefono = "+56911111111";
+            superAdminTrabajador.correoPersonal = "superadmin@gmail.com";
+            superAdminTrabajador.numeroEmergencia = "+56922222222";
+            superAdminTrabajador.direccion = "Oficina Central 123";
+            superAdminTrabajador.fechaIngreso = new Date();
+            superAdminTrabajador.enSistema = true;
+            await trabajadorRepo.save(superAdminTrabajador);
+            console.log("✅ Trabajador superadmin ficticio actualizado con RUT: 11.111.111-1");
         } else {
-            adminTrabajador = trabajadorRepo.create({
-                rut: "20.882.865-7",
-                nombres: "Patricia Yulihana",
-                apellidoPaterno: "González",
-                apellidoMaterno: "Caamaño",
-                fechaNacimiento: new Date("2001-10-15"),
-                telefono: "+56923847562",
-                correoPersonal: "pgonzalezcaamano@gmail.com",
-                numeroEmergencia: "+56938374625",
-                direccion: "Dirección Principal 123",
+            superAdminTrabajador = trabajadorRepo.create({
+                rut: "11.111.111-1",
+                nombres: "Super",
+                apellidoPaterno: "Administrador",
+                apellidoMaterno: "Técnico",
+                fechaNacimiento: new Date("1990-01-01"),
+                telefono: "+56911111111",
+                correoPersonal: "superadmin@gmail.com",
+                numeroEmergencia: "+56922222222",
+                direccion: "Oficina Central 123",
                 fechaIngreso: new Date(),
                 enSistema: true
             });
-            await trabajadorRepo.save(adminTrabajador);
-            console.log("✅ Trabajador admin creado con RUT: 20.882.865-7");
+            await trabajadorRepo.save(superAdminTrabajador);
+            console.log("✅ Trabajador superadmin ficticio creado con RUT: 11.111.111-1");
         }
 
-        // 6. Crear o actualizar el usuario admin
-        console.log("=> Creando o actualizando usuario admin...");
-        let adminUser = await userRepo.findOne({ where: { rut: "20.882.865-7" } });
-        const adminPlainPassword = "204dm1n8";
-        const hashedPassword = await encryptPassword(adminPlainPassword);
-        if (adminUser) {
-            adminUser.name = "Patricia Yulihana González Caamaño";
-            adminUser.email = "patricia.gonzalez@lamas.com";
-            adminUser.password = hashedPassword;
-            adminUser.role = 'SuperAdministrador';
-            adminUser.estadoCuenta = "Activa";
-            await userRepo.save(adminUser);
-            console.log("✅ Usuario admin actualizado exitosamente");
+        // 6. Crear o actualizar el usuario superadmin ficticio
+        console.log("=> Creando o actualizando usuario superadmin ficticio...");
+        let superAdminUser = await userRepo.findOne({ where: { rut: "11.111.111-1" } });
+        const superAdminPlainPassword = "204dm1n8";
+        const superAdminHashedPassword = await encryptPassword(superAdminPlainPassword);
+        if (superAdminUser) {
+            superAdminUser.name = "Super Administrador Técnico";
+            superAdminUser.email = "super.administrador@lamas.com";
+            superAdminUser.password = superAdminHashedPassword;
+            superAdminUser.role = 'SuperAdministrador';
+            superAdminUser.estadoCuenta = "Activa";
+            await userRepo.save(superAdminUser);
+            console.log("✅ Usuario superadmin ficticio actualizado exitosamente");
         } else {
-            adminUser = userRepo.create({
-                name: "Patricia Yulihana González Caamaño",
-                email: "patricia.gonzalez@lamas.com",
-                password: hashedPassword,
+            superAdminUser = userRepo.create({
+                name: "Super Administrador Técnico",
+                email: "super.administrador@lamas.com",
+                password: superAdminHashedPassword,
                 role: 'SuperAdministrador',
-                rut: "20.882.865-7",
+                rut: "11.111.111-1",
                 estadoCuenta: "Activa"
             });
-            await userRepo.save(adminUser);
-            console.log("✅ Usuario admin creado exitosamente");
+            await userRepo.save(superAdminUser);
+            console.log("✅ Usuario superadmin ficticio creado exitosamente");
         }
 
-        // 7. Crear o actualizar ficha de empresa admin
-        console.log("=> Creando o actualizando ficha de empresa admin...");
-        let fichaAdmin = await fichaEmpresaRepo.findOne({ where: { trabajador: { rut: "20.882.865-7" } }, relations: ["trabajador"] });
-        if (fichaAdmin) {
-            fichaAdmin.cargo = "Desarrollador Full Stack";
-            fichaAdmin.area = "TI";
-            fichaAdmin.tipoContrato = "Indefinido";
-            fichaAdmin.jornadaLaboral = "Completa";
-            fichaAdmin.sueldoBase = 4000000;
-            fichaAdmin.trabajador = adminTrabajador;
-            fichaAdmin.estado = EstadoLaboral.ACTIVO;
-            fichaAdmin.fechaInicioContrato = new Date();
-            fichaAdmin.contratoURL = null;
-            await fichaEmpresaRepo.save(fichaAdmin);
-            console.log("✅ Ficha de empresa admin actualizada");
+        // 7. Crear o actualizar ficha de empresa superadmin ficticio
+        console.log("=> Creando o actualizando ficha de empresa superadmin ficticio...");
+        let fichaSuperAdmin = await fichaEmpresaRepo.findOne({ where: { trabajador: { rut: "11.111.111-1" } }, relations: ["trabajador"] });
+        if (fichaSuperAdmin) {
+            fichaSuperAdmin.cargo = "Superadministrador Técnico";
+            fichaSuperAdmin.area = "TI";
+            fichaSuperAdmin.tipoContrato = "Indefinido";
+            fichaSuperAdmin.jornadaLaboral = "Completa";
+            fichaSuperAdmin.sueldoBase = 4000000;
+            fichaSuperAdmin.trabajador = superAdminTrabajador;
+            fichaSuperAdmin.estado = EstadoLaboral.ACTIVO;
+            fichaSuperAdmin.fechaInicioContrato = new Date();
+            fichaSuperAdmin.contratoURL = null;
+            await fichaEmpresaRepo.save(fichaSuperAdmin);
+            console.log("✅ Ficha de empresa superadmin ficticio actualizada");
         } else {
-            fichaAdmin = fichaEmpresaRepo.create({
-                cargo: "Desarrollador Full Stack",
+            fichaSuperAdmin = fichaEmpresaRepo.create({
+                cargo: "Superadministrador Técnico",
                 area: "TI",
                 tipoContrato: "Indefinido",
                 jornadaLaboral: "Completa",
                 sueldoBase: 4000000,
-                trabajador: adminTrabajador,
+                trabajador: superAdminTrabajador,
                 estado: EstadoLaboral.ACTIVO,
                 fechaInicioContrato: new Date(),
                 contratoURL: null
             });
-            await fichaEmpresaRepo.save(fichaAdmin);
-            console.log("✅ Ficha de empresa admin creada");
+            await fichaEmpresaRepo.save(fichaSuperAdmin);
+            console.log("✅ Ficha de empresa superadmin ficticio creada");
         }
 
         console.log("✅ Configuración inicial completada con éxito");

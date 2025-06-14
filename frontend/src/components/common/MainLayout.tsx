@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useRut } from '@/hooks/useRut';
 
 interface MainLayoutProps {
   user: { name: string; role: string; rut: string };
@@ -9,6 +10,7 @@ interface MainLayoutProps {
 
 const MainLayout: React.FC<MainLayoutProps> = ({ user, onLogout, children }) => {
   const navigate = useNavigate();
+  const { formatRUT } = useRut();
 
   return (
     <div className="min-vh-100 d-flex flex-column">
@@ -41,7 +43,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ user, onLogout, children }) => 
                   <span className="dropdown-item-text">
                     <strong>Usuario:</strong> {user.name}<br />
                     <strong>Rol:</strong> {user.role}<br />
-                    <strong>RUT:</strong> {user.rut}
+                    <strong>RUT:</strong> {formatRUT(user.rut)}
                   </span>
                 </li>
                 <li><hr className="dropdown-divider" /></li>
