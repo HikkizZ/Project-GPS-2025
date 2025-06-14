@@ -16,9 +16,6 @@ export class User {
     @Column({ type: "varchar", length: 100 })
     password: string;
 
-    @Column({ type: "varchar", length: 100, nullable: true })
-    originalPassword: string;
-
     @Column({ type: "enum", enum: [
         'SuperAdministrador',
         'Administrador',
