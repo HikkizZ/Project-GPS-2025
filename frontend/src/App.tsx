@@ -7,7 +7,7 @@ import { UsersPage } from './pages/UsersPage';
 import { TrabajadoresPage } from './pages/recursosHumanos/TrabajadoresPage';
 import { authService } from './services/auth.service';
 import { Card, Row, Col } from 'react-bootstrap';
-import { useNavigate, Routes, Route, Navigate } from 'react-router-dom';
+import { useNavigate, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import DashboardRecursosHumanos from './pages/recursosHumanos/DashboardRecursosHumanos';
 import MainLayout from './components/common/MainLayout';
 import GestionPersonalPage from './pages/GestionPersonalPage';
@@ -419,31 +419,51 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
   return renderPage();
 };
 
+function PublicRoute({ children }: { children: JSX.Element }) {
+  const { isAuthenticated } = useAuth();
+  return isAuthenticated ? <Navigate to="/dashboard" replace /> : children;
+}
+
 // App principal
 function App() {
   const { isAuthenticated, user, logout, isLoading } = useAuth();
+  const location = useLocation();
 
   if (isLoading) {
     return <div className="loading-screen"><div className="loader">Cargando...</div></div>;
   }
 
-  const handleLogout = () => {
-    logout();
-    window.location.href = '/login';
-  };
-
   const safeUser = user ?? { name: 'Usuario', role: 'Invitado', rut: 'N/A' };
-  return isAuthenticated ? (
+
+  return (
     <Routes>
-      <Route path="/" element={<Navigate to="/dashboard" replace />} />
-      <Route path="/dashboard" element={<MainLayout user={safeUser} onLogout={handleLogout}><Dashboard user={safeUser} /></MainLayout>} />
-      <Route path="/recursos-humanos" element={<MainLayout user={safeUser} onLogout={handleLogout}><DashboardRecursosHumanos /></MainLayout>} />
-      <Route path="/trabajadores" element={<MainLayout user={safeUser} onLogout={handleLogout}><TrabajadoresPage /></MainLayout>} />
-      <Route path="/fichas-empresa" element={<MainLayout user={safeUser} onLogout={handleLogout}><FichasEmpresaPage /></MainLayout>} />
-      <Route path="/usuarios" element={<MainLayout user={safeUser} onLogout={handleLogout}><UsersPage /></MainLayout>} />
-      <Route path="/gestion-personal" element={<MainLayout user={safeUser} onLogout={handleLogout}><GestionPersonalPage /></MainLayout>} />
+      <Route path="/login" element={
+        <PublicRoute>
+          <LoginPage />
+        </PublicRoute>
+      } />
+      <Route
+        path="/*"
+        element={
+          isAuthenticated ? (
+            <MainLayout user={safeUser} onLogout={logout}>
+              <Routes>
+                <Route path="dashboard" element={<Dashboard user={safeUser} />} />
+                <Route path="recursos-humanos" element={<DashboardRecursosHumanos />} />
+                <Route path="trabajadores" element={<TrabajadoresPage />} />
+                <Route path="fichas-empresa" element={<FichasEmpresaPage />} />
+                <Route path="usuarios" element={<UsersPage />} />
+                <Route path="gestion-personal" element={<GestionPersonalPage />} />
+                <Route path="*" element={<Navigate to="dashboard" replace />} />
+              </Routes>
+            </MainLayout>
+          ) : (
+            location.pathname === '/login' ? null : <Navigate to="/login" state={{ from: location }} replace />
+          )
+        }
+      />
     </Routes>
-  ) : <LoginPage />;
+  );
 }
 
 export default App; 

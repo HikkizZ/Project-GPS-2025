@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { LoginForm } from '@/components/common/LoginForm';
+import { useUI } from '@/context/UIContext';
 
 export const LoginPage: React.FC = () => {
-  const [error, setError] = useState('');
+  const { error, setError } = useUI();
   return (
     <div className="login-page">
       <main className="login-main">

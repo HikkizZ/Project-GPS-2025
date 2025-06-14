@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import App from './App.tsx'
 import { AuthProvider } from './context/AuthContext.tsx'
 import { BrowserRouter } from 'react-router-dom'
+import { UIProvider } from './context/UIContext'
 
 // Importar Bootstrap completo
 import 'bootstrap/dist/css/bootstrap.min.css'
@@ -20,7 +21,9 @@ if (rootElement) {
     <StrictMode>
       <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <AuthProvider>
-          <App />
+          <UIProvider>
+            <App />
+          </UIProvider>
         </AuthProvider>
       </BrowserRouter>
     </StrictMode>

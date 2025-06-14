@@ -70,16 +70,10 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, error, setError
           </div>
           <div className="card-body">
             {error && (
-              <div className="alert alert-danger alert-dismissible fade show" style={{ border: '2px solid #dc3545', background: '#fff0f0' }}>
+              <div className="alert alert-danger alert-dismissible fade show">
                 <i className="bi bi-exclamation-triangle me-2"></i>
                 {error}
                 <button type="button" className="btn-close" onClick={() => setError('')}></button>
-              </div>
-            )}
-            {/* Log visual para depuración */}
-            {error && (
-              <div style={{ color: 'red', fontWeight: 'bold', marginBottom: 8 }}>
-                [DEBUG] Mensaje de error: {error}
               </div>
             )}
             <form onSubmit={handleSubmit}>
