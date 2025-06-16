@@ -253,6 +253,14 @@ export async function searchTrabajadoresService(query: any): Promise<ServiceResp
         if (query.correoPersonal) whereClause.correoPersonal = ILike(`%${query.correoPersonal}%`);
         if (query.telefono) whereClause.telefono = ILike(`%${query.telefono}%`);
 
+        // Filtro para solo eliminados
+        if (query.soloEliminados) {
+            whereClause.enSistema = false;
+        } else if (!query.todos) {
+            // Si no se pide todos, solo mostrar activos por defecto
+            whereClause.enSistema = true;
+        }
+
         const trabajadores = await trabajadorRepo.find({
             relations: ["fichaEmpresa", "historialLaboral", "licenciasPermisos", "capacitaciones"],
             where: whereClause

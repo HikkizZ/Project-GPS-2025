@@ -63,11 +63,9 @@ export const TrabajadorQueryValidation = Joi.object({
 
     correoPersonal: Joi.string()
         .email()
-        .required()
         .messages({
             "string.base": "El correo personal debe ser una cadena de texto.",
-            "string.email": "El correo personal debe tener un formato válido.",
-            "any.required": "El correo personal es requerido."
+            "string.email": "El correo personal debe tener un formato válido."
         }),
 
     numeroEmergencia: Joi.string()
