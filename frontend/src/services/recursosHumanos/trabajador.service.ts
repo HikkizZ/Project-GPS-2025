@@ -107,24 +107,6 @@ class TrabajadorService {
       );
 
       if (response.data.status === 'success' && response.data.data) {
-        // Si se actualizó el trabajador y hay cambios en el nombre, actualizamos el usuario
-        if (trabajadorData.nombres || trabajadorData.apellidoPaterno || trabajadorData.apellidoMaterno) {
-          try {
-            await axios.put(
-              `${API_CONFIG.BASE_URL}/users/actualizar-por-trabajador/${id}`,
-              {
-                nombres: trabajadorData.nombres,
-                apellidoPaterno: trabajadorData.apellidoPaterno,
-                apellidoMaterno: trabajadorData.apellidoMaterno
-              },
-              { headers: this.getHeaders() }
-            );
-          } catch (userError) {
-            console.error('Error al actualizar usuario:', userError);
-            // No fallamos la operación completa si falla la actualización del usuario
-          }
-        }
-
         // Asegurarnos de que data es un único trabajador y no un array
         const trabajador = Array.isArray(response.data.data) ? response.data.data[0] : response.data.data;
         return { trabajador };

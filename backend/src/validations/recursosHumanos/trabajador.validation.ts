@@ -283,9 +283,12 @@ export const TrabajadorUpdateValidation = Joi.object({
         "any.unknown": "No se puede modificar el RUT"
     }),
 
-    correoPersonal: Joi.any().forbidden().messages({
-        "any.unknown": "No se puede modificar el correo personal"
-    }),
+    correoPersonal: Joi.string()
+        .email()
+        .messages({
+            "string.base": "El correo personal debe ser una cadena de texto.",
+            "string.email": "El correo personal debe tener un formato válido."
+        }),
 
     fechaIngreso: Joi.any().forbidden().messages({
         "any.unknown": "No se puede modificar la fecha de ingreso"

@@ -285,7 +285,6 @@ export async function updateTrabajadorService(id: number, data: any): Promise<Se
         let updated = false;
         let correoUsuarioAnterior = trabajador.usuario.email;
         let correoPersonalAnterior = trabajador.correoPersonal;
-        let passwordTemporal: string | null = null;
 
         // Actualizar campos permitidos del trabajador
         const camposPermitidos = [
@@ -312,24 +311,6 @@ export async function updateTrabajadorService(id: number, data: any): Promise<Se
             data.nombres || data.apellidoPaterno || data.apellidoMaterno
         ) {
             trabajador.usuario.name = `${data.nombres || trabajador.nombres} ${data.apellidoPaterno || trabajador.apellidoPaterno} ${data.apellidoMaterno || trabajador.apellidoMaterno}`;
-            updated = true;
-        }
-
-        // Si se actualiza el correoPersonal, generar nueva contraseña y enviar correo
-        if (data.correoPersonal && data.correoPersonal !== correoPersonalAnterior) {
-            // Generar nueva contraseña
-            passwordTemporal = generateRandomPassword();
-            const hashedPassword = await encryptPassword(passwordTemporal);
-            trabajador.usuario.password = hashedPassword;
-            // Enviar correo con credenciales (excepto superadmin)
-            if (!(trabajador.rut === "20.882.865-7")) {
-                await sendCredentialsEmail({
-                    to: data.correoPersonal,
-                    nombre: data.nombres || trabajador.nombres,
-                    correoUsuario: trabajador.usuario.email,
-                    passwordTemporal
-                });
-            }
             updated = true;
         }
 

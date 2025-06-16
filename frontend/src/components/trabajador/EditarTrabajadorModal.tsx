@@ -170,7 +170,7 @@ export const EditarTrabajadorModal: React.FC<EditarTrabajadorModalProps> = ({
                   required
                 />
                 <Form.Text className="text-muted">
-                  Si cambias el correo personal, se enviará un nuevo correo con credenciales a la nueva dirección
+                  Si cambias el correo personal, solo se actualizará en el sistema para futuras comunicaciones.
                 </Form.Text>
               </Form.Group>
             </div>
