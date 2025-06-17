@@ -253,11 +253,13 @@ export async function searchTrabajadoresService(query: any): Promise<ServiceResp
         if (query.correoPersonal) whereClause.correoPersonal = ILike(`%${query.correoPersonal}%`);
         if (query.telefono) whereClause.telefono = ILike(`%${query.telefono}%`);
 
-        // Filtro para solo eliminados
-        if (query.soloEliminados) {
+        // Interpretar correctamente los valores booleanos
+        const soloEliminados = query.soloEliminados === true || query.soloEliminados === "true";
+        const todos = query.todos === true || query.todos === "true";
+
+        if (soloEliminados) {
             whereClause.enSistema = false;
-        } else if (!query.todos) {
-            // Si no se pide todos, solo mostrar activos por defecto
+        } else if (!todos) {
             whereClause.enSistema = true;
         }
 

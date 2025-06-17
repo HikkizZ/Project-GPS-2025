@@ -252,14 +252,26 @@ export const TrabajadoresPage: React.FC = () => {
                   type="checkbox"
                   label="Incluir trabajadores eliminados (soft delete)"
                   checked={searchParams.todos || false}
-                  onChange={(e) => setSearchParams({ ...searchParams, todos: e.target.checked })}
+                  onChange={(e) => {
+                    setSearchParams({
+                      ...searchParams,
+                      todos: e.target.checked,
+                      soloEliminados: e.target.checked ? false : searchParams.soloEliminados
+                    });
+                  }}
                   id="includeInactive"
                 />
                 <Form.Check
                   type="checkbox"
                   label="Sólo mostrar trabajadores eliminados (soft delete)"
                   checked={searchParams.soloEliminados || false}
-                  onChange={(e) => setSearchParams({ ...searchParams, soloEliminados: e.target.checked })}
+                  onChange={(e) => {
+                    setSearchParams({
+                      ...searchParams,
+                      soloEliminados: e.target.checked,
+                      todos: e.target.checked ? false : searchParams.todos
+                    });
+                  }}
                   id="onlyInactive"
                 />
               </div>
