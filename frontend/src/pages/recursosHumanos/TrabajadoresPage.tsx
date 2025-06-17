@@ -250,7 +250,7 @@ export const TrabajadoresPage: React.FC = () => {
               <div className="d-flex gap-3">
                 <Form.Check
                   type="checkbox"
-                  label="Incluir trabajadores eliminados (soft delete)"
+                  label="Incluir trabajadores desvinculados"
                   checked={searchParams.todos || false}
                   onChange={(e) => {
                     setSearchParams({
@@ -263,7 +263,7 @@ export const TrabajadoresPage: React.FC = () => {
                 />
                 <Form.Check
                   type="checkbox"
-                  label="Sólo mostrar trabajadores eliminados (soft delete)"
+                  label="Sólo mostrar trabajadores desvinculados"
                   checked={searchParams.soloEliminados || false}
                   onChange={(e) => {
                     setSearchParams({
