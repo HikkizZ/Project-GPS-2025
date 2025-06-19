@@ -37,14 +37,14 @@ export const authValidation = Joi.object({
         .min(8)
         .max(16)
         .required()
-        .pattern(/^[a-zA-Z0-9]+$/)
+        .pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,16}$/)
         .messages({
             "string.base": "La contraseña debe ser de tipo texto.",
             "string.empty": "El campo de la contraseña no puede estar vacío.",
             "string.min": "La contraseña debe tener al menos 8 caracteres.",
             "string.max": "La contraseña debe tener menos de 16 caracteres.",
             "any.required": "La contraseña es requerida.",
-            "string.pattern.base": "La contraseña solo puede contener letras y números."
+            "string.pattern.base": "La contraseña debe tener al menos una mayúscula, una minúscula, un número y un carácter especial."
         }),
 }).messages({
     "object.unknown": "El objeto contiene campos no permitidos."
@@ -99,14 +99,14 @@ export const registerValidation = Joi.object({
         .min(8)
         .max(16)
         .required()
-        .pattern(/^[a-zA-Z0-9]+$/)
+        .pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,16}$/)
         .messages({
             "string.base": "La contraseña debe ser de tipo texto.",
             "string.empty": "El campo de la contraseña no puede estar vacío.",
             "string.min": "La contraseña debe tener al menos 8 caracteres.",
             "string.max": "La contraseña debe tener menos de 16 caracteres.",
             "any.required": "La contraseña es requerida.",
-            "string.pattern.base": "La contraseña solo puede contener letras y números."
+            "string.pattern.base": "La contraseña debe tener al menos una mayúscula, una minúscula, un número y un carácter especial."
         }),
 
     role: Joi.string()

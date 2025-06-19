@@ -81,7 +81,7 @@ export async function initialSetup(): Promise<void> {
         // 6. Crear o actualizar el usuario superadmin ficticio
         console.log("=> Creando o actualizando usuario superadmin ficticio...");
         let superAdminUser = await userRepo.findOne({ where: { rut: "11.111.111-1" } });
-        const superAdminPlainPassword = "204dm1n8";
+        const superAdminPlainPassword = "204_M1n8";
         const superAdminHashedPassword = await encryptPassword(superAdminPlainPassword);
         if (superAdminUser) {
             superAdminUser.name = "Super Administrador Técnico";

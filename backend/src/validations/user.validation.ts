@@ -111,24 +111,24 @@ export const userBodyValidation: ObjectSchema = Joi.object({
     password: Joi.string()
         .min(8)
         .max(16)
-        .pattern(/^[a-zA-Z0-9]+$/)
+        .pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,16}$/)
         .messages({
             "string.base": "La contraseña debe ser de tipo texto.",
             "string.empty": "El campo de la contraseña no puede estar vacío.",
             "string.min": "La contraseña debe tener al menos 8 caracteres.",
             "string.max": "La contraseña debe tener menos de 16 caracteres.",
-            "string.pattern.base": "La contraseña solo puede contener letras y números."
+            "string.pattern.base": "La contraseña debe tener al menos una mayúscula, una minúscula, un número y un carácter especial."
         }),
     newPassword: Joi.string()
         .min(8)
         .max(16)
-        .pattern(/^[a-zA-Z0-9]+$/)
+        .pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,16}$/)
         .messages({
             "string.base": "La nueva contraseña debe ser de tipo texto.",
             "string.empty": "El campo de la nueva contraseña no puede estar vacío.",
             "string.min": "La nueva contraseña debe tener al menos 8 caracteres.",
             "string.max": "La nueva contraseña debe tener menos de 16 caracteres.",
-            "string.pattern.base": "La nueva contraseña solo puede contener letras y números."
+            "string.pattern.base": "La nueva contraseña debe tener al menos una mayúscula, una minúscula, un número y un carácter especial."
         }),
     role: Joi.string()
         .min(3)

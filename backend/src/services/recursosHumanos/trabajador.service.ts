@@ -13,14 +13,25 @@ import { Between } from "typeorm";
 import { hashPassword } from '../../utils/password.utils.js';
 import { sendCredentialsEmail } from '../../utils/email.service.js';
 
-// Función para generar una contraseña de exactamente 8 caracteres
+// Generar contraseña segura de 8 a 16 caracteres
 function generateRandomPassword(): string {
-    const caracteres = 'abcdefghijklmnopqrstuvwxyz0123456789';
+    const mayus = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const minus = 'abcdefghijklmnopqrstuvwxyz';
+    const nums = '0123456789';
+    const specials = '!@#$%^&*()_+-=,.;:<>?[]{}|';
+    const all = mayus + minus + nums + specials;
     let password = '';
-    for (let i = 0; i < 8; i++) {
-        password += caracteres.charAt(Math.floor(Math.random() * caracteres.length));
+    // Garantizar al menos uno de cada tipo
+    password += mayus.charAt(Math.floor(Math.random() * mayus.length));
+    password += minus.charAt(Math.floor(Math.random() * minus.length));
+    password += nums.charAt(Math.floor(Math.random() * nums.length));
+    password += specials.charAt(Math.floor(Math.random() * specials.length));
+    // Rellenar el resto
+    for (let i = 4; i < 12; i++) {
+        password += all.charAt(Math.floor(Math.random() * all.length));
     }
-    return password;
+    // Mezclar la contraseña
+    return password.split('').sort(() => 0.5 - Math.random()).join('');
 }
 
 // Función para generar correo corporativo y manejar duplicados

@@ -71,16 +71,8 @@ export async function loginService(user: LoginData): Promise<[string | null, aut
         }
 
         // Validaciones de formato de contraseña
-        if (password.length < 8) {
-            return [null, createErrorMessage({ password }, "La contraseña debe tener al menos 8 caracteres.")];
-        }
-
-        if (password.length > 16) {
-            return [null, createErrorMessage({ password }, "La contraseña debe tener menos de 16 caracteres.")];
-        }
-
-        if (!/^[a-zA-Z0-9]+$/.test(password)) {
-            return [null, createErrorMessage({ password }, "La contraseña solo puede contener letras y números.")];
+        if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,16}$/.test(password)) {
+            return [null, createErrorMessage({ password }, "La contraseña debe tener entre 8 y 16 caracteres, al menos una mayúscula, una minúscula, un número y un carácter especial.")];
         }
 
         // Buscar usuario y verificar credenciales

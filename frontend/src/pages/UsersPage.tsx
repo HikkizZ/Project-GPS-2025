@@ -536,14 +536,14 @@ export const UsersPage: React.FC = () => {
                   Nueva Contraseña
                 </Form.Label>
                 <Form.Control
-                  type="text"
+                  type="password"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   placeholder="Dejar vacío para mantener la actual"
-                  maxLength={8}
+                  maxLength={16}
                 />
                 <Form.Text className="text-muted">
-                  La contraseña debe tener exactamente 8 caracteres si se desea cambiar
+                  La contraseña debe tener entre 8 y 16 caracteres, al menos una mayúscula, una minúscula, un número y un carácter especial.
                 </Form.Text>
               </Form.Group>
             </Form>
