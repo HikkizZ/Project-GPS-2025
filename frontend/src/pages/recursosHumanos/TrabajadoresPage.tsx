@@ -268,10 +268,11 @@ export const TrabajadoresPage: React.FC = () => {
                     setSearchParams({
                       ...searchParams,
                       todos: e.target.checked,
-                      soloEliminados: e.target.checked ? false : searchParams.soloEliminados
+                      soloEliminados: false
                     });
                   }}
                   id="includeInactive"
+                  disabled={searchParams.soloEliminados}
                 />
                 <Form.Check
                   type="checkbox"
@@ -281,10 +282,11 @@ export const TrabajadoresPage: React.FC = () => {
                     setSearchParams({
                       ...searchParams,
                       soloEliminados: e.target.checked,
-                      todos: e.target.checked ? false : searchParams.todos
+                      todos: false
                     });
                   }}
                   id="onlyInactive"
+                  disabled={searchParams.todos}
                 />
               </div>
             </div>
