@@ -8,7 +8,6 @@ import fichaEmpresaRoutes from './recursosHumanos/fichaEmpresa.routes.js';
 import licenciaPermisoRoutes from './recursosHumanos/licenciaPermiso.routes.js';
 import trabajadorRoutes from './recursosHumanos/trabajador.routes.js';
 import historialLaboralRoutes from './recursosHumanos/historialLaboral.routes.js';
-import capacitacionRoutes from './recursosHumanos/capacitacion.routes.js';
 import filesRoutes from './files.routes.js';
 import { authenticateJWT } from '../middlewares/authentication.middleware.js';
 
@@ -38,7 +37,6 @@ router.use('/ficha-empresa', fichaEmpresaRoutes);
 router.use('/licencia-permiso', licenciaPermisoRoutes);
 router.use('/trabajadores', trabajadorRoutes);
 router.use('/historial-laboral', historialLaboralRoutes);
-router.use('/capacitacion', capacitacionRoutes);
 router.use('/files', filesRoutes);
 
 export default router;

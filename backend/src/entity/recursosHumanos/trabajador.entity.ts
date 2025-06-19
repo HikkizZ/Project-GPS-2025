@@ -9,7 +9,6 @@ import {
 } from "typeorm";
 import { HistorialLaboral } from "./historialLaboral.entity.js";
 import { LicenciaPermiso } from "./licenciaPermiso.entity.js";
-import { Capacitacion } from "./capacitacion.entity.js";
 import { User } from "../user.entity.js";
 
 @Entity("trabajadores")
@@ -106,10 +105,6 @@ export class Trabajador {
   // Relación 1:N con licencias/permiso
   @OneToMany(() => LicenciaPermiso, licenciaPermiso => licenciaPermiso.trabajador)
   licenciasPermisos!: LicenciaPermiso[];
-
-  // Relación 1:N con capacitaciones
-  @OneToMany(() => Capacitacion, capacitacion => capacitacion.trabajador)
-  capacitaciones!: Capacitacion[];
 
   // Relación 1:1 con usuario
   @OneToOne(() => User, user => user.trabajador)

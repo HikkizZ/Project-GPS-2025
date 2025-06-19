@@ -232,7 +232,7 @@ export async function getTrabajadoresService(incluirInactivos: boolean = false):
     try {
         const trabajadorRepo = AppDataSource.getRepository(Trabajador);
         const trabajadores = await trabajadorRepo.find({
-            relations: ["usuario", "fichaEmpresa", "historialLaboral", "licenciasPermisos", "capacitaciones"],
+            relations: ["usuario", "fichaEmpresa", "historialLaboral", "licenciasPermisos"],
             where: incluirInactivos ? {} : { enSistema: true }
         });
 
@@ -265,7 +265,6 @@ export async function searchTrabajadoresService(query: any): Promise<ServiceResp
                 .leftJoinAndSelect("trabajador.fichaEmpresa", "fichaEmpresa")
                 .leftJoinAndSelect("trabajador.historialLaboral", "historialLaboral")
                 .leftJoinAndSelect("trabajador.licenciasPermisos", "licenciasPermisos")
-                .leftJoinAndSelect("trabajador.capacitaciones", "capacitaciones")
                 .where("REPLACE(REPLACE(trabajador.rut, '.', ''), '-', '') = :cleanRut", { cleanRut })
                 .getMany();
             if (!trabajadores.length) {
@@ -297,7 +296,7 @@ export async function searchTrabajadoresService(query: any): Promise<ServiceResp
             whereClause.enSistema = true;
         }
         const trabajadores = await trabajadorRepo.find({
-            relations: ["fichaEmpresa", "historialLaboral", "licenciasPermisos", "capacitaciones"],
+            relations: ["fichaEmpresa", "historialLaboral", "licenciasPermisos"],
             where: whereClause
         });
         if (!trabajadores.length) {

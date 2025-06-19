@@ -16,8 +16,6 @@ const storage = multer.diskStorage({
             uploadDir += 'contratos/';
         } else if (req.baseUrl.includes('historial-laboral')) {
             uploadDir += 'historial/';
-        } else if (req.baseUrl.includes('capacitacion')) {
-            uploadDir += 'certificados/';
         } else {
             uploadDir += 'general/';
         }

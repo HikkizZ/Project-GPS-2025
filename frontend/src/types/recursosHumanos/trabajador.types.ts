@@ -29,15 +29,6 @@ export interface LicenciaPermiso {
   estado: string;
 }
 
-export interface Capacitacion {
-  id: number;
-  nombre: string;
-  institucion: string;
-  fechaInicio: string | Date;
-  fechaFin?: string | Date;
-  certificadoURL?: string;
-}
-
 export interface Trabajador {
   id: number;
   rut: string;
@@ -55,7 +46,6 @@ export interface Trabajador {
   fichaEmpresa?: FichaEmpresa;
   historialLaboral?: HistorialLaboral[];
   licenciasPermisos?: LicenciaPermiso[];
-  capacitaciones?: Capacitacion[];
 }
 
 export interface CreateTrabajadorData {

@@ -6,7 +6,6 @@ import { Trabajador } from "../entity/recursosHumanos/trabajador.entity.js";
 import { HistorialLaboral } from "../entity/recursosHumanos/historialLaboral.entity.js";
 import { FichaEmpresa } from "../entity/recursosHumanos/fichaEmpresa.entity.js";
 import { LicenciaPermiso } from "../entity/recursosHumanos/licenciaPermiso.entity.js";
-import { Capacitacion } from "../entity/recursosHumanos/capacitacion.entity.js";
 
 /* Import custom modules. */
 import { PORT, HOST, DATABASE, DB_USERNAME, DB_PASSWORD } from "./configEnv.js";
@@ -59,7 +58,7 @@ export const AppDataSource = new DataSource({
     database: process.env.DATABASE || "gps_db",
     synchronize: true,
     logging: true,
-    entities: [User, Trabajador, HistorialLaboral, FichaEmpresa, LicenciaPermiso, Capacitacion],
+    entities: [User, Trabajador, HistorialLaboral, FichaEmpresa, LicenciaPermiso],
     subscribers: [],
     migrations: [],
     ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false

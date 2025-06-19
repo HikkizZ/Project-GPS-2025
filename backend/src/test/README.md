@@ -37,7 +37,6 @@ npm run cleanup
 ## 📋 Datos que se Limpian Automáticamente
 
 Al finalizar los tests se eliminan:
-- ✅ Capacitaciones de prueba
 - ✅ Licencias y permisos de prueba  
 - ✅ Historial laboral de prueba
 - ✅ Fichas de empresa de prueba

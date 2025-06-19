@@ -4,7 +4,6 @@ import { FichaEmpresa } from "../entity/recursosHumanos/fichaEmpresa.entity.js";
 import { User } from "../entity/user.entity.js";
 import { HistorialLaboral } from "../entity/recursosHumanos/historialLaboral.entity.js";
 import { LicenciaPermiso } from "../entity/recursosHumanos/licenciaPermiso.entity.js";
-import { Capacitacion } from "../entity/recursosHumanos/capacitacion.entity.js";
 
 async function limpiarBaseDatos() {
   try {
@@ -15,9 +14,6 @@ async function limpiarBaseDatos() {
     console.log("✅ Conexión a la base de datos establecida");
 
     // Limpiar en orden correcto (por dependencias)
-    console.log("🔄 Eliminando capacitaciones...");
-    await AppDataSource.getRepository(Capacitacion).delete({});
-
     console.log("🔄 Eliminando licencias y permisos...");
     await AppDataSource.getRepository(LicenciaPermiso).delete({});
 

@@ -15,7 +15,6 @@ import { Trabajador } from "../entity/recursosHumanos/trabajador.entity.js";
 import { FichaEmpresa } from "../entity/recursosHumanos/fichaEmpresa.entity.js";
 import { HistorialLaboral } from "../entity/recursosHumanos/historialLaboral.entity.js";
 import { LicenciaPermiso } from "../entity/recursosHumanos/licenciaPermiso.entity.js";
-import { Capacitacion } from "../entity/recursosHumanos/capacitacion.entity.js";
 
 let app: Application;
 let server: any;
@@ -88,7 +87,6 @@ export async function cleanupAllTestData(): Promise<void> {
         }
 
         // Limpiar en orden correcto (por dependencias)
-        await AppDataSource.getRepository(Capacitacion).delete({});
         await AppDataSource.getRepository(LicenciaPermiso).delete({});
         await AppDataSource.getRepository(HistorialLaboral).delete({});
         await AppDataSource.getRepository(FichaEmpresa).delete({});
