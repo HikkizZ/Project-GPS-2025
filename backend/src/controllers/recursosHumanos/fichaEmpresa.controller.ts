@@ -6,7 +6,7 @@ import { User } from "../../entity/user.entity.js";
 import { handleSuccess, handleErrorClient, handleErrorServer } from "../../handlers/responseHandlers.js";
 import { FichaEmpresaBodyValidation, FichaEmpresaUpdateValidation, EstadoFichaValidation } from "../../validations/recursosHumanos/fichaEmpresa.validation.js";
 import { FileManagementService } from "../../services/fileManagement.service.js";
-import { FileUploadService } from "../../services/FileUploadService.js";
+import { FileUploadService } from "../../services/fileUpload.service.js";
 import {
     searchFichasEmpresa,
     getFichaEmpresaById,

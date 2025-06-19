@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { authenticateJWT } from "../../middlewares/authentication.middleware.js";
 import { verifyRole } from "../../middlewares/authorization.middleware.js";
-import { FileUploadService } from "../../services/FileUploadService.js";
+import { FileUploadService } from "../../services/fileUpload.service.js";
 import {
     getLicenciaPermisoById,
     getAllLicenciasPermisos,

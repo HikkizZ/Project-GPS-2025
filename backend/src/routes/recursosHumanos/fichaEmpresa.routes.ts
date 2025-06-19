@@ -11,7 +11,7 @@ import {
     uploadContrato,
     deleteContrato
 } from "../../controllers/recursosHumanos/fichaEmpresa.controller.js";
-import { FileUploadService } from "../../services/FileUploadService.js";
+import { FileUploadService } from "../../services/fileUpload.service.js";
 
 const router: Router = Router();
 

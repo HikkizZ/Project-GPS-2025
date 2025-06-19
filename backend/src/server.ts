@@ -16,7 +16,7 @@ import { passportJWTSetup } from "./auth/passport.auth.js";
 import { initialSetup } from "./utils/initialSetup.js";
 import { authenticateJWT } from "./middlewares/authentication.middleware.js";
 import { FileManagementService } from "./services/fileManagement.service.js";
-import { FileUploadService } from "./services/FileUploadService.js";
+import { FileUploadService } from "./services/fileUpload.service.js";
 import userRoutes from "./routes/user.routes.js";
 
 // Exportar la aplicación y el servidor para las pruebas

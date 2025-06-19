@@ -1,22 +1,12 @@
 import multer from 'multer';
 import path from 'path';
-import fs from 'fs';
 import { FileManagementService } from './fileManagement.service.js';
 
 /**
- * Servicio para gestión de subida de archivos
+ * Servicio para configuración de subida de archivos
  */
 export class FileUploadService {
     private static readonly UPLOADS_DIR = process.env.UPLOADS_DIR || path.join(process.cwd(), 'uploads');
-
-    /**
-     * Crea los directorios necesarios para la subida de archivos
-     */
-    private static ensureDirectoryExists(dirPath: string): void {
-        if (!fs.existsSync(dirPath)) {
-            fs.mkdirSync(dirPath, { recursive: true, mode: 0o755 });
-        }
-    }
 
     /**
      * Configuración de almacenamiento con estructura de carpetas organizada
@@ -37,7 +27,7 @@ export class FileUploadService {
             }
 
             // Crear el directorio si no existe
-            FileUploadService.ensureDirectoryExists(uploadDir);
+            FileManagementService.ensureUploadDirectories();
             cb(null, uploadDir);
         },
         filename: (req, file, cb) => {
@@ -103,24 +93,20 @@ export class FileUploadService {
     }
 
     /**
-     * Elimina un archivo de contrato específico
+     * Elimina un archivo de contrato específico usando FileManagementService
      */
     static deleteContratoFile(filename: string): boolean {
-        try {
-            const filePath = FileUploadService.getContratoPath(filename);
-            if (fs.existsSync(filePath)) {
-                fs.unlinkSync(filePath);
-                return true;
-            }
-            return false;
-        } catch (error) {
+        const filePath = FileUploadService.getContratoPath(filename);
+        const [success, error] = FileManagementService.deleteFile(filePath);
+        if (error) {
             console.error('Error al eliminar archivo de contrato:', error);
             return false;
         }
+        return success || false;
     }
 
     /**
-     * Elimina un archivo usando FileManagementService (más robusto)
+     * Elimina un archivo usando FileManagementService
      */
     static deleteFile(fileUrl: string): boolean {
         const [success, error] = FileManagementService.deleteFile(fileUrl);
@@ -128,7 +114,7 @@ export class FileUploadService {
             console.error('Error al eliminar archivo:', error);
             return false;
         }
-        return success;
+        return success || false;
     }
 
     /**
