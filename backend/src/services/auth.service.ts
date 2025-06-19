@@ -3,7 +3,6 @@ import { User } from "../entity/user.entity.js";
 import { AppDataSource } from "../config/configDB.js";
 import { comparePassword, encryptPassword } from "../utils/encrypt.js";
 import { ACCESS_TOKEN_SECRET } from "../config/configEnv.js";
-import { formatToLocalTime } from "../utils/formatDate.js";
 import { UserResponse, UserData, userRole } from "../../types.d.js";
 import { formatRut } from "../helpers/rut.helper.js";
 import { Trabajador } from "../entity/recursosHumanos/trabajador.entity.js";

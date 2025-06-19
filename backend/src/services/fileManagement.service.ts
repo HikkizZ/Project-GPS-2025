@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { ServiceResponse } from '../../types.js';
+import { ServiceResponse } from '../../types.d.js';
 
 export interface FileInfo {
     filename: string;
@@ -86,27 +86,17 @@ export class FileManagementService {
     /**
      * Elimina un archivo del sistema
      */
-    static deleteFile(fileUrl: string): ServiceResponse<boolean> {
+    static deleteFile(filePath: string): ServiceResponse<boolean> {
         try {
-            if (!fileUrl) {
-                return [false, "URL del archivo no proporcionada"];
+            if (!fs.existsSync(filePath)) {
+                return [false, "El archivo no existe"];
             }
 
-            const [fileInfo, error] = this.getFileForDownload(fileUrl);
-            if (error || !fileInfo) {
-                return [false, error || "Archivo no encontrado"];
-            }
-
-            if (fileInfo.exists) {
-                fs.unlinkSync(fileInfo.filePath);
-                return [true, null];
-            }
-
-            return [false, "El archivo no existe"];
-
+            fs.unlinkSync(filePath);
+            return [true, null];
         } catch (error) {
             console.error("Error al eliminar archivo:", error);
-            return [false, "Error interno al eliminar el archivo"];
+            return [false, "Error al eliminar el archivo"];
         }
     }
 
@@ -138,7 +128,6 @@ export class FileManagementService {
             'uploads/licencias',
             'uploads/contratos', 
             'uploads/historial',
-            'uploads/certificados',
             'uploads/general'
         ];
 
@@ -190,7 +179,6 @@ export class FileManagementService {
             await cleanDirectory('uploads/licencias');
             await cleanDirectory('uploads/contratos');
             await cleanDirectory('uploads/historial');
-            await cleanDirectory('uploads/certificados');
             await cleanDirectory('uploads/general');
 
             return [deletedCount, null];
