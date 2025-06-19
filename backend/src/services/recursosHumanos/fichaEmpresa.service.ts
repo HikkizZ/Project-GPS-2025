@@ -5,6 +5,7 @@ import { FindOptionsWhere, ILike, LessThanOrEqual, MoreThanOrEqual, Between, In 
 import { Trabajador } from "../../entity/recursosHumanos/trabajador.entity.js";
 import { User } from "../../entity/user.entity.js";
 import { LicenciaPermiso, TipoSolicitud, EstadoSolicitud } from "../../entity/recursosHumanos/licenciaPermiso.entity.js";
+import { normalizeText } from "../../helpers/normalizeText.helper.js";
 
 // Interfaz para los parámetros de búsqueda
 interface SearchFichaParams {
@@ -66,13 +67,23 @@ export async function searchFichasEmpresa(params: SearchFichaParams): Promise<Se
 
         // Filtros por información laboral (búsqueda parcial)
         if (params.cargo) {
-            queryBuilder.andWhere("ficha.cargo ILIKE :cargo", { cargo: `%${params.cargo}%` });
+            const cargoTrimmed = params.cargo.trim();
+            queryBuilder.andWhere("LOWER(ficha.cargo) ILIKE LOWER(:cargo)", { cargo: `%${cargoTrimmed}%` });
         }
         if (params.area) {
-            queryBuilder.andWhere("ficha.area ILIKE :area", { area: `%${params.area}%` });
+            const areaTrimmed = params.area.trim().toLowerCase();
+            // Manejar el caso especial de "sin area"/"sin área"
+            if (areaTrimmed === 'sin area' || areaTrimmed === 'sin área') {
+                queryBuilder.andWhere("LOWER(ficha.area) SIMILAR TO :areaPattern", { 
+                    areaPattern: '%(sin area|sin área)%' 
+                });
+            } else {
+                queryBuilder.andWhere("LOWER(ficha.area) ILIKE LOWER(:area)", { area: `%${areaTrimmed}%` });
+            }
         }
         if (params.empresa) {
-            queryBuilder.andWhere("ficha.empresa ILIKE :empresa", { empresa: `%${params.empresa}%` });
+            const empresaTrimmed = params.empresa.trim();
+            queryBuilder.andWhere("LOWER(ficha.empresa) ILIKE LOWER(:empresa)", { empresa: `%${empresaTrimmed}%` });
         }
         if (params.tipoContrato) {
             queryBuilder.andWhere("ficha.tipoContrato = :tipoContrato", { tipoContrato: params.tipoContrato });

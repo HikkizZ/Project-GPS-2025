@@ -57,11 +57,14 @@ export class FichaEmpresaService {
             const cleanRut = value.toString().replace(/\./g, '').replace(/-/g, '');
             queryParams.append(key, cleanRut);
           } else if (Array.isArray(value)) {
+            // Para arrays, mantener el formato original del array
             value.forEach((v) => {
-              queryParams.append(`${key}[]`, v);
+              queryParams.append(`${key}[]`, v.toString());
             });
           } else {
-            queryParams.append(key, value.toString());
+            // Para strings, asegurarse de que los espacios se manejen correctamente
+            const stringValue = value.toString().trim();
+            queryParams.append(key, stringValue);
           }
         }
       });
