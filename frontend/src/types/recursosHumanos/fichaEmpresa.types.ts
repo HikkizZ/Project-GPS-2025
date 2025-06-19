@@ -80,6 +80,7 @@ export interface FichaEmpresaResponse {
 export interface FichaEmpresaSearchParams {
   rut?: string;
   estado?: EstadoLaboral;
+  estados?: EstadoLaboral[];
   cargo?: string;
   area?: string;
   tipoContrato?: string;
@@ -89,4 +90,5 @@ export interface FichaEmpresaSearchParams {
   fechaInicioHasta?: string;
   fechaFinDesde?: string;
   fechaFinHasta?: string;
+  incluirSinFechaFin?: boolean;
 } 

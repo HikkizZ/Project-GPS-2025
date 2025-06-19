@@ -14,6 +14,7 @@ interface SearchFichaParams {
 
     // Búsqueda por estado
     estado?: EstadoLaboral;
+    estados?: EstadoLaboral[];
 
     // Búsqueda por información laboral
     cargo?: string;
@@ -31,6 +32,7 @@ interface SearchFichaParams {
     fechaInicioHasta?: Date;
     fechaFinDesde?: Date;
     fechaFinHasta?: Date;
+    incluirSinFechaFin?: boolean;
 }
 
 export async function searchFichasEmpresa(params: SearchFichaParams): Promise<ServiceResponse<FichaEmpresa[]>> {
@@ -58,6 +60,8 @@ export async function searchFichasEmpresa(params: SearchFichaParams): Promise<Se
         // Filtro por estado
         if (params.estado) {
             queryBuilder.andWhere("ficha.estado = :estado", { estado: params.estado });
+        } else if (params.estados && params.estados.length > 0) {
+            queryBuilder.andWhere("ficha.estado IN (:...estados)", { estados: params.estados });
         }
 
         // Filtros por información laboral (búsqueda parcial)
@@ -100,13 +104,34 @@ export async function searchFichasEmpresa(params: SearchFichaParams): Promise<Se
         }
 
         if (params.fechaFinDesde || params.fechaFinHasta) {
-            if (params.fechaFinDesde) {
-                queryBuilder.andWhere("ficha.fechaFinContrato >= :fechaFinDesde", 
-                    { fechaFinDesde: params.fechaFinDesde });
-            }
-            if (params.fechaFinHasta) {
-                queryBuilder.andWhere("ficha.fechaFinContrato <= :fechaFinHasta", 
-                    { fechaFinHasta: params.fechaFinHasta });
+            if (params.incluirSinFechaFin) {
+                // Si se incluyen fichas sin fecha fin, usar OR para incluir NULL
+                const fechaFinConditions = [];
+                const fechaFinParams: any = {};
+                
+                if (params.fechaFinDesde) {
+                    fechaFinConditions.push("ficha.fechaFinContrato >= :fechaFinDesde");
+                    fechaFinParams.fechaFinDesde = params.fechaFinDesde;
+                }
+                if (params.fechaFinHasta) {
+                    fechaFinConditions.push("ficha.fechaFinContrato <= :fechaFinHasta");
+                    fechaFinParams.fechaFinHasta = params.fechaFinHasta;
+                }
+                
+                if (fechaFinConditions.length > 0) {
+                    const condition = `(${fechaFinConditions.join(' AND ')} OR ficha.fechaFinContrato IS NULL)`;
+                    queryBuilder.andWhere(condition, fechaFinParams);
+                }
+            } else {
+                // Comportamiento original: solo fichas con fecha fin
+                if (params.fechaFinDesde) {
+                    queryBuilder.andWhere("ficha.fechaFinContrato >= :fechaFinDesde", 
+                        { fechaFinDesde: params.fechaFinDesde });
+                }
+                if (params.fechaFinHasta) {
+                    queryBuilder.andWhere("ficha.fechaFinContrato <= :fechaFinHasta", 
+                        { fechaFinHasta: params.fechaFinHasta });
+                }
             }
         }
 

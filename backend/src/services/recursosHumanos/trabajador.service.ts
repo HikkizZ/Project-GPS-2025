@@ -240,38 +240,58 @@ export async function searchTrabajadoresService(query: any): Promise<ServiceResp
     try {
         const trabajadorRepo = AppDataSource.getRepository(Trabajador);
         
-        // Construir where clause
+        // Si se busca por RUT, usar QueryBuilder para comparación avanzada
+        if (query.rut) {
+            // Validar formato: xx.xxx.xxx-x
+            const rutRegex = /^\d{2}\.\d{3}\.\d{3}-[\dkK]$/;
+            if (!rutRegex.test(query.rut)) {
+                return [null, "Debe ingresar el RUT en formato xx.xxx.xxx-x"];
+            }
+            // Limpiar el RUT de búsqueda (quitar puntos y guión)
+            const cleanRut = query.rut.replace(/\./g, '').replace(/-/g, '');
+            // Comparar ambos RUTs sin puntos ni guion usando SQL y comparación exacta
+            const trabajadores = await trabajadorRepo.createQueryBuilder("trabajador")
+                .leftJoinAndSelect("trabajador.fichaEmpresa", "fichaEmpresa")
+                .leftJoinAndSelect("trabajador.historialLaboral", "historialLaboral")
+                .leftJoinAndSelect("trabajador.licenciasPermisos", "licenciasPermisos")
+                .leftJoinAndSelect("trabajador.capacitaciones", "capacitaciones")
+                .where("REPLACE(REPLACE(trabajador.rut, '.', ''), '-', '') = :cleanRut", { cleanRut })
+                .getMany();
+            if (!trabajadores.length) {
+                return [null, "No se encontraron trabajadores"];
+            }
+            return [trabajadores, null];
+        }
+
+        // Construir where clause para otros filtros
         const whereClause: any = {};
-        
-        // Campos de identificación
-        if (query.rut) whereClause.rut = ILike(`%${query.rut.replace(/\./g, '')}%`); // Remover puntos del RUT
         if (query.nombres) whereClause.nombres = ILike(`%${query.nombres}%`);
         if (query.apellidoPaterno) whereClause.apellidoPaterno = ILike(`%${query.apellidoPaterno}%`);
         if (query.apellidoMaterno) whereClause.apellidoMaterno = ILike(`%${query.apellidoMaterno}%`);
-        
-        // Campos de contacto
         if (query.correoPersonal) whereClause.correoPersonal = ILike(`%${query.correoPersonal}%`);
         if (query.telefono) whereClause.telefono = ILike(`%${query.telefono}%`);
-
-        // Interpretar correctamente los valores booleanos
+        if (query.numeroEmergencia) whereClause.numeroEmergencia = ILike(`%${query.numeroEmergencia}%`);
+        if (query.direccion) whereClause.direccion = ILike(`%${query.direccion}%`);
+        if (query.fechaNacimiento) {
+            whereClause.fechaNacimiento = query.fechaNacimiento;
+        }
+        if (query.fechaIngreso) {
+            whereClause.fechaIngreso = query.fechaIngreso;
+        }
         const soloEliminados = query.soloEliminados === true || query.soloEliminados === "true";
         const todos = query.todos === true || query.todos === "true";
-
         if (soloEliminados) {
             whereClause.enSistema = false;
         } else if (!todos) {
             whereClause.enSistema = true;
         }
-
         const trabajadores = await trabajadorRepo.find({
             relations: ["fichaEmpresa", "historialLaboral", "licenciasPermisos", "capacitaciones"],
             where: whereClause
         });
-
         if (!trabajadores.length) {
             return [null, "No se encontraron trabajadores"];
         }
-
         return [trabajadores, null];
     } catch (error) {
         console.error("Error en searchTrabajadoresService:", error);

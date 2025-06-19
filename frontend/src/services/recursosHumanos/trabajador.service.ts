@@ -72,6 +72,7 @@ class TrabajadorService {
       const queryParams = new URLSearchParams();
       Object.entries(query).forEach(([key, value]) => {
         if (value !== undefined && value !== '') {
+          // Enviar el RUT tal como lo ingresa el usuario (con puntos y guion)
           queryParams.append(key, value.toString());
         }
       });

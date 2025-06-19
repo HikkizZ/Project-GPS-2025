@@ -22,6 +22,7 @@ export const TrabajadoresPage: React.FC = () => {
   const [isDesvinculando, setIsDesvinculando] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string>('');
   const [showEditModal, setShowEditModal] = useState(false);
+  const [rutError, setRutError] = useState<string | null>(null);
 
   // Cargar trabajadores al montar el componente
   useEffect(() => {
@@ -30,6 +31,17 @@ export const TrabajadoresPage: React.FC = () => {
 
   // Función para manejar la búsqueda
   const handleSearch = () => {
+    // Validar formato de RUT si está presente
+    if (searchParams.rut) {
+      const rutLimpio = searchParams.rut.trim();
+      // Solo aceptar formato: xx.xxx.xxx-x
+      const rutRegex = /^\d{2}\.\d{3}\.\d{3}-[\dkK]$/;
+      if (!rutRegex.test(rutLimpio)) {
+        setRutError('Debe ingresar el RUT en formato xx.xxx.xxx-x');
+        return;
+      }
+    }
+    setRutError(null);
     searchTrabajadores(searchParams);
   };
 
@@ -278,6 +290,11 @@ export const TrabajadoresPage: React.FC = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Mensaje de error de formato de RUT */}
+      {rutError && (
+        <div className="alert alert-danger mt-3">{rutError}</div>
       )}
 
       {/* Mensajes de error o carga */}

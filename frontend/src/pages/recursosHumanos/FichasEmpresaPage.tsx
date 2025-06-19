@@ -37,7 +37,9 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
     downloadContrato
   } = useFichaEmpresa();
 
-  const [searchQuery, setSearchQuery] = useState<FichaEmpresaSearchParams>({});
+  const [searchQuery, setSearchQuery] = useState<FichaEmpresaSearchParams>({
+    estado: EstadoLaboral.ACTIVO
+  });
   const [showFilters, setShowFilters] = useState(false);
   const [selectedFicha, setSelectedFicha] = useState<FichaEmpresa | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -46,27 +48,11 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
   const [incluirDesvinculados, setIncluirDesvinculados] = useState(false);
   const [incluirLicencias, setIncluirLicencias] = useState(false);
   const [incluirPermisos, setIncluirPermisos] = useState(false);
+  const [incluirSinFechaFin, setIncluirSinFechaFin] = useState(false);
 
   // Función para filtrar las fichas según los estados seleccionados
-  const fichasFiltradas = fichas.filter(ficha => {
-    // Si el select de estado tiene un valor, filtra solo por ese estado
-    if (searchQuery.estado) {
-      return ficha.estado === searchQuery.estado;
-    }
-    // Si no, usa los checkboxes
-    if (ficha.estado === EstadoLaboral.DESVINCULADO && !incluirDesvinculados) return false;
-    if (ficha.estado === EstadoLaboral.LICENCIA && !incluirLicencias) return false;
-    if (ficha.estado === EstadoLaboral.PERMISO && !incluirPermisos) return false;
-
-    // Resto de los filtros
-    if (searchQuery.cargo && !ficha.cargo.toLowerCase().includes(searchQuery.cargo.toLowerCase())) return false;
-    if (searchQuery.area && !ficha.area.toLowerCase().includes(searchQuery.area.toLowerCase())) return false;
-    if (searchQuery.tipoContrato && ficha.tipoContrato !== searchQuery.tipoContrato) return false;
-    if (searchQuery.sueldoBaseDesde && ficha.sueldoBase < searchQuery.sueldoBaseDesde) return false;
-    if (searchQuery.sueldoBaseHasta && ficha.sueldoBase > searchQuery.sueldoBaseHasta) return false;
-
-    return true;
-  });
+  // Ya no necesitamos filtrar aquí porque todo se maneja en el backend
+  const fichasFiltradas = fichas;
 
   // Verificar autenticación
   useEffect(() => {
@@ -141,17 +127,37 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
   }, [trabajadorRecienRegistrado, searchByRUT, onTrabajadorModalClosed]);
 
   const handleSearch = async () => {
+    // Crear un objeto de búsqueda que incluya todos los filtros
+    const searchParams = { ...searchQuery };
+    
+    // Agregar filtros de estado basados en checkboxes
+    const estadosIncluidos = [];
+    if (incluirDesvinculados) estadosIncluidos.push(EstadoLaboral.DESVINCULADO);
+    if (incluirLicencias) estadosIncluidos.push(EstadoLaboral.LICENCIA);
+    if (incluirPermisos) estadosIncluidos.push(EstadoLaboral.PERMISO);
+    
+    // Si no hay estado específico seleccionado y hay checkboxes marcados, usar esos estados
+    if (!searchParams.estado && estadosIncluidos.length > 0) {
+      searchParams.estados = estadosIncluidos;
+    }
+    
+    // Agregar flag para incluir fichas sin fecha fin
+    if (incluirSinFechaFin) {
+      searchParams.incluirSinFechaFin = true;
+    }
+    
     // Siempre usar searchFichas, sin importar si hay RUT o no
-    await searchFichas(searchQuery);
+    await searchFichas(searchParams);
   };
 
   const handleReset = () => {
-    setSearchQuery({});
+    setSearchQuery({ estado: EstadoLaboral.ACTIVO });
     setIncluirDesvinculados(false);
     setIncluirLicencias(false);
     setIncluirPermisos(false);
+    setIncluirSinFechaFin(false);
     if (user?.role !== 'Usuario') {
-      searchFichas({});
+      searchFichas({ estado: EstadoLaboral.ACTIVO });
     }
   };
 
@@ -444,7 +450,7 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                     <input
                       type="text"
                       className="form-control"
-                      placeholder="Cargo o posición"
+                      placeholder="Cargo"
                       value={searchQuery.cargo || ''}
                       onChange={(e) => setSearchQuery({ ...searchQuery, cargo: e.target.value })}
                     />
@@ -530,6 +536,25 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                     />
                   </div>
                 </div>
+                
+                {/* Checkbox para incluir fichas sin fecha fin */}
+                <div className="row mb-3">
+                  <div className="col-12">
+                    <div className="form-check">
+                      <input
+                        className="form-check-input"
+                        type="checkbox"
+                        id="incluirSinFechaFin"
+                        checked={incluirSinFechaFin}
+                        onChange={(e) => setIncluirSinFechaFin(e.target.checked)}
+                      />
+                      <label className="form-check-label" htmlFor="incluirSinFechaFin">
+                        Incluir fichas sin fecha fin al filtrar por fechas de fin
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
                 <div className="row mt-3">
                   <div className="col-12">
                     <button

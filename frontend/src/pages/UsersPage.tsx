@@ -11,6 +11,8 @@ interface UserSearchParams {
   rut?: string;
   email?: string;
   role?: UserRole;
+  incluirInactivos: boolean;
+  soloInactivos: boolean;
 }
 
 export const UsersPage: React.FC = () => {
@@ -25,12 +27,11 @@ export const UsersPage: React.FC = () => {
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [newRole, setNewRole] = useState<string>('');
   const [newPassword, setNewPassword] = useState<string>('');
-  const [searchParams, setSearchParams] = useState<UserSearchParams>({});
+  const [searchParams, setSearchParams] = useState<UserSearchParams>({
+    incluirInactivos: false,
+    soloInactivos: false
+  });
   const [selectedUser, setSelectedUser] = useState<SafeUser | null>(null);
-
-  // Estados para los checkboxes de filtrado
-  const [incluirInactivos, setIncluirInactivos] = useState(false);
-  const [soloInactivos, setSoloInactivos] = useState(false);
 
   const availableRoles: UserRole[] = ['Usuario', 'RecursosHumanos', 'Gerencia', 'Ventas', 'Arriendo', 'Finanzas'];
   
@@ -52,7 +53,8 @@ export const UsersPage: React.FC = () => {
     try {
       setIsLoading(true);
       const data = await userService.getAllUsers();
-      // Aplicar filtros localmente
+      
+      // Aplicar filtros de búsqueda
       let filteredUsers = data;
       
       if (searchParams.name) {
@@ -81,6 +83,13 @@ export const UsersPage: React.FC = () => {
         );
       }
       
+      // Aplicar filtros de estado de cuenta
+      if (searchParams.soloInactivos) {
+        filteredUsers = filteredUsers.filter(user => user.estadoCuenta === 'Inactiva');
+      } else if (!searchParams.incluirInactivos) {
+        filteredUsers = filteredUsers.filter(user => user.estadoCuenta === 'Activa');
+      }
+      
       setUsers(filteredUsers);
       setError('');
     } catch (err) {
@@ -97,7 +106,10 @@ export const UsersPage: React.FC = () => {
 
   const handleResetSearch = async () => {
     // Limpiar los filtros
-    setSearchParams({});
+    setSearchParams({
+      incluirInactivos: false,
+      soloInactivos: false
+    });
     // Recargar la lista completa de usuarios
     try {
       setIsLoading(true);
@@ -148,13 +160,6 @@ export const UsersPage: React.FC = () => {
         setNewPassword('');
     }
   };
-
-  // Función para filtrar usuarios según el estado de cuenta
-  const usuariosFiltrados = users.filter(user => {
-    if (soloInactivos) return user.estadoCuenta === 'Inactiva';
-    if (!incluirInactivos) return user.estadoCuenta === 'Activa';
-    return true;
-  });
 
   const handleRutChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const formattedRut = formatRUT(e.target.value);
@@ -211,45 +216,6 @@ export const UsersPage: React.FC = () => {
               <i className="bi bi-search me-2"></i>
               Filtros de Búsqueda
             </h6>
-
-            {/* Checkboxes de estado de cuenta */}
-            <div className="row mb-4">
-              <div className="col-12">
-                <h6 className="mb-3">Estado de cuenta:</h6>
-                <div className="form-check form-check-inline">
-                  <input
-                    className="form-check-input"
-                    type="checkbox"
-                    id="incluirInactivos"
-                    checked={incluirInactivos}
-                    onChange={(e) => {
-                      setIncluirInactivos(e.target.checked);
-                      if (e.target.checked) setSoloInactivos(false);
-                    }}
-                    disabled={soloInactivos}
-                  />
-                  <label className="form-check-label" htmlFor="incluirInactivos">
-                    Incluir cuentas inactivas
-                  </label>
-                </div>
-                <div className="form-check form-check-inline">
-                  <input
-                    className="form-check-input"
-                    type="checkbox"
-                    id="soloInactivos"
-                    checked={soloInactivos}
-                    onChange={(e) => {
-                      setSoloInactivos(e.target.checked);
-                      if (e.target.checked) setIncluirInactivos(false);
-                    }}
-                    disabled={incluirInactivos}
-                  />
-                  <label className="form-check-label" htmlFor="soloInactivos">
-                    Ver solo cuentas inactivas
-                  </label>
-                </div>
-              </div>
-            </div>
 
             <div className="row g-3 mb-3">
               <div className="col-md-3">
@@ -326,6 +292,52 @@ export const UsersPage: React.FC = () => {
                 </Form.Select>
               </div>
             </div>
+
+            {/* Checkboxes de estado de cuenta */}
+            <div className="row mb-4">
+              <div className="col-12">
+                <h6 className="mb-3">Estado de cuenta:</h6>
+                <div className="form-check form-check-inline">
+                  <input
+                    className="form-check-input"
+                    type="checkbox"
+                    id="incluirInactivos"
+                    checked={searchParams.incluirInactivos}
+                    onChange={(e) => {
+                      setSearchParams(prev => ({
+                        ...prev,
+                        incluirInactivos: e.target.checked,
+                        soloInactivos: e.target.checked ? false : prev.soloInactivos
+                      }));
+                    }}
+                    disabled={searchParams.soloInactivos}
+                  />
+                  <label className="form-check-label" htmlFor="incluirInactivos">
+                    Incluir cuentas inactivas
+                  </label>
+                </div>
+                <div className="form-check form-check-inline">
+                  <input
+                    className="form-check-input"
+                    type="checkbox"
+                    id="soloInactivos"
+                    checked={searchParams.soloInactivos}
+                    onChange={(e) => {
+                      setSearchParams(prev => ({
+                        ...prev,
+                        soloInactivos: e.target.checked,
+                        incluirInactivos: e.target.checked ? false : prev.incluirInactivos
+                      }));
+                    }}
+                    disabled={searchParams.incluirInactivos}
+                  />
+                  <label className="form-check-label" htmlFor="soloInactivos">
+                    Ver solo cuentas inactivas
+                  </label>
+                </div>
+              </div>
+            </div>
+
             <div className="mt-3">
               <Button
                 variant="primary"
@@ -375,10 +387,10 @@ export const UsersPage: React.FC = () => {
                 <div className="d-flex justify-content-between align-items-center mb-3">
                   <h6 className="mb-0">
                     <i className="bi bi-list-ul me-2"></i>
-                    Usuarios Registrados ({usuariosFiltrados.length})
+                    Usuarios Registrados ({users.length})
                     <small className="text-muted ms-2">
-                      (Activos: {usuariosFiltrados.filter(u => u.estadoCuenta === 'Activa').length} • 
-                      Inactivos: {usuariosFiltrados.filter(u => u.estadoCuenta === 'Inactiva').length})
+                      (Activos: {users.filter(u => u.estadoCuenta === 'Activa').length} • 
+                      Inactivos: {users.filter(u => u.estadoCuenta === 'Inactiva').length})
                     </small>
                   </h6>
                 </div>
@@ -394,7 +406,7 @@ export const UsersPage: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {usuariosFiltrados.map(user => (
+                    {users.map(user => (
                       <tr key={user.id}>
                         <td>{user.name}</td>
                         <td>{formatRUT(user.rut)}</td>
