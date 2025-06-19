@@ -1,3 +1,10 @@
+/*
+  fichasEmpresa.css
+  Estilos específicos para la página/módulo de Fichas de Empresa.
+  Solo deben ir reglas bajo la clase raíz correspondiente.
+  NO agregar reglas globales ni utilidades aquí.
+*/
+
 /* Estilos específicos para la página de Fichas de Empresa */
 
 .fichas-empresa-page .container {

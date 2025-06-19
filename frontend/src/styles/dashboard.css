@@ -1,3 +1,10 @@
+/*
+  dashboard.css
+  Estilos específicos para la página/módulo de Dashboard.
+  Solo deben ir reglas bajo la clase raíz correspondiente.
+  NO agregar reglas globales ni utilidades aquí.
+*/
+
 /* Estilos específicos para el Dashboard de Recursos Humanos */
 
 .dashboard-rh-page {
