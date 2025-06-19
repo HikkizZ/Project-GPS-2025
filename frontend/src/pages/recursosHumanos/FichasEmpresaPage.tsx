@@ -560,9 +560,19 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                         id="incluirSinFechaFin"
                         checked={incluirSinFechaFin}
                         onChange={(e) => setIncluirSinFechaFin(e.target.checked)}
+                        disabled={!searchQuery.fechaFinDesde && !searchQuery.fechaFinHasta}
                       />
-                      <label className="form-check-label" htmlFor="incluirSinFechaFin">
-                        Incluir fichas sin fecha fin al filtrar por fechas de fin
+                      <label className="form-check-label d-flex align-items-center gap-2" htmlFor="incluirSinFechaFin">
+                        Incluir " Fecha Fin: - "
+                        <span
+                          tabIndex={0}
+                          data-bs-toggle="tooltip"
+                          data-bs-placement="right"
+                          title="Se activa cuando se utiliza el filtro de fecha fin desde y/o fecha fin hasta"
+                          style={{ cursor: 'pointer' }}
+                        >
+                          <i className="bi bi-info-circle" style={{ fontSize: '1rem' }}></i>
+                        </span>
                       </label>
                     </div>
                   </div>

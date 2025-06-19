@@ -953,4 +953,8 @@ SECCIONES DE LA APP (pueden agregar más comentarios así)
   .users-info {
     grid-template-columns: 1fr;
   }
+}
+
+.icono-info-fijo {
+  color: #212529 !important;
 } 
