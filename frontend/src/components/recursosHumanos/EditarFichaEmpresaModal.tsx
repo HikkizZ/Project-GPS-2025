@@ -29,6 +29,18 @@ function formatearRut(rut: string): string {
   return `${cuerpo}-${dv}`;
 }
 
+// Utilidad para formatear con puntos de miles
+function formatMiles(value: string | number): string {
+  const num = typeof value === 'number' ? value : value.replace(/\D/g, '');
+  if (!num) return '';
+  return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+}
+
+// Utilidad para limpiar puntos
+function cleanNumber(value: string): string {
+  return value.replace(/\./g, '');
+}
+
 export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = ({
   show,
   onHide,
@@ -41,14 +53,12 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isContratoDeleted, setIsContratoDeleted] = useState(false);
 
-  const [formData, setFormData] = useState<UpdateFichaEmpresaData>({
+  const [formData, setFormData] = useState<UpdateFichaEmpresaData & { sueldoBase: string }>({
     cargo: ficha.cargo || '',
     area: ficha.area || '',
     tipoContrato: ficha.tipoContrato || '',
     jornadaLaboral: ficha.jornadaLaboral || '',
-    sueldoBase: typeof ficha.sueldoBase === 'string' ? 
-      parseInt(ficha.sueldoBase.replace(/\D/g, '')) : 
-      Math.round(ficha.sueldoBase || 0),
+    sueldoBase: ficha.sueldoBase ? ficha.sueldoBase.toString() : '',
     fechaInicioContrato: ficha.fechaInicioContrato ? new Date(ficha.fechaInicioContrato).toISOString().split('T')[0] : '',
     fechaFinContrato: ficha.fechaFinContrato ? new Date(ficha.fechaFinContrato).toISOString().split('T')[0] : ''
   });
@@ -64,9 +74,7 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
         area: ficha.area || '',
         tipoContrato: ficha.tipoContrato || '',
         jornadaLaboral: ficha.jornadaLaboral || '',
-        sueldoBase: typeof ficha.sueldoBase === 'string' ? 
-          parseInt(ficha.sueldoBase.replace(/\D/g, '')) : 
-          Math.round(ficha.sueldoBase || 0),
+        sueldoBase: ficha.sueldoBase ? ficha.sueldoBase.toString() : '',
         fechaInicioContrato: ficha.fechaInicioContrato ? new Date(ficha.fechaInicioContrato).toISOString().split('T')[0] : '',
         fechaFinContrato: ficha.fechaFinContrato ? new Date(ficha.fechaFinContrato).toISOString().split('T')[0] : ''
       });
@@ -75,27 +83,16 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    
     if (name === 'sueldoBase') {
-      // Solo permitir números y convertir a número
-      const numericValue = value.replace(/\D/g, '');
-      const numberValue = numericValue === '' ? 0 : Number(numericValue);
-      
-      setFormData(prev => ({
-        ...prev,
-        [name]: numberValue
-      }));
+      // Limpiar puntos y dejar solo números
+      const numericValue = cleanNumber(value).replace(/[^0-9]/g, '');
+      // Formatear con puntos de miles
+      const formatted = numericValue ? formatMiles(numericValue) : '';
+      setFormData(prev => ({ ...prev, [name]: formatted }));
     } else if (name === 'fechaInicioContrato' || name === 'fechaFinContrato') {
-      // Mantener la fecha exactamente como viene del input type="date"
-      setFormData(prev => ({
-        ...prev,
-        [name]: value
-      }));
+      setFormData(prev => ({ ...prev, [name]: value }));
     } else {
-      setFormData(prev => ({
-        ...prev,
-        [name]: value
-      }));
+      setFormData(prev => ({ ...prev, [name]: value }));
     }
   };
 
@@ -181,21 +178,18 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
       }
 
       // Procesar los datos antes de enviarlos
-      const sueldoBase = typeof formData.sueldoBase === 'string' ? 
-        parseInt(formData.sueldoBase.replace(/\D/g, '')) : 
-        formData.sueldoBase;
+      const sueldoBaseNumber = formData.sueldoBase ? parseInt(cleanNumber(formData.sueldoBase)) : 0;
 
       const dataToSubmit = {
         cargo: formData.cargo.trim(),
         area: formData.area.trim(),
         tipoContrato: formData.tipoContrato,
         jornadaLaboral: formData.jornadaLaboral,
-        sueldoBase: sueldoBase,
+        sueldoBase: sueldoBaseNumber,
         fechaInicioContrato: formData.fechaInicioContrato,
         fechaFinContrato: formData.fechaFinContrato || undefined
       };
 
-      // Validaciones adicionales
       if (!dataToSubmit.sueldoBase || dataToSubmit.sueldoBase <= 0) {
         throw new Error('El sueldo base debe ser mayor a 0');
       }
@@ -336,11 +330,11 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
                 </Form.Label>
                 <Form.Control
                   type="text"
-                  pattern="[0-9]*"
                   inputMode="numeric"
                   name="sueldoBase"
-                  value={formData.sueldoBase > 0 ? formData.sueldoBase : ''}
+                  value={formData.sueldoBase}
                   onChange={handleInputChange}
+                  maxLength={12}
                   required
                 />
               </Form.Group>
