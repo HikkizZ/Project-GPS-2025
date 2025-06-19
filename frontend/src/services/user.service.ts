@@ -1,5 +1,6 @@
 import { API_CONFIG } from '@/config/api.config';
 import { SafeUser, UpdateUserData } from '@/types.d';
+import axios from 'axios';
 
 class UserService {
   private baseURL = API_CONFIG.BASE_URL;
@@ -64,6 +65,30 @@ class UserService {
     } catch (error) {
       console.error('Error en deleteUser:', error);
       throw error;
+    }
+  }
+
+  async searchUsers(query: any): Promise<{ users?: SafeUser[]; error?: string }> {
+    try {
+      const queryParams = new URLSearchParams();
+      Object.entries(query).forEach(([key, value]) => {
+        if (value !== undefined && value !== '') {
+          queryParams.append(key, value.toString());
+        }
+      });
+      const response = await axios.get(
+        `${this.baseURL}/users/search?${queryParams}`,
+        { headers: { 'Authorization': `Bearer ${localStorage.getItem('authToken')}` } }
+      );
+      if (response.data.status === 'success' && response.data.data) {
+        return { users: response.data.data };
+      }
+      return { error: response.data.message };
+    } catch (error: any) {
+      if (error.response?.data?.message) {
+        return { error: error.response.data.message };
+      }
+      return { error: 'Error de conexión con el servidor' };
     }
   }
 }

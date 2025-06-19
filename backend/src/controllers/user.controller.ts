@@ -3,7 +3,8 @@ import {
     getUserService,
     getUsersService,
     updateUserService,
-    updateUserByTrabajadorService
+    updateUserByTrabajadorService,
+    searchUsersService
  } from '../services/user.service.js';
 
 import { handleSuccess, handleErrorClient, handleErrorServer } from '../handlers/responseHandlers.js';
@@ -17,10 +18,13 @@ import { AppDataSource } from '../config/configDB.js';
 /* Search users with filters */
 export const searchUsers = async (req: Request, res: Response) => {
     try {
-        const users = await getUserService(req.query);
-        return res.json(users);
+        const [users, error] = await searchUsersService(req.query);
+        if (error) {
+            return res.status(400).json({ status: 'error', message: error, details: {} });
+        }
+        return res.json({ status: 'success', message: 'Usuarios encontrados exitosamente', data: users });
     } catch (error) {
-        return res.status(500).json({ message: "Error al buscar usuarios" });
+        return res.status(500).json({ status: 'error', message: "Error al buscar usuarios", details: {} });
     }
 };
 

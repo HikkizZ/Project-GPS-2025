@@ -7,7 +7,8 @@ import { hashPassword } from '../utils/password.utils.js';
 
 /* Validar formato de RUT */
 function isValidRut(rut: string): boolean {
-    const rutRegex = /^[0-9]{1,2}\.[0-9]{3}\.[0-9]{3}-[0-9kK]$/;
+    // Solo aceptar formato xx.xxx.xxx-x
+    const rutRegex = /^\d{2}\.\d{3}\.\d{3}-[0-9kK]$/;
     return rutRegex.test(rut);
 }
 
@@ -28,48 +29,51 @@ export async function searchUsersService(query: QueryParams): Promise<ServiceRes
     try {
         // Validar formato de RUT y email si están presentes
         if (query.rut && !isValidRut(query.rut)) {
-            return [null, "Formato de RUT inválido"];
+            return [null, "Debe ingresar el RUT en formato xx.xxx.xxx-x"];
         }
         if (query.email && !isValidEmail(query.email)) {
             return [null, "Formato de email inválido"];
         }
 
         const userRepository = AppDataSource.getRepository(User);
-        const whereClause: FindOptionsWhere<User> = {};
 
-        // Agregar cada campo de búsqueda si está presente en la query
+        // Búsqueda exacta por RUT (sin puntos ni guion)
+        if (query.rut) {
+            const cleanRut = query.rut.replace(/\./g, '').replace(/-/g, '');
+            const users = await userRepository.createQueryBuilder("user")
+                .where("REPLACE(REPLACE(user.rut, '.', ''), '-', '') = :cleanRut", { cleanRut })
+                .getMany();
+            if (!users.length) {
+                return [[], null];
+            }
+            const usersData = users.map(({ password, ...user }) => user);
+            return [usersData, null];
+        }
+
+        // Resto de filtros (nombre, email, rol, etc.)
+        const whereClause: FindOptionsWhere<User> = {};
         if (query.id) {
             whereClause.id = query.id;
         }
-
-        if (query.rut) {
-            whereClause.rut = ILike(`%${query.rut}%`);
-        }
-
         if (query.email) {
             whereClause.email = ILike(`%${query.email}%`);
         }
-
         if (query.role) {
             if (!isValidRole(query.role)) {
                 return [null, "Rol inválido"];
             }
             whereClause.role = query.role as any;
         }
-
         if (query.name) {
             whereClause.name = ILike(`%${query.name}%`);
         }
-
         const users = await userRepository.find({
             where: whereClause,
             order: { id: "ASC" }
         });
-
         if (!users || users.length === 0) {
-            return [[], null]; // Retornar array vacío en lugar de error
+            return [[], null];
         }
-
         const usersData = users.map(({ password, ...user }) => user);
         return [usersData, null];
     } catch (error) {

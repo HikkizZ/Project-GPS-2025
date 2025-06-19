@@ -32,6 +32,7 @@ export const UsersPage: React.FC = () => {
     soloInactivos: false
   });
   const [selectedUser, setSelectedUser] = useState<SafeUser | null>(null);
+  const [rutError, setRutError] = useState<string | null>(null);
 
   const availableRoles: UserRole[] = ['Usuario', 'RecursosHumanos', 'Gerencia', 'Ventas', 'Arriendo', 'Finanzas'];
   
@@ -100,25 +101,64 @@ export const UsersPage: React.FC = () => {
     }
   };
 
-  const handleSearch = () => {
-    loadUsers();
+  const handleSearch = async () => {
+    // Validar formato de RUT si está presente
+    if (searchParams.rut) {
+      const rutLimpio = searchParams.rut.trim();
+      const rutRegex = /^\d{2}\.\d{3}\.\d{3}-[\dkK]$/;
+      if (!rutRegex.test(rutLimpio)) {
+        setRutError('Debe ingresar el RUT en formato xx.xxx.xxx-x');
+        return;
+      }
+    }
+    setRutError(null);
+    setIsLoading(true);
+    try {
+      const { users: foundUsers, error: searchError } = await userService.searchUsers(searchParams);
+      let filtered = foundUsers || [];
+      if (searchParams.soloInactivos) {
+        filtered = filtered.filter(u => u.estadoCuenta === 'Inactiva');
+      }
+      setUsers(filtered);
+      setError(searchError || '');
+    } catch (err) {
+      setError('Error al buscar usuarios');
+      setUsers([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleIncluirInactivos = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchParams(prev => ({
+      ...prev,
+      incluirInactivos: e.target.checked,
+      soloInactivos: e.target.checked ? false : prev.soloInactivos
+    }));
+  };
+
+  const handleSoloInactivos = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchParams(prev => ({
+      ...prev,
+      soloInactivos: e.target.checked,
+      incluirInactivos: e.target.checked ? false : prev.incluirInactivos
+    }));
   };
 
   const handleResetSearch = async () => {
-    // Limpiar los filtros
     setSearchParams({
       incluirInactivos: false,
       soloInactivos: false
     });
-    // Recargar la lista completa de usuarios
+    setRutError(null);
+    setIsLoading(true);
     try {
-      setIsLoading(true);
       const data = await userService.getAllUsers();
-      setUsers(data);
+      setUsers(data.filter(u => u.estadoCuenta === 'Activa'));
       setError('');
     } catch (err) {
       setError('Error al cargar la lista de usuarios');
-      console.error(err);
+      setUsers([]);
     } finally {
       setIsLoading(false);
     }
@@ -303,13 +343,7 @@ export const UsersPage: React.FC = () => {
                     type="checkbox"
                     id="incluirInactivos"
                     checked={searchParams.incluirInactivos}
-                    onChange={(e) => {
-                      setSearchParams(prev => ({
-                        ...prev,
-                        incluirInactivos: e.target.checked,
-                        soloInactivos: e.target.checked ? false : prev.soloInactivos
-                      }));
-                    }}
+                    onChange={handleIncluirInactivos}
                     disabled={searchParams.soloInactivos}
                   />
                   <label className="form-check-label" htmlFor="incluirInactivos">
@@ -322,13 +356,7 @@ export const UsersPage: React.FC = () => {
                     type="checkbox"
                     id="soloInactivos"
                     checked={searchParams.soloInactivos}
-                    onChange={(e) => {
-                      setSearchParams(prev => ({
-                        ...prev,
-                        soloInactivos: e.target.checked,
-                        incluirInactivos: e.target.checked ? false : prev.incluirInactivos
-                      }));
-                    }}
+                    onChange={handleSoloInactivos}
                     disabled={searchParams.incluirInactivos}
                   />
                   <label className="form-check-label" htmlFor="soloInactivos">
@@ -373,6 +401,9 @@ export const UsersPage: React.FC = () => {
               <i className="bi bi-check-circle-fill me-2"></i>
               {success}
             </Alert>
+          )}
+          {rutError && (
+            <div className="alert alert-danger mt-3">{rutError}</div>
           )}
 
           <div className="table-responsive">
