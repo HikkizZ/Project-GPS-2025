@@ -21,8 +21,8 @@ router.use(authenticateJWT);
 // Ruta para obtener la ficha propia del usuario
 router.get("/mi-ficha", getMiFicha);
 
-// Rutas que requieren rol de RRHH o Admin
-router.use(verifyRole(["RecursosHumanos", "Administrador"]));
+// Rutas que requieren rol de RRHH, Admin o Superadministrador
+router.use(verifyRole(["RecursosHumanos", "Administrador", "Superadministrador"]));
 
 router
     .get("/search", getFichasEmpresa)

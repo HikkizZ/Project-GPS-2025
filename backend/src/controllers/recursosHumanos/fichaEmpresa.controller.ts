@@ -197,8 +197,8 @@ export async function descargarContrato(req: Request, res: Response) {
             return;
         }
 
-        // Verificar permisos (RRHH/Admin o el propio trabajador)
-        const isRRHH = req.user.role === 'RecursosHumanos' || req.user.role === 'Administrador';
+        // Verificar permisos (RRHH/Admin/SuperAdministrador o el propio trabajador)
+        const isRRHH = req.user.role === 'RecursosHumanos' || req.user.role === 'Administrador' || req.user.role === 'SuperAdministrador';
         const isOwnWorker = ficha.trabajador.id === req.user.id;
 
         if (!isRRHH && !isOwnWorker) {
