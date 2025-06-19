@@ -15,6 +15,13 @@ interface FichasEmpresaPageProps {
   onTrabajadorModalClosed?: () => void;
 }
 
+// Utilidad para formatear con puntos de miles
+function formatMiles(value: string | number): string {
+  const num = typeof value === 'number' ? value : value.replace(/\D/g, '');
+  if (!num) return '';
+  return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+}
+
 export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({ 
   trabajadorRecienRegistrado, 
   onTrabajadorModalClosed 
@@ -495,21 +502,39 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                   <div className="col-md-3">
                     <label className="form-label">Sueldo desde:</label>
                     <input
-                      type="number"
+                      type="text"
+                      inputMode="numeric"
                       className="form-control"
                       placeholder="Monto mínimo"
-                      value={searchQuery.sueldoBaseDesde || ''}
-                      onChange={(e) => setSearchQuery({ ...searchQuery, sueldoBaseDesde: Number(e.target.value) })}
+                      value={searchQuery.sueldoBaseDesde !== undefined && searchQuery.sueldoBaseDesde !== null ? formatMiles(searchQuery.sueldoBaseDesde) : ''}
+                      onChange={(e) => {
+                        const raw = e.target.value.replace(/\D/g, '');
+                        if (raw === '') {
+                          setSearchQuery({ ...searchQuery, sueldoBaseDesde: undefined });
+                        } else {
+                          setSearchQuery({ ...searchQuery, sueldoBaseDesde: Number(raw) });
+                        }
+                      }}
+                      maxLength={12}
                     />
                   </div>
                   <div className="col-md-3">
                     <label className="form-label">Sueldo hasta:</label>
                     <input
-                      type="number"
+                      type="text"
+                      inputMode="numeric"
                       className="form-control"
                       placeholder="Monto máximo"
-                      value={searchQuery.sueldoBaseHasta || ''}
-                      onChange={(e) => setSearchQuery({ ...searchQuery, sueldoBaseHasta: Number(e.target.value) })}
+                      value={searchQuery.sueldoBaseHasta !== undefined && searchQuery.sueldoBaseHasta !== null ? formatMiles(searchQuery.sueldoBaseHasta) : ''}
+                      onChange={(e) => {
+                        const raw = e.target.value.replace(/\D/g, '');
+                        if (raw === '') {
+                          setSearchQuery({ ...searchQuery, sueldoBaseHasta: undefined });
+                        } else {
+                          setSearchQuery({ ...searchQuery, sueldoBaseHasta: Number(raw) });
+                        }
+                      }}
+                      maxLength={12}
                     />
                   </div>
                   <div className="col-md-3">

@@ -24,6 +24,22 @@ export const FichaEmpresaQueryValidation = Joi.object({
         .messages({
             "any.only": "El estado laboral no es válido.",
             "string.base": "El estado laboral debe ser una cadena de texto."
+        }),
+    sueldoBaseDesde: Joi.number()
+        .integer()
+        .min(1)
+        .messages({
+            "number.base": "El sueldo desde debe ser un número.",
+            "number.integer": "El sueldo desde debe ser un número entero.",
+            "number.min": "El sueldo desde debe ser mayor a 0."
+        }),
+    sueldoBaseHasta: Joi.number()
+        .integer()
+        .min(1)
+        .messages({
+            "number.base": "El sueldo hasta debe ser un número.",
+            "number.integer": "El sueldo hasta debe ser un número entero.",
+            "number.min": "El sueldo hasta debe ser mayor a 0."
         })
 })
 .or('id', 'trabajadorId', 'estado')
