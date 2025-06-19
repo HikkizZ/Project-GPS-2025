@@ -1,36 +1,15 @@
-import { API_CONFIG, getAuthHeaders } from '@/config/api.config';
+import { apiClient } from '@/config/api.config';
 import { LoginData, RegisterData, AuthResponse, User } from '@/types.d';
 import { jwtDecode } from "jwt-decode";
 
 class AuthService {
-  private baseURL = API_CONFIG.BASE_URL;
   private tokenKey = 'authToken';
   private userKey = 'userData';
 
   // Login de usuario
   async login(credentials: LoginData): Promise<any> {
     try {
-      const response = await fetch(`${this.baseURL}/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        credentials: 'include',
-        body: JSON.stringify(credentials)
-      });
-
-      if (!response.ok) {
-        if (response.status === 404) {
-          return { error: 'No se puede conectar con el servidor. Por favor, verifica que el servidor esté corriendo.' };
-        }
-        const errorData = await response.json().catch(() => ({
-          message: 'Error de conexión con el servidor'
-        }));
-        return { error: errorData.message || 'Error al iniciar sesión' };
-      }
-
-      const data = await response.json();
+      const data = await apiClient.post<AuthResponse>('/auth/login', credentials);
       
       if (data.status === 'success' && data.data?.token) {
         const token = data.data.token;
@@ -69,18 +48,9 @@ class AuthService {
         return { success: false, error: 'No hay token de autenticación' };
       }
 
-      const response = await fetch(`${this.baseURL}/auth/register`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(registerData)
-      });
+      const data = await apiClient.post<AuthResponse>('/auth/register', registerData);
 
-      const data = await response.json();
-
-      if (response.ok && data.status === 'success') {
+      if (data.status === 'success') {
         return { 
           success: true, 
           user: data.data 

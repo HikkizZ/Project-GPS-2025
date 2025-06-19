@@ -1,28 +1,11 @@
-import { API_CONFIG } from '@/config/api.config';
-import { 
-  FichaEmpresa, 
-  FichaEmpresaResponse, 
+import { apiClient } from '@/config/api.config';
+import type {
+  FichaEmpresa,
   FichaEmpresaSearchQuery,
-  UpdateFichaEmpresaData,
   CreateFichaEmpresaData,
-  ActualizarEstadoData,
+  UpdateFichaEmpresaData,
   EstadoLaboral
-} from '@/types/recursosHumanos/fichaEmpresa.types';
-import axios from 'axios';
-
-// Configurar axios con interceptor para token
-axios.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('authToken');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
+} from '../../types/recursosHumanos/fichaEmpresa.types';
 
 export interface ApiResponse<T = any> {
   success: boolean;
@@ -32,15 +15,7 @@ export interface ApiResponse<T = any> {
 
 // Exportar la clase
 export class FichaEmpresaService {
-  private baseURL = `${API_CONFIG.BASE_URL}/ficha-empresa`;
-
-  private getAuthHeaders() {
-    const token = localStorage.getItem('authToken');
-    return {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`
-    };
-  }
+  private baseURL = '/ficha-empresa';
 
   // Obtener todas las fichas con filtros
   async getFichasEmpresa(searchParams: FichaEmpresaSearchQuery = {}): Promise<ApiResponse<FichaEmpresa[]>> {
@@ -69,20 +44,18 @@ export class FichaEmpresaService {
         }
       });
 
-      const response = await axios.get(`${this.baseURL}/search?${queryParams}`, {
-        headers: this.getAuthHeaders()
-      });
+      const data = await apiClient.get<{ data: FichaEmpresa[] }>(`${this.baseURL}/search?${queryParams}`);
 
       return {
         success: true,
         message: 'Fichas obtenidas exitosamente',
-        data: response.data.data
+        data: data.data
       };
     } catch (error: any) {
       console.error('Error al obtener fichas:', error);
       return {
         success: false,
-        message: error.response?.data?.message || 'Error al obtener fichas'
+        message: error.message || 'Error al obtener fichas'
       };
     }
   }
@@ -90,26 +63,22 @@ export class FichaEmpresaService {
   // Obtener ficha por ID
   async getFichaEmpresaById(id: number): Promise<ApiResponse<FichaEmpresa>> {
     try {
-      const response = await axios.get(`${this.baseURL}/${id}`, {
-        headers: this.getAuthHeaders()
-      });
+      const data = await apiClient.get<{ data: FichaEmpresa }>(`${this.baseURL}/${id}`);
 
-      if (!response.data.data) {
+      if (!data.data) {
         throw new Error('No se encontró la ficha solicitada');
       }
 
       return {
         success: true,
         message: 'Ficha obtenida exitosamente',
-        data: response.data.data
+        data: data.data
       };
     } catch (error: any) {
       console.error('Error al obtener ficha:', error);
       return {
         success: false,
-        message: error.response?.status === 404 
-          ? 'La ficha solicitada no existe o fue eliminada'
-          : error.response?.data?.message || 'Error al obtener ficha'
+        message: error.message || 'Error al obtener ficha'
       };
     }
   }
@@ -117,19 +86,17 @@ export class FichaEmpresaService {
   // Obtener mi ficha personal
   async getMiFicha(): Promise<ApiResponse<FichaEmpresa>> {
     try {
-      const response = await axios.get(`${this.baseURL}/mi-ficha`, {
-        headers: this.getAuthHeaders()
-      });
+      const data = await apiClient.get<{ data: FichaEmpresa }>(`${this.baseURL}/mi-ficha`);
       return {
         success: true,
         message: 'Ficha personal obtenida exitosamente',
-        data: response.data.data
+        data: data.data
       };
     } catch (error: any) {
       console.error('Error al obtener mi ficha:', error);
       return {
         success: false,
-        message: error.response?.data?.message || 'Error al obtener mi ficha'
+        message: error.message || 'Error al obtener mi ficha'
       };
     }
   }
@@ -137,19 +104,17 @@ export class FichaEmpresaService {
   // Crear nueva ficha
   async createFichaEmpresa(data: CreateFichaEmpresaData): Promise<ApiResponse<FichaEmpresa>> {
     try {
-      const response = await axios.post(this.baseURL, data, {
-        headers: this.getAuthHeaders()
-      });
+      const response = await apiClient.post<{ data: FichaEmpresa }>(this.baseURL, data);
       return {
         success: true,
         message: 'Ficha creada exitosamente',
-        data: response.data.data
+        data: response.data
       };
     } catch (error: any) {
       console.error('Error al crear ficha:', error);
       return {
         success: false,
-        message: error.response?.data?.message || 'Error al crear ficha'
+        message: error.message || 'Error al crear ficha'
       };
     }
   }
@@ -158,19 +123,17 @@ export class FichaEmpresaService {
   async updateFichaEmpresa(id: number, data: UpdateFichaEmpresaData): Promise<ApiResponse<FichaEmpresa>> {
     try {
       console.log('Actualizando ficha:', { id, data });
-      const response = await axios.put(`${this.baseURL}/${id}`, data, {
-        headers: this.getAuthHeaders()
-      });
+      const response = await apiClient.put<{ data: FichaEmpresa }>(`${this.baseURL}/${id}`, data);
       return {
         success: true,
         message: 'Ficha actualizada exitosamente',
-        data: response.data.data
+        data: response.data
       };
     } catch (error: any) {
       console.error('Error al actualizar ficha:', error);
       return {
         success: false,
-        message: error.response?.data?.message || 'Error al actualizar ficha'
+        message: error.message || 'Error al actualizar ficha'
       };
     }
   }
@@ -178,22 +141,21 @@ export class FichaEmpresaService {
   // Actualizar estado
   async updateEstadoLaboral(id: number, estado: EstadoLaboral, motivo?: string): Promise<ApiResponse<FichaEmpresa>> {
     try {
-      const response = await axios.put(
+      const response = await apiClient.put<{ data: FichaEmpresa }>(
         `${this.baseURL}/${id}/estado`,
-        { estado, motivo },
-        { headers: this.getAuthHeaders() }
+        { estado, motivo }
       );
 
       return {
         success: true,
         message: 'Estado actualizado exitosamente',
-        data: response.data.data
+        data: response.data
       };
     } catch (error: any) {
       console.error('Error al actualizar estado:', error);
       return {
         success: false,
-        message: error.response?.data?.message || 'Error al actualizar estado'
+        message: error.message || 'Error al actualizar estado'
       };
     }
   }
@@ -203,11 +165,9 @@ export class FichaEmpresaService {
     try {
       // Limpiar el RUT antes de enviarlo al backend
       const cleanRut = rut.replace(/\./g, '').replace(/-/g, '');
-      const response = await axios.get(`${this.baseURL}/search?rut=${cleanRut}`, {
-        headers: this.getAuthHeaders()
-      });
+      const data = await apiClient.get<{ data: FichaEmpresa[] }>(`${this.baseURL}/search?rut=${cleanRut}`);
 
-      if (!response.data.data || !Array.isArray(response.data.data) || response.data.data.length === 0) {
+      if (!data.data || !Array.isArray(data.data) || data.data.length === 0) {
         return {
           success: false,
           message: 'No se encontró ninguna ficha con el RUT especificado',
@@ -215,7 +175,7 @@ export class FichaEmpresaService {
         };
       }
 
-      const fichas = response.data.data;
+      const fichas = data.data;
       return {
         success: true,
         message: 'Búsqueda completada',
@@ -225,99 +185,57 @@ export class FichaEmpresaService {
       console.error('Error al buscar por RUT:', error);
       return {
         success: false,
-        message: error.response?.status === 404 
-          ? 'No se encontró ninguna ficha con el RUT especificado'
-          : error.response?.data?.message || 'Error al buscar por RUT'
+        message: error.message || 'Error al buscar por RUT',
+        data: null
       };
     }
   }
 
-  // Manejo de contratos
+  // Upload de contrato
   async uploadContrato(fichaId: number, file: File): Promise<ApiResponse> {
     try {
-      const formData = new FormData();
-      formData.append('contrato', file);
-
-      const response = await axios.post(
-        `${this.baseURL}/${fichaId}/upload-contrato`,
-        formData,
-        {
-          headers: {
-            ...this.getAuthHeaders(),
-            'Content-Type': 'multipart/form-data',
-          },
-        }
-      );
-
+      await apiClient.uploadFile(`${this.baseURL}/${fichaId}/contrato`, file);
       return {
         success: true,
-        data: response.data,
         message: 'Contrato subido exitosamente'
       };
     } catch (error: any) {
       console.error('Error al subir contrato:', error);
       return {
         success: false,
-        message: error.response?.data?.message || 'Error al subir el contrato'
+        message: error.message || 'Error al subir contrato'
       };
     }
   }
 
+  // Download de contrato
   async downloadContrato(fichaId: number): Promise<void> {
     try {
-      const response = await axios.get(
-        `${this.baseURL}/${fichaId}/contrato`,
-        {
-          responseType: 'blob',
-          headers: this.getAuthHeaders()
-        }
-      );
-
-      const blob = new Blob([response.data], { type: 'application/pdf' });
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      
-      const contentDisposition = response.headers['content-disposition'];
-      let filename = 'contrato.pdf';
-      if (contentDisposition) {
-        const filenameMatch = contentDisposition.match(/filename="(.+)"/);
-        if (filenameMatch) {
-          filename = filenameMatch[1];
-        }
-      }
-      
-      link.setAttribute('download', filename);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
+      await apiClient.downloadFile(`${this.baseURL}/${fichaId}/contrato`, `contrato_${fichaId}.pdf`);
     } catch (error: any) {
       console.error('Error al descargar contrato:', error);
-      throw new Error(error.response?.data?.message || 'Error al descargar el contrato');
+      throw error;
     }
   }
 
+  // Eliminar contrato
   async deleteContrato(fichaId: number): Promise<ApiResponse> {
     try {
-      const response = await axios.delete(`${this.baseURL}/${fichaId}/delete-contrato`, {
-        headers: this.getAuthHeaders()
-      });
+      await apiClient.delete(`${this.baseURL}/${fichaId}/contrato`);
       return {
         success: true,
-        message: 'Contrato eliminado exitosamente',
-        data: response.data
+        message: 'Contrato eliminado exitosamente'
       };
     } catch (error: any) {
       console.error('Error al eliminar contrato:', error);
       return {
         success: false,
-        message: error.response?.data?.message || 'Error al eliminar el contrato'
+        message: error.message || 'Error al eliminar contrato'
       };
     }
   }
 
-  // Utilidades estáticas
+  // Métodos estáticos para utilidades
   static formatSalario(salario: number): string {
     return new Intl.NumberFormat('es-CL', {
       style: 'currency',
@@ -327,8 +245,7 @@ export class FichaEmpresaService {
   }
 
   static formatFecha(fecha: Date | string): string {
-    const date = typeof fecha === 'string' ? new Date(fecha) : fecha;
-    return date.toLocaleDateString('es-CL');
+    return new Date(fecha).toLocaleDateString('es-CL');
   }
 
   static getEstadoLaboralColor(estado: EstadoLaboral): string {
@@ -344,23 +261,21 @@ export class FichaEmpresaService {
   static getEstadoLaboralIcon(estado: EstadoLaboral): string {
     const icons = {
       [EstadoLaboral.ACTIVO]: 'bi-person-check',
-      [EstadoLaboral.LICENCIA]: 'bi-person-dash',
-      [EstadoLaboral.PERMISO]: 'bi-person-lines-fill',
+      [EstadoLaboral.LICENCIA]: 'bi-person-x',
+      [EstadoLaboral.PERMISO]: 'bi-person-dash',
       [EstadoLaboral.DESVINCULADO]: 'bi-person-x'
     };
     return icons[estado] || 'bi-person';
   }
 }
 
-// Instancia del servicio
+// Crear una instancia por defecto del servicio
 const fichaEmpresaService = new FichaEmpresaService();
+export default fichaEmpresaService;
 
-// Exportar funciones individuales
+// Funciones de conveniencia para uso directo
 export const getFichaEmpresa = (id: number) => fichaEmpresaService.getFichaEmpresaById(id);
 export const updateFichaEmpresa = (id: number, data: UpdateFichaEmpresaData) => fichaEmpresaService.updateFichaEmpresa(id, data);
 export const uploadContrato = (fichaId: number, file: File) => fichaEmpresaService.uploadContrato(fichaId, file);
 export const downloadContrato = (fichaId: number) => fichaEmpresaService.downloadContrato(fichaId);
-export const deleteContrato = (fichaId: number) => fichaEmpresaService.deleteContrato(fichaId);
-
-// Exportar el servicio por defecto
-export default fichaEmpresaService; 
+export const deleteContrato = (fichaId: number) => fichaEmpresaService.deleteContrato(fichaId); 

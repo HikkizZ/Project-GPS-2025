@@ -12,11 +12,11 @@ export const useTrabajadores = () => {
     setIsLoading(true);
     setError('');
     try {
-      const result = await trabajadorService.getTrabajadores();
-      if (result.trabajadores) {
-        setTrabajadores(result.trabajadores);
+      const result = await trabajadorService.getAllTrabajadores();
+      if (result.success && result.data) {
+        setTrabajadores(result.data);
       } else {
-        setError(result.error || 'Error al cargar trabajadores');
+        setError(result.message || 'Error al cargar trabajadores');
       }
     } catch (error) {
       setError('Error de conexión');
@@ -31,10 +31,10 @@ export const useTrabajadores = () => {
     setError('');
     try {
       const result = await trabajadorService.searchTrabajadores(query);
-      if (result.trabajadores) {
-        setTrabajadores(result.trabajadores);
+      if (result.success && result.data) {
+        setTrabajadores(result.data);
       } else {
-        setError(result.error || 'No se encontraron trabajadores');
+        setError(result.message || 'No se encontraron trabajadores');
         setTrabajadores([]);
       }
     } catch (error) {

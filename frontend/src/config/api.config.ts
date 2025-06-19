@@ -1,114 +1,182 @@
+/**
+ * CONFIGURACIÓN CENTRALIZADA DE API
+ * 
+ * Este archivo centraliza toda la configuración de comunicación con el backend:
+ * - URL base y timeout
+ * - Headers estándar
+ * - Cliente HTTP centralizado con axios
+ * - Manejo centralizado de errores
+ * 
+ * USO: Importar en todos los servicios para mantener consistencia
+ * EJEMPLO: import { apiClient, getAuthHeaders } from '@/config/api.config';
+ */
+
+// Configuración base de la API
 export const API_CONFIG = {
   BASE_URL: import.meta.env.VITE_API_URL || 'http://localhost:3000/api',
   TIMEOUT: 10000,
-  ENDPOINTS: {
-    AUTH: {
-      LOGIN: '/auth/login',
-      REGISTER: '/auth/register',
-      LOGOUT: '/auth/logout'
-    },
-    USERS: {
-      BASE: '/users',
-      ALL: '/users/all',
-      DETAIL: '/users/detail',
-      CREATE: '/users/create',
-      UPDATE: '/users/update',
-      DELETE: '/users/delete'
-    },
-    TRABAJADORES: {
-      BASE: '/trabajadores',
-      ALL: '/trabajadores/all',
-      DETAIL: '/trabajadores/detail',
-      CREATE: '/trabajadores/create',
-      UPDATE: '/trabajadores/update',
-      DELETE: '/trabajadores/delete'
-    },
-    FICHAS_EMPRESA: {
-      BASE: '/fichas-empresa',
-      ALL: '/fichas-empresa/all',
-      DETAIL: '/fichas-empresa/detail',
-      CREATE: '/fichas-empresa/create',
-      UPDATE: '/fichas-empresa/update',
-      DELETE: '/fichas-empresa/delete',
-      BY_TRABAJADOR: '/fichas-empresa/trabajador'
-    },
-    HISTORIAL_LABORAL: {
-      BASE: '/historial-laboral',
-      ALL: '/historial-laboral/all',
-      BY_TRABAJADOR: '/historial-laboral/trabajador',
-      CREATE: '/historial-laboral/create',
-      UPDATE: '/historial-laboral/update',
-      DELETE: '/historial-laboral/delete'
-    },
-    LICENCIAS_PERMISOS: {
-      BASE: '/licencias-permisos',
-      ALL: '/licencias-permisos/all',
-      BY_TRABAJADOR: '/licencias-permisos/trabajador',
-      CREATE: '/licencias-permisos/create',
-      UPDATE: '/licencias-permisos/update',
-      DELETE: '/licencias-permisos/delete',
-      VENCIDAS: '/licencias-permisos/vencidas'
-    },
-    CUSTOMERS: {
-      BASE: '/customers',
-      ALL: '/customers/all',
-      DETAIL: '/customers/detail',
-      CREATE: '/customers/create',
-      UPDATE: '/customers/update',
-      DELETE: '/customers/delete'
-    },
-    SUPPLIERS: {
-      BASE: '/suppliers',
-      ALL: '/suppliers/all',
-      DETAIL: '/suppliers/detail',
-      CREATE: '/suppliers/create',
-      UPDATE: '/suppliers/update',
-      DELETE: '/suppliers/delete'
-    },
-    PRODUCTS: {
-      BASE: '/products',
-      ALL: '/products/all',
-      DETAIL: '/products/detail',
-      CREATE: '/products/create',
-      UPDATE: '/products/update',
-      DELETE: '/products/delete',
-      BY_CATEGORY: '/products/category'
-    },
-    INVENTORY: {
-      BASE: '/inventory',
-      ENTRY: '/inventory/entry',
-      EXIT: '/inventory/exit',
-      MOVEMENTS: '/inventory/movements',
-      STOCK: '/inventory/stock'
-    },
-    FILES: {
-      BASE: '/files',
-      UPLOAD: '/files/upload',
-      DOWNLOAD: '/files/download',
-      DELETE: '/files/delete'
-    }
-  },
   HEADERS: {
     'Content-Type': 'application/json',
     'Accept': 'application/json'
   }
+} as const;
+
+// Headers con autenticación
+export const getAuthHeaders = (token?: string) => {
+  const authToken = token || localStorage.getItem('authToken');
+  return {
+    ...API_CONFIG.HEADERS,
+    ...(authToken && { 'Authorization': `Bearer ${authToken}` })
+  };
 };
 
-export const getAuthHeaders = (token: string) => ({
-  ...API_CONFIG.HEADERS,
-  'Authorization': `Bearer ${token}`
-});
+// Headers para upload de archivos
+export const getFileUploadHeaders = (token?: string) => {
+  const authToken = token || localStorage.getItem('authToken');
+  return {
+    ...(authToken && { 'Authorization': `Bearer ${authToken}` })
+  };
+};
 
-export const getFileUploadHeaders = (token: string) => ({
-  'Authorization': `Bearer ${token}`
-});
+// Cliente HTTP centralizado con axios
+import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 
-// Helper para construir URLs completas
+class ApiClient {
+  private client: AxiosInstance;
+
+  constructor() {
+    this.client = axios.create({
+      baseURL: API_CONFIG.BASE_URL,
+      timeout: API_CONFIG.TIMEOUT,
+      headers: API_CONFIG.HEADERS
+    });
+
+    // Interceptor para agregar token automáticamente
+    this.client.interceptors.request.use(
+      (config) => {
+        const token = localStorage.getItem('authToken');
+        if (token) {
+          config.headers.Authorization = `Bearer ${token}`;
+        }
+        return config;
+      },
+      (error) => Promise.reject(error)
+    );
+
+    // Interceptor para manejo centralizado de errores
+    this.client.interceptors.response.use(
+      (response) => response,
+      (error) => {
+        return Promise.reject(this.handleApiError(error));
+      }
+    );
+  }
+
+  // GET request
+  async get<T = any>(url: string, config?: AxiosRequestConfig): Promise<T> {
+    const response: AxiosResponse<T> = await this.client.get(url, config);
+    return response.data;
+  }
+
+  // POST request
+  async post<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+    const response: AxiosResponse<T> = await this.client.post(url, data, config);
+    return response.data;
+  }
+
+  // PUT request
+  async put<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+    const response: AxiosResponse<T> = await this.client.put(url, data, config);
+    return response.data;
+  }
+
+  // DELETE request
+  async delete<T = any>(url: string, config?: AxiosRequestConfig): Promise<T> {
+    const response: AxiosResponse<T> = await this.client.delete(url, config);
+    return response.data;
+  }
+
+  // PATCH request
+  async patch<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+    const response: AxiosResponse<T> = await this.client.patch(url, data, config);
+    return response.data;
+  }
+
+  // Upload de archivos
+  async uploadFile<T = any>(url: string, file: File, onProgress?: (progress: number) => void): Promise<T> {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const config: AxiosRequestConfig = {
+      headers: getFileUploadHeaders(),
+      onUploadProgress: (progressEvent) => {
+        if (onProgress && progressEvent.total) {
+          const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+          onProgress(progress);
+        }
+      }
+    };
+
+    const response: AxiosResponse<T> = await this.client.post(url, formData, config);
+    return response.data;
+  }
+
+  // Download de archivos
+  async downloadFile(url: string, filename?: string): Promise<void> {
+    const response = await this.client.get(url, {
+      responseType: 'blob'
+    });
+
+    const blob = new Blob([response.data]);
+    const downloadUrl = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.download = filename || 'download';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(downloadUrl);
+  }
+
+  // Manejo centralizado de errores
+  private handleApiError(error: any): Error {
+    if (error.response?.data?.message) {
+      return new Error(error.response.data.message);
+    }
+    if (error.message) {
+      return new Error(error.message);
+    }
+    if (error.code === 'ECONNABORTED') {
+      return new Error('Tiempo de espera agotado. Por favor, intente nuevamente.');
+    }
+    if (error.response?.status === 401) {
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('userData');
+      window.location.href = '/login';
+      return new Error('Sesión expirada. Por favor, inicie sesión nuevamente.');
+    }
+    if (error.response?.status === 403) {
+      return new Error('No tiene permisos para realizar esta acción.');
+    }
+    if (error.response?.status === 404) {
+      return new Error('Recurso no encontrado.');
+    }
+    if (error.response?.status >= 500) {
+      return new Error('Error del servidor. Por favor, intente más tarde.');
+    }
+    return new Error('Error de conexión con el servidor.');
+  }
+}
+
+// Instancia singleton del cliente API
+export const apiClient = new ApiClient();
+
+// Helper para construir URLs completas (mantener compatibilidad)
 export const buildApiUrl = (endpoint: string): string => {
   return `${API_CONFIG.BASE_URL}${endpoint}`;
 };
 
-// Helper para manejar errores de API
+// Helper para manejo de errores (mantener compatibilidad)
 export const handleApiError = (error: any): string => {
   if (error.response?.data?.message) {
     return error.response.data.message;
