@@ -1,9 +1,12 @@
 import { Request, Response } from "express";
-import { handleSuccess, handleErrorClient, handleErrorServer } from "../../handlers/responseHandlers.js";
-import { FichaEmpresaQueryValidation, FichaEmpresaBodyValidation } from "../../validations/recursosHumanos/fichaEmpresa.validation.js";
 import { AppDataSource } from "../../config/configDB.js";
 import { FichaEmpresa, EstadoLaboral } from "../../entity/recursosHumanos/fichaEmpresa.entity.js";
-import { ServiceResponse } from "../../../types.js";
+import { Trabajador } from "../../entity/recursosHumanos/trabajador.entity.js";
+import { User } from "../../entity/user.entity.js";
+import { handleSuccess, handleErrorClient, handleErrorServer } from "../../handlers/responseHandlers.js";
+import { FichaEmpresaBodyValidation, FichaEmpresaUpdateValidation, EstadoFichaValidation } from "../../validations/recursosHumanos/fichaEmpresa.validation.js";
+import { FileManagementService } from "../../services/fileManagement.service.js";
+import { FileUploadService } from "../../services/FileUploadService.js";
 import {
     searchFichasEmpresa,
     getFichaEmpresaById,
@@ -12,8 +15,6 @@ import {
     actualizarEstadoFichaService,
     descargarContratoService
 } from "../../services/recursosHumanos/fichaEmpresa.service.js";
-import { FichaEmpresaUpdateValidation, EstadoFichaValidation } from "../../validations/recursosHumanos/fichaEmpresa.validation.js";
-import { getContratoPath, deleteContratoFile } from "../../config/fileUpload.config.js";
 import path from 'path';
 import fs from 'fs';
 
@@ -197,21 +198,20 @@ export async function descargarContrato(req: Request, res: Response) {
             return;
         }
 
-        // Verificar permisos (RRHH/Admin/SuperAdministrador o el propio trabajador)
-        const isRRHH = req.user.role === 'RecursosHumanos' || req.user.role === 'Administrador' || req.user.role === 'SuperAdministrador';
-        const isOwnWorker = ficha.trabajador.id === req.user.id;
-
-        if (!isRRHH && !isOwnWorker) {
-            handleErrorClient(res, 403, "No tiene permisos para descargar este contrato");
-            return;
+        // Verificar permisos: solo el trabajador propietario o RRHH pueden descargar
+        if (req.user.role !== 'RecursosHumanos' && req.user.role !== 'Administrador' && req.user.role !== 'SuperAdministrador') {
+            if (ficha.trabajador.rut !== req.user.rut) {
+                handleErrorClient(res, 403, "No tiene permisos para descargar este contrato");
+                return;
+            }
         }
 
         if (!ficha.contratoURL) {
-            handleErrorClient(res, 404, "No hay contrato disponible para esta ficha");
+            handleErrorClient(res, 404, "No hay contrato asociado a esta ficha");
             return;
         }
 
-        const filePath = getContratoPath(ficha.contratoURL);
+        const filePath = FileUploadService.getContratoPath(ficha.contratoURL);
 
         if (!fs.existsSync(filePath)) {
             handleErrorClient(res, 404, "Archivo de contrato no encontrado");
@@ -259,7 +259,7 @@ export async function uploadContrato(req: Request, res: Response) {
 
         // Eliminar archivo anterior si existe
         if (ficha.contratoURL) {
-            deleteContratoFile(ficha.contratoURL);
+            FileUploadService.deleteContratoFile(ficha.contratoURL);
         }
 
         // Actualizar ficha con nuevo archivo
@@ -276,7 +276,7 @@ export async function uploadContrato(req: Request, res: Response) {
         console.error("Error en uploadContrato:", error);
         // Si hay error, eliminar archivo subido
         if (req.file) {
-            deleteContratoFile(req.file.filename);
+            FileUploadService.deleteContratoFile(req.file.filename);
         }
         handleErrorServer(res, 500, "Error interno del servidor");
     }
@@ -308,7 +308,7 @@ export async function deleteContrato(req: Request, res: Response) {
         }
 
         // Eliminar archivo físico
-        const deleted = deleteContratoFile(ficha.contratoURL);
+        const deleted = FileUploadService.deleteContratoFile(ficha.contratoURL);
         
         // Actualizar ficha
         ficha.contratoURL = null;

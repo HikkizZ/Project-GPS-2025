@@ -11,7 +11,7 @@ import {
     uploadContrato,
     deleteContrato
 } from "../../controllers/recursosHumanos/fichaEmpresa.controller.js";
-import { upload } from "../../config/fileUpload.config.js";
+import { FileUploadService } from "../../services/FileUploadService.js";
 
 const router: Router = Router();
 
@@ -30,7 +30,7 @@ router
     .get("/:id/contrato", descargarContrato)
     .put("/:id", updateFichaEmpresa)
     .put("/:id/estado", actualizarEstadoFicha)
-    .post("/:id/upload-contrato", upload.single('contrato'), uploadContrato)
+    .post("/:id/upload-contrato", FileUploadService.uploadSingle('contrato'), uploadContrato)
     .delete("/:id/delete-contrato", deleteContrato);
 
 export default router; 
