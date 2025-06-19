@@ -10,6 +10,7 @@ import { User } from "../../entity/user.entity.js";
 import { HistorialLaboral } from "../../entity/recursosHumanos/historialLaboral.entity.js";
 import { encryptPassword, comparePassword } from '../../utils/encrypt.js';
 import { sendCredentialsEmail } from '../../utils/email.service.js';
+import { userRole } from "../../../types.d.js";
 
 // Generar contraseña segura de 8 a 16 caracteres
 function generateRandomPassword(): string {
@@ -151,7 +152,7 @@ export async function createTrabajadorService(trabajadorData: Partial<Trabajador
             name: `${trabajador.nombres} ${trabajador.apellidoPaterno} ${trabajador.apellidoMaterno}`,
             email: correoUsuario,
             password: hashedPassword,
-            role: "Usuario",
+            role: "Usuario" as userRole,
             rut: trabajador.rut,
             estadoCuenta: "Activa",
             createAt: new Date(),

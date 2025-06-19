@@ -1,9 +1,8 @@
 import { User } from "../entity/user.entity.js";
 import { AppDataSource } from "../config/configDB.js";
 import { comparePassword, encryptPassword } from "../utils/encrypt.js";
-import { ServiceResponse, QueryParams, UpdateUserData, SafeUser } from '../../types.d.js';
+import { ServiceResponse, QueryParams, UpdateUserData, SafeUser, userRole } from '../../types.d.js';
 import { Not, ILike, FindOptionsWhere, FindOperator, Equal } from "typeorm";
-import { hashPassword } from '../utils/password.utils.js';
 
 /* Validar formato de RUT */
 function isValidRut(rut: string): boolean {
@@ -20,8 +19,8 @@ function isValidEmail(email: string): boolean {
 
 /* Validar rol de usuario */
 function isValidRole(role: string): boolean {
-    const validRoles = ["SuperAdministrador", "Administrador", "Usuario", "RecursosHumanos", "Gerencia", "Ventas", "Arriendo", "Finanzas"];
-    return validRoles.includes(role);
+    const validRoles: userRole[] = ["SuperAdministrador", "Administrador", "Usuario", "RecursosHumanos", "Gerencia", "Ventas", "Arriendo", "Finanzas"];
+    return validRoles.includes(role as userRole);
 }
 
 /* Buscar usuarios con filtros */

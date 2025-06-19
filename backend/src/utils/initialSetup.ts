@@ -3,6 +3,7 @@ import { User } from "../entity/user.entity.js";
 import { Trabajador } from "../entity/recursosHumanos/trabajador.entity.js";
 import { FichaEmpresa, EstadoLaboral } from "../entity/recursosHumanos/fichaEmpresa.entity.js";
 import { encryptPassword } from "../utils/encrypt.js";
+import { userRole } from "../../types.d.js";
 
 export async function initialSetup(): Promise<void> {
     try {
@@ -87,7 +88,7 @@ export async function initialSetup(): Promise<void> {
             superAdminUser.name = "Super Administrador Técnico";
             superAdminUser.email = "super.administrador@lamas.com";
             superAdminUser.password = superAdminHashedPassword;
-            superAdminUser.role = 'SuperAdministrador';
+            superAdminUser.role = 'SuperAdministrador' as userRole;
             superAdminUser.estadoCuenta = "Activa";
             await userRepo.save(superAdminUser);
         } else {
@@ -95,7 +96,7 @@ export async function initialSetup(): Promise<void> {
                 name: "Super Administrador Técnico",
                 email: "super.administrador@lamas.com",
                 password: superAdminHashedPassword,
-                role: 'SuperAdministrador',
+                role: 'SuperAdministrador' as userRole,
                 rut: "11.111.111-1",
                 estadoCuenta: "Activa"
             });

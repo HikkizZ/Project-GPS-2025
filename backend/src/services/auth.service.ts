@@ -4,7 +4,7 @@ import { AppDataSource } from "../config/configDB.js";
 import { comparePassword, encryptPassword } from "../utils/encrypt.js";
 import { ACCESS_TOKEN_SECRET } from "../config/configEnv.js";
 import { formatToLocalTime } from "../utils/formatDate.js";
-import { UserResponse, UserData } from "../../types.d.js";
+import { UserResponse, UserData, userRole } from "../../types.d.js";
 import { formatRut } from "../helpers/rut.helper.js";
 import { Trabajador } from "../entity/recursosHumanos/trabajador.entity.js";
 import bcrypt from "bcrypt";
@@ -20,14 +20,14 @@ interface RegisterData {
   rut: string;
   email: string;
   password: string;
-  role: string;
+  role: userRole;
 }
 
 /* Interface for JWT Payload */
 interface JWTPayload {
   name: string;
   email: string;
-    role: string;
+  role: userRole;
   rut: string;
 }
 
@@ -38,7 +38,7 @@ interface authError {
 }
 
 /* Definición de roles permitidos */
-const allowedRoles = ["SuperAdministrador", "Administrador", "Usuario", "RecursosHumanos", "Gerencia", "Ventas", "Arriendo", "Finanzas"];
+const allowedRoles: userRole[] = ["SuperAdministrador", "Administrador", "Usuario", "RecursosHumanos", "Gerencia", "Ventas", "Arriendo", "Finanzas"];
 
 /* Auxiliar function for creating error messages */
 const createErrorMessage = (dataInfo: Partial<LoginData | RegisterData>, message: string): authError => ({ dataInfo, message });
@@ -111,7 +111,7 @@ export async function loginService(user: LoginData): Promise<[string | null, aut
   }
 }
 
-export async function registerService(user: RegisterData, userRole: string): Promise<[UserResponse | null, authError | string | null]> {
+export async function registerService(user: RegisterData, userRole: userRole): Promise<[UserResponse | null, authError | string | null]> {
   try {
         const userRepository = AppDataSource.getRepository(User);
         const trabajadorRepository = AppDataSource.getRepository(Trabajador);
@@ -227,7 +227,7 @@ export async function registerService(user: RegisterData, userRole: string): Pro
             name,
             email,
             password: hashedPassword,
-            role: role as string,
+            role,
             rut,
             estadoCuenta: "Activa",
             createAt: new Date(),

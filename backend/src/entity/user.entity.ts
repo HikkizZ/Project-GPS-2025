@@ -26,7 +26,7 @@ export class User {
         'Arriendo',
         'Finanzas'
     ], default: 'Usuario' })
-    role: string;
+    role: userRole;
 
     @Column({ type: "varchar", length: 20, unique: true })
     rut: string;
