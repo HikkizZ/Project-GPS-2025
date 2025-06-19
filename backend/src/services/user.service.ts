@@ -1,6 +1,6 @@
 import { User } from "../entity/user.entity.js";
 import { AppDataSource } from "../config/configDB.js";
-import { comparePassword, encryptPassword } from "../helpers/bcrypt.helper.js";
+import { comparePassword, encryptPassword } from "../utils/encrypt.js";
 import { ServiceResponse, QueryParams, UpdateUserData, SafeUser } from '../../types.d.js';
 import { Not, ILike, FindOptionsWhere, FindOperator, Equal } from "typeorm";
 import { hashPassword } from '../utils/password.utils.js';

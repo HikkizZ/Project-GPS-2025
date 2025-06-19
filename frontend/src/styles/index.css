@@ -20,6 +20,13 @@ Abajo les dejo comentarios para que sepan qué hace cada línea y dónde impacta
 ¡Cualquier duda o cambio que hagan, avisen al grupo de whatsapp porfis, gracias!
 */
 
+/*
+  index.css
+  - Estilos globales, helpers, resets y variables
+  - NO incluir estilos específicos de páginas o módulos aquí
+  - Para estilos de páginas, usar: trabajadores.css, fichasEmpresa.css, usuarios.css, dashboard.css, etc.
+*/
+
 :root {
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif; /* Fuente principal de toda la app */
   line-height: 1.5; /* Espaciado vertical entre líneas de texto */

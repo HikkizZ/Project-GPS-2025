@@ -1,0 +1,36 @@
+/* Estilos específicos para la página de Fichas de Empresa */
+
+.fichas-empresa-page .container {
+  padding-top: 1.5rem !important;
+}
+
+.fichas-empresa-page h2 {
+  margin-top: 0 !important;
+}
+
+.fichas-empresa-page {
+  background: #fff;
+  min-height: 100vh;
+}
+
+.fichas-empresa-page .form-label {
+  color: var(--text-primary) !important;
+  font-weight: 500;
+}
+
+.fichas-empresa-page .ficha-card {
+  border: 2px solid var(--primary-color);
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  background: var(--surface);
+}
+
+.fichas-empresa-page .ficha-header {
+  font-weight: bold;
+  color: var(--primary-color);
+  margin-bottom: 1rem;
+}
+
+/* Agrega aquí más reglas específicas según crezca la página */
+
+/* (Agrega aquí los estilos específicos de fichas de empresa cuando los identifiques en el futuro) */ 

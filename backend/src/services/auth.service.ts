@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
 import { User } from "../entity/user.entity.js";
 import { AppDataSource } from "../config/configDB.js";
-import { comparePassword, encryptPassword } from "../helpers/bcrypt.helper.js";
+import { comparePassword, encryptPassword } from "../utils/encrypt.js";
 import { ACCESS_TOKEN_SECRET } from "../config/configEnv.js";
 import { formatToLocalTime } from "../utils/formatDate.js";
 import { UserResponse, UserData } from "../../types.d.js";

@@ -8,9 +8,7 @@ import { ILike, Like } from "typeorm";
 import { FindOptionsWhere } from "typeorm";
 import { User } from "../../entity/user.entity.js";
 import { HistorialLaboral } from "../../entity/recursosHumanos/historialLaboral.entity.js";
-import { encryptPassword } from "../../helpers/bcrypt.helper.js";
-import { Between } from "typeorm";
-import { hashPassword } from '../../utils/password.utils.js';
+import { encryptPassword, comparePassword } from '../../utils/encrypt.js';
 import { sendCredentialsEmail } from '../../utils/email.service.js';
 
 // Generar contraseña segura de 8 a 16 caracteres
