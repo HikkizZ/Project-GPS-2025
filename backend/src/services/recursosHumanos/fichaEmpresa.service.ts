@@ -67,8 +67,15 @@ export async function searchFichasEmpresa(params: SearchFichaParams): Promise<Se
 
         // Filtros por información laboral (búsqueda parcial)
         if (params.cargo) {
-            const cargoTrimmed = params.cargo.trim();
-            queryBuilder.andWhere("LOWER(ficha.cargo) ILIKE LOWER(:cargo)", { cargo: `%${cargoTrimmed}%` });
+            const cargoTrimmed = params.cargo.trim().toLowerCase();
+            // Manejar el caso especial de "sin cargo"/"sin cárgo"
+            if (cargoTrimmed === 'sin cargo' || cargoTrimmed === 'sin cárgo') {
+                queryBuilder.andWhere("LOWER(ficha.cargo) SIMILAR TO :cargoPattern", {
+                    cargoPattern: '%(sin cargo|sin cárgo)%'
+                });
+            } else {
+                queryBuilder.andWhere("LOWER(ficha.cargo) ILIKE LOWER(:cargo)", { cargo: `%${cargoTrimmed}%` });
+            }
         }
         if (params.area) {
             const areaTrimmed = params.area.trim().toLowerCase();
