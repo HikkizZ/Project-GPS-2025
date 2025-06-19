@@ -9,7 +9,7 @@ import { FindOptionsWhere } from "typeorm";
 import { User } from "../../entity/user.entity.js";
 import { HistorialLaboral } from "../../entity/recursosHumanos/historialLaboral.entity.js";
 import { encryptPassword, comparePassword } from '../../utils/encrypt.js';
-import { sendCredentialsEmail } from '../../utils/email.service.js';
+import { sendCredentialsEmail } from '../email.service.js';
 import { userRole } from "../../../types.d.js";
 
 // Generar contraseña segura de 8 a 16 caracteres
@@ -17,20 +17,38 @@ function generateRandomPassword(): string {
     const mayus = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
     const minus = 'abcdefghijklmnopqrstuvwxyz';
     const nums = '0123456789';
-    const specials = '!@#$%^&*()_+-=,.;:<>?[]{}|';
+    const specials = '!@#$%^&*';  // Caracteres especiales comunes
+    
+    // Generar longitud aleatoria entre 10 y 16 caracteres (aumentamos el mínimo a 10)
+    const length = Math.floor(Math.random() * 7) + 10;
+    
+    // Garantizar al menos uno de cada tipo en posiciones aleatorias
+    const password = new Array(length).fill('');
+    
+    // Función auxiliar para obtener índices aleatorios no usados
+    const getRandomEmptyIndex = () => {
+        let index;
+        do {
+            index = Math.floor(Math.random() * length);
+        } while (password[index] !== '');
+        return index;
+    };
+    
+    // Insertar caracteres requeridos en posiciones aleatorias
+    password[getRandomEmptyIndex()] = mayus[Math.floor(Math.random() * mayus.length)];
+    password[getRandomEmptyIndex()] = minus[Math.floor(Math.random() * minus.length)];
+    password[getRandomEmptyIndex()] = nums[Math.floor(Math.random() * nums.length)];
+    password[getRandomEmptyIndex()] = specials[Math.floor(Math.random() * specials.length)];
+    
+    // Llenar el resto con caracteres aleatorios
     const all = mayus + minus + nums + specials;
-    let password = '';
-    // Garantizar al menos uno de cada tipo
-    password += mayus.charAt(Math.floor(Math.random() * mayus.length));
-    password += minus.charAt(Math.floor(Math.random() * minus.length));
-    password += nums.charAt(Math.floor(Math.random() * nums.length));
-    password += specials.charAt(Math.floor(Math.random() * specials.length));
-    // Rellenar el resto
-    for (let i = 4; i < 12; i++) {
-        password += all.charAt(Math.floor(Math.random() * all.length));
+    for (let i = 0; i < length; i++) {
+        if (password[i] === '') {
+            password[i] = all[Math.floor(Math.random() * all.length)];
+        }
     }
-    // Mezclar la contraseña
-    return password.split('').sort(() => 0.5 - Math.random()).join('');
+    
+    return password.join('');
 }
 
 // Función para generar correo corporativo y manejar duplicados
@@ -249,31 +267,10 @@ export async function getTrabajadoresService(incluirInactivos: boolean = false):
 export async function searchTrabajadoresService(query: any): Promise<ServiceResponse<Trabajador[]>> {
     try {
         const trabajadorRepo = AppDataSource.getRepository(Trabajador);
-        
-        // Si se busca por RUT, usar QueryBuilder para comparación avanzada
-        if (query.rut) {
-            // Validar formato: xx.xxx.xxx-x
-            const rutRegex = /^\d{2}\.\d{3}\.\d{3}-[\dkK]$/;
-            if (!rutRegex.test(query.rut)) {
-                return [null, "Debe ingresar el RUT en formato xx.xxx.xxx-x"];
-            }
-            // Limpiar el RUT de búsqueda (quitar puntos y guión)
-            const cleanRut = query.rut.replace(/\./g, '').replace(/-/g, '');
-            // Comparar ambos RUTs sin puntos ni guion usando SQL y comparación exacta
-            const trabajadores = await trabajadorRepo.createQueryBuilder("trabajador")
-                .leftJoinAndSelect("trabajador.fichaEmpresa", "fichaEmpresa")
-                .leftJoinAndSelect("trabajador.historialLaboral", "historialLaboral")
-                .leftJoinAndSelect("trabajador.licenciasPermisos", "licenciasPermisos")
-                .where("REPLACE(REPLACE(trabajador.rut, '.', ''), '-', '') = :cleanRut", { cleanRut })
-                .getMany();
-            if (!trabajadores.length) {
-                return [null, "No se encontraron trabajadores"];
-            }
-            return [trabajadores, null];
-        }
+        const whereClause: FindOptionsWhere<Trabajador> = {};
 
-        // Construir where clause para otros filtros
-        const whereClause: any = {};
+        // Construir la consulta dinámica
+        if (query.rut) whereClause.rut = ILike(`%${query.rut}%`);
         if (query.nombres) whereClause.nombres = ILike(`%${query.nombres}%`);
         if (query.apellidoPaterno) whereClause.apellidoPaterno = ILike(`%${query.apellidoPaterno}%`);
         if (query.apellidoMaterno) whereClause.apellidoMaterno = ILike(`%${query.apellidoMaterno}%`);
@@ -281,29 +278,87 @@ export async function searchTrabajadoresService(query: any): Promise<ServiceResp
         if (query.telefono) whereClause.telefono = ILike(`%${query.telefono}%`);
         if (query.numeroEmergencia) whereClause.numeroEmergencia = ILike(`%${query.numeroEmergencia}%`);
         if (query.direccion) whereClause.direccion = ILike(`%${query.direccion}%`);
+        
         if (query.fechaNacimiento) {
             whereClause.fechaNacimiento = query.fechaNacimiento;
         }
         if (query.fechaIngreso) {
             whereClause.fechaIngreso = query.fechaIngreso;
         }
+
         const soloEliminados = query.soloEliminados === true || query.soloEliminados === "true";
         const todos = query.todos === true || query.todos === "true";
+
         if (soloEliminados) {
             whereClause.enSistema = false;
         } else if (!todos) {
             whereClause.enSistema = true;
         }
+
         const trabajadores = await trabajadorRepo.find({
             relations: ["fichaEmpresa", "historialLaboral", "licenciasPermisos"],
             where: whereClause
         });
+
         if (!trabajadores.length) {
             return [null, "No se encontraron trabajadores"];
         }
+
         return [trabajadores, null];
     } catch (error) {
         console.error("Error en searchTrabajadoresService:", error);
+        return [null, "Error interno del servidor"];
+    }
+}
+
+// Desvincular trabajador: soft delete, ficha en estado desvinculado, usuario inactivo
+export async function desvincularTrabajadorService(id: number, motivo: string, userId?: number): Promise<ServiceResponse<Trabajador>> {
+    const queryRunner = AppDataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+    try {
+        const trabajador = await queryRunner.manager.findOne(Trabajador, { 
+            where: { id, enSistema: true }, 
+            relations: ["fichaEmpresa", "usuario"] 
+        });
+        
+        if (!trabajador) {
+            await queryRunner.rollbackTransaction();
+            await queryRunner.release();
+            return [null, "Trabajador no encontrado o ya desvinculado"];
+        }
+
+        if (trabajador.rut === "20.882.865-7") {
+            await queryRunner.rollbackTransaction();
+            await queryRunner.release();
+            return [null, "No se puede modificar, eliminar ni desvincular al superadministrador."];
+        }
+
+        // Soft delete del trabajador
+        trabajador.enSistema = false;
+        await queryRunner.manager.save(Trabajador, trabajador);
+
+        // Desactivar usuario asociado
+        if (trabajador.usuario) {
+            trabajador.usuario.estadoCuenta = "Inactiva";
+            await queryRunner.manager.save(User, trabajador.usuario);
+        }
+
+        // Actualizar ficha de empresa
+        if (trabajador.fichaEmpresa) {
+            trabajador.fichaEmpresa.estado = EstadoLaboral.DESVINCULADO;
+            trabajador.fichaEmpresa.fechaFinContrato = new Date();
+            trabajador.fichaEmpresa.motivoDesvinculacion = motivo;
+            await queryRunner.manager.save(FichaEmpresa, trabajador.fichaEmpresa);
+        }
+
+        await queryRunner.commitTransaction();
+        await queryRunner.release();
+        return [trabajador, null];
+    } catch (error) {
+        console.error("Error en desvincularTrabajadorService:", error);
+        await queryRunner.rollbackTransaction();
+        await queryRunner.release();
         return [null, "Error interno del servidor"];
     }
 }
@@ -313,11 +368,15 @@ export async function updateTrabajadorService(id: number, data: any): Promise<Se
     try {
         const trabajadorRepo = AppDataSource.getRepository(Trabajador);
         const userRepo = AppDataSource.getRepository(User);
-        const trabajador = await trabajadorRepo.findOne({ where: { id }, relations: ["usuario", "fichaEmpresa"] });
+        const trabajador = await trabajadorRepo.findOne({ 
+            where: { id }, 
+            relations: ["usuario", "fichaEmpresa"] 
+        });
+
         if (!trabajador) return [null, "Trabajador no encontrado"];
         if (!trabajador.usuario) return [null, "El trabajador no tiene usuario asociado"];
 
-        if (trabajador.rut === "11.111.111-1") {
+        if (trabajador.rut === "20.882.865-7") {
             return [null, "No se puede modificar, eliminar ni desvincular al superadministrador."];
         }
 
@@ -327,8 +386,10 @@ export async function updateTrabajadorService(id: number, data: any): Promise<Se
 
         // Actualizar campos permitidos del trabajador
         const camposPermitidos = [
-            "nombres", "apellidoPaterno", "apellidoMaterno", "telefono", "numeroEmergencia", "direccion", "correoPersonal"
+            "nombres", "apellidoPaterno", "apellidoMaterno", "telefono", 
+            "numeroEmergencia", "direccion", "correoPersonal"
         ];
+        
         for (const campo of camposPermitidos) {
             if (data[campo] && data[campo] !== (trabajador as any)[campo]) {
                 (trabajador as any)[campo] = data[campo];
@@ -346,9 +407,7 @@ export async function updateTrabajadorService(id: number, data: any): Promise<Se
         }
 
         // Si se actualiza el nombre o apellidos, actualizar el campo name en usuario
-        if (
-            data.nombres || data.apellidoPaterno || data.apellidoMaterno
-        ) {
+        if (data.nombres || data.apellidoPaterno || data.apellidoMaterno) {
             trabajador.usuario.name = `${data.nombres || trabajador.nombres} ${data.apellidoPaterno || trabajador.apellidoPaterno} ${data.apellidoMaterno || trabajador.apellidoMaterno}`;
             updated = true;
         }
@@ -356,6 +415,7 @@ export async function updateTrabajadorService(id: number, data: any): Promise<Se
         // Registrar cambios en historial laboral
         const historialRepo = AppDataSource.getRepository(HistorialLaboral);
         const cambios: string[] = [];
+        
         if (data.nombres && data.nombres !== trabajador.nombres) {
             cambios.push(`Cambio de nombres: de "${trabajador.nombres}" a "${data.nombres}"`);
         }
@@ -368,6 +428,7 @@ export async function updateTrabajadorService(id: number, data: any): Promise<Se
         if (data.correoPersonal && data.correoPersonal !== correoPersonalAnterior) {
             cambios.push(`Cambio de correo personal: de "${correoPersonalAnterior}" a "${data.correoPersonal}"`);
         }
+
         if (cambios.length > 0) {
             await historialRepo.save(historialRepo.create({
                 trabajador: trabajador,
@@ -389,48 +450,14 @@ export async function updateTrabajadorService(id: number, data: any): Promise<Se
         }
 
         // Devolver el trabajador actualizado con relaciones
-        const trabajadorActualizado = await trabajadorRepo.findOne({ where: { id }, relations: ["usuario", "fichaEmpresa"] });
+        const trabajadorActualizado = await trabajadorRepo.findOne({ 
+            where: { id }, 
+            relations: ["usuario", "fichaEmpresa"] 
+        });
+        
         return [trabajadorActualizado, null];
     } catch (error) {
         console.error("Error en updateTrabajadorService:", error);
-        return [null, "Error interno del servidor"];
-    }
-}
-
-// Desvincular trabajador: soft delete, ficha en estado desvinculado, usuario inactivo
-export async function desvincularTrabajadorService(id: number, motivo: string, userId?: number): Promise<ServiceResponse<Trabajador>> {
-    const queryRunner = AppDataSource.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
-    try {
-        const trabajador = await queryRunner.manager.findOne(Trabajador, { where: { id, enSistema: true }, relations: ["fichaEmpresa", "usuario"] });
-        if (!trabajador) {
-            await queryRunner.rollbackTransaction();
-            await queryRunner.release();
-            return [null, "Trabajador no encontrado o ya desvinculado"];
-        }
-        if (trabajador.rut === "11.111.111-1") {
-            return [null, "No se puede modificar, eliminar ni desvincular al superadministrador."];
-        }
-        trabajador.enSistema = false;
-        await queryRunner.manager.save(Trabajador, trabajador);
-        if (trabajador.usuario) {
-            trabajador.usuario.estadoCuenta = "Inactiva";
-            await queryRunner.manager.save(User, trabajador.usuario);
-        }
-        if (trabajador.fichaEmpresa) {
-            trabajador.fichaEmpresa.estado = EstadoLaboral.DESVINCULADO;
-            trabajador.fichaEmpresa.fechaFinContrato = new Date();
-            trabajador.fichaEmpresa.motivoDesvinculacion = motivo;
-            await queryRunner.manager.save(FichaEmpresa, trabajador.fichaEmpresa);
-        }
-        await queryRunner.commitTransaction();
-        await queryRunner.release();
-        return [trabajador, null];
-    } catch (error) {
-        console.error("Error en desvincularTrabajadorService:", error);
-        await queryRunner.rollbackTransaction();
-        await queryRunner.release();
         return [null, "Error interno del servidor"];
     }
 }
