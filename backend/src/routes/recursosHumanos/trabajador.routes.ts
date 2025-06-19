@@ -8,7 +8,6 @@ import {
     updateTrabajador,
     desvincularTrabajador
 } from "../../controllers/recursosHumanos/trabajador.controller.js";
-import { verifyToken } from '../../middlewares/authentication.middleware.js';
 
 const router: Router = Router();
 
