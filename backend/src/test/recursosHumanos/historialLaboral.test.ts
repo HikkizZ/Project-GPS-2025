@@ -1,12 +1,14 @@
+// @ts-ignore
 import { expect } from 'chai';
-import { Application } from 'express';
+// @ts-ignore
 import request from 'supertest';
-import { setupTestApp, closeTestApp } from '../setup.js';
+import { app, server } from '../setup.js';
+import { AppDataSource } from '../../config/configDB.js';
+import { HistorialLaboral } from '../../entity/recursosHumanos/historialLaboral.entity.js';
+import { Trabajador } from '../../entity/recursosHumanos/trabajador.entity.js';
 import { User } from '../../entity/user.entity.js';
 
 describe('📋 Historial Laboral API', () => {
-    let app: Application;
-    let server: any;
     let adminToken: string;
     let rrhToken: string;
     let usuarioToken: string;
@@ -15,18 +17,14 @@ describe('📋 Historial Laboral API', () => {
 
     before(async () => {
         try {
-            const uniqueEmail = `test.historial.${Date.now()}@gmail.com`;
-            
-            const setup = await setupTestApp();
-            app = setup.app;
-            server = setup.server;
+            console.log("✅ Iniciando pruebas de Historial Laboral");
 
-            // Login como admin
+            // Obtener token de admin
             const adminLogin = await request(app)
                 .post('/api/auth/login')
                 .send({
-                    email: 'admin.principal@gmail.com',
-                    password: '204dm1n8'
+                    email: "admin.principal@gmail.com",
+                    password: "204dm1n8"
                 });
 
             adminToken = adminLogin.body.data.token;
@@ -52,7 +50,7 @@ describe('📋 Historial Laboral API', () => {
                     rut: "35.678.901-6",
                     fechaNacimiento: "1990-01-01",
                     telefono: "+56912345678",
-                    correo: uniqueEmail,
+                    correo: "test.historial.1@gmail.com",
                     numeroEmergencia: "+56987654321",
                     direccion: "Av. Test 123",
                     fechaIngreso: "2024-01-01",
@@ -74,7 +72,7 @@ describe('📋 Historial Laboral API', () => {
                 .set('Authorization', `Bearer ${adminToken}`)
                 .send({
                     name: "Test Historial",
-                    email: uniqueEmail,
+                    email: "test.historial.1@gmail.com",
                     password: "Test2024",
                     rut: "35.678.901-6",
                     role: "Usuario"
@@ -89,7 +87,7 @@ describe('📋 Historial Laboral API', () => {
             const loginResponse = await request(app)
                 .post('/api/auth/login')
                 .send({
-                    email: uniqueEmail,
+                    email: "test.historial.1@gmail.com",
                     password: "Test2024"
                 });
 
@@ -101,7 +99,7 @@ describe('📋 Historial Laboral API', () => {
             usuarioToken = loginResponse.body.data.token;
 
         } catch (error) {
-            console.error('Error en la configuración de pruebas:', error);
+            console.error("Error en la configuración de pruebas:", error);
             throw error;
         }
     });
@@ -240,8 +238,10 @@ describe('📋 Historial Laboral API', () => {
     });
 
     after(async () => {
-        if (server) {
-            await closeTestApp();
+        try {
+            console.log("✅ Pruebas de Historial Laboral completadas");
+        } catch (error) {
+            console.error("Error en la limpieza de pruebas:", error);
         }
     });
 });

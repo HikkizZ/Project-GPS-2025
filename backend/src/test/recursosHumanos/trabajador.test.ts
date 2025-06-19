@@ -1,11 +1,13 @@
+// @ts-ignore
 import { expect } from 'chai';
-import { Application } from 'express';
+// @ts-ignore
 import request from 'supertest';
-import { setupTestApp, closeTestApp } from '../setup.js';
+import { app, server } from '../setup.js';
+import { AppDataSource } from '../../config/configDB.js';
+import { Trabajador } from '../../entity/recursosHumanos/trabajador.entity.js';
+import { FichaEmpresa } from '../../entity/recursosHumanos/fichaEmpresa.entity.js';
 
 describe('👥 Trabajadores API', () => {
-    let app: Application;
-    let server: any;
     let adminToken: string;
     let rrhToken: string;
     const uniqueTimestamp = Date.now();
@@ -15,26 +17,16 @@ describe('👥 Trabajadores API', () => {
 
     before(async () => {
         try {
-            // Configurar el servidor y la base de datos
-            const setup = await setupTestApp();
-            app = setup.app;
-            server = setup.server;
+            console.log("✅ Iniciando pruebas de Trabajadores");
 
-            // Esperar un momento para asegurar que la configuración inicial se complete
-            await new Promise(resolve => setTimeout(resolve, 1000));
-
-            // Login como admin
+            // Obtener token de admin
             const adminLogin = await request(app)
                 .post('/api/auth/login')
                 .send({
-                    email: 'admin.principal@gmail.com',
-                    password: '204dm1n8'
+                    email: "admin.principal@gmail.com",
+                    password: "204dm1n8"
                 });
 
-            if (adminLogin.status !== 200 || !adminLogin.body.data?.token) {
-                console.error('Error en login admin:', adminLogin.body);
-                throw new Error('No se pudo obtener el token de admin');
-            }
             adminToken = adminLogin.body.data.token;
 
             // Login como RRHH
@@ -52,10 +44,7 @@ describe('👥 Trabajadores API', () => {
             rrhToken = rrhLogin.body.data.token;
 
         } catch (error) {
-            console.error('Error en la configuración de pruebas:', error);
-            if (server) {
-                await closeTestApp();
-            }
+            console.error("Error en la configuración de pruebas:", error);
             throw error;
         }
     });
@@ -306,6 +295,10 @@ describe('👥 Trabajadores API', () => {
     });
 
     after(async () => {
-        await closeTestApp();
+        try {
+            console.log("✅ Pruebas de Trabajadores completadas");
+        } catch (error) {
+            console.error("Error en la limpieza de pruebas:", error);
+        }
     });
 }); 

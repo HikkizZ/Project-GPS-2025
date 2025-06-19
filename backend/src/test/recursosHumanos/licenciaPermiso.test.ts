@@ -1,18 +1,19 @@
+// @ts-ignore
 import { expect } from 'chai';
-import { Application } from 'express';
+// @ts-ignore
 import request from 'supertest';
-import { setupTestApp, closeTestApp } from '../setup.js';
+import { app, server } from '../setup.js';
+import { AppDataSource } from '../../config/configDB.js';
+import { LicenciaPermiso } from '../../entity/recursosHumanos/licenciaPermiso.entity.js';
+import { Trabajador } from '../../entity/recursosHumanos/trabajador.entity.js';
 import { EstadoLaboral } from '../../entity/recursosHumanos/fichaEmpresa.entity.js';
 import { EstadoSolicitud, TipoSolicitud } from '../../entity/recursosHumanos/licenciaPermiso.entity.js';
-import { AppDataSource } from '../../config/configDB.js';
 import { FichaEmpresa } from '../../entity/recursosHumanos/fichaEmpresa.entity.js';
-import { LicenciaPermiso } from '../../entity/recursosHumanos/licenciaPermiso.entity.js';
 import path from 'path';
 import fs from 'fs';
 
 describe('📋 Licencias y Permisos API', () => {
-    let app: Application;
-    let server: any;
+    let adminToken: string;
     let rrhToken: string;
     let usuarioToken: string;
     let fichaId: number;
@@ -22,12 +23,20 @@ describe('📋 Licencias y Permisos API', () => {
 
     before(async () => {
         try {
+            console.log("✅ Iniciando pruebas de Licencias y Permisos");
+
+            // Obtener token de admin
+            const adminLogin = await request(app)
+                .post('/api/auth/login')
+                .send({
+                    email: "admin.principal@gmail.com",
+                    password: "204dm1n8"
+                });
+
+            adminToken = adminLogin.body.data.token;
+
             const uniqueEmail = `maria.gonzalez.${Date.now()}@gmail.com`;
             
-            const setup = await setupTestApp();
-            app = setup.app;
-            server = setup.server;
-
             // Login como RRHH
             const rrhLogin = await request(app)
                 .post('/api/auth/login')
@@ -122,7 +131,7 @@ describe('📋 Licencias y Permisos API', () => {
             console.log('✅ Setup de licenciaPermiso completado exitosamente');
 
         } catch (error) {
-            console.error('❌ Error en la configuración de pruebas de licenciaPermiso:', error);
+            console.error("❌ Error en la configuración de pruebas de licenciaPermiso:", error);
             throw error;
         }
     });
@@ -359,6 +368,10 @@ describe('📋 Licencias y Permisos API', () => {
     });
 
     after(async () => {
-        await closeTestApp();
+        try {
+            console.log("✅ Pruebas de Licencias y Permisos completadas");
+        } catch (error) {
+            console.error("Error en la limpieza de pruebas:", error);
+        }
     });
 }); 

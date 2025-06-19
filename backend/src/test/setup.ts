@@ -19,7 +19,10 @@ import { LicenciaPermiso } from "../entity/recursosHumanos/licenciaPermiso.entit
 let app: Application;
 let server: any;
 
-export async function setupTestApp() {
+// Configurar la aplicación para pruebas
+before(async function() {
+    this.timeout(10000);
+    
     // Inicializar la base de datos
     await initializeDatabase();
     
@@ -58,11 +61,12 @@ export async function setupTestApp() {
     
     // Iniciar servidor
     server = app.listen(0);
-    
-    return { app, server };
-}
+});
 
-export async function cleanupAllTestData() {
+// Limpiar después de las pruebas
+after(async function() {
+    this.timeout(10000);
+    
     try {
         // Limpiar datos de prueba
         if (AppDataSource.isInitialized) {
@@ -86,9 +90,7 @@ export async function cleanupAllTestData() {
     } catch (error) {
         console.error("Error limpiando datos de prueba:", error);
     }
-}
-
-export async function closeTestApp() {
+    
     // Cerrar servidor y conexión a BD
     if (server) {
         await new Promise((resolve) => server.close(resolve));
@@ -96,18 +98,6 @@ export async function closeTestApp() {
     if (AppDataSource.isInitialized) {
         await AppDataSource.destroy();
     }
-}
-
-// Hooks globales de Mocha
-before(async function() {
-    this.timeout(10000);
-    await setupTestApp();
-});
-
-after(async function() {
-    this.timeout(10000);
-    await cleanupAllTestData();
-    await closeTestApp();
 });
 
 export { app, server }; 

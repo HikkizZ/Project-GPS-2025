@@ -1,12 +1,14 @@
+// @ts-ignore
 import { expect } from 'chai';
-import { Application } from 'express';
+// @ts-ignore
 import request from 'supertest';
-import { setupTestApp, closeTestApp } from '../setup.js';
+import { app, server } from '../setup.js';
+import { AppDataSource } from '../../config/configDB.js';
+import { FichaEmpresa } from '../../entity/recursosHumanos/fichaEmpresa.entity.js';
+import { Trabajador } from '../../entity/recursosHumanos/trabajador.entity.js';
 import { EstadoLaboral } from '../../entity/recursosHumanos/fichaEmpresa.entity.js';
 
 describe('📋 Ficha Empresa API', () => {
-    let app: Application;
-    let server: any;
     let adminToken: string;
     let rrhToken: string;
     let usuarioToken: string;
@@ -15,17 +17,14 @@ describe('📋 Ficha Empresa API', () => {
 
     before(async () => {
         try {
-            // Configurar el servidor y la base de datos
-            const setup = await setupTestApp();
-            app = setup.app;
-            server = setup.server;
+            console.log("✅ Iniciando pruebas de Ficha Empresa");
 
-            // Login como admin
+            // Obtener token de admin
             const adminLogin = await request(app)
                 .post('/api/auth/login')
                 .send({
-                    email: 'admin.principal@gmail.com',
-                    password: '204dm1n8'
+                    email: "admin.principal@gmail.com",
+                    password: "204dm1n8"
                 });
 
             adminToken = adminLogin.body.data.token;
@@ -110,7 +109,7 @@ describe('📋 Ficha Empresa API', () => {
             usuarioToken = userLogin.body.data.token;
 
         } catch (error) {
-            console.error('Error en la configuración de pruebas:', error);
+            console.error("Error en la configuración de pruebas:", error);
             throw error;
         }
     });
@@ -327,6 +326,10 @@ describe('📋 Ficha Empresa API', () => {
     });
 
     after(async () => {
-        await closeTestApp();
+        try {
+            console.log("✅ Pruebas de Ficha Empresa completadas");
+        } catch (error) {
+            console.error("Error en la limpieza de pruebas:", error);
+        }
     });
 }); 

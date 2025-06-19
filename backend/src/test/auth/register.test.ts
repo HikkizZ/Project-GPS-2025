@@ -3,26 +3,18 @@ import { expect } from 'chai';
 // @ts-ignore
 import request from 'supertest';
 import { Application } from 'express';
-import { setupTestApp, closeTestApp } from '../setup.js';
+import { app, server } from '../setup.js';
 import { AppDataSource } from '../../config/configDB.js';
 import { User } from '../../entity/user.entity.js';
 import { Trabajador } from '../../entity/recursosHumanos/trabajador.entity.js';
 import jwt from 'jsonwebtoken';
 
 describe('🔒 Auth API - Registro y Login', () => {
-    let app: Application;
     let adminToken: string;
     let rrhhToken: string;
 
     before(async () => {
         try {
-            // Limpiar la base de datos anterior si existe
-            if (AppDataSource.isInitialized) {
-                await AppDataSource.destroy();
-            }
-
-            const result = await setupTestApp();
-            app = result.app;
             console.log("✅ Servidor de pruebas iniciado");
 
             // Obtener token de admin
@@ -117,7 +109,6 @@ describe('🔒 Auth API - Registro y Login', () => {
 
     after(async () => {
         try {
-            await closeTestApp();
             // No cerramos la conexión aquí para permitir que otras pruebas la usen
             console.log("🔒 Fin de las pruebas de autenticación.");
         } catch (error) {
