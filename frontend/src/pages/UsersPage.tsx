@@ -425,6 +425,12 @@ export const UsersPage: React.FC = () => {
                     </small>
                   </h6>
                 </div>
+                {users.length === 0 && !isLoading && !error && (
+                  <div className="text-center py-5">
+                    <i className="bi bi-person-x display-1 text-muted"></i>
+                    <h5 className="mt-3">No hay resultados que coincidan con tu búsqueda</h5>
+                  </div>
+                )}
                 <Table hover responsive className="align-middle">
                   <thead>
                     <tr>

@@ -184,11 +184,6 @@ export const useFichaEmpresa = () => {
     }
   }, [updateState]);
 
-  // Efecto para cargar fichas iniciales
-  useEffect(() => {
-    loadFichas();
-  }, [loadFichas]);
-
   return {
     // Estado
     fichas: state.fichas,

@@ -672,8 +672,7 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
               ) : fichasFiltradas.length === 0 ? (
                 <div className="text-center py-5">
                   <i className="bi bi-clipboard-x display-1 text-muted"></i>
-                  <h5 className="mt-3">No se encontraron fichas</h5>
-                  <p className="text-muted">Intenta ajustar los criterios de búsqueda.</p>
+                  <h5 className="mt-3">No hay resultados que coincidan con tu búsqueda</h5>
                 </div>
               ) : (
                 <div className="table-responsive">

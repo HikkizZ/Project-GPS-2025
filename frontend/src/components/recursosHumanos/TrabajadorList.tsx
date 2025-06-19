@@ -178,7 +178,7 @@ export const TrabajadorList: React.FC = () => {
 
             {trabajadores.length === 0 && !error && (
               <div className="no-results">
-                No se encontraron trabajadores
+                No hay resultados que coincidan con tu búsqueda
               </div>
             )}
           </>
