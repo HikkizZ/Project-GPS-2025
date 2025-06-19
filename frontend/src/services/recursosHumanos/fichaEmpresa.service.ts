@@ -56,6 +56,10 @@ export class FichaEmpresaService {
             // Limpiar el RUT antes de enviarlo
             const cleanRut = value.toString().replace(/\./g, '').replace(/-/g, '');
             queryParams.append(key, cleanRut);
+          } else if (Array.isArray(value)) {
+            value.forEach((v) => {
+              queryParams.append(`${key}[]`, v);
+            });
           } else {
             queryParams.append(key, value.toString());
           }

@@ -87,7 +87,12 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
     if (user?.role === 'Usuario') {
       loadMiFicha();
     } else {
-      handleSearch();
+      setIncluirDesvinculados(false);
+      setIncluirLicencias(false);
+      setIncluirPermisos(false);
+      setIncluirSinFechaFin(false);
+      setSearchQuery({ estado: EstadoLaboral.ACTIVO });
+      searchFichas({ estado: EstadoLaboral.ACTIVO });
     }
   }, [user, loadMiFicha]);
 
@@ -130,22 +135,30 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
     // Crear un objeto de búsqueda que incluya todos los filtros
     const searchParams = { ...searchQuery };
     
-    // Agregar filtros de estado basados en checkboxes
+    // Armar el array de estados combinando select y checkboxes
     const estadosIncluidos = [];
+    if (searchQuery.estado) estadosIncluidos.push(searchQuery.estado);
     if (incluirDesvinculados) estadosIncluidos.push(EstadoLaboral.DESVINCULADO);
     if (incluirLicencias) estadosIncluidos.push(EstadoLaboral.LICENCIA);
     if (incluirPermisos) estadosIncluidos.push(EstadoLaboral.PERMISO);
-    
-    // Si no hay estado específico seleccionado y hay checkboxes marcados, usar esos estados
-    if (!searchParams.estado && estadosIncluidos.length > 0) {
-      searchParams.estados = estadosIncluidos;
+
+    // Lógica: si solo hay un estado, usar 'estado'; si hay más de uno, usar 'estados' (array)
+    if (estadosIncluidos.length === 1) {
+      searchParams.estado = estadosIncluidos[0];
+      delete searchParams.estados;
+    } else if (estadosIncluidos.length > 1) {
+      searchParams.estados = Array.from(new Set(estadosIncluidos)); // Evitar duplicados
+      delete searchParams.estado;
+    } else {
+      delete searchParams.estados;
+      delete searchParams.estado;
     }
-    
+
     // Agregar flag para incluir fichas sin fecha fin
     if (incluirSinFechaFin) {
       searchParams.incluirSinFechaFin = true;
     }
-    
+
     // Siempre usar searchFichas, sin importar si hay RUT o no
     await searchFichas(searchParams);
   };
