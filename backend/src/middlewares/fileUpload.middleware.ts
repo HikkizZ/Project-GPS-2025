@@ -210,7 +210,7 @@ export const checkAuth = (req: Request, res: Response, next: NextFunction) => {
 
 // Middleware de permisos RRHH
 export const checkRrhhPermissions = (req: Request, res: Response, next: NextFunction) => {
-    if (!req.user || (req.user.role !== 'RecursosHumanos' && req.user.role !== 'SuperAdministrador')) {
+    if (!req.user || (req.user.role !== 'Administrador' && req.user.role !== 'SuperAdministrador')) {
         return res.status(403).json({
             status: 'error',
             message: 'No tiene permisos para realizar esta acción'

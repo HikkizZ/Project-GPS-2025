@@ -282,8 +282,8 @@ export async function verificarLicenciasVencidas(req: Request, res: Response): P
             return;
         }
 
-        // Solo RRHH puede ejecutar la verificación
-        if (req.user.role !== "RecursosHumanos") {
+        // Solo RRHH, Administrador o SuperAdministrador puede ejecutar la verificación
+        if (req.user.role !== "RecursosHumanos" && req.user.role !== "Administrador" && req.user.role !== "SuperAdministrador") {
             handleErrorClient(res, 403, "No tiene permiso para ejecutar esta acción");
             return;
         }
