@@ -430,7 +430,16 @@ function App() {
   const location = useLocation();
 
   if (isLoading) {
-    return <div className="loading-screen"><div className="loader">Cargando...</div></div>;
+    return (
+      <div className="loading-overlay">
+        <div className="loading-content">
+          <div className="spinner-border text-primary" style={{ width: '3rem', height: '3rem' }} role="status">
+            <span className="visually-hidden">Cargando...</span>
+          </div>
+          <p className="mt-3 mb-0 text-muted fw-medium">Cargando dashboard...</p>
+        </div>
+      </div>
+    );
   }
 
   const safeUser = user ?? { name: 'Usuario', role: 'Invitado', rut: 'N/A' };

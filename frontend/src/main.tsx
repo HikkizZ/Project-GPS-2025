@@ -9,6 +9,7 @@ import { UIProvider } from './context/UIContext'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import 'bootstrap-icons/font/bootstrap-icons.css'
 import './styles/index.css'
+import './styles/utilities.css'
 
 const rootElement = document.getElementById('root');
 
