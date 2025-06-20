@@ -10,6 +10,7 @@ import {
 import { HistorialLaboral } from "./historialLaboral.entity.js";
 import { LicenciaPermiso } from "./licenciaPermiso.entity.js";
 import { User } from "../user.entity.js";
+import { formatRut } from "../../helpers/rut.helper.js";
 
 @Entity("trabajadores")
 export class Trabajador {
@@ -17,7 +18,23 @@ export class Trabajador {
   id!: number;
 
   @Index("IDX_TRABAJADORES_RUT", { unique: true })
-  @Column({ type: "varchar", length: 12, nullable: false })
+  @Column({ 
+    type: "varchar", 
+    length: 12, 
+    nullable: false,
+    transformer: {
+      to: (value: string | null): string | null => {
+        if (!value) return null;
+        // Siempre formatear al guardar en DB
+        return formatRut(value);
+      },
+      from: (value: string | null): string | null => {
+        if (!value) return null;
+        // Siempre formatear al leer de DB
+        return formatRut(value);
+      }
+    }
+  })
   rut!: string;
 
   @Column({ type: "varchar", length: 100, nullable: false })

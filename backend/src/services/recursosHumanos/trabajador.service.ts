@@ -3,7 +3,7 @@ import { Trabajador } from "../../entity/recursosHumanos/trabajador.entity.js";
 import { FichaEmpresa, EstadoLaboral } from "../../entity/recursosHumanos/fichaEmpresa.entity.js";
 import { ServiceResponse } from "../../../types.js";
 import { Not, DeepPartial } from "typeorm";
-import { validateRut } from "../../helpers/rut.helper.js";
+import { validateRut, formatRut } from "../../helpers/rut.helper.js";
 import { normalizeText } from "../../helpers/normalizeText.helper.js";
 import { ILike, Like } from "typeorm";
 import { FindOptionsWhere } from "typeorm";
@@ -103,8 +103,8 @@ export async function createTrabajadorService(trabajadorData: Partial<Trabajador
             return [null, "Formato de RUT inválido"];
         }
 
-        // Limpiar el RUT antes de guardarlo (remover puntos pero mantener el guión)
-        trabajadorData.rut = trabajadorData.rut.replace(/\./g, '');
+        // Formatear el RUT antes de guardarlo (con puntos y guión)
+        trabajadorData.rut = formatRut(trabajadorData.rut);
 
         // Validar formato de correo
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -173,7 +173,7 @@ export async function createTrabajadorService(trabajadorData: Partial<Trabajador
 
             // Enviar correo con credenciales (excepto superadmin)
             let advertencias: string[] = [];
-            if (!(trabajador.rut === "11111111-1")) {
+            if (!(trabajador.rut === "11.111.111-1")) {
                 try {
                     await sendCredentialsEmail({
                         to: trabajador.correoPersonal,
@@ -363,7 +363,7 @@ export async function desvincularTrabajadorService(id: number, motivo: string, u
             return [null, "Trabajador no encontrado o ya desvinculado"];
         }
 
-        if (trabajador.rut === "11111111-1") {
+        if (trabajador.rut === "11.111.111-1") {
             await queryRunner.rollbackTransaction();
             await queryRunner.release();
             return [null, "No se puede modificar, eliminar ni desvincular al superadministrador."];
@@ -411,7 +411,7 @@ export async function updateTrabajadorService(id: number, data: any): Promise<Se
         if (!trabajador) return [null, "Trabajador no encontrado"];
         if (!trabajador.usuario) return [null, "El trabajador no tiene usuario asociado"];
 
-        if (trabajador.rut === "11111111-1") {
+        if (trabajador.rut === "11.111.111-1") {
             return [null, "No se puede modificar, eliminar ni desvincular al superadministrador."];
         }
 

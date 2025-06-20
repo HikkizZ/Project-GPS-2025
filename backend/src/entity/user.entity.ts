@@ -1,6 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToOne, JoinColumn } from "typeorm";
 import { userRole } from "../../types.d.js";
 import { Trabajador } from "./recursosHumanos/trabajador.entity.js";
+import { formatRut } from "../helpers/rut.helper.js";
 
 @Entity()
 export class User {
@@ -28,7 +29,21 @@ export class User {
     ], default: 'Usuario' })
     role: userRole;
 
-    @Column({ type: "varchar", length: 20, unique: true })
+    @Column({ 
+        type: "varchar", 
+        length: 20, 
+        unique: true,
+        transformer: {
+            to: (value: string | null): string | null => {
+                if (!value) return null;
+                return formatRut(value);
+            },
+            from: (value: string | null): string | null => {
+                if (!value) return null;
+                return formatRut(value);
+            }
+        }
+    })
     rut: string;
 
     @Column({ type: "varchar", length: 50, default: "Activa" })
