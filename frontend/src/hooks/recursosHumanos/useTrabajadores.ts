@@ -77,11 +77,11 @@ export const useTrabajadores = () => {
     setError('');
     try {
       const result = await trabajadorService.updateTrabajador(id, trabajadorData);
-      if (result.trabajador) {
+      if (result.success && result.data) {
         await loadTrabajadores(); // Recargar la lista
-        return { success: true, trabajador: result.trabajador };
+        return { success: true, trabajador: result.data };
       } else {
-        const errorMsg = result.error || 'Error al actualizar trabajador';
+        const errorMsg = result.message || 'Error al actualizar trabajador';
         setError(errorMsg);
         return { success: false, error: errorMsg };
       }
@@ -104,8 +104,8 @@ export const useTrabajadores = () => {
         await loadTrabajadores(); // Recargar la lista
         return { success: true };
       } else {
-        setError(result.error || 'Error al eliminar trabajador');
-        return { success: false, error: result.error };
+        setError(result.message || 'Error al eliminar trabajador');
+        return { success: false, error: result.message };
       }
     } catch (error) {
       const errorMsg = 'Error al eliminar trabajador';
@@ -122,12 +122,13 @@ export const useTrabajadores = () => {
     setError('');
     try {
       const result = await trabajadorService.desvincularTrabajador(id, motivo);
+      
       if (result.success) {
         await loadTrabajadores(); // Recargar la lista
         return { success: true };
       } else {
-        setError(result.error || 'Error al desvincular trabajador');
-        return { success: false, error: result.error };
+        setError(result.message || 'Error al desvincular trabajador');
+        return { success: false, error: result.message };
       }
     } catch (error) {
       const errorMsg = 'Error al desvincular trabajador';

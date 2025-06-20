@@ -28,11 +28,39 @@ export class TrabajadorService {
   // Obtener todos los trabajadores
   async getAllTrabajadores(): Promise<ApiResponse<Trabajador[]>> {
     try {
-      const data = await apiClient.get<{ data: Trabajador[] }>(`${this.baseURL}/all`);
+      // Usar fetch directamente para obtener la respuesta completa
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}${this.baseURL}/all`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+        }
+      });
+
+      // Verificar si la respuesta es JSON válida
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        const textResponse = await response.text();
+        console.error('Respuesta no JSON recibida:', textResponse);
+        return {
+          success: false,
+          message: `Error del servidor: ${response.status} ${response.statusText}`
+        };
+      }
+
+      const responseData = await response.json();
+
+      if (response.ok && responseData.status === 'success') {
+        return {
+          success: true,
+          message: responseData.message || 'Trabajadores obtenidos exitosamente',
+          data: responseData.data
+        };
+      }
+
       return {
-        success: true,
-        message: 'Trabajadores obtenidos exitosamente',
-        data: data.data
+        success: false,
+        message: responseData.message || 'Error al obtener trabajadores'
       };
     } catch (error: any) {
       console.error('Error al obtener trabajadores:', error);
@@ -124,11 +152,39 @@ export class TrabajadorService {
         }
       });
 
-      const data = await apiClient.get<{ data: Trabajador[] }>(`${this.baseURL}/search?${queryParams}`);
+      // Usar fetch directamente para obtener la respuesta completa
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}${this.baseURL}/detail/?${queryParams}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+        }
+      });
+
+      // Verificar si la respuesta es JSON válida
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        const textResponse = await response.text();
+        console.error('Respuesta no JSON recibida:', textResponse);
+        return {
+          success: false,
+          message: `Error del servidor: ${response.status} ${response.statusText}`
+        };
+      }
+
+      const responseData = await response.json();
+
+      if (response.ok && responseData.status === 'success') {
+        return {
+          success: true,
+          message: responseData.message || 'Búsqueda completada exitosamente',
+          data: responseData.data
+        };
+      }
+
       return {
-        success: true,
-        message: 'Búsqueda completada exitosamente',
-        data: data.data
+        success: false,
+        message: responseData.message || 'Error al buscar trabajadores'
       };
     } catch (error: any) {
       console.error('Error al buscar trabajadores:', error);
@@ -140,25 +196,47 @@ export class TrabajadorService {
   }
 
   // Desvincular trabajador
-  async desvincularTrabajador(id: number, motivo: string): Promise<{ success: boolean; error?: string }> {
+  async desvincularTrabajador(id: number, motivo: string): Promise<ApiResponse> {
     try {
-      const response = await apiClient.post(
-        `${this.baseURL}/${id}/desvincular`,
-        { motivo },
-        { headers: this.getHeaders() }
-      );
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}${this.baseURL}/${id}/desvincular`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+        },
+        body: JSON.stringify({ motivo })
+      });
 
-      if (response.data.status === 'success') {
-        return { success: true };
+      // Verificar si la respuesta es JSON válida
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        const textResponse = await response.text();
+        console.error('Respuesta no JSON recibida:', textResponse);
+        return {
+          success: false,
+          message: `Error del servidor: ${response.status} ${response.statusText}`
+        };
       }
 
-      return { success: false, error: response.data.message };
+      const responseData = await response.json();
+
+      if (response.ok && responseData.status === 'success') {
+        return { 
+          success: true, 
+          message: responseData.message || 'Trabajador desvinculado exitosamente' 
+        };
+      }
+
+      return { 
+        success: false, 
+        message: responseData.message || 'Error al desvincular trabajador' 
+      };
     } catch (error: any) {
       console.error('Error al desvincular trabajador:', error);
-      if (error.response?.data?.message) {
-        return { success: false, error: error.response.data.message };
-      }
-      return { success: false, error: 'Error de conexión con el servidor' };
+      return { 
+        success: false, 
+        message: 'Error de conexión con el servidor' 
+      };
     }
   }
 
