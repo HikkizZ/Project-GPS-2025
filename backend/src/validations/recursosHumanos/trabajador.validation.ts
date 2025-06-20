@@ -75,12 +75,12 @@ export const TrabajadorQueryValidation = Joi.object({
             "string.pattern.base": "El número de emergencia debe tener entre 9 y 12 dígitos y puede incluir el símbolo +."
         }),
 
-    direccion: Joi.string()
-        .min(5)
+            direccion: Joi.string()
+        .min(2)
         .max(200)
         .messages({
             "string.base": "La dirección debe ser una cadena de texto.",
-            "string.min": "La dirección debe tener al menos 5 caracteres.",
+            "string.min": "La dirección debe tener al menos 2 caracteres.",
             "string.max": "La dirección no puede exceder los 200 caracteres."
         }),
 
@@ -269,11 +269,11 @@ export const TrabajadorUpdateValidation = Joi.object({
         }),
 
     direccion: Joi.string()
-        .min(5)
+        .min(2)
         .max(200)
         .messages({
             "string.base": "La dirección debe ser una cadena de texto.",
-            "string.min": "La dirección debe tener al menos 5 caracteres.",
+            "string.min": "La dirección debe tener al menos 2 caracteres.",
             "string.max": "La dirección no puede exceder los 200 caracteres."
         }),
 

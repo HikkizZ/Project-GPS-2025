@@ -4,6 +4,7 @@ import { FichaEmpresa, EstadoLaboral } from "../../entity/recursosHumanos/fichaE
 import { ServiceResponse } from "../../../types.js";
 import { Not, DeepPartial } from "typeorm";
 import { validateRut } from "../../helpers/rut.helper.js";
+import { normalizeText } from "../../helpers/normalizeText.helper.js";
 import { ILike, Like } from "typeorm";
 import { FindOptionsWhere } from "typeorm";
 import { User } from "../../entity/user.entity.js";
@@ -301,8 +302,10 @@ export async function searchTrabajadoresService(query: any): Promise<ServiceResp
             parameters.numeroEmergencia = `%${query.numeroEmergencia}%`;
         }
         if (query.direccion) {
-            conditions.push("trabajador.direccion ILIKE :direccion");
-            parameters.direccion = `%${query.direccion}%`;
+            // Búsqueda insensible a tildes y mayúsculas para dirección
+            const direccionNormalizada = normalizeText(query.direccion);
+            conditions.push("LOWER(TRANSLATE(trabajador.direccion, 'ÁÉÍÓÚÀÈÌÒÙÂÊÎÔÛÄËÏÖÜÑÇ', 'aeiouaeiouaeiouaeiounç')) ILIKE :direccion");
+            parameters.direccion = `%${direccionNormalizada}%`;
         }
         if (query.fechaNacimiento) {
             conditions.push("trabajador.fechaNacimiento = :fechaNacimiento");
