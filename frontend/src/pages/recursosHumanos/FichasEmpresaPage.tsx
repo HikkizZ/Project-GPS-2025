@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useFichaEmpresa } from '@/hooks/recursosHumanos/useFichaEmpresa';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/context';
 import { useRut } from '@/hooks/useRut';
 import { 
   FichaEmpresa, 

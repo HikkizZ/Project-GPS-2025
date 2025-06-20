@@ -12,7 +12,7 @@ import DashboardRecursosHumanos from './pages/recursosHumanos/DashboardRecursosH
 import MainLayout from './components/common/MainLayout';
 import GestionPersonalPage from './pages/GestionPersonalPage';
 import { LoginPage } from './pages/LoginPage';
-import { useAuth } from './context/AuthContext';
+import { useAuth } from './context';
 
 // Componente de Registro de Trabajadores
 const RegistrarTrabajadorPage: React.FC<{
