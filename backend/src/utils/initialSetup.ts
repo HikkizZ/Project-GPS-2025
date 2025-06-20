@@ -43,6 +43,13 @@ export async function initialSetup(): Promise<void> {
         });
 
         // 5. Crear o actualizar el trabajador superadmin ficticio
+        // Establecer fecha de ingreso en zona horaria de Chile
+        process.env.TZ = 'America/Santiago';
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        
         let superAdminTrabajador = await trabajadorRepo.findOne({ where: { rut: "11.111.111-1" } });
         if (superAdminTrabajador) {
             superAdminTrabajador.nombres = "Super";
@@ -53,7 +60,7 @@ export async function initialSetup(): Promise<void> {
             superAdminTrabajador.correoPersonal = "superadmin@gmail.com";
             superAdminTrabajador.numeroEmergencia = "+56922222222";
             superAdminTrabajador.direccion = "Oficina Central 123";
-            superAdminTrabajador.fechaIngreso = new Date();
+            superAdminTrabajador.fechaIngreso = new Date(`${year}-${month}-${day}T12:00:00`);
             superAdminTrabajador.enSistema = true;
             await trabajadorRepo.save(superAdminTrabajador);
         } else {
@@ -67,7 +74,7 @@ export async function initialSetup(): Promise<void> {
                 correoPersonal: "superadmin@gmail.com",
                 numeroEmergencia: "+56922222222",
                 direccion: "Oficina Central 123",
-                fechaIngreso: new Date(),
+                fechaIngreso: new Date(`${year}-${month}-${day}T12:00:00`),
                 enSistema: true
             });
             await trabajadorRepo.save(superAdminTrabajador);
@@ -106,7 +113,7 @@ export async function initialSetup(): Promise<void> {
             fichaSuperAdmin.sueldoBase = 4000000;
             fichaSuperAdmin.trabajador = superAdminTrabajador;
             fichaSuperAdmin.estado = EstadoLaboral.ACTIVO;
-            fichaSuperAdmin.fechaInicioContrato = new Date();
+            fichaSuperAdmin.fechaInicioContrato = new Date(`${year}-${month}-${day}T12:00:00`);
             fichaSuperAdmin.contratoURL = null;
             await fichaEmpresaRepo.save(fichaSuperAdmin);
         } else {
@@ -118,7 +125,7 @@ export async function initialSetup(): Promise<void> {
                 sueldoBase: 4000000,
                 trabajador: superAdminTrabajador,
                 estado: EstadoLaboral.ACTIVO,
-                fechaInicioContrato: new Date(),
+                fechaInicioContrato: new Date(`${year}-${month}-${day}T12:00:00`),
                 contratoURL: null
             });
             await fichaEmpresaRepo.save(fichaSuperAdmin);
