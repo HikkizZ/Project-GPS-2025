@@ -172,7 +172,7 @@ export async function createTrabajadorService(trabajadorData: Partial<Trabajador
 
             // Enviar correo con credenciales (excepto superadmin)
             let advertencias: string[] = [];
-            if (!(trabajador.rut === "20.882.865-7")) {
+            if (!(trabajador.rut === "11111111-1")) {
                 try {
                     await sendCredentialsEmail({
                         to: trabajador.correoPersonal,
@@ -259,7 +259,11 @@ export async function searchTrabajadoresService(query: any): Promise<ServiceResp
         const whereClause: FindOptionsWhere<Trabajador> = {};
 
         // Construir la consulta dinámica
-        if (query.rut) whereClause.rut = ILike(`%${query.rut}%`);
+        if (query.rut) {
+            // Normalizar el RUT removiendo puntos para la búsqueda
+            const rutNormalizado = query.rut.replace(/\./g, '');
+            whereClause.rut = ILike(`%${rutNormalizado}%`);
+        }
         if (query.nombres) whereClause.nombres = ILike(`%${query.nombres}%`);
         if (query.apellidoPaterno) whereClause.apellidoPaterno = ILike(`%${query.apellidoPaterno}%`);
         if (query.apellidoMaterno) whereClause.apellidoMaterno = ILike(`%${query.apellidoMaterno}%`);
@@ -317,7 +321,7 @@ export async function desvincularTrabajadorService(id: number, motivo: string, u
             return [null, "Trabajador no encontrado o ya desvinculado"];
         }
 
-        if (trabajador.rut === "20.882.865-7") {
+        if (trabajador.rut === "11111111-1") {
             await queryRunner.rollbackTransaction();
             await queryRunner.release();
             return [null, "No se puede modificar, eliminar ni desvincular al superadministrador."];
@@ -365,7 +369,7 @@ export async function updateTrabajadorService(id: number, data: any): Promise<Se
         if (!trabajador) return [null, "Trabajador no encontrado"];
         if (!trabajador.usuario) return [null, "El trabajador no tiene usuario asociado"];
 
-        if (trabajador.rut === "20.882.865-7") {
+        if (trabajador.rut === "11111111-1") {
             return [null, "No se puede modificar, eliminar ni desvincular al superadministrador."];
         }
 
