@@ -38,6 +38,7 @@ export interface Trabajador {
   fechaNacimiento: string | Date;
   telefono: string;
   correoPersonal: string;
+  correo?: string; // Alias para correoPersonal (para compatibilidad)
   numeroEmergencia?: string;
   direccion: string;
   fechaIngreso: string | Date;
@@ -46,6 +47,11 @@ export interface Trabajador {
   fichaEmpresa?: FichaEmpresa;
   historialLaboral?: HistorialLaboral[];
   licenciasPermisos?: LicenciaPermiso[];
+  usuario?: {
+    id: number;
+    email: string;
+    role: string;
+  };
 }
 
 export interface CreateTrabajadorData {
@@ -61,7 +67,18 @@ export interface CreateTrabajadorData {
   fechaIngreso: string;
 }
 
-export interface UpdateTrabajadorData extends Partial<CreateTrabajadorData> {}
+export interface UpdateTrabajadorData {
+  rut?: string;
+  nombres?: string;
+  apellidoPaterno?: string;
+  apellidoMaterno?: string;
+  fechaNacimiento?: string;
+  telefono?: string;
+  correoPersonal?: string;
+  numeroEmergencia?: string;
+  direccion?: string;
+  fechaIngreso?: string;
+}
 
 export interface TrabajadorSearchQuery {
   rut?: string;
@@ -71,6 +88,7 @@ export interface TrabajadorSearchQuery {
   fechaNacimiento?: string;
   telefono?: string;
   correoPersonal?: string;
+  correo?: string; // Agregado para compatibilidad
   numeroEmergencia?: string;
   direccion?: string;
   fechaIngreso?: string;

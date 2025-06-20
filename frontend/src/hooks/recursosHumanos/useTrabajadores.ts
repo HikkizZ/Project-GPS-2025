@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { trabajadorService } from '@/services/recursosHumanos/trabajador.service';
-import { Trabajador, TrabajadorSearchQuery, CreateTrabajadorData } from '@/types/recursosHumanos/trabajador.types';
+import { Trabajador, TrabajadorSearchQuery, CreateTrabajadorData, UpdateTrabajadorData } from '@/types/recursosHumanos/trabajador.types';
 
 export const useTrabajadores = () => {
   const [trabajadores, setTrabajadores] = useState<Trabajador[]>([]);
@@ -72,7 +72,7 @@ export const useTrabajadores = () => {
   };
 
   // Actualizar trabajador
-  const updateTrabajador = async (id: number, trabajadorData: Partial<Trabajador>) => {
+  const updateTrabajador = async (id: number, trabajadorData: UpdateTrabajadorData) => {
     setIsLoading(true);
     setError('');
     try {

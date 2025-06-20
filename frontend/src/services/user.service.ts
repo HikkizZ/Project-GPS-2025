@@ -1,5 +1,5 @@
 import { apiClient } from '@/config/api.config';
-import { SafeUser, UpdateUserData } from '@/types.d';
+import { SafeUser, UpdateUserData } from '@/types';
 
 class UserService {
   async getAllUsers(): Promise<SafeUser[]> {

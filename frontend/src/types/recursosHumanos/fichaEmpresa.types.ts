@@ -58,11 +58,12 @@ export interface FichaEmpresaSearchQuery {
 export interface UpdateFichaEmpresaData {
   cargo?: string;
   area?: string;
-  empresa: string;
+  empresa?: string;
   tipoContrato?: string;
   jornadaLaboral?: string;
-  sueldoBase?: number;
-  fechaFinContrato?: Date | string;
+  sueldoBase?: number | string;
+  fechaInicioContrato?: string;
+  fechaFinContrato?: string;
   contratoURL?: string;
 }
 

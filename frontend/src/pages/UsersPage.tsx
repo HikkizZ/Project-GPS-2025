@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { UserRole, SafeUser } from '@/types/auth.types';
+import { SafeUser } from '@/types';
+import { UserRole } from '@/types/auth.types';
 import { useRut } from '@/hooks/useRut';
 import { userService } from '@/services/user.service';
 import { Table, Button, Form, Alert, Spinner, Modal } from 'react-bootstrap';

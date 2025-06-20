@@ -81,7 +81,7 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
     }
   }, [show, ficha]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleInputChange = (e: any) => {
     const { name, value } = e.target;
     if (name === 'sueldoBase') {
       // Limpiar puntos y dejar solo números
@@ -350,7 +350,7 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
                 <Form.Control
                   type="date"
                   name="fechaInicioContrato"
-                  value={formData.fechaInicioContrato}
+                  value={formData.fechaInicioContrato?.toString() || ''}
                   onChange={handleInputChange}
                   required
                 />
@@ -365,9 +365,9 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
                 <Form.Control
                   type="date"
                   name="fechaFinContrato"
-                  value={formData.fechaFinContrato}
+                  value={formData.fechaFinContrato?.toString() || ''}
                   onChange={handleInputChange}
-                  min={formData.fechaInicioContrato}
+                  min={formData.fechaInicioContrato?.toString() || ''}
                 />
               </Form.Group>
             </Col>

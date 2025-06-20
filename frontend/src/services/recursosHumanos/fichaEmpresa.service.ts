@@ -3,9 +3,9 @@ import type {
   FichaEmpresa,
   FichaEmpresaSearchQuery,
   CreateFichaEmpresaData,
-  UpdateFichaEmpresaData,
-  EstadoLaboral
+  UpdateFichaEmpresaData
 } from '../../types/recursosHumanos/fichaEmpresa.types';
+import { EstadoLaboral } from '../../types/recursosHumanos/fichaEmpresa.types';
 
 export interface ApiResponse<T = any> {
   success: boolean;

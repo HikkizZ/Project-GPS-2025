@@ -1,9 +1,9 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { authService } from '@/services/auth.service';
-import { LoginData, RegisterData, JWTPayload } from '@/types/auth.types';
+import { LoginData, RegisterData, User } from '@/types';
 
 interface AuthContextType {
-  user: JWTPayload | null;
+  user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (credentials: LoginData) => Promise<{ success: boolean; error?: string }>;
@@ -14,7 +14,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<JWTPayload | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -40,9 +40,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setIsLoading(true);
       const response = await authService.login(credentials);
       
-      if (response.token) {
-        const currentUser = authService.getCurrentUser();
-        setUser(currentUser);
+      if (response.user) {
+        setUser(response.user);
         return { success: true };
       }
       
@@ -60,11 +59,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setIsLoading(true);
       const response = await authService.register(userData);
       
-      if (response.success) {
+      if (response.user) {
         return { success: true };
       }
       
-      return { success: false, error: response.error };
+      return { success: false, error: response.error || 'Error al registrar usuario' };
     } catch (error) {
       console.error('Error en registro:', error);
       return { success: false, error: 'Error de conexión' };

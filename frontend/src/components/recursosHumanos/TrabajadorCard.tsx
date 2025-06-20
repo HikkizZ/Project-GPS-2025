@@ -16,8 +16,10 @@ export const TrabajadorCard: React.FC<TrabajadorCardProps> = ({
 }) => {
   const nombreCompleto = `${trabajador.nombres} ${trabajador.apellidoPaterno} ${trabajador.apellidoMaterno}`;
   
-  const formatearFecha = (fecha: string) => {
-    return new Date(fecha).toLocaleDateString('es-CL');
+  const formatearFecha = (fecha: string | Date) => {
+    if (!fecha) return 'No definida';
+    const fechaStr = typeof fecha === 'string' ? fecha : fecha.toISOString();
+    return new Date(fechaStr).toLocaleDateString('es-CL');
   };
 
   const formatearSueldo = (sueldo: number) => {
