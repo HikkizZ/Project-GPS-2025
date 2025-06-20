@@ -173,27 +173,31 @@ export async function actualizarEstadoFicha(req: Request, res: Response) {
     }
 }
 
-export async function descargarContrato(req: Request, res: Response) {
+export async function descargarContrato(req: Request, res: Response): Promise<void> {
     try {
         const id = parseInt(req.params.id);
         if (isNaN(id)) {
-            return handleErrorClient(res, 400, "ID inválido");
+            handleErrorClient(res, 400, "ID inválido");
+            return;
         }
 
         if (!req.user?.id) {
-            return handleErrorClient(res, 401, "Usuario no autenticado");
+            handleErrorClient(res, 401, "Usuario no autenticado");
+            return;
         }
 
         const [filePath, error] = await descargarContratoService(id, req.user.id);
 
         if (error || !filePath) {
             const errorMessage = typeof error === 'string' ? error : "Contrato no encontrado.";
-            return handleErrorClient(res, 404, errorMessage);
+            handleErrorClient(res, 404, errorMessage);
+            return;
         }
 
         // Verificar que el archivo existe antes de intentar enviarlo
         if (!fs.existsSync(filePath)) {
-            return handleErrorClient(res, 404, "El archivo del contrato no se encuentra en el servidor");
+            handleErrorClient(res, 404, "El archivo del contrato no se encuentra en el servidor");
+            return;
         }
 
         const filename = path.basename(filePath);
@@ -209,19 +213,21 @@ export async function descargarContrato(req: Request, res: Response) {
 
     } catch (error) {
         console.error("Error en el controlador descargarContrato:", error);
-        return handleErrorServer(res, 500, "Error interno del servidor.");
+        handleErrorServer(res, 500, "Error interno del servidor.");
     }
 }
 
-export async function uploadContrato(req: Request, res: Response) {
+export async function uploadContrato(req: Request, res: Response): Promise<void> {
     try {
         const id = parseInt(req.params.id);
         if (isNaN(id)) {
-            return handleErrorClient(res, 400, "ID inválido");
+            handleErrorClient(res, 400, "ID inválido");
+            return;
         }
 
         if (!req.file) {
-            return handleErrorClient(res, 400, "No se ha subido ningún archivo.");
+            handleErrorClient(res, 400, "No se ha subido ningún archivo.");
+            return;
         }
 
         const fichaRepository = AppDataSource.getRepository(FichaEmpresa);
@@ -229,7 +235,8 @@ export async function uploadContrato(req: Request, res: Response) {
 
         if (!ficha) {
             FileUploadService.deleteFile(req.file.path);
-            return handleErrorClient(res, 404, "Ficha no encontrada.");
+            handleErrorClient(res, 404, "Ficha no encontrada.");
+            return;
         }
 
         const nuevoContratoFilename = req.file.filename;
