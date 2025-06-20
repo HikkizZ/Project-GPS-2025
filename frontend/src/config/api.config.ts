@@ -23,7 +23,7 @@ export const API_CONFIG = {
 
 // Headers con autenticación
 export const getAuthHeaders = (token?: string) => {
-  const authToken = token || localStorage.getItem('authToken');
+  const authToken = token || localStorage.getItem('auth_token');
   return {
     ...API_CONFIG.HEADERS,
     ...(authToken && { 'Authorization': `Bearer ${authToken}` })
@@ -32,7 +32,7 @@ export const getAuthHeaders = (token?: string) => {
 
 // Headers para upload de archivos
 export const getFileUploadHeaders = (token?: string) => {
-  const authToken = token || localStorage.getItem('authToken');
+  const authToken = token || localStorage.getItem('auth_token');
   return {
     ...(authToken && { 'Authorization': `Bearer ${authToken}` })
   };
@@ -54,9 +54,11 @@ class ApiClient {
     // Interceptor para agregar token automáticamente
     this.client.interceptors.request.use(
       (config) => {
-        const token = localStorage.getItem('authToken');
+        const token = localStorage.getItem('auth_token');
+        console.log('🔑 Token encontrado en localStorage:', token ? 'Sí' : 'No');
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
+          console.log('🔑 Token agregado a headers:', `Bearer ${token.substring(0, 20)}...`);
         }
         
         // Si los datos son FormData, elimina el header 'Content-Type' para que
@@ -139,7 +141,7 @@ class ApiClient {
       const response = await this.client.get(url, {
         responseType: 'blob',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
         }
       });
 
@@ -179,7 +181,7 @@ class ApiClient {
       return new Error('Tiempo de espera agotado. Por favor, intente nuevamente.');
     }
     if (error.response?.status === 401) {
-      localStorage.removeItem('authToken');
+      localStorage.removeItem('auth_token');
       localStorage.removeItem('userData');
       window.location.href = '/login';
       return new Error('Sesión expirada. Por favor, inicie sesión nuevamente.');

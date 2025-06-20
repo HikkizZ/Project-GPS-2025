@@ -28,7 +28,7 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
   trabajadorRecienRegistrado, 
   onTrabajadorModalClosed 
 }) => {
-  const { user } = useAuth();
+  const { user, isLoading: isAuthLoading } = useAuth();
   const { formatRUT } = useRut();
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -63,39 +63,31 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
   // Ya no necesitamos filtrar aquí porque todo se maneja en el backend
   const fichasFiltradas = fichas;
 
-  // Verificar autenticación
-  useEffect(() => {
-    const checkAuth = () => {
-      const token = localStorage.getItem('authToken');
-      const userData = localStorage.getItem('userData');
-      
-      if (!token || !userData) {
-        console.error('Usuario no autenticado');
-        // Redirigir al login
-        window.location.href = '/login';
-        return;
-      }
-
-      try {
-        const user = JSON.parse(userData);
-        if (!user.role) {
-          console.error('Rol de usuario no encontrado');
-          window.location.href = '/login';
-        }
-      } catch (error) {
-        console.error('Error al procesar datos del usuario:', error);
-        window.location.href = '/login';
-      }
-    };
-
-    checkAuth();
-  }, []);
-
   // Cargar datos iniciales
   useEffect(() => {
-    if (user?.role === 'Usuario') {
+    console.log('🔄 useEffect de FichasEmpresa ejecutado');
+    console.log('👤 Usuario actual:', user);
+    console.log('🔄 isLoading AuthContext:', isAuthLoading);
+
+    // No ejecutar si aún está cargando la autenticación
+    if (isAuthLoading) {
+      console.log('⏳ Esperando a que termine de cargar la autenticación...');
+      return;
+    }
+
+    // No ejecutar si no hay usuario autenticado
+    if (!user) {
+      console.log('❌ No hay usuario autenticado');
+      return;
+    }
+
+    console.log('✅ Usuario cargado correctamente, rol:', user.role);
+
+    if (user.role === 'Usuario') {
+      console.log('📋 Cargando mi ficha personal...');
       loadMiFicha();
     } else {
+      console.log('📋 Cargando fichas de empresa (búsqueda)...');
       setIncluirDesvinculados(false);
       setIncluirLicencias(false);
       setIncluirPermisos(false);
@@ -103,7 +95,7 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
       setSearchQuery({ estado: EstadoLaboral.ACTIVO });
       searchFichas({ estado: EstadoLaboral.ACTIVO });
     }
-  }, [user, loadMiFicha]);
+  }, [user, isAuthLoading, loadMiFicha]);
 
   // Detectar trabajador recién registrado y abrir modal automáticamente
   useEffect(() => {

@@ -196,6 +196,7 @@ export async function getFichaEmpresaById(id: number): Promise<ServiceResponse<F
 
 export async function getMiFichaService(userId: number): Promise<ServiceResponse<FichaEmpresa>> {
     try {
+        console.log('getMiFichaService llamado con userId:', userId);
         const userRepo = AppDataSource.getRepository(User);
         const fichaRepo = AppDataSource.getRepository(FichaEmpresa);
 
@@ -204,7 +205,10 @@ export async function getMiFichaService(userId: number): Promise<ServiceResponse
             relations: ["trabajador"]
         });
 
+        console.log('Usuario encontrado:', { id: user?.id, email: user?.email, hasTrabajador: !!user?.trabajador, trabajadorId: user?.trabajador?.id });
+
         if (!user || !user.trabajador) {
+            console.log('Usuario no encontrado o sin trabajador asociado');
             return [null, { message: "Usuario no encontrado o no tiene ficha asociada" }];
         }
 
@@ -213,7 +217,10 @@ export async function getMiFichaService(userId: number): Promise<ServiceResponse
             relations: ["trabajador"]
         });
 
+        console.log('Ficha encontrada:', { fichaId: ficha?.id, trabajadorId: ficha?.trabajador?.id });
+
         if (!ficha) {
+            console.log('Ficha no encontrada para el trabajador');
             return [null, { message: "Ficha no encontrada" }];
         }
 

@@ -18,7 +18,7 @@ export class TrabajadorService {
   private baseURL = '/trabajadores';
 
   private getHeaders() {
-    const token = localStorage.getItem('authToken');
+    const token = localStorage.getItem('auth_token');
     return {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`
@@ -33,7 +33,7 @@ export class TrabajadorService {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
         }
       });
 
@@ -157,7 +157,7 @@ export class TrabajadorService {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
         }
       });
 
@@ -202,7 +202,7 @@ export class TrabajadorService {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
         },
         body: JSON.stringify({ motivo })
       });

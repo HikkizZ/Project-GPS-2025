@@ -20,15 +20,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     const initAuth = () => {
       try {
+        console.log('🔄 Inicializando autenticación...');
+        console.log('🔑 Token válido:', authService.isAuthenticated());
+        
         if (authService.isAuthenticated()) {
           const currentUser = authService.getCurrentUser();
+          console.log('👤 Usuario obtenido:', currentUser);
           setUser(currentUser);
+        } else {
+          console.log('❌ No hay token válido o usuario autenticado');
         }
       } catch (error) {
-        console.error('Error initializing auth:', error);
+        console.error('❌ Error initializing auth:', error);
         authService.logout();
       } finally {
         setIsLoading(false);
+        console.log('✅ Autenticación inicializada');
       }
     };
 
