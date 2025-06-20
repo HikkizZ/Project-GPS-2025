@@ -157,6 +157,12 @@
   font-weight: 600;
 }
 
+/* Estilo para campos "Por Definir" */
+.por-definir {
+  color: #6c757d !important;
+  font-weight: 500;
+}
+
 /* Estilos para grupos de información */
 .info-group {
   display: flex;

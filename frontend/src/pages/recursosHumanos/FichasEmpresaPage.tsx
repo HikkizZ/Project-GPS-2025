@@ -228,7 +228,16 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
     }
   };
 
+  // Función helper para campos "Por Definir"
+  const getFieldClass = (value: string) => {
+    return value === 'Por Definir' ? 'por-definir' : '';
+  };
+
   const getTipoContratoColor = (tipo: string) => {
+    if (tipo === 'Por Definir') {
+      return 'por-definir';
+    }
+    
     switch (tipo.toLowerCase()) {
       case 'indefinido':
         return 'text-success';
@@ -282,15 +291,15 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                         <div className="row g-3">
                           <div className="col-md-6">
                             <label className="form-label fw-bold">Cargo:</label>
-                            <p className="mb-0">{miFicha.cargo}</p>
+                            <p className={`mb-0 ${getFieldClass(miFicha.cargo)}`}>{miFicha.cargo}</p>
                           </div>
                           <div className="col-md-6">
                             <label className="form-label fw-bold">Área:</label>
-                            <p className="mb-0">{miFicha.area}</p>
+                            <p className={`mb-0 ${getFieldClass(miFicha.area)}`}>{miFicha.area}</p>
                           </div>
                           <div className="col-md-6">
                             <label className="form-label fw-bold">Empresa:</label>
-                            <p className="mb-0">{miFicha.empresa}</p>
+                            <p className={`mb-0 ${getFieldClass(miFicha.empresa)}`}>{miFicha.empresa}</p>
                           </div>
                           <div className="col-md-6">
                             <label className="form-label fw-bold">Estado:</label>
@@ -306,7 +315,7 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                           </div>
                           <div className="col-md-6">
                             <label className="form-label fw-bold">Jornada:</label>
-                            <p className="mb-0">{miFicha.jornadaLaboral}</p>
+                            <p className={`mb-0 ${getFieldClass(miFicha.jornadaLaboral)}`}>{miFicha.jornadaLaboral}</p>
                           </div>
                           <div className="col-md-6">
                             <label className="form-label fw-bold">Fecha Inicio:</label>
@@ -701,8 +710,16 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                                 <small className="text-muted">{formatRUT(ficha.trabajador.rut)}</small>
                               </div>
                             </td>
-                            <td>{ficha.cargo || '-'}</td>
-                            <td>{ficha.area || '-'}</td>
+                            <td>
+                              <span className={getFieldClass(ficha.cargo || '-')}>
+                                {ficha.cargo || '-'}
+                              </span>
+                            </td>
+                            <td>
+                              <span className={getFieldClass(ficha.area || '-')}>
+                                {ficha.area || '-'}
+                              </span>
+                            </td>
                             <td>
                               <span className={`badge ${getEstadoBadgeClass(ficha.estado)}`}>
                                 {ficha.estado}
@@ -713,7 +730,11 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                                 {ficha.tipoContrato}
                               </span>
                             </td>
-                            <td>{ficha.jornadaLaboral || '-'}</td>
+                            <td>
+                              <span className={getFieldClass(ficha.jornadaLaboral || '-')}>
+                                {ficha.jornadaLaboral || '-'}
+                              </span>
+                            </td>
                             <td>{formatFecha(ficha.fechaInicioContrato)}</td>
                             <td>{ficha.fechaFinContrato ? formatFecha(ficha.fechaFinContrato) : '-'}</td>
                             <td>
