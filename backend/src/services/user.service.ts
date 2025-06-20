@@ -140,7 +140,7 @@ export const updateUserService = async (id: number, body: UpdateUserData, reques
             dataUserUpdate.email = body.email;
         }
         if (body.password) {
-            dataUserUpdate.password = body.password;
+            dataUserUpdate.password = await encryptPassword(body.password);
         }
         if (body.role) {
             dataUserUpdate.role = body.role as string;
@@ -188,7 +188,7 @@ export const updateUserByTrabajadorService = async (id: number, body: UpdateUser
             dataUserUpdate.email = body.email;
         }
         if (body.password) {
-            dataUserUpdate.password = body.password;
+            dataUserUpdate.password = await encryptPassword(body.password);
         }
         if (body.rut) {
             dataUserUpdate.rut = body.rut;

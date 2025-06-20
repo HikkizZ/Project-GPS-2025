@@ -35,6 +35,7 @@ export const UsersPage: React.FC = () => {
   });
   const [selectedUser, setSelectedUser] = useState<SafeUser | null>(null);
   const [rutError, setRutError] = useState<string | null>(null);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
 
   const availableRoles: UserRole[] = ['Usuario', 'RecursosHumanos', 'Gerencia', 'Ventas', 'Arriendo', 'Finanzas'];
   
@@ -149,17 +150,39 @@ export const UsersPage: React.FC = () => {
     setShowUpdateModal(true);
   };
 
+  // Función para validar contraseña
+  const validatePassword = (password: string): string | null => {
+    if (password.length === 0) return null; // Vacía es válida (no cambiar)
+    if (password.length < 8) return 'La contraseña debe tener al menos 8 caracteres';
+    if (password.length > 16) return 'La contraseña debe tener máximo 16 caracteres';
+    if (!/(?=.*[a-z])/.test(password)) return 'La contraseña debe tener al menos una letra minúscula';
+    if (!/(?=.*[A-Z])/.test(password)) return 'La contraseña debe tener al menos una letra mayúscula';
+    if (!/(?=.*\d)/.test(password)) return 'La contraseña debe tener al menos un número';
+    if (!/(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?])/.test(password)) return 'La contraseña debe tener al menos un carácter especial';
+    return null;
+  };
+
   const handleUpdateUser = async () => {
     if (!selectedUser) return;
 
     try {
         setIsUpdating(true);
         setError('');
+        setPasswordError(null);
+        
+        // Validar contraseña si se proporciona
+        if (newPassword) {
+          const passwordValidation = validatePassword(newPassword);
+          if (passwordValidation) {
+            setPasswordError(passwordValidation);
+            return;
+          }
+        }
         
         // Crear objeto con las actualizaciones
         const updates: { role?: string, password?: string } = {};
         if (newRole && newRole !== selectedUser.role) updates.role = newRole;
-        if (newPassword && newPassword.length === 8) updates.password = newPassword;
+        if (newPassword && newPassword.length >= 8 && newPassword.length <= 16) updates.password = newPassword;
 
         // Solo enviar la petición si hay cambios
         if (Object.keys(updates).length > 0) {
@@ -176,6 +199,7 @@ export const UsersPage: React.FC = () => {
     } finally {
         setIsUpdating(false);
         setNewPassword('');
+        setPasswordError(null);
     }
   };
 
@@ -468,6 +492,7 @@ export const UsersPage: React.FC = () => {
         <Modal show={showUpdateModal} onHide={() => {
           setShowUpdateModal(false);
           setNewPassword('');
+          setPasswordError(null);
           if (selectedUser) setNewRole(selectedUser.role);
         }}>
           <Modal.Header closeButton>
@@ -518,10 +543,21 @@ export const UsersPage: React.FC = () => {
                   <Form.Control
                     type="password"
                     value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
+                    onChange={(e) => {
+                      setNewPassword(e.target.value);
+                      if (e.target.value) {
+                        setPasswordError(validatePassword(e.target.value));
+                      } else {
+                        setPasswordError(null);
+                      }
+                    }}
                     placeholder="Dejar vacío para mantener la actual"
                     maxLength={16}
+                    isInvalid={!!passwordError}
                   />
+                  <Form.Control.Feedback type="invalid">
+                    {passwordError}
+                  </Form.Control.Feedback>
                   <Form.Text className="text-muted">
                     La contraseña debe tener entre 8 y 16 caracteres, al menos una mayúscula, una minúscula, un número y un carácter especial.
                   </Form.Text>
@@ -533,6 +569,7 @@ export const UsersPage: React.FC = () => {
             <Button variant="secondary" onClick={() => {
               setShowUpdateModal(false);
               setNewPassword('');
+              setPasswordError(null);
               if (selectedUser) setNewRole(selectedUser.role);
             }}>
               <i className="bi bi-x-circle me-2"></i>
@@ -541,7 +578,7 @@ export const UsersPage: React.FC = () => {
             <Button
               variant="primary"
               onClick={handleUpdateUser}
-              disabled={isUpdating || (newPassword !== '' && newPassword.length !== 8)}
+              disabled={isUpdating || !!passwordError}
             >
               {isUpdating ? (
                 <>
