@@ -5,44 +5,64 @@ import {
     getTrabajadoresService,
     searchTrabajadoresService,
     updateTrabajadorService,
-    deleteTrabajadorService
+    desvincularTrabajadorService
 } from "../../services/recursosHumanos/trabajador.service.js";
 import { TrabajadorBodyValidation, TrabajadorQueryValidation, TrabajadorUpdateValidation } from "../../validations/recursosHumanos/trabajador.validation.js";
 
 export async function createTrabajador(req: Request, res: Response): Promise<void> {
     try {
-        // Validar el cuerpo de la petición
         const validationResult = TrabajadorBodyValidation.validate(req.body);
         if (validationResult.error) {
             handleErrorClient(res, 400, validationResult.error.message);
             return;
         }
 
-        const [trabajador, serviceError] = await createTrabajadorService(req.body);
+        const [result, serviceError] = await createTrabajadorService(req.body);
         
         if (serviceError) {
-            handleErrorClient(res, 400, serviceError.message);
+            const errorMessage = typeof serviceError === 'string' ? serviceError : serviceError?.message || "No se pudo crear el trabajador";
+            handleErrorClient(res, 400, errorMessage);
             return;
         }
 
-        handleSuccess(res, 201, "Trabajador creado exitosamente", trabajador);
+        if (!result || !result.trabajador) {
+            handleErrorClient(res, 400, "No se pudo crear el trabajador");
+            return;
+        }
+
+        // Incluir advertencias en la respuesta si existen
+        const responseData = {
+            trabajador: result.trabajador,
+            advertencias: result.advertencias || [],
+            correoUsuario: result.correoUsuario
+        };
+
+        handleSuccess(res, 201, "Trabajador creado exitosamente", responseData);
     } catch (error) {
         console.error("Error al crear trabajador:", error);
-        handleErrorServer(res, 500, "Error interno del servidor");
+        // Asegurarnos de que la respuesta de error llegue al cliente
+        if (!res.headersSent) {
+            handleErrorServer(res, 500, "Error interno del servidor");
+        }
     }
 }
 
 export async function getTrabajadores(req: Request, res: Response): Promise<void> {
     try {
-        const [trabajadores, serviceError] = await getTrabajadoresService();
+        const incluirInactivos = req.query.todos === 'true';
+        const [trabajadores, serviceError] = await getTrabajadoresService(incluirInactivos);
         
         if (serviceError) {
-            const isNotFound = serviceError.message.includes("No hay trabajadores");
-            handleErrorClient(res, isNotFound ? 404 : 500, serviceError.message);
+            handleErrorClient(res, 404, typeof serviceError === 'string' ? serviceError : serviceError.message);
             return;
         }
 
-        handleSuccess(res, 200, "Trabajadores recuperados exitosamente", trabajadores);
+        if (!trabajadores) {
+            handleErrorClient(res, 404, "No se encontraron trabajadores");
+            return;
+        }
+
+        handleSuccess(res, 200, "Trabajadores obtenidos exitosamente", trabajadores);
     } catch (error) {
         console.error("Error al obtener trabajadores:", error);
         handleErrorServer(res, 500, "Error interno del servidor");
@@ -50,32 +70,44 @@ export async function getTrabajadores(req: Request, res: Response): Promise<void
 }
 
 export async function searchTrabajadores(req: Request, res: Response): Promise<void> {
-  try {
-    const { error } = TrabajadorQueryValidation.validate(req.query);
-    if (error) {
-      handleErrorClient(res, 400, error.message);
-      return;
+    try {
+        console.log("🔍 Query recibida:", req.query);
+        
+        const { error } = TrabajadorQueryValidation.validate(req.query);
+        if (error) {
+            console.log("❌ Error de validación:", error.message);
+            handleErrorClient(res, 400, error.message);
+            return;
+        }
+
+        const query = {
+            ...req.query,
+            enSistema: req.query.enSistema === "true" ? true : req.query.enSistema === "false" ? false : undefined,
+            todos: req.query.todos === "true" ? true : undefined
+        };
+        console.log("🔄 Query procesada:", query);
+
+        const [trabajadores, serviceError] = await searchTrabajadoresService(query);
+        console.log("📊 Resultado del servicio:", { trabajadores: trabajadores?.length || 0, serviceError });
+
+        if (serviceError) {
+            console.log("❌ Error del servicio:", serviceError);
+            handleErrorClient(res, 404, typeof serviceError === 'string' ? serviceError : serviceError.message);
+            return;
+        }
+
+        if (!trabajadores || trabajadores.length === 0) {
+            console.log("❌ No se encontraron trabajadores");
+            handleErrorClient(res, 404, "No se encontraron trabajadores que coincidan con los criterios de búsqueda");
+            return;
+        }
+
+        console.log("✅ Trabajadores encontrados:", trabajadores.length);
+        handleSuccess(res, 200, "Trabajadores encontrados exitosamente", trabajadores);
+    } catch (error) {
+        console.error("❌ Error en searchTrabajadores:", error);
+        handleErrorServer(res, 500, "Error interno del servidor");
     }
-
-    // Convertir valores string a boolean en query
-    const query = {
-      ...req.query,
-      enSistema: req.query.enSistema === "true" ? true : req.query.enSistema === "false" ? false : undefined,
-      todos: req.query.todos === "true" ? true : undefined
-    };
-
-    const [trabajadores, serviceError] = await searchTrabajadoresService(query);
-
-    if (serviceError) {
-      handleErrorClient(res, 404, serviceError.message);
-      return;
-    }
-
-    handleSuccess(res, 200, "Trabajadores encontrados exitosamente", trabajadores);
-  } catch (error) {
-    console.error("Error en searchTrabajadores:", error);
-    handleErrorServer(res, 500, "Error interno del servidor");
-  }
 }
 
 export async function updateTrabajador(req: Request, res: Response): Promise<void> {
@@ -90,7 +122,14 @@ export async function updateTrabajador(req: Request, res: Response): Promise<voi
         const [trabajador, serviceError] = await updateTrabajadorService(parseInt(req.params.id), validationResult.value);
 
         if (serviceError) {
-            handleErrorClient(res, serviceError.message.includes("no encontrado") ? 404 : 400, serviceError.message);
+            const errorMessage = typeof serviceError === 'string' ? serviceError : serviceError.message;
+            const statusCode = errorMessage.includes("no encontrado") ? 404 : 400;
+            handleErrorClient(res, statusCode, errorMessage);
+            return;
+        }
+
+        if (!trabajador) {
+            handleErrorClient(res, 404, "No se pudo actualizar el trabajador");
             return;
         }
 
@@ -101,18 +140,44 @@ export async function updateTrabajador(req: Request, res: Response): Promise<voi
     }
 }
 
-export async function deleteTrabajador(req: Request, res: Response): Promise<void> {
+export async function desvincularTrabajador(req: Request, res: Response): Promise<void> {
     try {
-        const [success, serviceError] = await deleteTrabajadorService(parseInt(req.params.id));
-        
-        if (serviceError) {
-            handleErrorClient(res, 404, serviceError.message);
+        const id = parseInt(req.params.id);
+        if (isNaN(id)) {
+            handleErrorClient(res, 400, "ID inválido");
             return;
         }
 
-        handleSuccess(res, 200, "Trabajador eliminado exitosamente");
+        const { motivo } = req.body;
+        if (!motivo || typeof motivo !== 'string' || motivo.trim().length < 3) {
+            handleErrorClient(res, 400, "El motivo de desvinculación es requerido y debe tener al menos 3 caracteres");
+            return;
+        }
+
+        const [trabajador, error] = await desvincularTrabajadorService(id, motivo.trim(), req.user?.id);
+
+        if (error) {
+            const errorMessage = typeof error === 'string' ? error : error.message;
+            if (errorMessage.includes("No tiene permiso")) {
+                handleErrorClient(res, 403, errorMessage);
+                return;
+            }
+            if (errorMessage.includes("no encontrado")) {
+                handleErrorClient(res, 404, errorMessage);
+                return;
+            }
+            handleErrorClient(res, 400, errorMessage);
+            return;
+        }
+
+        if (!trabajador) {
+            handleErrorClient(res, 404, "No se pudo desvincular el trabajador");
+            return;
+        }
+
+        handleSuccess(res, 200, "Trabajador desvinculado exitosamente", trabajador);
     } catch (error) {
-        console.error("Error al eliminar trabajador:", error);
+        console.error("Error en desvincularTrabajador:", error);
         handleErrorServer(res, 500, "Error interno del servidor");
     }
 } 

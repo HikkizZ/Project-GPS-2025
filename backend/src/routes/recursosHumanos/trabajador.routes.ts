@@ -6,7 +6,7 @@ import {
     getTrabajadores,
     searchTrabajadores,
     updateTrabajador,
-    deleteTrabajador
+    desvincularTrabajador
 } from "../../controllers/recursosHumanos/trabajador.controller.js";
 
 const router: Router = Router();
@@ -15,13 +15,13 @@ const router: Router = Router();
 router.use(authenticateJWT);
 
 // Todas las rutas requieren rol de RRHH
-router.use(verifyRole(["RecursosHumanos"]));
+router.use(verifyRole(["RecursosHumanos", "Administrador"]));
 
 router
     .post("/", createTrabajador)
     .get("/all", getTrabajadores)
     .get("/detail/", searchTrabajadores)
     .put("/:id", updateTrabajador)
-    .delete("/:id", deleteTrabajador);
+    .post("/:id/desvincular", desvincularTrabajador);
 
 export default router; 

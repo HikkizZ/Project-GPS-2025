@@ -1,189 +1,336 @@
 import { Request, Response } from "express";
-import { handleSuccess, handleErrorClient, handleErrorServer } from "../../handlers/responseHandlers.js";
-import { FichaEmpresaQueryValidation, FichaEmpresaBodyValidation } from "../../validations/recursosHumanos/fichaEmpresa.validation.js";
-import { actualizarEstadoFichaService } from "../../services/recursosHumanos/fichaEmpresa.service.js";
 import { AppDataSource } from "../../config/configDB.js";
 import { FichaEmpresa, EstadoLaboral } from "../../entity/recursosHumanos/fichaEmpresa.entity.js";
-import { ServiceResponse } from "../../../types.js";
-import path from "path";
-import fs from "fs";
+import { Trabajador } from "../../entity/recursosHumanos/trabajador.entity.js";
+import { User } from "../../entity/user.entity.js";
+import { handleSuccess, handleErrorClient, handleErrorServer } from "../../handlers/responseHandlers.js";
+import { FichaEmpresaBodyValidation, FichaEmpresaUpdateValidation, EstadoFichaValidation } from "../../validations/recursosHumanos/fichaEmpresa.validation.js";
+import { FileManagementService } from "../../services/fileManagement.service.js";
+import { FileUploadService } from "../../services/fileUpload.service.js";
+import {
+    searchFichasEmpresa,
+    getFichaEmpresaById,
+    getMiFichaService,
+    updateFichaEmpresaService,
+    actualizarEstadoFichaService,
+    descargarContratoService
+} from "../../services/recursosHumanos/fichaEmpresa.service.js";
+import path from 'path';
+import fs from 'fs';
 
-export async function getFichaEmpresa(req: Request, res: Response): Promise<void> {
+export async function getFichasEmpresa(req: Request, res: Response) {
     try {
-        // Si es la ruta /mi-ficha, usar el ID del usuario autenticado
-        const query = req.path === '/mi-ficha' && req.user 
-            ? { trabajadorId: req.user.id }
-            : req.query;
+        const [fichas, error] = await searchFichasEmpresa(req.query);
 
-        const validationResult = FichaEmpresaQueryValidation.validate(query, { abortEarly: false });
-        if (validationResult.error) {
-            handleErrorClient(res, 400, "Error de validación", {
-                errors: validationResult.error.details.map(error => ({
-                    field: error.path.join('.'),
-                    message: error.message
-                }))
-            });
+        if (error) {
+            const errorMessage = typeof error === 'string' ? error : error.message;
+            handleErrorClient(res, 404, errorMessage);
             return;
         }
 
-        const fichaRepo = AppDataSource.getRepository(FichaEmpresa);
-        const ficha = await fichaRepo.findOne({
-            where: {
-                ...(validationResult.value.id && { id: validationResult.value.id }),
-                ...(validationResult.value.trabajadorId && { trabajador: { id: validationResult.value.trabajadorId } }),
-                ...(validationResult.value.estado && { estado: validationResult.value.estado })
-            },
-            relations: ["trabajador"]
-        });
+        handleSuccess(res, 200, "Fichas de empresa recuperadas exitosamente", fichas!);
+    } catch (error) {
+        console.error("Error al obtener fichas de empresa:", error);
+        handleErrorServer(res, 500, "Error interno del servidor");
+    }
+}
+
+export async function getFichaEmpresa(req: Request, res: Response) {
+    try {
+        const id = parseInt(req.params.id);
+        if (isNaN(id)) {
+            handleErrorClient(res, 400, "El ID proporcionado no es válido");
+            return;
+        }
+
+        const [ficha, error] = await getFichaEmpresaById(id);
+
+        if (error) {
+            const errorMessage = typeof error === 'string' ? error : error.message;
+            handleErrorClient(res, 404, errorMessage);
+            return;
+        }
 
         if (!ficha) {
-            handleErrorClient(res, 404, "Ficha de empresa no encontrada");
+            handleErrorClient(res, 404, "La ficha solicitada no existe o fue eliminada");
             return;
         }
 
-        // Verificar que el usuario solo pueda ver su propia ficha en la ruta /mi-ficha
-        if (req.path === '/mi-ficha' && ficha.trabajador.id !== req.user?.id) {
-            handleErrorClient(res, 403, "No tienes permiso para ver esta ficha");
-            return;
-        }
-
-        handleSuccess(res, 200, "Ficha de empresa recuperada exitosamente", ficha);
+        handleSuccess(res, 200, "Ficha encontrada exitosamente", ficha);
     } catch (error) {
         console.error("Error al obtener ficha de empresa:", error);
-        handleErrorServer(res, 500, "Error interno del servidor");
+        handleErrorServer(res, 500, "Error interno al procesar la solicitud");
     }
 }
 
-export async function updateFichaEmpresa(req: Request, res: Response): Promise<void> {
+export async function getMiFicha(req: Request, res: Response) {
     try {
-        // Validar ID
-        const idValidation = FichaEmpresaQueryValidation.validate({ id: req.params.id }, { abortEarly: false });
-        if (idValidation.error) {
-            handleErrorClient(res, 400, "Error de validación", {
-                errors: idValidation.error.details.map(error => ({
-                    field: error.path.join('.'),
-                    message: error.message
-                }))
-            });
+        if (!req.user?.id) {
+            handleErrorClient(res, 401, "Usuario no autenticado");
             return;
         }
 
-        // Validar body
-        const bodyValidation = FichaEmpresaBodyValidation.validate(req.body, { abortEarly: false });
-        if (bodyValidation.error) {
-            handleErrorClient(res, 400, "Error de validación", {
-                errors: bodyValidation.error.details.map(error => ({
-                    field: error.path.join('.'),
-                    message: error.message
-                }))
-            });
+        const [ficha, error] = await getMiFichaService(req.user.id);
+
+        if (error) {
+            const errorMessage = typeof error === 'string' ? error : error.message;
+            handleErrorClient(res, 404, errorMessage);
             return;
         }
 
-        const fichaRepo = AppDataSource.getRepository(FichaEmpresa);
-        const ficha = await fichaRepo.findOne({
-            where: { id: parseInt(req.params.id) },
-            relations: ["trabajador"]
-        });
-
-        if (!ficha) {
-            handleErrorClient(res, 404, "Ficha de empresa no encontrada");
-            return;
-        }
-
-        // Actualizar campos
-        Object.assign(ficha, bodyValidation.value);
-        const fichaActualizada = await fichaRepo.save(ficha);
-
-        handleSuccess(res, 200, "Ficha de empresa actualizada exitosamente", fichaActualizada);
+        handleSuccess(res, 200, "Ficha recuperada exitosamente", ficha!);
     } catch (error) {
-        console.error("Error al actualizar ficha de empresa:", error);
+        console.error("Error al obtener mi ficha:", error);
         handleErrorServer(res, 500, "Error interno del servidor");
     }
 }
 
-interface EstadoFichaBody {
-    trabajadorId: number;
-    estado: EstadoLaboral;
-    fechaInicio: string;
-    fechaFin?: string;
+export async function updateFichaEmpresa(req: Request, res: Response) {
+    try {
+        const id = parseInt(req.params.id);
+        console.log('Intentando actualizar ficha con ID:', id);
+        
+        if (isNaN(id)) {
+            console.log('ID inválido:', req.params.id);
+            handleErrorClient(res, 400, "ID inválido");
+            return;
+        }
+
+        const validationResult = FichaEmpresaUpdateValidation.validate(req.body);
+        if (validationResult.error) {
+            console.log('Error de validación:', validationResult.error.message);
+            handleErrorClient(res, 400, validationResult.error.message);
+            return;
+        }
+
+        console.log('Datos a actualizar:', validationResult.value);
+        const [ficha, error] = await updateFichaEmpresaService(id, validationResult.value);
+
+        if (error) {
+            console.log('Error al actualizar:', error);
+            const errorMessage = typeof error === 'string' ? error : error.message;
+            handleErrorClient(res, 404, errorMessage);
+            return;
+        }
+
+        console.log('Ficha actualizada exitosamente:', ficha);
+        handleSuccess(res, 200, "Ficha actualizada exitosamente", ficha!);
+    } catch (error) {
+        console.error("Error en updateFichaEmpresa:", error);
+        handleErrorServer(res, 500, "Error interno del servidor");
+    }
 }
 
-export async function actualizarEstadoFicha(req: Request, res: Response): Promise<void> {
+export async function actualizarEstadoFicha(req: Request, res: Response) {
     try {
-        const { trabajadorId, estado, fechaInicio, fechaFin } = req.body as EstadoFichaBody;
+        const id = parseInt(req.params.id);
+        if (isNaN(id)) {
+            handleErrorClient(res, 400, "ID inválido");
+            return;
+        }
 
-        const [fichaActualizada, error] = await actualizarEstadoFichaService(
-            trabajadorId,
+        if (!req.user?.id) {
+            handleErrorClient(res, 401, "Usuario no autenticado");
+            return;
+        }
+
+        const validationResult = EstadoFichaValidation.validate(req.body);
+        if (validationResult.error) {
+            handleErrorClient(res, 400, validationResult.error.message);
+            return;
+        }
+
+        const { estado, fechaInicio, fechaFin, motivo } = validationResult.value;
+
+        const [ficha, error] = await actualizarEstadoFichaService(
+            id,
             estado,
-            new Date(fechaInicio),
-            fechaFin ? new Date(fechaFin) : undefined
+            fechaInicio,
+            fechaFin,
+            motivo,
+            req.user.id
         );
 
         if (error) {
-            handleErrorClient(res, 400, typeof error === 'string' ? error : error.message);
+            const errorMessage = typeof error === 'string' ? error : error.message;
+            if (errorMessage.includes("No tiene permiso")) {
+                handleErrorClient(res, 403, errorMessage);
+                return;
+            }
+            if (errorMessage.includes("Ficha no encontrada")) {
+                handleErrorClient(res, 404, errorMessage);
+                return;
+            }
+            // Por defecto, cualquier otro error es un error de validación
+            handleErrorClient(res, 400, errorMessage);
             return;
         }
 
-        if (!fichaActualizada) {
-            handleErrorClient(res, 404, "No se pudo actualizar el estado de la ficha");
-            return;
-        }
-
-        handleSuccess(res, 200, "Estado de ficha actualizado exitosamente", fichaActualizada);
+        handleSuccess(res, 200, "Estado de ficha actualizado exitosamente", ficha!);
     } catch (error) {
-        console.error("Error al actualizar estado de ficha:", error);
+        console.error("Error en actualizarEstadoFicha:", error);
         handleErrorServer(res, 500, "Error interno del servidor");
     }
 }
 
 export async function descargarContrato(req: Request, res: Response): Promise<void> {
     try {
-        const fichaRepo = AppDataSource.getRepository(FichaEmpresa);
-        const ficha = await fichaRepo.findOne({
-            where: { id: parseInt(req.params.id) },
-            relations: ["trabajador"]
+        const id = parseInt(req.params.id);
+        if (isNaN(id)) {
+            handleErrorClient(res, 400, "ID inválido");
+            return;
+        }
+
+        if (!req.user?.id) {
+            handleErrorClient(res, 401, "Usuario no autenticado");
+            return;
+        }
+
+        const [filePath, error] = await descargarContratoService(id, req.user.id);
+
+        if (error || !filePath) {
+            const errorMessage = typeof error === 'string' ? error : "Contrato no encontrado.";
+            handleErrorClient(res, 404, errorMessage);
+            return;
+        }
+
+        // Verificar que el archivo existe antes de intentar enviarlo
+        if (!fs.existsSync(filePath)) {
+            handleErrorClient(res, 404, "El archivo del contrato no se encuentra en el servidor");
+            return;
+        }
+
+        const filename = path.basename(filePath);
+
+        res.download(filePath, filename, (err) => {
+            if (err) {
+                console.error("Error al enviar el archivo con res.download:", err);
+                if (!res.headersSent) {
+                    handleErrorServer(res, 500, "No se pudo descargar el archivo.");
+                }
+            }
+        });
+
+    } catch (error) {
+        console.error("Error en el controlador descargarContrato:", error);
+        handleErrorServer(res, 500, "Error interno del servidor.");
+    }
+}
+
+export async function uploadContrato(req: Request, res: Response): Promise<void> {
+    try {
+        const id = parseInt(req.params.id);
+        if (isNaN(id)) {
+            handleErrorClient(res, 400, "ID inválido");
+            return;
+        }
+
+        if (!req.file) {
+            handleErrorClient(res, 400, "No se ha subido ningún archivo.");
+            return;
+        }
+
+        const fichaRepository = AppDataSource.getRepository(FichaEmpresa);
+        const ficha = await fichaRepository.findOneBy({ id });
+
+        if (!ficha) {
+            FileUploadService.deleteFile(req.file.path);
+            handleErrorClient(res, 404, "Ficha no encontrada.");
+            return;
+        }
+
+        const nuevoContratoFilename = req.file.filename;
+
+        if (ficha.contratoURL) {
+            const oldFilePath = FileUploadService.getContratoPath(ficha.contratoURL);
+            FileUploadService.deleteFile(oldFilePath);
+        }
+
+        ficha.contratoURL = nuevoContratoFilename;
+        await fichaRepository.save(ficha);
+
+        handleSuccess(res, 200, "Contrato subido y actualizado exitosamente", {
+            contratoUrl: nuevoContratoFilename
+        });
+
+    } catch (error) {
+        console.error("Error al subir contrato:", error);
+        if (req.file) {
+            FileUploadService.deleteFile(req.file.path);
+        }
+        handleErrorServer(res, 500, "Error interno al procesar la subida del archivo.");
+    }
+}
+
+export async function deleteContrato(req: Request, res: Response) {
+    try {
+        const id = parseInt(req.params.id);
+        if (isNaN(id)) {
+            handleErrorClient(res, 400, "ID inválido");
+            return;
+        }
+
+        // Obtener ficha
+        const fichaRepository = AppDataSource.getRepository(FichaEmpresa);
+        const ficha = await fichaRepository.findOne({
+            where: { id },
+            relations: ['trabajador']
         });
 
         if (!ficha) {
-            handleErrorClient(res, 404, "Ficha de empresa no encontrada");
+            handleErrorClient(res, 404, "Ficha no encontrada");
             return;
         }
 
         if (!ficha.contratoURL) {
-            handleErrorClient(res, 404, "No hay contrato asociado a esta ficha");
+            handleErrorClient(res, 404, "No hay contrato para eliminar");
             return;
         }
 
-        // Verificar que el usuario solo pueda ver su propio contrato o sea de RRHH
-        if (req.user?.role !== "RecursosHumanos" && ficha.trabajador.id !== req.user?.id) {
-            handleErrorClient(res, 403, "No tienes permiso para ver este contrato");
-            return;
-        }
+        // Eliminar archivo físico
+        const deleted = FileUploadService.deleteContratoFile(ficha.contratoURL);
+        
+        // Actualizar ficha
+        ficha.contratoURL = null;
+        await fichaRepository.save(ficha);
 
-        try {
-            // Asumiendo que contratoURL es una ruta relativa al directorio de uploads
-            const filePath = path.join(process.cwd(), "uploads", ficha.contratoURL);
-            
-            // Verificar si el archivo existe
-            if (!fs.existsSync(filePath)) {
-                handleErrorClient(res, 404, "Archivo no encontrado en el servidor");
-                return;
-            }
+        handleSuccess(res, 200, "Contrato eliminado exitosamente", {
+            deleted: deleted
+        });
 
-            // Configurar headers para la descarga
-            res.setHeader('Content-Type', 'application/pdf');
-            res.setHeader('Content-Disposition', `attachment; filename="contrato_${ficha.trabajador.rut}.pdf"`);
-
-            // Enviar el archivo
-            const fileStream = fs.createReadStream(filePath);
-            fileStream.pipe(res);
-        } catch (error) {
-            console.error("Error al leer el archivo:", error);
-            handleErrorServer(res, 500, "Error al descargar el archivo");
-        }
     } catch (error) {
-        console.error("Error al descargar contrato:", error);
+        console.error("Error en deleteContrato:", error);
         handleErrorServer(res, 500, "Error interno del servidor");
+    }
+}
+
+export async function searchFichas(req: Request, res: Response): Promise<void> {
+    try {
+        console.log("🔍 Recibiendo petición de búsqueda");
+        console.log("📝 Query params recibidos:", req.query);
+
+        const [fichas, error] = await searchFichasEmpresa(req.query);
+
+        if (error) {
+            console.log("❌ Error en la búsqueda:", error);
+            const errorMessage = typeof error === 'string' ? error : error.message;
+            res.status(404).json({
+                status: "error",
+                message: errorMessage
+            });
+            return;
+        }
+
+        console.log("✅ Búsqueda exitosa, enviando respuesta");
+        res.status(200).json({
+            status: "success",
+            data: fichas
+        });
+    } catch (error) {
+        console.error("❌ Error en el controlador searchFichas:", error);
+        res.status(500).json({
+            status: "error",
+            message: "Error interno del servidor"
+        });
     }
 } 

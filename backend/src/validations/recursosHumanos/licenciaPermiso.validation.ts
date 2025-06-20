@@ -77,7 +77,7 @@ export const CreateLicenciaPermisoValidation = Joi.object({
         .messages({
             "date.base": "La fecha de fin debe ser una fecha válida.",
             "date.format": "La fecha de fin debe estar en formato YYYY-MM-DD",
-            "date.min": "La fecha de fin debe ser posterior a la fecha de inicio",
+            "date.min": "La fecha de fin debe ser posterior a la fecha de inicio.",
             "any.required": "La fecha de fin es requerida."
         }),
 

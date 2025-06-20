@@ -29,23 +29,81 @@ export class FichaEmpresa {
   @Column({ type: "varchar", length: 100, nullable: false })
   area!: string;
 
-  @Column({ type: "varchar", length: 100, nullable: true })
-  empresa!: string;
-
   @Column({ type: "varchar", length: 50, nullable: false })
   tipoContrato!: string;
 
   @Column({ type: "varchar", length: 50, nullable: true })
   jornadaLaboral!: string;
 
-  @Column({ type: "decimal", precision: 10, scale: 2, nullable: false })
+  @Column({ 
+    type: "integer", 
+    nullable: true,
+    transformer: {
+      to: (value: number | null): number => {
+        return value === null ? 0 : Math.round(value);
+      },
+      from: (value: string | number | null): number => {
+        if (value === null) return 0;
+        return typeof value === 'string' ? parseInt(value) : value;
+      }
+    },
+    default: 0
+  })
   sueldoBase!: number;
 
-  @Column({ type: "date", nullable: false })
+  @Column({
+    type: "date",
+    nullable: false,
+    transformer: {
+      to: (value: Date | string | null): string | null => {
+        if (!value) return null;
+        // Si ya es un string en formato YYYY-MM-DD, mantenerlo así
+        if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+          return value;
+        }
+        // Si es una fecha, convertirla a YYYY-MM-DD
+        const date = typeof value === 'string' ? new Date(value) : value;
+        return date.toISOString().split('T')[0];
+      },
+      from: (value: string | Date | null): Date | null => {
+        if (!value) return null;
+        // Mantener la fecha exacta sin ajustes de zona horaria
+        if (typeof value === 'string') {
+          const [year, month, day] = value.split('-').map(Number);
+          return new Date(year, month - 1, day);
+        }
+        return value;
+      }
+    }
+  })
   fechaInicioContrato!: Date;
 
-  @Column({ type: "date", nullable: true })
-  fechaFinContrato!: Date;
+  @Column({
+    type: "date",
+    nullable: true,
+    transformer: {
+      to: (value: Date | string | null): string | null => {
+        if (!value) return null;
+        // Si ya es un string en formato YYYY-MM-DD, mantenerlo así
+        if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+          return value;
+        }
+        // Si es una fecha, convertirla a YYYY-MM-DD
+        const date = typeof value === 'string' ? new Date(value) : value;
+        return date.toISOString().split('T')[0];
+      },
+      from: (value: string | Date | null): Date | null => {
+        if (!value) return null;
+        // Mantener la fecha exacta sin ajustes de zona horaria
+        if (typeof value === 'string') {
+          const [year, month, day] = value.split('-').map(Number);
+          return new Date(year, month - 1, day);
+        }
+        return value;
+      }
+    }
+  })
+  fechaFinContrato?: Date;
 
   @Column({
     type: "enum",
@@ -54,6 +112,9 @@ export class FichaEmpresa {
   })
   estado!: EstadoLaboral;
 
+  @Column({ type: "text", nullable: true })
+  motivoDesvinculacion!: string | null;
+
   @Column({ type: "varchar", length: 255, nullable: true })
-  contratoURL!: string;
+  contratoURL!: string | null;
 }
