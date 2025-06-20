@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useFichaEmpresa } from '@/hooks/recursosHumanos/useFichaEmpresa';
-import { useAuth } from '@/context';
+import { useAuth, useUI } from '@/context';
 import { useRut } from '@/hooks/useRut';
 import { 
   FichaEmpresa, 
@@ -29,9 +29,9 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
   onTrabajadorModalClosed 
 }) => {
   const { user, isLoading: isAuthLoading } = useAuth();
+  const { setSuccess, setError: setUIError } = useUI();
   const { formatRUT } = useRut();
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [localError, setLocalError] = useState<string | null>(null);
   
   const {
     fichas,
@@ -105,11 +105,11 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
             setShowEditModal(true);
           } else {
             console.error('No se pudo encontrar la ficha del trabajador recién registrado');
-            setError('No se pudo encontrar la ficha del trabajador. Por favor, intente más tarde.');
+            setUIError('No se pudo encontrar la ficha del trabajador. Por favor, intente más tarde.');
           }
         } catch (error) {
           console.error('Error al buscar la ficha:', error);
-          setError('Error al buscar la ficha del trabajador. Por favor, intente más tarde.');
+          setUIError('Error al buscar la ficha del trabajador. Por favor, intente más tarde.');
         } finally {
           // Limpiar el trabajador recién registrado
           if (onTrabajadorModalClosed) {
@@ -179,19 +179,14 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
     // Recargar las fichas
     handleSearch();
     // Mostrar mensaje de éxito
-    setSuccessMessage('Ficha actualizada exitosamente');
-    // Limpiar el mensaje después de 3 segundos
-    setTimeout(() => {
-      setSuccessMessage(null);
-    }, 3000);
+    setSuccess('Ficha actualizada exitosamente');
   };
 
   const handleDownloadContrato = async (fichaId: number) => {
     try {
       await downloadContrato(fichaId);
     } catch (error) {
-      setError('Error al descargar el contrato. Por favor, intente nuevamente.');
-      setTimeout(() => setError(null), 3000);
+      setUIError('Error al descargar el contrato. Por favor, intente nuevamente.');
     }
   };
 
@@ -261,10 +256,10 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                       </div>
                       <p className="mt-2 text-muted">Cargando mi ficha...</p>
                     </div>
-                  ) : error ? (
+                  ) : localError ? (
                     <div className="alert alert-danger">
                       <i className="bi bi-exclamation-triangle me-2"></i>
-                      {error}
+                      {localError}
                     </div>
                   ) : miFicha ? (
                     <div className="row">
@@ -347,18 +342,7 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
   return (
     <div className="fichas-empresa-page">
       <div className="container py-4">
-        {/* Mostrar mensaje de éxito si existe */}
-        {successMessage && (
-          <div className="alert alert-success alert-dismissible fade show" role="alert">
-            <i className="bi bi-check-circle me-2"></i>
-            {successMessage}
-            <button 
-              type="button" 
-              className="btn-close" 
-              onClick={() => setSuccessMessage(null)}
-            ></button>
-          </div>
-        )}
+
 
         {/* Header */}
         <div className="row mb-4">
@@ -620,18 +604,7 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
           </div>
         )}
 
-        {/* Alertas */}
-        {error && (
-          <div className="row mb-3">
-            <div className="col-12">
-              <div className="alert alert-danger alert-dismissible">
-                <i className="bi bi-exclamation-triangle me-2"></i>
-                {error}
-                <button type="button" className="btn-close" onClick={clearError}></button>
-              </div>
-            </div>
-          </div>
-        )}
+
 
         {/* Resultados */}
         <div className="row">

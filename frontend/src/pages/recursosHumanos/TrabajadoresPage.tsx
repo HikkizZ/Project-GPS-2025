@@ -3,6 +3,7 @@ import { Table, Button, Form, Alert, Spinner, Modal } from 'react-bootstrap';
 import { useTrabajadores } from '@/hooks/recursosHumanos/useTrabajadores';
 import { Trabajador, TrabajadorSearchQuery } from '@/types/recursosHumanos/trabajador.types';
 import { useRut, usePhone } from '@/hooks/useRut';
+import { useUI } from '@/context';
 import { RegisterTrabajadorForm } from '@/components/trabajador/RegisterTrabajadorForm';
 import { EditarTrabajadorModal } from '@/components/trabajador/EditarTrabajadorModal';
 import { FiltrosBusquedaHeader } from '@/components/common/FiltrosBusquedaHeader';
@@ -12,6 +13,7 @@ export const TrabajadoresPage: React.FC = () => {
   const { trabajadores, isLoading, error, loadTrabajadores, searchTrabajadores, desvincularTrabajador } = useTrabajadores();
   const { formatRUT } = useRut();
   const { formatPhone } = usePhone();
+  const { setSuccess, setError: setUIError } = useUI();
   
   // Estados para los modales y filtros
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -23,7 +25,6 @@ export const TrabajadoresPage: React.FC = () => {
   const [searchParams, setSearchParams] = useState<TrabajadorSearchQuery>({});
   const [desvincularError, setDesvincularError] = useState<string>('');
   const [isDesvinculando, setIsDesvinculando] = useState(false);
-  const [successMessage, setSuccessMessage] = useState<string>('');
   const [showEditModal, setShowEditModal] = useState(false);
   const [rutError, setRutError] = useState<string | null>(null);
 
@@ -79,8 +80,7 @@ export const TrabajadoresPage: React.FC = () => {
       if (result.success) {
         setShowDesvincularModal(false);
         loadTrabajadores(); // Recargar la lista
-        setSuccessMessage('Trabajador desvinculado exitosamente');
-        setTimeout(() => setSuccessMessage(''), 3000);
+        setSuccess('Trabajador desvinculado exitosamente');
       } else {
         setDesvincularError(result.error || 'Error al desvincular trabajador');
       }
@@ -94,18 +94,7 @@ export const TrabajadoresPage: React.FC = () => {
   return (
     <div className="trabajadores-page">
       <div className="container py-4">
-        {/* Mensaje de éxito */}
-        {successMessage && (
-          <div className="alert alert-success alert-dismissible fade show mb-4">
-            <i className="bi bi-check-circle me-2"></i>
-            {successMessage}
-            <button 
-              type="button" 
-              className="btn-close" 
-              onClick={() => setSuccessMessage('')}
-            ></button>
-          </div>
-        )}
+
 
         {/* Header principal */}
         <div className="d-flex justify-content-between align-items-center mb-4">
@@ -411,8 +400,7 @@ export const TrabajadoresPage: React.FC = () => {
               onSuccess={() => {
                 setShowCreateModal(false);
                 loadTrabajadores();
-                setSuccessMessage('Trabajador registrado exitosamente');
-                setTimeout(() => setSuccessMessage(''), 3000);
+                            setSuccess('Trabajador registrado exitosamente');
               }}
               onCancel={() => setShowCreateModal(false)}
             />
@@ -519,8 +507,7 @@ export const TrabajadoresPage: React.FC = () => {
             trabajador={trabajadorToEdit}
             onSuccess={() => {
               loadTrabajadores();
-              setSuccessMessage('Trabajador actualizado exitosamente');
-              setTimeout(() => setSuccessMessage(''), 3000);
+                              setSuccess('Trabajador actualizado exitosamente');
             }}
           />
         )}

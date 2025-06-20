@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '@/context';
+import { useAuth, useUI } from '@/context';
 import { SafeUser } from '@/types';
 import { UserRole } from '@/types/auth.types';
 import { useRut } from '@/hooks/useRut';
 import { userService } from '@/services/user.service';
-import { Table, Button, Form, Alert, Spinner, Modal } from 'react-bootstrap';
+import { Table, Button, Form, Spinner, Modal } from 'react-bootstrap';
 import '../styles/usuarios.css';
 import { FiltrosBusquedaHeader } from '@/components/common/FiltrosBusquedaHeader';
 
@@ -20,12 +20,11 @@ interface UserSearchParams {
 
 export const UsersPage: React.FC = () => {
   const { user } = useAuth();
+  const { setError, setSuccess, setLoading } = useUI();
   const { formatRUT } = useRut();
   const [showFilters, setShowFilters] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
-  const [error, setError] = useState<string>('');
-  const [success, setSuccess] = useState<string>('');
   const [users, setUsers] = useState<SafeUser[]>([]);
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [newRole, setNewRole] = useState<string>('');
@@ -189,7 +188,6 @@ export const UsersPage: React.FC = () => {
         if (Object.keys(updates).length > 0) {
             await userService.updateUser(selectedUser.id, selectedUser.rut, updates);
             setSuccess(`Usuario ${selectedUser.name} actualizado exitosamente`);
-            setTimeout(() => setSuccess(''), 3000);
             setShowUpdateModal(false);
             loadUsers(); // Recargar la lista después de actualizar
         } else {
@@ -395,18 +393,6 @@ export const UsersPage: React.FC = () => {
         {/* Tabla de Usuarios */}
         <div className="card shadow-sm">
           <div className="card-body">
-            {error && (
-              <Alert variant="danger" dismissible onClose={() => setError('')}>
-                <i className="bi bi-exclamation-triangle-fill me-2"></i>
-                {error}
-              </Alert>
-            )}
-            {success && (
-              <Alert variant="success" dismissible onClose={() => setSuccess('')}>
-                <i className="bi bi-check-circle-fill me-2"></i>
-                {success}
-              </Alert>
-            )}
             {rutError && (
               <div className="alert alert-danger mt-3">{rutError}</div>
             )}
@@ -430,7 +416,7 @@ export const UsersPage: React.FC = () => {
                       </small>
                     </h6>
                   </div>
-                  {users.length === 0 && !isLoading && !error && (
+                  {users.length === 0 && !isLoading && (
                     <div className="text-center py-5">
                       <i className="bi bi-person-x display-1 text-muted"></i>
                       <h5 className="mt-3">No hay resultados que coincidan con tu búsqueda</h5>

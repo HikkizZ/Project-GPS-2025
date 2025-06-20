@@ -1,6 +1,6 @@
 import React from 'react';
 import { LoginForm } from '@/components/common/LoginForm';
-import { useUI } from '@/context/UIContext';
+import { useUI } from '@/context';
 
 export const LoginPage: React.FC = () => {
   const { error, setError } = useUI();

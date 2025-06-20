@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useRut } from '@/hooks/useRut';
+import { GlobalMessages } from './GlobalMessages';
 
 interface MainLayoutProps {
   user: { name: string; role: string; rut: string };
@@ -60,7 +61,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({ user, onLogout, children }) => 
       </nav>
       {/* Contenido */}
       <main className="flex-grow-1 bg-light">
-        {children}
+        <div className="container-fluid pt-3">
+          <GlobalMessages />
+          {children}
+        </div>
       </main>
       {/* Footer */}
       <footer className="bg-dark text-light py-2">
