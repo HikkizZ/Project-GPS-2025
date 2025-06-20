@@ -39,11 +39,9 @@ export const verifyToken = async (req: Request, res: Response, next: NextFunctio
             return;
         }
 
-        console.log('Usuario autenticado:', { id: user.id, email: user.email, role: user.role, hasTrabajador: !!user.trabajador });
         req.user = user;
         next();
     } catch (error) {
-        console.error('Error en verifyToken:', error);
         res.status(401).json({
             status: "error",
             message: "Token inválido"

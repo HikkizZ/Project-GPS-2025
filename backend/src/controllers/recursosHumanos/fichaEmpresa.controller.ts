@@ -20,19 +20,14 @@ import fs from 'fs';
 
 export async function getFichasEmpresa(req: Request, res: Response) {
     try {
-        console.log('getFichasEmpresa llamado con query:', req.query);
-        console.log('Usuario que hace la petición:', { id: req.user?.id, email: req.user?.email, role: req.user?.role });
-        
         const [fichas, error] = await searchFichasEmpresa(req.query);
 
         if (error) {
             const errorMessage = typeof error === 'string' ? error : error.message;
-            console.log('Error en searchFichasEmpresa:', errorMessage);
             handleErrorClient(res, 404, errorMessage);
             return;
         }
 
-        console.log('Fichas encontradas:', fichas?.length || 0);
         handleSuccess(res, 200, "Fichas de empresa recuperadas exitosamente", fichas!);
     } catch (error) {
         console.error("Error al obtener fichas de empresa:", error);
@@ -70,10 +65,7 @@ export async function getFichaEmpresa(req: Request, res: Response) {
 
 export async function getMiFicha(req: Request, res: Response) {
     try {
-        console.log('getMiFicha llamado. req.user:', { id: req.user?.id, email: req.user?.email, role: req.user?.role });
-        
         if (!req.user?.id) {
-            console.log('Usuario no autenticado: req.user?.id es', req.user?.id);
             handleErrorClient(res, 401, "Usuario no autenticado");
             return;
         }
@@ -82,12 +74,10 @@ export async function getMiFicha(req: Request, res: Response) {
 
         if (error) {
             const errorMessage = typeof error === 'string' ? error : error.message;
-            console.log('Error en getMiFichaService:', errorMessage);
             handleErrorClient(res, 404, errorMessage);
             return;
         }
 
-        console.log('Ficha obtenida exitosamente:', { fichaId: ficha?.id });
         handleSuccess(res, 200, "Ficha recuperada exitosamente", ficha!);
     } catch (error) {
         console.error("Error al obtener mi ficha:", error);

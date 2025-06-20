@@ -65,29 +65,19 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
 
   // Cargar datos iniciales
   useEffect(() => {
-    console.log('🔄 useEffect de FichasEmpresa ejecutado');
-    console.log('👤 Usuario actual:', user);
-    console.log('🔄 isLoading AuthContext:', isAuthLoading);
-
     // No ejecutar si aún está cargando la autenticación
     if (isAuthLoading) {
-      console.log('⏳ Esperando a que termine de cargar la autenticación...');
       return;
     }
 
     // No ejecutar si no hay usuario autenticado
     if (!user) {
-      console.log('❌ No hay usuario autenticado');
       return;
     }
 
-    console.log('✅ Usuario cargado correctamente, rol:', user.role);
-
     if (user.role === 'Usuario') {
-      console.log('📋 Cargando mi ficha personal...');
       loadMiFicha();
     } else {
-      console.log('📋 Cargando fichas de empresa (búsqueda)...');
       setIncluirDesvinculados(false);
       setIncluirLicencias(false);
       setIncluirPermisos(false);

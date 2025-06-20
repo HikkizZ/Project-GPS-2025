@@ -55,10 +55,8 @@ class ApiClient {
     this.client.interceptors.request.use(
       (config) => {
         const token = localStorage.getItem('auth_token');
-        console.log('🔑 Token encontrado en localStorage:', token ? 'Sí' : 'No');
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
-          console.log('🔑 Token agregado a headers:', `Bearer ${token.substring(0, 20)}...`);
         }
         
         // Si los datos son FormData, elimina el header 'Content-Type' para que
