@@ -256,42 +256,81 @@ export async function getTrabajadoresService(incluirInactivos: boolean = false):
 export async function searchTrabajadoresService(query: any): Promise<ServiceResponse<Trabajador[]>> {
     try {
         const trabajadorRepo = AppDataSource.getRepository(Trabajador);
-        const whereClause: FindOptionsWhere<Trabajador> = {};
-
-        // Construir la consulta dinámica
-        if (query.rut) {
-            // Normalizar el RUT removiendo puntos para la búsqueda
-            const rutNormalizado = query.rut.replace(/\./g, '');
-            whereClause.rut = ILike(`%${rutNormalizado}%`);
-        }
-        if (query.nombres) whereClause.nombres = ILike(`%${query.nombres}%`);
-        if (query.apellidoPaterno) whereClause.apellidoPaterno = ILike(`%${query.apellidoPaterno}%`);
-        if (query.apellidoMaterno) whereClause.apellidoMaterno = ILike(`%${query.apellidoMaterno}%`);
-        if (query.correoPersonal) whereClause.correoPersonal = ILike(`%${query.correoPersonal}%`);
-        if (query.telefono) whereClause.telefono = ILike(`%${query.telefono}%`);
-        if (query.numeroEmergencia) whereClause.numeroEmergencia = ILike(`%${query.numeroEmergencia}%`);
-        if (query.direccion) whereClause.direccion = ILike(`%${query.direccion}%`);
         
+        // Usar QueryBuilder para mayor flexibilidad en la búsqueda por RUT
+        let queryBuilder = trabajadorRepo.createQueryBuilder("trabajador")
+            .leftJoinAndSelect("trabajador.fichaEmpresa", "fichaEmpresa")
+            .leftJoinAndSelect("trabajador.historialLaboral", "historialLaboral")
+            .leftJoinAndSelect("trabajador.licenciasPermisos", "licenciasPermisos");
+
+        // Aplicar filtros
+        const conditions: string[] = [];
+        const parameters: any = {};
+
+        // Filtro especial para RUT que funciona con y sin puntos
+        if (query.rut) {
+            const rutOriginal = query.rut;
+            const rutSinPuntos = query.rut.replace(/\./g, '');
+            conditions.push("(trabajador.rut ILIKE :rutOriginal OR trabajador.rut ILIKE :rutSinPuntos)");
+            parameters.rutOriginal = `%${rutOriginal}%`;
+            parameters.rutSinPuntos = `%${rutSinPuntos}%`;
+        }
+
+        if (query.nombres) {
+            conditions.push("trabajador.nombres ILIKE :nombres");
+            parameters.nombres = `%${query.nombres}%`;
+        }
+        if (query.apellidoPaterno) {
+            conditions.push("trabajador.apellidoPaterno ILIKE :apellidoPaterno");
+            parameters.apellidoPaterno = `%${query.apellidoPaterno}%`;
+        }
+        if (query.apellidoMaterno) {
+            conditions.push("trabajador.apellidoMaterno ILIKE :apellidoMaterno");
+            parameters.apellidoMaterno = `%${query.apellidoMaterno}%`;
+        }
+        if (query.correoPersonal) {
+            conditions.push("trabajador.correoPersonal ILIKE :correoPersonal");
+            parameters.correoPersonal = `%${query.correoPersonal}%`;
+        }
+        if (query.telefono) {
+            conditions.push("trabajador.telefono ILIKE :telefono");
+            parameters.telefono = `%${query.telefono}%`;
+        }
+        if (query.numeroEmergencia) {
+            conditions.push("trabajador.numeroEmergencia ILIKE :numeroEmergencia");
+            parameters.numeroEmergencia = `%${query.numeroEmergencia}%`;
+        }
+        if (query.direccion) {
+            conditions.push("trabajador.direccion ILIKE :direccion");
+            parameters.direccion = `%${query.direccion}%`;
+        }
         if (query.fechaNacimiento) {
-            whereClause.fechaNacimiento = query.fechaNacimiento;
+            conditions.push("trabajador.fechaNacimiento = :fechaNacimiento");
+            parameters.fechaNacimiento = query.fechaNacimiento;
         }
         if (query.fechaIngreso) {
-            whereClause.fechaIngreso = query.fechaIngreso;
+            conditions.push("trabajador.fechaIngreso = :fechaIngreso");
+            parameters.fechaIngreso = query.fechaIngreso;
         }
 
+        // Filtro de estado
         const soloEliminados = query.soloEliminados === true || query.soloEliminados === "true";
         const todos = query.todos === true || query.todos === "true";
 
         if (soloEliminados) {
-            whereClause.enSistema = false;
+            conditions.push("trabajador.enSistema = :enSistema");
+            parameters.enSistema = false;
         } else if (!todos) {
-            whereClause.enSistema = true;
+            conditions.push("trabajador.enSistema = :enSistema");
+            parameters.enSistema = true;
         }
 
-        const trabajadores = await trabajadorRepo.find({
-            relations: ["fichaEmpresa", "historialLaboral", "licenciasPermisos"],
-            where: whereClause
-        });
+        // Aplicar todas las condiciones
+        if (conditions.length > 0) {
+            queryBuilder = queryBuilder.where(conditions.join(" AND "), parameters);
+        }
+
+        const trabajadores = await queryBuilder.getMany();
 
         if (!trabajadores.length) {
             return [null, "No se encontraron trabajadores"];
