@@ -53,54 +53,12 @@ export const UsersPage: React.FC = () => {
   }, []);
 
   const loadUsers = async () => {
-    try {
-      setIsLoading(true);
-      const data = await userService.getAllUsers();
-      
-      // Aplicar filtros de búsqueda
-      let filteredUsers = data;
-      
-      if (searchParams.name) {
-        filteredUsers = filteredUsers.filter(user => 
-          user.name.toLowerCase().includes(searchParams.name!.toLowerCase())
-        );
-      }
-      
-      if (searchParams.rut) {
-        // Limpiar el RUT de búsqueda y los RUTs de usuarios antes de comparar
-        const searchRUT = cleanRUT(searchParams.rut);
-        filteredUsers = filteredUsers.filter(user => 
-          cleanRUT(user.rut).includes(searchRUT)
-        );
-      }
-      
-      if (searchParams.email) {
-        filteredUsers = filteredUsers.filter(user => 
-          user.email.toLowerCase().includes(searchParams.email!.toLowerCase())
-        );
-      }
-      
-      if (searchParams.role) {
-        filteredUsers = filteredUsers.filter(user => 
-          user.role === searchParams.role
-        );
-      }
-      
-      // Aplicar filtros de estado de cuenta
-      if (searchParams.soloInactivos) {
-        filteredUsers = filteredUsers.filter(user => user.estadoCuenta === 'Inactiva');
-      } else if (!searchParams.incluirInactivos) {
-        filteredUsers = filteredUsers.filter(user => user.estadoCuenta === 'Activa');
-      }
-      
-      setUsers(filteredUsers);
-      setError('');
-    } catch (err) {
-      setError('Error al cargar la lista de usuarios');
-      console.error(err);
-    } finally {
-      setIsLoading(false);
-    }
+    // Para la carga inicial, solo mostrar usuarios activos
+    const initialParams = {
+      incluirInactivos: false,
+      soloInactivos: false
+    };
+    await executeSearch(initialParams);
   };
 
   const handleSearch = async () => {
@@ -114,15 +72,42 @@ export const UsersPage: React.FC = () => {
       }
     }
     setRutError(null);
+    await executeSearch(searchParams);
+  };
+
+  // Función auxiliar para ejecutar búsqueda con parámetros específicos
+  const executeSearch = async (params: UserSearchParams) => {
     setIsLoading(true);
     try {
-      const { users: foundUsers, error: searchError } = await userService.searchUsers(searchParams);
-      let filtered = foundUsers || [];
-      if (searchParams.soloInactivos) {
-        filtered = filtered.filter(u => u.estadoCuenta === 'Inactiva');
+      let filteredUsers: SafeUser[] = [];
+      
+      // Si hay filtros de búsqueda específicos, usar el servicio de búsqueda
+      if (params.name || params.rut || params.email || params.role) {
+        const { users: foundUsers, error: searchError } = await userService.searchUsers(params);
+        if (searchError) {
+          setError(searchError);
+          setUsers([]);
+          return;
+        }
+        filteredUsers = foundUsers || [];
+      } else {
+        // Si no hay filtros específicos, obtener todos los usuarios
+        const allUsers = await userService.getAllUsers();
+        filteredUsers = allUsers;
       }
-      setUsers(filtered);
-      setError(searchError || '');
+      
+      // Aplicar filtros de estado de cuenta
+      if (params.soloInactivos) {
+        // Solo mostrar usuarios inactivos
+        filteredUsers = filteredUsers.filter(u => u.estadoCuenta === 'Inactiva');
+      } else if (!params.incluirInactivos) {
+        // Solo mostrar usuarios activos (comportamiento por defecto)
+        filteredUsers = filteredUsers.filter(u => u.estadoCuenta === 'Activa');
+      }
+      // Si incluirInactivos es true, no aplicar ningún filtro de estado (mostrar todos)
+      
+      setUsers(filteredUsers);
+      setError('');
     } catch (err) {
       setError('Error al buscar usuarios');
       setUsers([]);
@@ -148,22 +133,13 @@ export const UsersPage: React.FC = () => {
   };
 
   const handleResetSearch = async () => {
-    setSearchParams({
+    const resetParams = {
       incluirInactivos: false,
       soloInactivos: false
-    });
+    };
+    setSearchParams(resetParams);
     setRutError(null);
-    setIsLoading(true);
-    try {
-      const data = await userService.getAllUsers();
-      setUsers(data.filter(u => u.estadoCuenta === 'Activa'));
-      setError('');
-    } catch (err) {
-      setError('Error al cargar la lista de usuarios');
-      setUsers([]);
-    } finally {
-      setIsLoading(false);
-    }
+    await executeSearch(resetParams);
   };
 
   const handleUpdateClick = (selectedUser: SafeUser) => {
