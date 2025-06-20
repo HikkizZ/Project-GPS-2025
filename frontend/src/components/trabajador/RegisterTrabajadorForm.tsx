@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Form, Button, Alert, Row, Col } from 'react-bootstrap';
-import { useRut } from '@/hooks/useRut';
+import { useRut, usePhone } from '@/hooks/useRut';
 import { useTrabajadores } from '@/hooks/recursosHumanos/useTrabajadores';
 import { CreateTrabajadorData } from '@/types/recursosHumanos/trabajador.types';
 
@@ -15,6 +15,7 @@ export const RegisterTrabajadorForm: React.FC<RegisterTrabajadorFormProps> = ({
 }) => {
   const { createTrabajador } = useTrabajadores();
   const { formatRUT, validateRUT } = useRut();
+  const { formatPhone, validatePhone } = usePhone();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string>('');
   const [advertencias, setAdvertencias] = useState<string[]>([]);
@@ -81,6 +82,8 @@ export const RegisterTrabajadorForm: React.FC<RegisterTrabajadorFormProps> = ({
     const { name, value } = e.target;
     if (name === 'rut') {
       setFormData({ ...formData, [name]: formatRUT(value) });
+    } else if (name === 'telefono' || name === 'numeroEmergencia') {
+      setFormData({ ...formData, [name]: formatPhone(value) });
     } else if (name === 'fechaNacimiento') {
       // Mantener la fecha exactamente como viene del input type="date"
       setFormData({ ...formData, [name]: value });

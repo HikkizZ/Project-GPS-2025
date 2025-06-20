@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Table, Button, Form, Alert, Spinner, Modal } from 'react-bootstrap';
 import { useTrabajadores } from '@/hooks/recursosHumanos/useTrabajadores';
 import { Trabajador, TrabajadorSearchQuery } from '@/types/recursosHumanos/trabajador.types';
-import { useRut } from '@/hooks/useRut';
+import { useRut, usePhone } from '@/hooks/useRut';
 import { RegisterTrabajadorForm } from '@/components/trabajador/RegisterTrabajadorForm';
 import { EditarTrabajadorModal } from '@/components/trabajador/EditarTrabajadorModal';
 import { FiltrosBusquedaHeader } from '@/components/common/FiltrosBusquedaHeader';
@@ -11,6 +11,7 @@ import '../../styles/trabajadores.css';
 export const TrabajadoresPage: React.FC = () => {
   const { trabajadores, isLoading, error, loadTrabajadores, searchTrabajadores, desvincularTrabajador } = useTrabajadores();
   const { formatRUT } = useRut();
+  const { formatPhone } = usePhone();
   
   // Estados para los modales y filtros
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -203,7 +204,7 @@ export const TrabajadoresPage: React.FC = () => {
                     <Form.Control
                       type="text"
                       value={searchParams.telefono || ''}
-                      onChange={(e) => setSearchParams({ ...searchParams, telefono: e.target.value })}
+                      onChange={(e) => setSearchParams({ ...searchParams, telefono: formatPhone(e.target.value) })}
                       placeholder="+56912345678"
                     />
                   </Form.Group>
@@ -214,7 +215,7 @@ export const TrabajadoresPage: React.FC = () => {
                     <Form.Control
                       type="text"
                       value={searchParams.numeroEmergencia || ''}
-                      onChange={(e) => setSearchParams({ ...searchParams, numeroEmergencia: e.target.value })}
+                      onChange={(e) => setSearchParams({ ...searchParams, numeroEmergencia: formatPhone(e.target.value) })}
                       placeholder="+56987654321"
                     />
                   </Form.Group>

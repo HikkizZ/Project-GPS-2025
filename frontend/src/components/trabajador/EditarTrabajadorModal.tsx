@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Modal, Form, Button, Alert } from 'react-bootstrap';
 import { Trabajador } from '@/types/recursosHumanos/trabajador.types';
 import { useTrabajadores } from '@/hooks/recursosHumanos/useTrabajadores';
-import { useRut } from '@/hooks/useRut';
+import { useRut, usePhone } from '@/hooks/useRut';
 
 interface EditarTrabajadorModalProps {
   show: boolean;
@@ -19,6 +19,7 @@ export const EditarTrabajadorModal: React.FC<EditarTrabajadorModalProps> = ({
 }) => {
   const { updateTrabajador } = useTrabajadores();
   const { formatRUT } = useRut();
+  const { formatPhone } = usePhone();
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -69,10 +70,17 @@ export const EditarTrabajadorModal: React.FC<EditarTrabajadorModalProps> = ({
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    if (name === 'telefono' || name === 'numeroEmergencia') {
+      setFormData(prev => ({
+        ...prev,
+        [name]: formatPhone(value)
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
   };
 
   return (
