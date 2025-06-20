@@ -55,10 +55,10 @@ export const TrabajadorQueryValidation = Joi.object({
         }),
 
     telefono: Joi.string()
-        .pattern(/^\+?[\d]{9,12}$/)
+        .pattern(/^\+?[\d]{3,12}$/)
         .messages({
             "string.base": "El teléfono debe ser una cadena de texto.",
-            "string.pattern.base": "El teléfono debe tener entre 9 y 12 dígitos y puede incluir el símbolo +."
+            "string.pattern.base": "El teléfono debe tener entre 3 y 12 dígitos y puede incluir el símbolo +."
         }),
 
     correoPersonal: Joi.string()
@@ -69,10 +69,10 @@ export const TrabajadorQueryValidation = Joi.object({
         }),
 
     numeroEmergencia: Joi.string()
-        .pattern(/^\+?[\d]{9,12}$/)
+        .pattern(/^\+?[\d]{3,12}$/)
         .messages({
             "string.base": "El número de emergencia debe ser una cadena de texto.",
-            "string.pattern.base": "El número de emergencia debe tener entre 9 y 12 dígitos y puede incluir el símbolo +."
+            "string.pattern.base": "El número de emergencia debe tener entre 3 y 12 dígitos y puede incluir el símbolo +."
         }),
 
             direccion: Joi.string()
