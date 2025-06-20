@@ -74,7 +74,7 @@ async function generateCorporateEmail(primerNombre: string, apellidoPaterno: str
     return newEmail;
 }
 
-export async function createTrabajadorService(trabajadorData: Partial<Trabajador>): Promise<ServiceResponse<{ trabajador: Trabajador, tempPassword: string, advertencias: string[] }>> {
+export async function createTrabajadorService(trabajadorData: Partial<Trabajador>): Promise<ServiceResponse<{ trabajador: Trabajador, tempPassword: string, advertencias: string[], correoUsuario: string }>> {
     try {
         const trabajadorRepo = AppDataSource.getRepository(Trabajador);
         const fichaRepo = AppDataSource.getRepository(FichaEmpresa);
@@ -117,38 +117,22 @@ export async function createTrabajadorService(trabajadorData: Partial<Trabajador
             return [null, "Formato de teléfono inválido"];
         }
 
-        // Verificar si ya existe un trabajador con el mismo RUT o correo
+        // Verificar si ya existe un trabajador con el mismo RUT
         const existingTrabajador = await trabajadorRepo.findOne({
-            where: [
-                { rut: trabajadorData.rut },
-                { correoPersonal: trabajadorData.correoPersonal }
-            ]
+            where: { rut: trabajadorData.rut }
         });
 
         if (existingTrabajador) {
-            if (existingTrabajador.rut === trabajadorData.rut) {
-                return [null, "Ya existe un trabajador con ese RUT"];
-            }
-            // if (existingTrabajador.correoPersonal === trabajadorData.correoPersonal) {
-            //     return [null, "Ya existe un trabajador con ese correo personal"];
-            // }
+            return [null, "Ya existe un trabajador con ese RUT"];
         }
 
-        // Verificar si ya existe un usuario con el mismo RUT o correo
+        // Verificar si ya existe un usuario con el mismo RUT
         const existingUser = await userRepo.findOne({
-            where: [
-                { rut: trabajadorData.rut },
-                { email: trabajadorData.correoPersonal }
-            ]
+            where: { rut: trabajadorData.rut }
         });
 
         if (existingUser) {
-            if (existingUser.rut === trabajadorData.rut) {
-                return [null, "Ya existe un usuario con ese RUT"];
-            }
-            // if (existingUser.email === trabajadorData.correoPersonal) {
-            //     return [null, "Ya existe un usuario con ese correo personal"];
-            // }
+            return [null, "Ya existe un usuario con ese RUT"];
         }
 
         // Crear el trabajador
@@ -156,89 +140,94 @@ export async function createTrabajadorService(trabajadorData: Partial<Trabajador
             ...trabajadorData,
             enSistema: true
         });
-        const trabajadorGuardado = await trabajadorRepo.save(trabajador);
 
-        // Generar correo corporativo
-        const primerNombre = trabajador.nombres.split(' ')[0].toLowerCase().normalize('NFD').replace(/[^a-zA-Z]/g, '');
-        const apellidoPaterno = trabajador.apellidoPaterno.toLowerCase().normalize('NFD').replace(/[^a-zA-Z]/g, '');
-        const correoUsuario = await generateCorporateEmail(primerNombre, apellidoPaterno);
+        // Usar una transacción para asegurar que todo se crea o nada se crea
+        const queryRunner = AppDataSource.createQueryRunner();
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
 
-        // Crear usuario automáticamente
-        const randomPassword = generateRandomPassword();
-        const hashedPassword = await encryptPassword(randomPassword);
-        const newUser = userRepo.create({
-            name: `${trabajador.nombres} ${trabajador.apellidoPaterno} ${trabajador.apellidoMaterno}`,
-            email: correoUsuario,
-            password: hashedPassword,
-            role: "Usuario" as userRole,
-            rut: trabajador.rut,
-            estadoCuenta: "Activa",
-            createAt: new Date(),
-            updateAt: new Date()
-        });
-        await userRepo.save(newUser);
-
-        // Enviar correo con credenciales (excepto superadmin)
-        let correoError = null;
-        if (!(trabajador.rut === "20.882.865-7")) {
-            try {
-                await sendCredentialsEmail({
-                    to: trabajador.correoPersonal,
-                    nombre: trabajador.nombres,
-                    correoUsuario,
-                    passwordTemporal: randomPassword
-                });
-            } catch (err) {
-                console.error("Error enviando correo de credenciales:", err);
-                correoError = "Trabajador creado, pero no se pudo enviar el correo de credenciales.";
-            }
-        }
-
-        // Crear ficha de empresa con manejo de error
-        let fichaGuardada = null;
-        let fichaError = null;
         try {
-            const fichaData: DeepPartial<FichaEmpresa> = {
-                cargo: trabajadorData.fichaEmpresa?.cargo ?? "Sin cargo",
-                area: trabajadorData.fichaEmpresa?.area ?? "Sin área", 
-                tipoContrato: trabajadorData.fichaEmpresa?.tipoContrato ?? "Por definir",
-                jornadaLaboral: trabajadorData.fichaEmpresa?.jornadaLaboral ?? "Por definir",
-                sueldoBase: trabajadorData.fichaEmpresa?.sueldoBase ?? 0,
+            // Guardar el trabajador
+            const trabajadorGuardado = await queryRunner.manager.save(Trabajador, trabajador);
+
+            // Generar correo corporativo
+            const primerNombre = trabajador.nombres.split(' ')[0].toLowerCase().normalize('NFD').replace(/[^a-zA-Z]/g, '');
+            const apellidoPaterno = trabajador.apellidoPaterno.toLowerCase().normalize('NFD').replace(/[^a-zA-Z]/g, '');
+            const correoUsuario = await generateCorporateEmail(primerNombre, apellidoPaterno);
+
+            // Crear usuario automáticamente
+            const randomPassword = generateRandomPassword();
+            const hashedPassword = await encryptPassword(randomPassword);
+            const newUser = queryRunner.manager.create(User, {
+                name: `${trabajador.nombres} ${trabajador.apellidoPaterno} ${trabajador.apellidoMaterno}`,
+                email: correoUsuario,
+                password: hashedPassword,
+                role: "Usuario" as userRole,
+                rut: trabajador.rut,
+                estadoCuenta: "Activa",
+                createAt: new Date(),
+                updateAt: new Date()
+            });
+            await queryRunner.manager.save(User, newUser);
+
+            // Enviar correo con credenciales (excepto superadmin)
+            let advertencias: string[] = [];
+            if (!(trabajador.rut === "20.882.865-7")) {
+                try {
+                    await sendCredentialsEmail({
+                        to: trabajador.correoPersonal,
+                        nombre: trabajador.nombres,
+                        correoUsuario,
+                        passwordTemporal: randomPassword
+                    });
+                } catch (err) {
+                    console.error("Error enviando correo de credenciales:", err);
+                    advertencias.push("No se pudo enviar el correo de credenciales.");
+                }
+            }
+
+            // Crear ficha de empresa
+            const fichaEmpresa = queryRunner.manager.create(FichaEmpresa, {
+                cargo: "Por Definir",
+                area: "Por Definir",
+                tipoContrato: "Por Definir",
+                jornadaLaboral: "Por Definir",
+                sueldoBase: 0,
                 trabajador: trabajadorGuardado,
                 estado: EstadoLaboral.ACTIVO,
-                fechaInicioContrato: trabajadorGuardado.fechaIngreso,
-                contratoURL: trabajadorData.fichaEmpresa?.contratoURL
-            };
-            const ficha = fichaRepo.create(fichaData);
-            fichaGuardada = await fichaRepo.save(ficha);
-            // Actualizar el trabajador con la referencia a la ficha
-            trabajadorGuardado.fichaEmpresa = fichaGuardada;
-            await trabajadorRepo.save(trabajadorGuardado);
-        } catch (err) {
-            console.error("Error creando ficha de empresa:", err);
-            fichaError = "Trabajador creado, pero no se pudo crear la ficha de empresa.";
+                fechaInicioContrato: trabajadorGuardado.fechaIngreso
+            });
+            await queryRunner.manager.save(FichaEmpresa, fichaEmpresa);
+
+            // Confirmar la transacción
+            await queryRunner.commitTransaction();
+
+            // Recargar el trabajador con sus relaciones
+            const trabajadorCompleto = await trabajadorRepo.findOne({
+                where: { id: trabajadorGuardado.id },
+                relations: ["fichaEmpresa"]
+            });
+
+            if (!trabajadorCompleto) {
+                throw new Error("No se pudo cargar el trabajador después de crearlo");
+            }
+
+            return [{ 
+                trabajador: trabajadorCompleto, 
+                tempPassword: randomPassword, 
+                advertencias,
+                correoUsuario 
+            }, null];
+
+        } catch (error) {
+            // Si hay cualquier error, revertir todo
+            await queryRunner.rollbackTransaction();
+            console.error("Error en la transacción:", error);
+            return [null, "Error al crear el trabajador y sus registros asociados"];
+        } finally {
+            // Liberar el queryRunner
+            await queryRunner.release();
         }
-
-        // Recargar el trabajador con todas sus relaciones
-        const trabajadorCompleto = await trabajadorRepo.findOne({
-            where: { id: trabajadorGuardado.id },
-            relations: ["fichaEmpresa", "usuario"]
-        });
-
-        if (!trabajadorCompleto) {
-            throw new Error("No se pudo recargar el trabajador después de crear la ficha");
-        }
-
-        // Asegurarnos de que la ficha esté cargada
-        if (!trabajadorCompleto.fichaEmpresa) {
-            throw new Error("No se pudo cargar la ficha de empresa del trabajador");
-        }
-
-        // Devolver la contraseña generada junto con el trabajador y advertencias si las hay
-        let advertencias = [];
-        if (correoError) advertencias.push(correoError);
-        if (fichaError) advertencias.push(fichaError);
-        return [{ trabajador: trabajadorCompleto, tempPassword: randomPassword, advertencias }, null];
     } catch (error) {
         console.error("Error en createTrabajadorService:", error);
         return [null, "Error interno del servidor"];

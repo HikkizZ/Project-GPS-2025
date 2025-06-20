@@ -17,28 +17,33 @@ export async function createTrabajador(req: Request, res: Response): Promise<voi
             return;
         }
 
-        const [trabajador, serviceError] = await createTrabajadorService(req.body);
+        const [result, serviceError] = await createTrabajadorService(req.body);
         
         if (serviceError) {
-            handleErrorClient(res, 400, typeof serviceError === 'string' ? serviceError : serviceError.message);
+            const errorMessage = typeof serviceError === 'string' ? serviceError : serviceError?.message || "No se pudo crear el trabajador";
+            handleErrorClient(res, 400, errorMessage);
             return;
         }
 
-        if (!trabajador) {
+        if (!result || !result.trabajador) {
             handleErrorClient(res, 400, "No se pudo crear el trabajador");
             return;
         }
 
         // Incluir advertencias en la respuesta si existen
         const responseData = {
-            ...trabajador,
-            advertencias: trabajador.advertencias || []
+            trabajador: result.trabajador,
+            advertencias: result.advertencias || [],
+            correoUsuario: result.correoUsuario
         };
 
         handleSuccess(res, 201, "Trabajador creado exitosamente", responseData);
     } catch (error) {
         console.error("Error al crear trabajador:", error);
-        handleErrorServer(res, 500, "Error interno del servidor");
+        // Asegurarnos de que la respuesta de error llegue al cliente
+        if (!res.headersSent) {
+            handleErrorServer(res, 500, "Error interno del servidor");
+        }
     }
 }
 

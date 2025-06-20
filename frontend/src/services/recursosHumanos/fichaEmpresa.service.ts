@@ -194,7 +194,8 @@ export class FichaEmpresaService {
   // Upload de contrato
   async uploadContrato(fichaId: number, file: File): Promise<ApiResponse> {
     try {
-      await apiClient.uploadFile(`${this.baseURL}/${fichaId}/contrato`, file);
+      // Ruta correcta para la subida de archivos
+      await apiClient.uploadFile(`${this.baseURL}/${fichaId}/upload-contrato`, file, 'contrato');
       return {
         success: true,
         message: 'Contrato subido exitosamente'
@@ -211,6 +212,7 @@ export class FichaEmpresaService {
   // Download de contrato
   async downloadContrato(fichaId: number): Promise<void> {
     try {
+      // Ruta correcta para la descarga de archivos
       await apiClient.downloadFile(`${this.baseURL}/${fichaId}/contrato`, `contrato_${fichaId}.pdf`);
     } catch (error: any) {
       console.error('Error al descargar contrato:', error);

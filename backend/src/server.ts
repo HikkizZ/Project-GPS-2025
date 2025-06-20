@@ -8,6 +8,8 @@ import cookieParser from "cookie-parser";
 import session from "express-session";
 import passport from "passport";
 import { config } from "dotenv";
+import path from "path";
+import { fileURLToPath } from "url";
 
 import indexRoutes from "./routes/index.routes.js";
 import { AppDataSource, initializeDatabase } from "./config/configDB.js";
@@ -19,12 +21,21 @@ import { FileManagementService } from "./services/fileManagement.service.js";
 import { FileUploadService } from "./services/fileUpload.service.js";
 import userRoutes from "./routes/user.routes.js";
 
+// --- Definición de Rutas para ES Modules ---
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 // Exportar la aplicación y el servidor para las pruebas
 export const app: Application = express();
 let server: any;
 
 // Configuración de variables de entorno
 config();
+
+// Determinar el entorno
+const isProduction = process.env.NODE_ENV === "production";
+const isTest = process.env.NODE_ENV === "test";
+const isDevelopment = !isProduction && !isTest;
 
 async function setupServer(): Promise<void> {
     try {
@@ -48,7 +59,10 @@ async function setupServer(): Promise<void> {
 
         app.use(cookieParser());
 
-        app.use(morgan("dev"));
+        // Solo usar morgan en desarrollo
+        if (isDevelopment) {
+            app.use(morgan("dev"));
+        }
 
         app.use(session({
             secret: cookieKey as string,
@@ -66,24 +80,31 @@ async function setupServer(): Promise<void> {
 
         // Middleware global para encoding UTF-8 en todas las respuestas JSON
         app.use((req, res, next) => {
-            res.setHeader('Content-Type', 'application/json; charset=utf-8');
+            // No sobreescribir el Content-Type para descargas de archivos
+            if (!res.getHeader('Content-Disposition')) {
+                res.setHeader('Content-Type', 'application/json; charset=utf-8');
+            }
             next();
         });
 
         // Inicializar directorios de archivos
         FileManagementService.ensureUploadDirectories();
         FileUploadService.initialize();
-        console.log("✅ Directorios de archivos inicializados");
+        if (isDevelopment) console.log("✅ Directorios de archivos inicializados");
+        
+        // --- SERVIR ARCHIVOS ESTÁTICOS ---
+        // Servir la carpeta 'uploads' que está en el directorio raíz del backend
+        app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 
         // Configurar todas las rutas bajo /api
         app.use("/api", indexRoutes);
         app.use("/api/users", userRoutes);
 
         server = app.listen(PORT, () => {
-            console.log(`✅ Server running on http://${HOST}:${PORT}/api`);
+            console.log(`✅ Servidor iniciado en http://${HOST}:${PORT}/api`);
         });
     } catch (error) {
-        console.error("❌ Error starting the server: -> setupServer(). Error: ", error);
+        console.error("❌ Error al iniciar el servidor:", error);
     }
 }
 
@@ -147,20 +168,22 @@ export async function setupTestServer(): Promise<{ app: Application; server: any
 
 async function setupAPI(): Promise<void> {
     try {
+        console.log("\n🚀 Iniciando GPS 2025 API...\n");
+
         // Primero conectar a la base de datos
         await initializeDatabase();
-        console.log("✅ Base de datos conectada");
 
         // Luego ejecutar la configuración inicial
         await initialSetup();
-        console.log("✅ Configuración inicial completada");
 
         // Finalmente iniciar el servidor
         await setupServer();
+
         console.log("✅ Servidor iniciado correctamente");
+        console.log("✅ API started successfully.");
     } catch (error) {
-        console.error("❌ Error setting up the API: -> setupAPI(). Error: ", error);
-        process.exit(1); // Salir si hay un error crítico
+        console.error("\n❌ Error crítico al iniciar la API:", error);
+        process.exit(1);
     }
 }
 
@@ -175,14 +198,14 @@ if (process.env.NODE_ENV !== 'test') {
     );
 
     if (isTestCommand) {
-        console.log("⚠️ Detectado comando de test. El servidor NO se iniciará para evitar contaminación de datos.");
-        console.log("   Use 'npm run dev' o 'npm start' para iniciar el servidor.");
+        console.log("⚠️ Detectado comando de test. El servidor NO se iniciará.");
         process.exit(0);
     }
 
-    setupAPI()
-        .then(() => console.log("✅ API started successfully."))
-        .catch((error) => console.error("❌ Error starting the API: ", error));
+    setupAPI().catch((error) => {
+        console.error("❌ Error al iniciar la API:", error);
+        process.exit(1);
+    });
 } else {
-    console.log("🧪 Modo TEST detectado. Servidor no iniciado automáticamente.");
+    if (isDevelopment) console.log("🧪 Modo TEST detectado");
 }

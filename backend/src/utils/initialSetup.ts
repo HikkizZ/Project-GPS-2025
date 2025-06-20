@@ -5,42 +5,37 @@ import { FichaEmpresa, EstadoLaboral } from "../entity/recursosHumanos/fichaEmpr
 import { encryptPassword } from "../utils/encrypt.js";
 import { userRole } from "../../types.d.js";
 
+// Determinar el entorno
+const isProduction = process.env.NODE_ENV === "production";
+const isTest = process.env.NODE_ENV === "test";
+const isDevelopment = !isProduction && !isTest;
+
 export async function initialSetup(): Promise<void> {
     try {
-        console.log("=> Iniciando configuración inicial");
-
         const userRepo = AppDataSource.getRepository(User);
         const trabajadorRepo = AppDataSource.getRepository(Trabajador);
         const fichaEmpresaRepo = AppDataSource.getRepository(FichaEmpresa);
 
         await AppDataSource.transaction(async transactionalEntityManager => {
-            console.log("=> Iniciando proceso de eliminación en transacción...");
-
             // 1. Eliminar fichas de empresa del admin
-            console.log("=> Eliminando fichas de empresa del admin...");
             await transactionalEntityManager.query(
                 'DELETE FROM "fichas_empresa" WHERE "trabajadorId" IN (SELECT id FROM trabajadores WHERE rut = $1 OR "correoPersonal" = $2)',
                 ["11111111-1", "admin.principal@gmail.com"]
             );
-            console.log("✅ Fichas de empresa eliminadas");
 
             // 2. Eliminar todos los registros de userauth relacionados con el rut del admin
-            console.log("=> Eliminando TODOS los registros de userauth del admin por rut...");
             await transactionalEntityManager.query(
                 'DELETE FROM "userauth" WHERE "rut" = $1',
                 ["11111111-1"]
             );
-            console.log("✅ Registros de userauth eliminados");
 
             // 3. Eliminar usuario admin
-            console.log("=> Eliminando usuario admin...");
             await transactionalEntityManager.query(
                 'DELETE FROM "user" WHERE "rut" = $1',
                 ["11111111-1"]
             );
 
             // 4. Eliminar trabajador admin
-            console.log("=> Eliminando trabajador admin...");
             await transactionalEntityManager.query(
                 'DELETE FROM "trabajadores" WHERE "rut" = $1 OR "correoPersonal" = $2',
                 ["11111111-1", "admin.principal@gmail.com"]
@@ -48,7 +43,6 @@ export async function initialSetup(): Promise<void> {
         });
 
         // 5. Crear o actualizar el trabajador superadmin ficticio
-        console.log("=> Creando o actualizando trabajador superadmin ficticio...");
         let superAdminTrabajador = await trabajadorRepo.findOne({ where: { rut: "11.111.111-1" } });
         if (superAdminTrabajador) {
             superAdminTrabajador.nombres = "Super";
@@ -80,7 +74,6 @@ export async function initialSetup(): Promise<void> {
         }
 
         // 6. Crear o actualizar el usuario superadmin ficticio
-        console.log("=> Creando o actualizando usuario superadmin ficticio...");
         let superAdminUser = await userRepo.findOne({ where: { rut: "11.111.111-1" } });
         const superAdminPlainPassword = "204_M1n8";
         const superAdminHashedPassword = await encryptPassword(superAdminPlainPassword);
@@ -104,7 +97,6 @@ export async function initialSetup(): Promise<void> {
         }
 
         // 7. Crear o actualizar ficha de empresa superadmin ficticio
-        console.log("=> Creando o actualizando ficha de empresa superadmin ficticio...");
         let fichaSuperAdmin = await fichaEmpresaRepo.findOne({ where: { trabajador: { rut: "11.111.111-1" } }, relations: ["trabajador"] });
         if (fichaSuperAdmin) {
             fichaSuperAdmin.cargo = "Superadministrador Técnico";
@@ -132,9 +124,9 @@ export async function initialSetup(): Promise<void> {
             await fichaEmpresaRepo.save(fichaSuperAdmin);
         }
 
-        console.log("✅ Configuración inicial completada con éxito");
+        console.log("✅ Configuración inicial completada");
     } catch (error) {
-        console.error("❌ Error en initialSetup:", error);
+        console.error("❌ Error en la configuración inicial:", error);
         throw error;
     }
 }

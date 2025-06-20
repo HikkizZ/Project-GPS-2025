@@ -58,6 +58,13 @@ class ApiClient {
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
         }
+        
+        // Si los datos son FormData, elimina el header 'Content-Type' para que
+        // el navegador pueda establecerlo automáticamente con el 'boundary' correcto.
+        if (config.data instanceof FormData) {
+          delete config.headers['Content-Type'];
+        }
+        
         return config;
       },
       (error) => Promise.reject(error)
@@ -67,6 +74,11 @@ class ApiClient {
     this.client.interceptors.response.use(
       (response) => response,
       (error) => {
+        // Si la respuesta es un blob (descarga de archivo) y falla,
+        // no intentes procesar el error como JSON, simplemente recházalo.
+        if (error.response?.config?.responseType === 'blob') {
+          return Promise.reject(error);
+        }
         return Promise.reject(this.handleApiError(error));
       }
     );
@@ -103,9 +115,9 @@ class ApiClient {
   }
 
   // Upload de archivos
-  async uploadFile<T = any>(url: string, file: File, onProgress?: (progress: number) => void): Promise<T> {
+  async uploadFile<T = any>(url: string, file: File, fieldName: string = 'file', onProgress?: (progress: number) => void): Promise<T> {
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append(fieldName, file);
 
     const config: AxiosRequestConfig = {
       headers: getFileUploadHeaders(),
@@ -123,19 +135,36 @@ class ApiClient {
 
   // Download de archivos
   async downloadFile(url: string, filename?: string): Promise<void> {
-    const response = await this.client.get(url, {
-      responseType: 'blob'
-    });
+    try {
+      const response = await this.client.get(url, {
+        responseType: 'blob',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+        }
+      });
 
-    const blob = new Blob([response.data]);
-    const downloadUrl = window.URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = downloadUrl;
-    link.download = filename || 'download';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    window.URL.revokeObjectURL(downloadUrl);
+      // Verificar si la respuesta es realmente un blob de archivo
+      if (response.data instanceof Blob && response.data.size > 0) {
+        const blob = new Blob([response.data]);
+        const downloadUrl = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = downloadUrl;
+        link.download = filename || 'download';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(downloadUrl);
+      } else {
+        throw new Error('El archivo no se pudo descargar correctamente');
+      }
+    } catch (error: any) {
+      console.error('Error en downloadFile:', error);
+      // Si es un error 404, mostrar mensaje específico
+      if (error.response?.status === 404) {
+        throw new Error('Archivo no encontrado en el servidor');
+      }
+      throw error;
+    }
   }
 
   // Manejo centralizado de errores

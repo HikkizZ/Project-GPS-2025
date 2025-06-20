@@ -13,6 +13,7 @@ import { PORT, HOST, DATABASE, DB_USERNAME, DB_PASSWORD } from "./configEnv.js";
 /* Environment */
 const isProduction = process.env.NODE_ENV === "production";
 const isTest = process.env.NODE_ENV === "test";
+const isDevelopment = !isProduction && !isTest;
 
 /* Dynamic route for the entities according to the environment */
 const entitiesPath = isProduction
@@ -57,7 +58,7 @@ export const AppDataSource = new DataSource({
     password: process.env.DB_PASSWORD || "postgres",
     database: process.env.DATABASE || "gps_db",
     synchronize: true,
-    logging: true,
+    logging: ["error", "warn"],
     entities: [User, Trabajador, HistorialLaboral, FichaEmpresa, LicenciaPermiso],
     subscribers: [],
     migrations: [],
@@ -68,6 +69,7 @@ export const initializeDatabase = async () => {
     try {
         if (!AppDataSource.isInitialized) {
             await AppDataSource.initialize();
+            console.log("✅ Base de datos conectada");
         }
     } catch (error) {
         console.error("❌ Error connecting to the database:", error);

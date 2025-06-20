@@ -62,19 +62,19 @@ export class TrabajadorService {
   }
 
   // Crear nuevo trabajador
-  async createTrabajador(trabajadorData: CreateTrabajadorData): Promise<ApiResponse<Trabajador>> {
+  async createTrabajador(trabajadorData: CreateTrabajadorData): Promise<any> {
     try {
-      const data = await apiClient.post<{ data: Trabajador }>(`${this.baseURL}/`, trabajadorData);
+      const response = await apiClient.post(`${this.baseURL}/`, trabajadorData);
       return {
         success: true,
-        message: 'Trabajador creado exitosamente',
-        data: data.data
+        trabajador: response.data,
+        advertencias: response.advertencias || []
       };
     } catch (error: any) {
       console.error('Error al crear trabajador:', error);
       return {
         success: false,
-        message: error.message || 'Error al crear trabajador'
+        error: error.message || 'Error al crear trabajador'
       };
     }
   }

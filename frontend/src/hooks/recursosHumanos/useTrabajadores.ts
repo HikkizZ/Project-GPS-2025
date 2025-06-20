@@ -51,15 +51,19 @@ export const useTrabajadores = () => {
     setError('');
     try {
       const result = await trabajadorService.createTrabajador(trabajadorData);
-      if (result.trabajador) {
-        await loadTrabajadores(); // Recargar la lista
-        return { success: true, trabajador: result.trabajador, advertencias: result.advertencias || [] };
+      if (result.success) {
+        await loadTrabajadores(); // Recargar la lista después de crear
+        return { 
+          success: true, 
+          trabajador: result.trabajador,
+          advertencias: result.advertencias || []
+        };
       } else {
         setError(result.error || 'Error al crear trabajador');
         return { success: false, error: result.error };
       }
-    } catch (error) {
-      const errorMsg = 'Error al crear trabajador';
+    } catch (error: any) {
+      const errorMsg = error.message || 'Error al crear trabajador';
       setError(errorMsg);
       return { success: false, error: errorMsg };
     } finally {

@@ -6,6 +6,8 @@ import { Trabajador } from "../../entity/recursosHumanos/trabajador.entity.js";
 import { User } from "../../entity/user.entity.js";
 import { LicenciaPermiso, TipoSolicitud, EstadoSolicitud } from "../../entity/recursosHumanos/licenciaPermiso.entity.js";
 import { normalizeText } from "../../helpers/normalizeText.helper.js";
+import { FileUploadService } from "../../services/fileUpload.service.js";
+import path from 'path';
 
 // Interfaz para los parámetros de búsqueda
 interface SearchFichaParams {
@@ -415,11 +417,13 @@ export async function descargarContratoService(id: number, userId: number): Prom
             return [null, { message: "Usuario no encontrado" }];
         }
 
-        // Permitir acceso a RRHH o al dueño de la ficha
+        // Permitir acceso a RRHH, Admin, Superadmin o al dueño de la ficha
         const esRRHH = user.role === "RecursosHumanos";
+        const esAdmin = user.role === "Administrador";
+        const esSuperAdmin = user.role === "SuperAdministrador";
         const esDueno = user.trabajador?.id === ficha.trabajador.id;
 
-        if (!esRRHH && !esDueno) {
+        if (!esRRHH && !esAdmin && !esSuperAdmin && !esDueno) {
             return [null, { message: "No tiene permiso para descargar este contrato" }];
         }
 
@@ -427,7 +431,15 @@ export async function descargarContratoService(id: number, userId: number): Prom
             return [null, { message: "No hay contrato disponible para descargar" }];
         }
 
-        return [ficha.contratoURL, null];
+        // Usar el servicio de archivos para obtener la ruta absoluta y correcta
+        const filePath = FileUploadService.getContratoPath(ficha.contratoURL);
+        
+        // Verificar si el archivo existe
+        if (!FileUploadService.fileExists(filePath)) {
+            return [null, { message: "El archivo del contrato no se encuentra en el servidor." }];
+        }
+
+        return [filePath, null];
     } catch (error) {
         console.error("Error en descargarContratoService:", error);
         return [null, { message: "Error interno del servidor" }];

@@ -1,12 +1,20 @@
 import multer from 'multer';
 import path from 'path';
 import { FileManagementService } from './fileManagement.service.js';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Path to the backend root directory
+const BACKEND_ROOT = path.resolve(__dirname, '..', '..');
 
 /**
  * Servicio para configuración de subida de archivos
  */
 export class FileUploadService {
-    private static readonly UPLOADS_DIR = process.env.UPLOADS_DIR || path.join(process.cwd(), 'uploads');
+    private static readonly UPLOADS_DIR = process.env.UPLOADS_DIR || path.join(BACKEND_ROOT, 'uploads');
 
     /**
      * Configuración de almacenamiento con estructura de carpetas organizada
@@ -86,10 +94,26 @@ export class FileUploadService {
     }
 
     /**
+     * Verifica si un archivo existe en la ruta especificada
+     */
+    static fileExists(filePath: string): boolean {
+        try {
+            return fs.existsSync(filePath);
+        } catch (error) {
+            console.error('Error al verificar existencia del archivo:', error);
+            return false;
+        }
+    }
+
+    /**
      * Obtiene la ruta completa de un archivo de contrato
      */
-    static getContratoPath(filename: string): string {
-        return path.join(FileUploadService.UPLOADS_DIR, 'contratos', filename);
+    static getContratoPath(filenameOrPath: string): string {
+        // Maneja el caso donde la ruta relativa completa (`uploads/contratos/nombre.pdf`) 
+        // pudo haberse guardado en la base de datos por error.
+        // `path.basename` extrae de forma segura solo el nombre del archivo.
+        const baseFilename = path.basename(filenameOrPath);
+        return path.join(FileUploadService.UPLOADS_DIR, 'contratos', baseFilename);
     }
 
     /**
