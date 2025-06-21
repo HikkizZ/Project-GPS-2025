@@ -47,7 +47,7 @@ export const userQueryValidation: ObjectSchema = Joi.object({
             "string.max": "El RUT debe tener menos de 12 caracteres."
         }),
     role: Joi.string()
-        .valid("Administrador", "RecursosHumanos", "Usuario")
+        .valid("Administrador", "RecursosHumanos", "Usuario", "Gerencia", "Ventas", "Arriendo", "Finanzas", "Mecánico", "Mantenciones de Maquinaria")
         .messages({
             "string.base": "El rol debe ser de tipo texto.",
             "any.only": "El rol debe ser uno de los roles permitidos."
@@ -132,12 +132,12 @@ export const userBodyValidation: ObjectSchema = Joi.object({
         }),
     role: Joi.string()
         .min(3)
-        .max(20)
+        .max(30)
         .messages({
             "string.base": "El rol debe ser de tipo texto.",
             "string.empty": "El campo del rol no puede estar vacío.",
             "string.min": "El rol debe tener al menos 3 caracteres.",
-            "string.max": "El rol debe tener menos de 20 caracteres."
+            "string.max": "El rol debe tener menos de 30 caracteres."
         })
 })
     .or('name', 'email', 'rut', 'password', 'newPassword', 'role')

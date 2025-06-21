@@ -25,7 +25,9 @@ export class User {
         'Gerencia',
         'Ventas',
         'Arriendo',
-        'Finanzas'
+        'Finanzas',
+        'Mecánico',
+        'Mantenciones de Maquinaria'
     ], default: 'Usuario' })
     role: userRole;
 
