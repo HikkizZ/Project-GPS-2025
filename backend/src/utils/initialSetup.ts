@@ -25,7 +25,7 @@ export async function initialSetup(): Promise<void> {
 
             // 2. Eliminar todos los registros de userauth relacionados con el rut del admin
             await transactionalEntityManager.query(
-                'DELETE FROM "userauth" WHERE "rut" = $1',
+                'DELETE FROM "user" WHERE "rut" = $1',
                 ["11111111-1"]
             );
 
