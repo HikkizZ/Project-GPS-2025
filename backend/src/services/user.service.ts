@@ -19,7 +19,7 @@ function isValidEmail(email: string): boolean {
 
 /* Validar rol de usuario */
 function isValidRole(role: string): boolean {
-    const validRoles: userRole[] = ["SuperAdministrador", "Administrador", "Usuario", "RecursosHumanos", "Gerencia", "Ventas", "Arriendo", "Finanzas"];
+    const validRoles: userRole[] = ["SuperAdministrador", "Administrador", "Usuario", "RecursosHumanos", "Gerencia", "Ventas", "Arriendo", "Finanzas", "Mecánico", "Mantenciones de Maquinaria"];
     return validRoles.includes(role as userRole);
 }
 

@@ -37,7 +37,7 @@ export const UsersPage: React.FC = () => {
   const [rutError, setRutError] = useState<string | null>(null);
   const [passwordError, setPasswordError] = useState<string | null>(null);
 
-  const availableRoles: UserRole[] = ['Usuario', 'RecursosHumanos', 'Gerencia', 'Ventas', 'Arriendo', 'Finanzas'];
+  const availableRoles: UserRole[] = ['Usuario', 'RecursosHumanos', 'Gerencia', 'Ventas', 'Arriendo', 'Finanzas', 'Mecánico', 'Mantenciones de Maquinaria'];
   
   // Solo admin puede crear otros admins
   if (user?.role === 'Administrador') {
@@ -610,6 +610,10 @@ const getRoleBadgeColor = (role: string): string => {
       return 'info';
     case 'Finanzas':
       return 'secondary';
+    case 'Mecánico':
+      return 'warning';
+    case 'Mantenciones de Maquinaria':
+      return 'info';
     case 'Usuario':
       return 'dark';
     default:

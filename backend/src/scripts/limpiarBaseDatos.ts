@@ -15,13 +15,22 @@ async function limpiarBaseDatos() {
 
     // Limpiar en orden correcto (por dependencias)
     console.log("🔄 Eliminando licencias y permisos...");
-    await AppDataSource.getRepository(LicenciaPermiso).delete({});
+    await AppDataSource.getRepository(LicenciaPermiso)
+      .createQueryBuilder()
+      .delete()
+      .execute();
 
     console.log("🔄 Eliminando historial laboral...");
-    await AppDataSource.getRepository(HistorialLaboral).delete({});
+    await AppDataSource.getRepository(HistorialLaboral)
+      .createQueryBuilder()
+      .delete()
+      .execute();
 
     console.log("🔄 Eliminando fichas de empresa...");
-    await AppDataSource.getRepository(FichaEmpresa).delete({});
+    await AppDataSource.getRepository(FichaEmpresa)
+      .createQueryBuilder()
+      .delete()
+      .execute();
 
     // IMPORTANTE: Eliminar usuarios primero (userauth) antes que trabajadores
     // porque User tiene una FK hacia Trabajador por RUT
