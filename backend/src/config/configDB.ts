@@ -59,7 +59,9 @@ export const AppDataSource = new DataSource({
     database: process.env.DATABASE || "gps_db",
     synchronize: true,
     logging: ["error", "warn"],
-    entities: [User, Trabajador, HistorialLaboral, FichaEmpresa, LicenciaPermiso],
+    entities: [
+        entitiesPath
+    ],
     subscribers: [],
     migrations: [],
     ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false
