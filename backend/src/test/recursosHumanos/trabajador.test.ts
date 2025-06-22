@@ -85,10 +85,10 @@ describe('👥 Trabajadores API', () => {
                     fichaEmpresa: {
                         cargo: "Desarrollador",
                         area: "TI",
-                        empresa: "GPS",
                         tipoContrato: "Indefinido",
                         jornadaLaboral: "Completa",
-                        sueldoBase: 1000000
+                        sueldoBase: 800000,
+                        fechaInicioContrato: "2025-01-01"
                     }
                 });
 
@@ -147,7 +147,6 @@ describe('👥 Trabajadores API', () => {
                     fichaEmpresa: {
                         cargo: "Analista",
                         area: "TI",
-                        empresa: "GPS",
                         tipoContrato: "Indefinido",
                         jornadaLaboral: "Completa",
                         sueldoBase: 900000

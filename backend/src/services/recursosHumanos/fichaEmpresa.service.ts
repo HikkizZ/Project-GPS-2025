@@ -22,7 +22,6 @@ interface SearchFichaParams {
     // Búsqueda por información laboral
     cargo?: string;
     area?: string;
-    empresa?: string;
     tipoContrato?: string;
     jornadaLaboral?: string;
 
@@ -89,10 +88,6 @@ export async function searchFichasEmpresa(params: SearchFichaParams): Promise<Se
             } else {
                 queryBuilder.andWhere("LOWER(ficha.area) ILIKE LOWER(:area)", { area: `%${areaTrimmed}%` });
             }
-        }
-        if (params.empresa) {
-            const empresaTrimmed = params.empresa.trim();
-            queryBuilder.andWhere("LOWER(ficha.empresa) ILIKE LOWER(:empresa)", { empresa: `%${empresaTrimmed}%` });
         }
         if (params.tipoContrato) {
             queryBuilder.andWhere("ficha.tipoContrato = :tipoContrato", { tipoContrato: params.tipoContrato });
@@ -304,7 +299,7 @@ export async function actualizarEstadoFichaService(
 
 // Definir los campos que no se pueden modificar según el estado
 const CAMPOS_PROTEGIDOS = ['id', 'trabajador'] as const;
-const CAMPOS_ESTADO_DESVINCULADO = ['cargo', 'area', 'empresa', 'tipoContrato', 'jornadaLaboral', 'sueldoBase'] as const;
+const CAMPOS_ESTADO_DESVINCULADO = ['cargo', 'area', 'tipoContrato', 'jornadaLaboral', 'sueldoBase'] as const;
 
 export async function updateFichaEmpresaService(
     id: number, 

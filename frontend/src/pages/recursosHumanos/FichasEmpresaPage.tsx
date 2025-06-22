@@ -37,6 +37,7 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
     fichas,
     currentFicha: miFicha,
     isLoading,
+    error: fichaError,
     loadFichas: searchFichas,
     loadFichaById: loadMiFicha,
     formatSalario: formatSueldo,
@@ -256,34 +257,31 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                       </div>
                       <p className="mt-2 text-muted">Cargando mi ficha...</p>
                     </div>
-                  ) : localError ? (
+                  ) : localError || fichaError ? (
                     <div className="alert alert-danger">
                       <i className="bi bi-exclamation-triangle me-2"></i>
-                      {localError}
+                      {localError || fichaError}
                     </div>
                   ) : miFicha ? (
                     <div className="row">
                       <div className="col-lg-8">
                         <h6 className="text-muted mb-3">Información Laboral</h6>
                         <div className="row g-3">
-                          <div className="col-md-6">
+                          <div className="col-md-4">
                             <label className="form-label fw-bold">Cargo:</label>
                             <p className={`mb-0 ${getFieldClass(miFicha.cargo)}`}>{miFicha.cargo}</p>
                           </div>
-                          <div className="col-md-6">
+                          <div className="col-md-4">
                             <label className="form-label fw-bold">Área:</label>
                             <p className={`mb-0 ${getFieldClass(miFicha.area)}`}>{miFicha.area}</p>
                           </div>
-                          <div className="col-md-6">
-                            <label className="form-label fw-bold">Empresa:</label>
-                            <p className={`mb-0 ${getFieldClass(miFicha.empresa)}`}>{miFicha.empresa}</p>
-                          </div>
-                          <div className="col-md-6">
+                          <div className="col-md-4">
                             <label className="form-label fw-bold">Estado:</label>
                             <span className={`badge ${getEstadoBadgeClass(miFicha.estado)}`}>
                               {miFicha.estado}
                             </span>
                           </div>
+
                           <div className="col-md-6">
                             <label className="form-label fw-bold">Tipo de Contrato:</label>
                             <p className={`mb-0 ${getTipoContratoColor(miFicha.tipoContrato)}`}>
@@ -294,6 +292,7 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                             <label className="form-label fw-bold">Jornada:</label>
                             <p className={`mb-0 ${getFieldClass(miFicha.jornadaLaboral)}`}>{miFicha.jornadaLaboral}</p>
                           </div>
+
                           <div className="col-md-6">
                             <label className="form-label fw-bold">Fecha Inicio:</label>
                             <p className="mb-0">{formatFecha(miFicha.fechaInicioContrato)}</p>
@@ -304,6 +303,7 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                               <p className="mb-0">{formatFecha(miFicha.fechaFinContrato)}</p>
                             </div>
                           )}
+                          
                           <div className="col-md-6">
                             <label className="form-label fw-bold">Sueldo Base:</label>
                             <p className="mb-0 text-success fw-bold">{formatSueldo(miFicha.sueldoBase)}</p>

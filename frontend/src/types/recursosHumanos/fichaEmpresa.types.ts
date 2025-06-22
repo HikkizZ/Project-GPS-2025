@@ -16,7 +16,6 @@ export interface FichaEmpresa {
   };
   cargo: string;
   area: string;
-  empresa: string;
   tipoContrato: string;
   jornadaLaboral: string;
   sueldoBase: number;
@@ -30,7 +29,6 @@ export interface CreateFichaEmpresaData {
   trabajadorId: number;
   cargo: string;
   area: string;
-  empresa: string;
   tipoContrato: string;
   jornadaLaboral: string;
   sueldoBase: number;
@@ -58,7 +56,6 @@ export interface FichaEmpresaSearchQuery {
 export interface UpdateFichaEmpresaData {
   cargo?: string;
   area?: string;
-  empresa?: string;
   tipoContrato?: string;
   jornadaLaboral?: string;
   sueldoBase?: number | string;

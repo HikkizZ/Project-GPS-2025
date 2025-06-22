@@ -65,10 +65,10 @@ describe('📋 Licencias y Permisos API', () => {
                     fichaEmpresa: {
                         cargo: "Coordinadora",
                         area: "Administración",
-                        empresa: "GPS",
                         tipoContrato: "Indefinido",
                         jornadaLaboral: "Completa",
-                        sueldoBase: 1300000
+                        sueldoBase: 1300000,
+                        fechaInicioContrato: "2024-01-01"
                     }
                 });
 

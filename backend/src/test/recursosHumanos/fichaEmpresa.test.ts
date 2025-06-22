@@ -57,10 +57,10 @@ describe('📋 Ficha Empresa API', () => {
                     fichaEmpresa: {
                         cargo: "Desarrollador Test",
                         area: "TI",
-                        empresa: "GPS",
                         tipoContrato: "Indefinido",
                         jornadaLaboral: "Completa",
                         sueldoBase: 1000000,
+                        fechaInicioContrato: "2024-01-01",
                         contratoURL: "https://example.com/contratos/test.pdf"
                     }
                 });
@@ -307,10 +307,10 @@ describe('📋 Ficha Empresa API', () => {
                     fichaEmpresa: {
                         cargo: "Analista Test",
                         area: "TI",
-                        empresa: "GPS",
                         tipoContrato: "Indefinido",
                         jornadaLaboral: "Completa",
-                        sueldoBase: 1000000
+                        sueldoBase: 1000000,
+                        fechaInicioContrato: "2024-01-01"
                     }
                 });
 
