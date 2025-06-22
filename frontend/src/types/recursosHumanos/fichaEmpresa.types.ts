@@ -13,6 +13,14 @@ export interface FichaEmpresa {
     apellidoPaterno: string;
     apellidoMaterno: string;
     rut: string;
+    telefono: string;
+    fechaIngreso: Date | string;
+    fechaNacimiento?: Date | string;
+    usuario?: {
+      id: number;
+      email: string;
+      role: string;
+    };
   };
   cargo: string;
   area: string;

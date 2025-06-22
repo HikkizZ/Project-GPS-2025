@@ -41,7 +41,8 @@ export async function searchFichasEmpresa(params: SearchFichaParams): Promise<Se
     try {
         const fichaRepo = AppDataSource.getRepository(FichaEmpresa);
         const queryBuilder = fichaRepo.createQueryBuilder("ficha")
-            .leftJoinAndSelect("ficha.trabajador", "trabajador");
+            .leftJoinAndSelect("ficha.trabajador", "trabajador")
+            .leftJoinAndSelect("trabajador.usuario", "usuario");
 
         // Filtros por trabajador
         if (params.rut) {
@@ -171,7 +172,7 @@ export async function getFichaEmpresaById(id: number): Promise<ServiceResponse<F
         const fichaRepo = AppDataSource.getRepository(FichaEmpresa);
         const ficha = await fichaRepo.findOne({
             where: { id },
-            relations: ["trabajador"]
+            relations: ["trabajador", "trabajador.usuario"]
         });
 
         if (!ficha) {
@@ -205,7 +206,7 @@ export async function getMiFichaService(userId: number): Promise<ServiceResponse
 
         const ficha = await fichaRepo.findOne({
             where: { trabajador: { id: user.trabajador.id } },
-            relations: ["trabajador"]
+            relations: ["trabajador", "trabajador.usuario"]
         });
 
         if (!ficha) {
@@ -244,7 +245,7 @@ export async function actualizarEstadoFichaService(
         const fichaRepo = queryRunner.manager.getRepository(FichaEmpresa);
         const ficha = await fichaRepo.findOne({
             where: { id },
-            relations: ["trabajador"]
+            relations: ["trabajador", "trabajador.usuario"]
         });
 
         if (!ficha) {
@@ -315,7 +316,7 @@ export async function updateFichaEmpresaService(
         // 1. Obtener la ficha actual con sus relaciones
         const fichaActual = await fichaRepo.findOne({
             where: { id },
-            relations: ["trabajador"]
+            relations: ["trabajador", "trabajador.usuario"]
         });
 
         if (!fichaActual) {
