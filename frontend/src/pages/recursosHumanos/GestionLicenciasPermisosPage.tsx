@@ -67,35 +67,6 @@ export const GestionLicenciasPermisosPage: React.FC = () => {
             >
               <FormularioSolicitudLicenciaPermiso onSuccess={volverAGestion} />
             </Tab>
-
-            {/* Pestaña: Reportes (placeholder para futuro) */}
-            <Tab 
-              eventKey="reportes" 
-              title={
-                <span>
-                  <i className="bi bi-graph-up me-2"></i>
-                  Reportes
-                </span>
-              }
-            >
-              <Card className="shadow-sm">
-                <Card.Body className="text-center py-5">
-                  <i className="bi bi-graph-up fs-1 mb-3 text-info d-block"></i>
-                  <Card.Title className="mb-3">Reportes y Estadísticas</Card.Title>
-                  <Card.Text className="text-muted">
-                    Próximamente: Reportes detallados de licencias y permisos, estadísticas por departamento,
-                    trends mensuales, exportación de datos y análisis de patrones.
-                  </Card.Text>
-                  <Card.Text className="text-muted">
-                    <strong>Funcionalidades planeadas:</strong>
-                    <br />• Reportes por período y departamento
-                    <br />• Exportación a Excel/PDF
-                    <br />• Gráficos de tendencias
-                    <br />• Alertas de licencias frecuentes
-                  </Card.Text>
-                </Card.Body>
-              </Card>
-            </Tab>
           </Tabs>
         </Col>
       </Row>
