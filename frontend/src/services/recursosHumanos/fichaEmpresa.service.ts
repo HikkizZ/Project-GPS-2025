@@ -96,7 +96,7 @@ export class FichaEmpresaService {
       console.error('Error al obtener mi ficha:', error);
       return {
         success: false,
-        message: error.message || 'Error al obtener mi ficha'
+        message: error.response?.data?.message || error.message || 'Error al obtener mi ficha'
       };
     }
   }

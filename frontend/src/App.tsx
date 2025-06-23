@@ -13,6 +13,7 @@ import MainLayout from './components/common/MainLayout';
 import GestionPersonalPage from './pages/GestionPersonalPage';
 import { LoginPage } from './pages/LoginPage';
 import { useAuth } from './context';
+import { UserRole } from './types/auth.types';
 
 // Componente de Registro de Trabajadores
 const RegistrarTrabajadorPage: React.FC<{
@@ -307,6 +308,12 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
   const [recienRegistrado, setRecienRegistrado] = useState<Trabajador | null>(null);
   const navigate = useNavigate();
 
+  // Roles que tienen acceso completo a todas las funcionalidades
+  const rolesPrivilegiados: UserRole[] = ['SuperAdministrador', 'Administrador', 'RecursosHumanos'];
+  
+  // Verificar si el usuario tiene permisos completos
+  const tienePermisosCompletos = rolesPrivilegiados.includes(user.role as UserRole);
+
   const handleTrabajadorCreated = (trabajador: Trabajador) => {
     setSuccessMessage(`Trabajador ${trabajador.nombres} ${trabajador.apellidoPaterno} registrado exitosamente. Completa ahora su información laboral.`);
     setRecienRegistrado(trabajador);
@@ -375,7 +382,9 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
                           <Card.Body className="d-flex flex-column align-items-center justify-content-center text-center">
                             <i className="bi bi-people-fill fs-1 mb-3 text-primary"></i>
                             <Card.Title>Recursos Humanos</Card.Title>
-                            <Card.Text>Gestión del personal y Gestión de sueldos</Card.Text>
+                            {tienePermisosCompletos && (
+                              <Card.Text>Gestión del personal y Gestión de sueldos</Card.Text>
+                            )}
                           </Card.Body>
                         </Card>
                       </Col>

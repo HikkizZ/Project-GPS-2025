@@ -22,7 +22,6 @@ interface SearchFichaParams {
     // Búsqueda por información laboral
     cargo?: string;
     area?: string;
-    empresa?: string;
     tipoContrato?: string;
     jornadaLaboral?: string;
 
@@ -42,7 +41,8 @@ export async function searchFichasEmpresa(params: SearchFichaParams): Promise<Se
     try {
         const fichaRepo = AppDataSource.getRepository(FichaEmpresa);
         const queryBuilder = fichaRepo.createQueryBuilder("ficha")
-            .leftJoinAndSelect("ficha.trabajador", "trabajador");
+            .leftJoinAndSelect("ficha.trabajador", "trabajador")
+            .leftJoinAndSelect("trabajador.usuario", "usuario");
 
         // Filtros por trabajador
         if (params.rut) {
@@ -89,10 +89,6 @@ export async function searchFichasEmpresa(params: SearchFichaParams): Promise<Se
             } else {
                 queryBuilder.andWhere("LOWER(ficha.area) ILIKE LOWER(:area)", { area: `%${areaTrimmed}%` });
             }
-        }
-        if (params.empresa) {
-            const empresaTrimmed = params.empresa.trim();
-            queryBuilder.andWhere("LOWER(ficha.empresa) ILIKE LOWER(:empresa)", { empresa: `%${empresaTrimmed}%` });
         }
         if (params.tipoContrato) {
             queryBuilder.andWhere("ficha.tipoContrato = :tipoContrato", { tipoContrato: params.tipoContrato });
@@ -176,7 +172,7 @@ export async function getFichaEmpresaById(id: number): Promise<ServiceResponse<F
         const fichaRepo = AppDataSource.getRepository(FichaEmpresa);
         const ficha = await fichaRepo.findOne({
             where: { id },
-            relations: ["trabajador"]
+            relations: ["trabajador", "trabajador.usuario"]
         });
 
         if (!ficha) {
@@ -210,7 +206,7 @@ export async function getMiFichaService(userId: number): Promise<ServiceResponse
 
         const ficha = await fichaRepo.findOne({
             where: { trabajador: { id: user.trabajador.id } },
-            relations: ["trabajador"]
+            relations: ["trabajador", "trabajador.usuario"]
         });
 
         if (!ficha) {
@@ -249,7 +245,7 @@ export async function actualizarEstadoFichaService(
         const fichaRepo = queryRunner.manager.getRepository(FichaEmpresa);
         const ficha = await fichaRepo.findOne({
             where: { id },
-            relations: ["trabajador"]
+            relations: ["trabajador", "trabajador.usuario"]
         });
 
         if (!ficha) {
@@ -304,7 +300,7 @@ export async function actualizarEstadoFichaService(
 
 // Definir los campos que no se pueden modificar según el estado
 const CAMPOS_PROTEGIDOS = ['id', 'trabajador'] as const;
-const CAMPOS_ESTADO_DESVINCULADO = ['cargo', 'area', 'empresa', 'tipoContrato', 'jornadaLaboral', 'sueldoBase'] as const;
+const CAMPOS_ESTADO_DESVINCULADO = ['cargo', 'area', 'tipoContrato', 'jornadaLaboral', 'sueldoBase'] as const;
 
 export async function updateFichaEmpresaService(
     id: number, 
@@ -320,7 +316,7 @@ export async function updateFichaEmpresaService(
         // 1. Obtener la ficha actual con sus relaciones
         const fichaActual = await fichaRepo.findOne({
             where: { id },
-            relations: ["trabajador"]
+            relations: ["trabajador", "trabajador.usuario"]
         });
 
         if (!fichaActual) {

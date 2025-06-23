@@ -57,10 +57,10 @@ describe('📋 Historial Laboral API', () => {
                     fichaEmpresa: {
                         cargo: "Desarrollador",
                         area: "TI",
-                        empresa: "GPS",
                         tipoContrato: "Indefinido",
                         jornadaLaboral: "Completa",
-                        sueldoBase: 1000000
+                        sueldoBase: 1000000,
+                        fechaInicioContrato: "2024-01-01"
                     }
                 });
 
