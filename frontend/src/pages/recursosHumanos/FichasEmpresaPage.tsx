@@ -497,9 +497,9 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                           checked={incluirLicencias}
                           onChange={(e) => setIncluirLicencias(e.target.checked)}
                         />
-                        <label className="form-check-label" htmlFor="incluirLicencias">
-                          Licencias
-                        </label>
+                                        <label className="form-check-label" htmlFor="incluirLicencias">
+                  Licencia Médica
+                </label>
                       </div>
                       <div className="form-check form-check-inline">
                         <input
@@ -720,7 +720,7 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                 {fichasFiltradas.length > 0 && (
                   <small className="text-muted mb-3 d-block">
                     Activos: {fichasFiltradas.filter(f => f.estado === EstadoLaboral.ACTIVO).length} • 
-                    Licencias: {fichasFiltradas.filter(f => f.estado === EstadoLaboral.LICENCIA).length} • 
+                    Licencia Médica: {fichasFiltradas.filter(f => f.estado === EstadoLaboral.LICENCIA).length} • 
                     Permisos: {fichasFiltradas.filter(f => f.estado === EstadoLaboral.PERMISO).length} • 
                     Desvinculados: {fichasFiltradas.filter(f => f.estado === EstadoLaboral.DESVINCULADO).length}
                   </small>
