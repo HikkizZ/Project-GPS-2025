@@ -5,6 +5,9 @@ export * from './auth.types';
 export * from './recursosHumanos/fichaEmpresa.types';
 export * from './recursosHumanos/trabajador.types';
 
+// Import UserRole from auth types
+import { UserRole } from './auth.types';
+
 // Common interfaces
 export interface ApiResponse<T = any> {
   success: boolean;
@@ -23,7 +26,7 @@ export interface RegisterData {
   email: string;
   password: string;
   rut: string;
-  role?: string;
+  role?: UserRole;
 }
 
 export interface AuthResponse {
@@ -39,7 +42,7 @@ export interface User {
   id: number;
   name: string;
   email: string;
-  role: string;
+  role: UserRole;
   rut: string;
 }
 
@@ -47,7 +50,7 @@ export interface SafeUser {
   id: number;
   name: string;
   email: string;
-  role: string;
+  role: UserRole;
   rut: string;
   estadoCuenta: string;
   createAt: Date;
@@ -57,7 +60,7 @@ export interface SafeUser {
 export interface UpdateUserData {
   name?: string;
   email?: string;
-  role?: string;
+  role?: UserRole;
   password?: string;
 }
 
@@ -66,7 +69,7 @@ export interface CustomJwtPayload {
   id: number;
   name: string;
   email: string;
-  role: string;
+  role: UserRole;
   rut: string;
   exp?: number;
   iat?: number;

@@ -11,7 +11,7 @@ const GestionPersonalPage: React.FC = () => {
   const rolesPrivilegiados: UserRole[] = ['SuperAdministrador', 'Administrador', 'RecursosHumanos'];
   
   // Verificar si el usuario tiene permisos completos
-  const tienePermisosCompletos = user && rolesPrivilegiados.includes(user.role);
+  const tienePermisosCompletos = user && rolesPrivilegiados.includes(user.role as UserRole);
 
   return (
     <div className="gestion-personal-page">
