@@ -1,0 +1,106 @@
+/*
+  usuarios.css
+  Estilos específicos para la página/módulo de Usuarios.
+  Solo deben ir reglas bajo la clase raíz correspondiente.
+  NO agregar reglas globales ni utilidades aquí.
+*/
+
+/* Estilos específicos para la página de Usuarios */
+
+.users-page {
+  max-width: 100%;
+}
+
+.users-page .access-denied {
+  text-align: center;
+  padding: 3rem;
+  background: var(--surface);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+}
+
+.users-page .access-denied h1 {
+  color: var(--danger-color);
+  margin-bottom: 1rem;
+}
+
+.users-page .create-user-section {
+  background: var(--surface);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  margin-bottom: 2rem;
+}
+
+.users-page .create-user-form {
+  padding: 1.5rem;
+}
+
+.users-page .create-user-form h3 {
+  margin-bottom: 1.5rem;
+}
+
+.users-page .users-list-section {
+  background: var(--surface);
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+}
+
+.users-page .users-info {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.users-page .info-card {
+  background: var(--background);
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+
+.users-page .info-card .info-icon {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+}
+
+.users-page .info-card h4 {
+  margin-bottom: 1rem;
+  color: var(--text-primary);
+}
+
+.users-page .info-card ul {
+  list-style-position: inside;
+  color: var(--text-secondary);
+}
+
+.users-page .info-card li {
+  margin-bottom: 0.5rem;
+}
+
+.users-page .coming-soon {
+  background: var(--background);
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+
+.users-page .coming-soon h4 {
+  margin-bottom: 1rem;
+  color: var(--text-primary);
+}
+
+.users-page .coming-soon ul {
+  color: var(--text-secondary);
+}
+
+.users-page .coming-soon li {
+  margin-bottom: 0.5rem;
+}
+
+@media (max-width: 768px) {
+  .users-page .users-info {
+    grid-template-columns: 1fr;
+  }
+} 

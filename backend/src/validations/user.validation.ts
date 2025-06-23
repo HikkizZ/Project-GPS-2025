@@ -1,7 +1,7 @@
 import Joi, { CustomHelpers, ObjectSchema } from 'joi';
 import { validateRut } from '../helpers/rut.helper.js';
 
-const allowedEmailDomains = ["gmail.com", "outlook.com", "hotmail.com", "gmail.cl", "outlook.cl", "hotmail.cl"];
+const allowedEmailDomains = ["gmail.com", "outlook.com", "hotmail.com", "gmail.cl", "outlook.cl", "hotmail.cl", "lamas.com", "live.cl"];
 /* Custom validator for email domains */
 const domainEmailValidator = (value: string, helper: CustomHelpers) => {
     const isValid = allowedEmailDomains.some(domain => value.endsWith(domain));
@@ -45,13 +45,29 @@ export const userQueryValidation: ObjectSchema = Joi.object({
             "string.empty": "El campo del RUT no puede estar vacío.",
             "string.min": "El RUT debe tener al menos 8 caracteres.",
             "string.max": "El RUT debe tener menos de 12 caracteres."
+        }),
+    role: Joi.string()
+        .valid("Administrador", "RecursosHumanos", "Usuario", "Gerencia", "Ventas", "Arriendo", "Finanzas", "Mecánico", "Mantenciones de Maquinaria")
+        .messages({
+            "string.base": "El rol debe ser de tipo texto.",
+            "any.only": "El rol debe ser uno de los roles permitidos."
+        }),
+    name: Joi.string()
+        .min(3)
+        .max(70)
+        .pattern(/^[a-zA-Z\s]+$/)
+        .messages({
+            "string.base": "El nombre debe ser de tipo texto.",
+            "string.min": "El nombre debe tener al menos 3 caracteres.",
+            "string.max": "El nombre debe tener menos de 70 caracteres.",
+            "string.pattern.base": "El nombre solo puede contener letras y espacios."
         })
 })
-    .or('id', 'email', 'rut')
+    .or('id', 'email', 'rut', 'role', 'name')
     .unknown(false)
     .messages({
         "object.unknown": "El objeto contiene campos no permitidos.",
-        "object.missing": "Se requiere al menos uno de los siguientes campos: id, email o rut."
+        "object.missing": "Se requiere al menos uno de los siguientes campos: id, email, rut, role o name."
     });
 
 /* Validation of the body for creation or update */
@@ -95,33 +111,33 @@ export const userBodyValidation: ObjectSchema = Joi.object({
     password: Joi.string()
         .min(8)
         .max(16)
-        .pattern(/^[a-zA-Z0-9]+$/)
+        .pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,16}$/)
         .messages({
             "string.base": "La contraseña debe ser de tipo texto.",
             "string.empty": "El campo de la contraseña no puede estar vacío.",
             "string.min": "La contraseña debe tener al menos 8 caracteres.",
             "string.max": "La contraseña debe tener menos de 16 caracteres.",
-            "string.pattern.base": "La contraseña solo puede contener letras y números."
+            "string.pattern.base": "La contraseña debe tener al menos una mayúscula, una minúscula, un número y un carácter especial."
         }),
     newPassword: Joi.string()
         .min(8)
         .max(16)
-        .pattern(/^[a-zA-Z0-9]+$/)
+        .pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,16}$/)
         .messages({
             "string.base": "La nueva contraseña debe ser de tipo texto.",
             "string.empty": "El campo de la nueva contraseña no puede estar vacío.",
             "string.min": "La nueva contraseña debe tener al menos 8 caracteres.",
             "string.max": "La nueva contraseña debe tener menos de 16 caracteres.",
-            "string.pattern.base": "La nueva contraseña solo puede contener letras y números."
+            "string.pattern.base": "La nueva contraseña debe tener al menos una mayúscula, una minúscula, un número y un carácter especial."
         }),
     role: Joi.string()
         .min(3)
-        .max(20)
+        .max(30)
         .messages({
             "string.base": "El rol debe ser de tipo texto.",
             "string.empty": "El campo del rol no puede estar vacío.",
             "string.min": "El rol debe tener al menos 3 caracteres.",
-            "string.max": "El rol debe tener menos de 20 caracteres."
+            "string.max": "El rol debe tener menos de 30 caracteres."
         })
 })
     .or('name', 'email', 'rut', 'password', 'newPassword', 'role')

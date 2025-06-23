@@ -1,0 +1,140 @@
+/*
+  fichasEmpresa.css
+  Estilos específicos para la página/módulo de Fichas de Empresa.
+  Solo deben ir reglas bajo la clase raíz correspondiente.
+  NO agregar reglas globales ni utilidades aquí.
+*/
+
+/* Estilos específicos para la página de Fichas de Empresa */
+
+.fichas-empresa-page .container {
+  padding-top: 1.5rem !important;
+}
+
+.fichas-empresa-page h2 {
+  margin-top: 0 !important;
+}
+
+.fichas-empresa-page {
+  background: #fff;
+  min-height: 100vh;
+}
+
+.fichas-empresa-page .form-label {
+  color: var(--text-primary) !important;
+  font-weight: 500;
+}
+
+.fichas-empresa-page .ficha-card {
+  border: 2px solid var(--primary-color);
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  background: var(--surface);
+}
+
+.fichas-empresa-page .ficha-header {
+  font-weight: bold;
+  color: var(--primary-color);
+  margin-bottom: 1rem;
+}
+
+/* Estilos mejorados para la vista de ficha individual */
+.fichas-empresa-page .ficha-info-section {
+  padding: 1.5rem;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e9ecef;
+}
+
+.fichas-empresa-page .ficha-info-section h6 {
+  color: #495057;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.fichas-empresa-page .info-field {
+  margin-bottom: 1rem;
+}
+
+.fichas-empresa-page .info-field:last-child {
+  margin-bottom: 0;
+}
+
+.fichas-empresa-page .info-field .form-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #6c757d;
+  margin-bottom: 0.25rem;
+  display: block;
+}
+
+.fichas-empresa-page .info-field .field-value {
+  font-size: 0.95rem;
+  color: #212529;
+  margin: 0;
+  min-height: 1.2rem;
+}
+
+.fichas-empresa-page .field-undefined {
+  color: #6c757d;
+  font-style: italic;
+  background: #f8f9fa;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  display: inline-block;
+  font-size: 0.875rem;
+}
+
+.fichas-empresa-page .info-row {
+  margin-bottom: 1.25rem;
+}
+
+.fichas-empresa-page .info-row:last-child {
+  margin-bottom: 0;
+}
+
+.fichas-empresa-page .trabajador-info-card {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border: 1px solid #dee2e6;
+  border-radius: 12px;
+  height: 100%;
+}
+
+.fichas-empresa-page .trabajador-info-card .card-body {
+  padding: 1.5rem;
+}
+
+.fichas-empresa-page .trabajador-info-card .card-title {
+  color: #495057;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #dee2e6;
+}
+
+.fichas-empresa-page .trabajador-detail {
+  margin-bottom: 0.75rem;
+}
+
+.fichas-empresa-page .trabajador-detail:last-child {
+  margin-bottom: 0;
+}
+
+.fichas-empresa-page .trabajador-detail strong {
+  color: #6c757d;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.fichas-empresa-page .trabajador-detail p {
+  color: #212529;
+  font-size: 0.95rem;
+  margin: 0.25rem 0 0 0;
+}
+
+/* Agrega aquí más reglas específicas según crezca la página */
+
+/* (Agrega aquí los estilos específicos de fichas de empresa cuando los identifiques en el futuro) */ 

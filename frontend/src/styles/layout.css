@@ -1,0 +1,19 @@
+/*
+  layout.css
+  Estilos generales de layout y contenedores (ej: .container, .app-main).
+  NO agregar reglas de color, tipografía ni específicas de páginas.
+*/
+
+/* Layout general */
+.container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+.app-main {
+  min-height: 100vh;
+  background: var(--background);
+} 

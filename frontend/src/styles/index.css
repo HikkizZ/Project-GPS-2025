@@ -1,0 +1,9 @@
+/* 
+  index.css
+  Punto de entrada de estilos globales.
+  Solo importa los archivos temáticos de estilos globales y de layout.
+  NO agregar reglas CSS aquí.
+*/
+@import './reset.css';
+@import './layout.css';
+@import './global.css';

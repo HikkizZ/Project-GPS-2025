@@ -1,7 +1,9 @@
 import Joi, { CustomHelpers } from 'joi';
 import { validateRut } from '../helpers/rut.helper.js';
 
-const allowedEmailDomains = ["gmail.com", "outlook.com", "hotmail.com", "gmail.cl", "outlook.cl", "hotmail.cl"];
+const allowedEmailDomains = ["gmail.com", "outlook.com", "hotmail.com", "gmail.cl", "outlook.cl", "hotmail.cl", "lamas.com", "live.cl"];
+const allowedRoles = ["SuperAdministrador", "Administrador", "Usuario", "RecursosHumanos", "Gerencia", "Ventas", "Arriendo", "Finanzas", "Mecánico", "Mantenciones de Maquinaria"];
+
 /* Custom validator for email domains */
 const domainEmailValidator = (value: string, helper: CustomHelpers) => {
     const isValid = allowedEmailDomains.some(domain => value.endsWith(domain));
@@ -35,14 +37,14 @@ export const authValidation = Joi.object({
         .min(8)
         .max(16)
         .required()
-        .pattern(/^[a-zA-Z0-9]+$/)
+        .pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,16}$/)
         .messages({
             "string.base": "La contraseña debe ser de tipo texto.",
             "string.empty": "El campo de la contraseña no puede estar vacío.",
             "string.min": "La contraseña debe tener al menos 8 caracteres.",
             "string.max": "La contraseña debe tener menos de 16 caracteres.",
             "any.required": "La contraseña es requerida.",
-            "string.pattern.base": "La contraseña solo puede contener letras y números."
+            "string.pattern.base": "La contraseña debe tener al menos una mayúscula, una minúscula, un número y un carácter especial."
         }),
 }).messages({
     "object.unknown": "El objeto contiene campos no permitidos."
@@ -97,14 +99,24 @@ export const registerValidation = Joi.object({
         .min(8)
         .max(16)
         .required()
-        .pattern(/^[a-zA-Z0-9]+$/)
+        .pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,16}$/)
         .messages({
             "string.base": "La contraseña debe ser de tipo texto.",
             "string.empty": "El campo de la contraseña no puede estar vacío.",
             "string.min": "La contraseña debe tener al menos 8 caracteres.",
             "string.max": "La contraseña debe tener menos de 16 caracteres.",
             "any.required": "La contraseña es requerida.",
-            "string.pattern.base": "La contraseña solo puede contener letras y números."
+            "string.pattern.base": "La contraseña debe tener al menos una mayúscula, una minúscula, un número y un carácter especial."
+        }),
+
+    role: Joi.string()
+        .valid(...allowedRoles)
+        .required()
+        .messages({
+            "string.base": "El rol debe ser de tipo texto.",
+            "string.empty": "El campo del rol no puede estar vacío.",
+            "any.required": "El rol es requerido.",
+            "any.only": "El rol debe ser uno de los roles permitidos."
         })
 }).messages({
     "object.unknown": "El objeto contiene campos no permitidos."

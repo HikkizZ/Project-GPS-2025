@@ -1,31 +1,63 @@
-import { Entity, PrimaryGeneratedColumn, Column, Index, OneToMany } from "typeorm";
-import { userRole } from '../../types.js'; // Assuming userRole is defined in types.js
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToOne, JoinColumn } from "typeorm";
+import { userRole } from "../../types.d.js";
+import { Trabajador } from "./recursosHumanos/trabajador.entity.js";
+import { formatRut } from "../helpers/rut.helper.js";
 
-@Entity("userauth") // Table name
+@Entity()
 export class User {
     @PrimaryGeneratedColumn()
-    id!: number;
+    id: number;
 
-    @Column({ type: "varchar", length: 255, nullable: false })
-    name!: string;
+    @Column({ type: "varchar", length: 100 })
+    name: string;
 
-    @Index("IDX_USER_RUT", { unique: true }) // Unique index for the rut column
-    @Column({ type: "varchar", length: 12, unique: true, nullable: false })
-    rut!: string;
+    @Column({ type: "varchar", length: 100, unique: true })
+    email: string;
 
-    @Index("IDX_USER_EMAIL", { unique: true }) // Unique index for the email column
-    @Column({ type: "varchar", length: 255, unique: true, nullable: false })
-    email!: string;
+    @Column({ type: "varchar", length: 100 })
+    password: string;
 
-    @Column({ type: "varchar", length: 50, nullable: false })
-    role!: userRole;
+    @Column({ type: "enum", enum: [
+        'SuperAdministrador',
+        'Administrador',
+        'Usuario',
+        'RecursosHumanos',
+        'Gerencia',
+        'Ventas',
+        'Arriendo',
+        'Finanzas',
+        'Mecánico',
+        'Mantenciones de Maquinaria'
+    ], default: 'Usuario' })
+    role: userRole;
 
-    @Column({ type: "varchar", length: 255, nullable: false })
-    password!: string;
+    @Column({ 
+        type: "varchar", 
+        length: 20, 
+        unique: true,
+        transformer: {
+            to: (value: string | null): string | null => {
+                if (!value) return null;
+                return formatRut(value);
+            },
+            from: (value: string | null): string | null => {
+                if (!value) return null;
+                return formatRut(value);
+            }
+        }
+    })
+    rut: string;
 
-    @Column({ type: "timestamp with time zone", default: () => "CURRENT_TIMESTAMP", nullable: false })
-    createAt!: Date;
+    @Column({ type: "varchar", length: 50, default: "Activa" })
+    estadoCuenta: string;
 
-    @Column({ type: "timestamp with time zone", default: () => "CURRENT_TIMESTAMP", onUpdate:"CURRENT_TIMESTAMP", nullable: false })
-    updateAt!: Date;
+    @CreateDateColumn()
+    createAt: Date;
+
+    @UpdateDateColumn()
+    updateAt: Date;
+
+    @OneToOne(() => Trabajador)
+    @JoinColumn({ name: "rut", referencedColumnName: "rut" })
+    trabajador!: Trabajador;
 }

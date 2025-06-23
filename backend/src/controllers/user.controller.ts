@@ -3,7 +3,8 @@ import {
     getUserService,
     getUsersService,
     updateUserService,
-    deleteUserService
+    updateUserByTrabajadorService,
+    searchUsersService
  } from '../services/user.service.js';
 
 import { handleSuccess, handleErrorClient, handleErrorServer } from '../handlers/responseHandlers.js';
@@ -11,138 +12,81 @@ import { handleSuccess, handleErrorClient, handleErrorServer } from '../handlers
 import { userQueryValidation, userBodyValidation } from '../validations/user.validation.js';
 
 import { User } from '../entity/user.entity.js';
+import { Trabajador } from '../entity/recursosHumanos/trabajador.entity.js';
+import { AppDataSource } from '../config/configDB.js';
 
-/ * Get user controller */
-export async function getUser(req: Request, res: Response): Promise<void> {
+/* Search users with filters */
+export const searchUsers = async (req: Request, res: Response) => {
     try {
-        const rut = req.query.rut as string | undefined;
-        const email = req.query.email as string | undefined;
-        const id = req.query.id ? Number(req.query.id) : undefined;
-
-        const { error } = userQueryValidation.validate({ rut, email, id });
-
+        const [users, error] = await searchUsersService(req.query);
         if (error) {
-            handleErrorClient(res, 400, error.message);
-            return;
+            return res.status(400).json({ status: 'error', message: error, details: {} });
         }
-
-        const [user, errorUser] = await getUserService({ rut, email, id });
-
-        if (errorUser) {
-            const message = typeof errorUser === 'string' ? errorUser : errorUser.message;
-            handleErrorClient(res, 404, message);
-            return;
-        }
-
-        if (!user) {
-            handleErrorClient(res, 404, "No se encontró el usuario.");
-            return;
-        }
-
-        handleSuccess(res, 200, 'Usuario encontrado.', user);
+        return res.json({ status: 'success', message: 'Usuarios encontrados exitosamente', data: users });
     } catch (error) {
-        handleErrorServer(res, 500, (error as Error).message);  
+        return res.status(500).json({ status: 'error', message: "Error al buscar usuarios", details: {} });
     }
-}
+};
+
+/* Get user by ID, RUT, Email or Role */
+export const getUser = async (req: Request, res: Response) => {
+    try {
+        const userId = parseInt(req.params.id);
+        if (isNaN(userId)) {
+            return res.status(400).json({ error: "ID de usuario inválido" });
+        }
+
+        const user = await getUserService({ id: userId });
+        if (!user) {
+            return res.status(404).json({ error: "Usuario no encontrado" });
+        }
+
+        return res.json(user);
+    } catch (error) {
+        console.error("Error en getUser:", error);
+        return res.status(500).json({ error: "Error interno del servidor" });
+    }
+};
 
 /* Get all users controller */
-export async function getUsers(req: Request, res: Response): Promise<void> {
+export const getUsers = async (req: Request, res: Response) => {
     try {
-        const [users, errorUsers] = await getUsersService();
-
-        if (errorUsers) {
-            const message = typeof errorUsers === 'string' ? errorUsers : errorUsers.message;
-            handleErrorClient(res, 404, message);
-            return;
-        }
-
-        if (!users || users.length === 0) {
-            handleErrorClient(res, 404, "No se encontraron usuarios.");
-            return;
-        }
-
-        handleSuccess(res, 200, 'Usuarios encontrados.', users);
+        const users = await getUsersService();
+        return res.json({ data: users });
     } catch (error) {
-        handleErrorServer(res, 500, (error as Error).message);
+        return res.status(500).json({ message: "Error al obtener usuarios" });
     }
-}
+};
 
 /* Update user controller */
-export async function updateUser(req: Request, res: Response): Promise<void> {
+export const updateUser = async (req: Request, res: Response) => {
     try {
-        const rut = req.query.rut as string | undefined;
-        const email = req.query.email as string | undefined;
-        const id = req.query.id ? Number(req.query.id) : undefined;
-
-        const { body } = req;
-
         const requester = req.user as User;
-
-        const { error: errorQuery } = userQueryValidation.validate({ rut, email, id });
-
-        if (errorQuery) {
-            console.log("Error en la validación de la consulta:");
-            handleErrorClient(res, 400, "Error en la validación de la consulta", { message: errorQuery.message });
-            return;
+        const user = await updateUserService(parseInt(req.params.id), req.body, requester);
+        if (!user) {
+            return res.status(404).json({ message: "Usuario no encontrado" });
         }
-
-        const { error: errorBody } = userBodyValidation.validate(body);
-
-        if (errorBody) {
-            console.log("Error en la validación del cuerpo:");
-            handleErrorClient(res, 400, "Error en la validación del cuerpo", { message: errorBody.message });
-            return;
+        return res.json(user);
+    } catch (error: any) {
+        if (error.status === 403 && error.message) {
+            return res.status(403).json({ message: error.message });
         }
-
-        const [updatedUser, errorUpdate] = await updateUserService({ rut, email, id }, body, requester);
-
-        if (errorUpdate) {
-            const message = typeof errorUpdate === 'string' ? errorUpdate : errorUpdate.message;
-            handleErrorClient(res, 404, message);
-            return;
-        }
-
-        if (!updatedUser) {
-            handleErrorClient(res, 404, "No se encontró el usuario actualizado.");
-            return;
-        }
-
-        handleSuccess(res, 200, 'Usuario actualizado.', updatedUser);
-    } catch (error) {
-        handleErrorServer(res, 500, (error as Error).message);
+        return res.status(500).json({ message: "Error al actualizar usuario" });
     }
-}
+};
 
-/* Delete user controller */
-export async function deleteUser(req: Request, res: Response): Promise<void> {
+/* Update user name by trabajador */
+export const updateUserByTrabajador = async (req: Request, res: Response) => {
     try {
-        const rut = req.query.rut as string | undefined;
-        const email = req.query.email as string | undefined;
-        const id = req.query.id ? Number(req.query.id) : undefined;
-
-        const { error: queryError } = userQueryValidation.validate({ rut, email, id });
-
-        if (queryError) {
-            console.log("Error en la validación de la consulta:");
-            handleErrorClient(res, 400, "Error en la validación de la consulta", { message: queryError.message });
-            return;
+        const user = await updateUserByTrabajadorService(parseInt(req.params.id), req.body);
+        if (!user) {
+            return res.status(404).json({ message: "Usuario no encontrado" });
         }
-
-        const [deletedUser, errorDelete] = await deleteUserService({ rut, email, id }, req.user!);
-
-        if (errorDelete) {
-            const message = typeof errorDelete === 'string' ? errorDelete : errorDelete.message;
-            handleErrorClient(res, 404, message);
-            return;
+        return res.json(user);
+    } catch (error: any) {
+        if (error.status === 403 && error.message) {
+            return res.status(403).json({ message: error.message });
         }
-
-        if (!deletedUser) {
-            handleErrorClient(res, 404, "No se encontró el usuario a eliminar.");
-            return;
-        }
-
-        handleSuccess(res, 200, 'Usuario eliminado.', deletedUser);
-    } catch (error) {
-        handleErrorServer(res, 500, (error as Error).message);
+        return res.status(500).json({ message: "Error al actualizar usuario" });
     }
-}   
+};   
