@@ -11,6 +11,7 @@ import {
   UpdateLicenciaPermisoDTO 
 } from '@/types/recursosHumanos/licenciaPermiso.types';
 import { Toast, useToast } from '@/components/common/Toast';
+import { FiltrosBusquedaHeader } from '@/components/common/FiltrosBusquedaHeader';
 
 // Configuración estable fuera del componente
 const HOOK_OPTIONS_GESTION = { autoLoad: true, tipoVista: 'todas' as const };
@@ -37,6 +38,9 @@ export const ListaGestionSolicitudes: React.FC = () => {
   const [showRespuestaModal, setShowRespuestaModal] = useState(false);
   const [descargandoId, setDescargandoId] = useState<number | null>(null);
   const [procesandoId, setProcesandoId] = useState<number | null>(null);
+  
+  // Estado para mostrar/ocultar filtros
+  const [showFilters, setShowFilters] = useState(false);
   
   // Estados para filtros locales
   const [filtroEstado, setFiltroEstado] = useState<EstadoSolicitud | ''>('');
@@ -260,27 +264,37 @@ export const ListaGestionSolicitudes: React.FC = () => {
 
   return (
     <>
-      {/* Encabezado simple */}
+      {/* Encabezado con botón de filtros */}
       <Card className="shadow-sm mb-4">
         <Card.Header className="bg-gradient-primary text-white">
           <div className="d-flex justify-content-between align-items-center">
-            <h5 className="mb-0">
-              <i className="bi bi-clipboard-check me-2"></i>
-              Gestión de Licencias y Permisos
-            </h5>
+            <div>
+              <h5 className="mb-1">
+                <i className="bi bi-clipboard-check me-2"></i>
+                Gestión de Licencias y Permisos
+              </h5>
+              <p className="mb-0 opacity-75">
+                Administrar y revisar solicitudes de licencias y permisos
+              </p>
+            </div>
+            <div>
+              <Button 
+                variant={showFilters ? "outline-light" : "light"}
+                onClick={() => setShowFilters(!showFilters)}
+              >
+                <i className={`bi bi-funnel${showFilters ? '-fill' : ''} me-2`}></i>
+                {showFilters ? 'Ocultar' : 'Mostrar'} Filtros
+              </Button>
+            </div>
           </div>
         </Card.Header>
       </Card>
 
       {/* Panel de filtros */}
-      <Card className="filter-card shadow-sm mb-4 fade-in-up">
-        <Card.Header>
-          <h6 className="mb-0">
-            <i className="bi bi-funnel me-2"></i>
-            Filtros de Búsqueda
-          </h6>
-        </Card.Header>
-        <Card.Body>
+      {showFilters && (
+        <Card className="filter-card shadow-sm mb-4 fade-in-up">
+          <FiltrosBusquedaHeader />
+          <Card.Body>
           <Row>
             <Col md={3}>
               <Form.Group className="mb-3">
@@ -349,6 +363,7 @@ export const ListaGestionSolicitudes: React.FC = () => {
           </Row>
         </Card.Body>
       </Card>
+      )}
 
       {/* Lista de solicitudes */}
       <Card className="shadow-sm">
