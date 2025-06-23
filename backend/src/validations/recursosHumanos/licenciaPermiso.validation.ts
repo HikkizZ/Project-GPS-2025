@@ -117,13 +117,11 @@ export const UpdateLicenciaPermisoValidation = Joi.object({
         }),
 
     respuestaEncargado: Joi.string()
-        .min(10)
         .max(500)
-        .required()
+        .allow('')
+        .optional()
         .messages({
             "string.base": "La respuesta debe ser una cadena de texto.",
-            "string.min": "La respuesta debe tener al menos 10 caracteres.",
-            "string.max": "La respuesta no puede exceder los 500 caracteres.",
-            "any.required": "La respuesta del encargado es requerida."
+            "string.max": "La respuesta no puede exceder los 500 caracteres."
         })
 }); 

@@ -159,7 +159,7 @@ export async function updateLicenciaPermisoService(id: number, data: UpdateLicen
       return [null, "Solicitud no encontrada."];
     }
 
-    if (!data.respuestaEncargado || !data.revisadoPor) {
+    if (!data.revisadoPor) {
       await queryRunner.rollbackTransaction();
       await queryRunner.release();
       return [null, "Faltan datos requeridos para la actualización."];
