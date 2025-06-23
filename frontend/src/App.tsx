@@ -9,6 +9,8 @@ import { authService } from './services/auth.service';
 import { Card, Row, Col } from 'react-bootstrap';
 import { useNavigate, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import DashboardRecursosHumanos from './pages/recursosHumanos/DashboardRecursosHumanos';
+import GestionLicenciasPermisosPage from './pages/recursosHumanos/GestionLicenciasPermisosPage';
+import MisLicenciasPermisosPage from './pages/recursosHumanos/MisLicenciasPermisosPage';
 import MainLayout from './components/common/MainLayout';
 import GestionPersonalPage from './pages/GestionPersonalPage';
 import { LoginPage } from './pages/LoginPage';
@@ -472,6 +474,8 @@ function App() {
                 <Route path="fichas-empresa" element={<FichasEmpresaPage />} />
                 <Route path="usuarios" element={<UsersPage />} />
                 <Route path="gestion-personal" element={<GestionPersonalPage />} />
+                <Route path="gestion-licencias-permisos" element={<GestionLicenciasPermisosPage />} />
+                <Route path="mis-licencias-permisos" element={<MisLicenciasPermisosPage />} />
                 <Route path="*" element={<Navigate to="dashboard" replace />} />
               </Routes>
             </MainLayout>
