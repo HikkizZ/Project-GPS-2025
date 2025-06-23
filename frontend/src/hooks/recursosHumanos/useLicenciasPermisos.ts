@@ -52,9 +52,15 @@ export const useLicenciasPermisos = (options: UseLicenciasPermisosOptions = {}) 
         setSolicitudes(result.data);
         console.log('✅ Hook: Mis solicitudes cargadas:', result.data.length);
       } else {
-        setError(result.error || 'Error al cargar solicitudes');
-        setSolicitudes([]);
-        console.log('❌ Hook: Error en mis solicitudes:', result.error);
+        // Si el error es "No hay solicitudes", tratar como estado vacío normal
+        if (result.error && result.error.includes('No hay solicitudes')) {
+          setSolicitudes([]);
+          console.log('📋 Hook: No hay solicitudes (estado normal)');
+        } else {
+          setError(result.error || 'Error al cargar solicitudes');
+          setSolicitudes([]);
+          console.log('❌ Hook: Error real en mis solicitudes:', result.error);
+        }
       }
     } catch (error) {
       setError('Error de conexión al cargar solicitudes');
@@ -76,9 +82,15 @@ export const useLicenciasPermisos = (options: UseLicenciasPermisosOptions = {}) 
         setSolicitudes(result.data);
         console.log('✅ Hook: Todas solicitudes cargadas:', result.data.length);
       } else {
-        setError(result.error || 'Error al cargar solicitudes');
-        setSolicitudes([]);
-        console.log('❌ Hook: Error en todas solicitudes:', result.error);
+        // Si el error es "No hay solicitudes", tratar como estado vacío normal
+        if (result.error && result.error.includes('No hay solicitudes')) {
+          setSolicitudes([]);
+          console.log('📋 Hook: No hay solicitudes (estado normal)');
+        } else {
+          setError(result.error || 'Error al cargar solicitudes');
+          setSolicitudes([]);
+          console.log('❌ Hook: Error real en todas solicitudes:', result.error);
+        }
       }
     } catch (error) {
       setError('Error de conexión al cargar solicitudes');
