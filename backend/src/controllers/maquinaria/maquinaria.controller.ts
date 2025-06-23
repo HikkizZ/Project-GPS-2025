@@ -1,213 +1,195 @@
 import type { Request, Response } from "express"
-import type { MaquinariaService } from "../../services/maquinaria/maquinaria.service.js"
+import { MaquinariaService } from "../../services/maquinaria/maquinaria.service.js"
+import { validationResult } from "express-validator"
 
 export class MaquinariaController {
-  constructor(private maquinariaService: MaquinariaService) {}
+  private maquinariaService: MaquinariaService
 
-  async crear(req: Request, res: Response): Promise<void> {
+  constructor() {
+    this.maquinariaService = new MaquinariaService()
+  }
+
+  create = async (req: Request, res: Response): Promise<void> => {
     try {
-      const maquinaria = await this.maquinariaService.crear(req.body)
+      const errors = validationResult(req)
+      if (!errors.isEmpty()) {
+        res.status(400).json({ errors: errors.array() })
+        return
+      }
+
+      const maquinaria = await this.maquinariaService.create(req.body)
       res.status(201).json({
         success: true,
         message: "Maquinaria creada exitosamente",
         data: maquinaria,
       })
     } catch (error) {
-      res.status(400).json({
+      res.status(500).json({
         success: false,
-        message: error instanceof Error ? error.message : "Error al crear maquinaria",
+        message: "Error al crear la maquinaria",
+        error: error instanceof Error ? error.message : "Error desconocido",
       })
     }
   }
 
-  async obtenerTodos(req: Request, res: Response): Promise<void> {
+  findAll = async (req: Request, res: Response): Promise<void> => {
     try {
-      const maquinarias = await this.maquinariaService.obtenerTodos()
-      res.json({
+      const maquinarias = await this.maquinariaService.findAll()
+      res.status(200).json({
         success: true,
         data: maquinarias,
-        total: maquinarias.length,
       })
     } catch (error) {
       res.status(500).json({
         success: false,
-        message: error instanceof Error ? error.message : "Error al obtener maquinarias",
+        message: "Error al obtener las maquinarias",
+        error: error instanceof Error ? error.message : "Error desconocido",
       })
     }
   }
 
-  async obtenerPorId(req: Request, res: Response): Promise<void> {
+  findOne = async (req: Request, res: Response): Promise<void> => {
     try {
-      const id = Number.parseInt(req.params.id)
-      const maquinaria = await this.maquinariaService.obtenerPorId(id)
-
-      if (!maquinaria) {
-        res.status(404).json({
-          success: false,
-          message: "Maquinaria no encontrada",
-        })
-        return
-      }
-
-      res.json({
+      const { id } = req.params
+      const maquinaria = await this.maquinariaService.findOne(Number(id))
+      res.status(200).json({
         success: true,
         data: maquinaria,
       })
     } catch (error) {
-      res.status(500).json({
+      res.status(404).json({
         success: false,
-        message: error instanceof Error ? error.message : "Error al obtener maquinaria",
+        message: "Maquinaria no encontrada",
+        error: error instanceof Error ? error.message : "Error desconocido",
       })
     }
   }
 
-  async obtenerPorPatente(req: Request, res: Response): Promise<void> {
+  findByPatente = async (req: Request, res: Response): Promise<void> => {
     try {
       const { patente } = req.params
-      const maquinaria = await this.maquinariaService.obtenerPorPatente(patente)
-
-      if (!maquinaria) {
-        res.status(404).json({
-          success: false,
-          message: "Maquinaria no encontrada",
-        })
-        return
-      }
-
-      res.json({
+      const maquinaria = await this.maquinariaService.findByPatente(patente)
+      res.status(200).json({
         success: true,
         data: maquinaria,
       })
     } catch (error) {
-      res.status(500).json({
+      res.status(404).json({
         success: false,
-        message: error instanceof Error ? error.message : "Error al obtener maquinaria",
+        message: "Maquinaria no encontrada",
+        error: error instanceof Error ? error.message : "Error desconocido",
       })
     }
   }
 
-  async actualizar(req: Request, res: Response): Promise<void> {
+  update = async (req: Request, res: Response): Promise<void> => {
     try {
-      const id = Number.parseInt(req.params.id)
-      const maquinaria = await this.maquinariaService.actualizar(id, req.body)
+      const errors = validationResult(req)
+      if (!errors.isEmpty()) {
+        res.status(400).json({ errors: errors.array() })
+        return
+      }
 
-      res.json({
+      const { id } = req.params
+      const maquinaria = await this.maquinariaService.update(Number(id), req.body)
+      res.status(200).json({
         success: true,
         message: "Maquinaria actualizada exitosamente",
         data: maquinaria,
       })
     } catch (error) {
-      res.status(400).json({
+      res.status(500).json({
         success: false,
-        message: error instanceof Error ? error.message : "Error al actualizar maquinaria",
+        message: "Error al actualizar la maquinaria",
+        error: error instanceof Error ? error.message : "Error desconocido",
       })
     }
   }
 
-  async eliminar(req: Request, res: Response): Promise<void> {
+  remove = async (req: Request, res: Response): Promise<void> => {
     try {
-      const id = Number.parseInt(req.params.id)
-      await this.maquinariaService.eliminar(id)
-
-      res.json({
+      const { id } = req.params
+      await this.maquinariaService.remove(Number(id))
+      res.status(200).json({
         success: true,
         message: "Maquinaria eliminada exitosamente",
       })
     } catch (error) {
-      res.status(400).json({
+      res.status(500).json({
         success: false,
-        message: error instanceof Error ? error.message : "Error al eliminar maquinaria",
+        message: "Error al eliminar la maquinaria",
+        error: error instanceof Error ? error.message : "Error desconocido",
       })
     }
   }
 
-  async buscar(req: Request, res: Response): Promise<void> {
+  obtenerDisponible = async (req: Request, res: Response): Promise<void> => {
     try {
-      const criterios = req.query
-      const maquinarias = await this.maquinariaService.buscar(criterios)
-
-      res.json({
+      const maquinarias = await this.maquinariaService.obtenerMaquinariaDisponible()
+      res.status(200).json({
         success: true,
         data: maquinarias,
-        total: maquinarias.length,
       })
     } catch (error) {
       res.status(500).json({
         success: false,
-        message: error instanceof Error ? error.message : "Error al buscar maquinarias",
+        message: "Error al obtener maquinaria disponible",
+        error: error instanceof Error ? error.message : "Error desconocido",
       })
     }
   }
 
-  async asignarConductor(req: Request, res: Response): Promise<void> {
+  obtenerPorGrupo = async (req: Request, res: Response): Promise<void> => {
     try {
-      const maquinariaId = Number.parseInt(req.params.id)
-      const { conductorId } = req.body
-      const maquinaria = await this.maquinariaService.asignarConductor(maquinariaId, conductorId)
-
-      res.json({
+      const { grupo } = req.params
+      const maquinarias = await this.maquinariaService.obtenerMaquinariaPorGrupo(grupo)
+      res.status(200).json({
         success: true,
-        message: "Conductor asignado exitosamente",
-        data: maquinaria,
+        data: maquinarias,
       })
     } catch (error) {
-      res.status(400).json({
+      res.status(500).json({
         success: false,
-        message: error instanceof Error ? error.message : "Error al asignar conductor",
+        message: "Error al obtener maquinarias por grupo",
+        error: error instanceof Error ? error.message : "Error desconocido",
       })
     }
   }
 
-  async desasignarConductor(req: Request, res: Response): Promise<void> {
+  actualizarKilometraje = async (req: Request, res: Response): Promise<void> => {
     try {
-      const maquinariaId = Number.parseInt(req.params.id)
-      const { conductorId } = req.body
-      const maquinaria = await this.maquinariaService.desasignarConductor(maquinariaId, conductorId)
-
-      res.json({
-        success: true,
-        message: "Conductor desasignado exitosamente",
-        data: maquinaria,
-      })
-    } catch (error) {
-      res.status(400).json({
-        success: false,
-        message: error instanceof Error ? error.message : "Error al desasignar conductor",
-      })
-    }
-  }
-
-  async actualizarKilometraje(req: Request, res: Response): Promise<void> {
-    try {
-      const id = Number.parseInt(req.params.id)
-      const { nuevoKilometraje } = req.body
-      const maquinaria = await this.maquinariaService.actualizarKilometraje(id, nuevoKilometraje)
-
-      res.json({
+      const { id } = req.params
+      const { kilometraje } = req.body
+      const maquinaria = await this.maquinariaService.actualizarKilometraje(Number(id), kilometraje)
+      res.status(200).json({
         success: true,
         message: "Kilometraje actualizado exitosamente",
         data: maquinaria,
       })
     } catch (error) {
-      res.status(400).json({
+      res.status(500).json({
         success: false,
-        message: error instanceof Error ? error.message : "Error al actualizar kilometraje",
+        message: "Error al actualizar kilometraje",
+        error: error instanceof Error ? error.message : "Error desconocido",
       })
     }
   }
 
-  async obtenerEstadisticas(req: Request, res: Response): Promise<void> {
+  cambiarEstado = async (req: Request, res: Response): Promise<void> => {
     try {
-      const estadisticas = await this.maquinariaService.obtenerEstadisticas()
-
-      res.json({
+      const { id } = req.params
+      const { estado } = req.body
+      const maquinaria = await this.maquinariaService.cambiarEstado(Number(id), estado)
+      res.status(200).json({
         success: true,
-        data: estadisticas,
+        message: "Estado actualizado exitosamente",
+        data: maquinaria,
       })
     } catch (error) {
       res.status(500).json({
         success: false,
-        message: error instanceof Error ? error.message : "Error al obtener estadísticas",
+        message: "Error al cambiar estado",
+        error: error instanceof Error ? error.message : "Error desconocido",
       })
     }
   }

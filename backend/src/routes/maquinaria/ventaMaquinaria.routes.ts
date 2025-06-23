@@ -1,33 +1,29 @@
 import { Router } from "express"
-import type { VentaMaquinariaController } from "../../controllers/maquinaria/ventaMaquinaria.controller.js"
+import { VentaMaquinariaController } from "../../controllers/maquinaria/ventaMaquinaria.controller.js"
 import {
-  validarCrearVentaMaquinaria,
-  validarActualizarVentaMaquinaria,
-  validarTransferirAVentas,
-  validarCompletarVenta,
+  registrarVentaValidation,
+  actualizarVentaValidation,
+  ventaIdValidation,
+  maquinariaIdValidation,
+  fechaRangoValidation,
 } from "../../validations/maquinaria/ventaMaquinaria.validations.js"
 
-export const ventaMaquinariaRoutes = (ventaController: VentaMaquinariaController): Router => {
-  const router = Router()
+const router = Router()
+const ventaMaquinariaController = new VentaMaquinariaController()
 
-  // CRUD básico
-  router.post("/", validarCrearVentaMaquinaria, ventaController.crear)
-  router.get("/", ventaController.obtenerTodos)
-  router.get("/buscar", ventaController.buscar)
-  router.get("/disponibles", ventaController.obtenerVentasDisponibles)
-  router.get("/historial", ventaController.obtenerHistorialVentas)
-  router.get("/estadisticas", ventaController.obtenerEstadisticas)
-  router.get("/:id", ventaController.obtenerPorId)
-  router.get("/patente/:patente", ventaController.obtenerPorPatente)
-  router.put("/:id", validarActualizarVentaMaquinaria, ventaController.actualizar)
-  router.delete("/:id", ventaController.eliminar)
+// Rutas principales
+router.post("/", registrarVentaValidation, ventaMaquinariaController.registrarVenta)
+router.get("/", ventaMaquinariaController.obtenerTodasLasVentas)
+router.get("/total", fechaRangoValidation, ventaMaquinariaController.obtenerTotalVentas)
+router.get("/fecha", fechaRangoValidation, ventaMaquinariaController.obtenerVentasPorFecha)
+router.get("/maquinaria/:maquinariaId", maquinariaIdValidation, ventaMaquinariaController.obtenerVentasPorMaquinaria)
+router.get(
+  "/maquinaria/:maquinariaId/ganancia",
+  maquinariaIdValidation,
+  ventaMaquinariaController.calcularGananciaPorMaquinaria,
+)
+router.get("/:id", ventaIdValidation, ventaMaquinariaController.obtenerVentaPorId)
+router.put("/:id", ventaIdValidation, actualizarVentaValidation, ventaMaquinariaController.actualizarVenta)
+router.delete("/:id", ventaIdValidation, ventaMaquinariaController.eliminarVenta)
 
-  // Funciones específicas de ventas
-  router.post("/transferir", validarTransferirAVentas, ventaController.transferirAVentas)
-  router.post("/:id/cancelar", ventaController.cancelarVenta)
-  router.post("/:id/completar", validarCompletarVenta, ventaController.completarVenta)
-  router.post("/:id/reservar", ventaController.reservarVenta)
-  router.post("/:id/liberar-reserva", ventaController.liberarReserva)
-
-  return router
-}
+export default router

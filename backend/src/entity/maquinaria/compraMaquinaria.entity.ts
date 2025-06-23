@@ -1,7 +1,7 @@
-import { Entity, PrimaryGeneratedColumn, Column, Index, OneToMany } from "typeorm"
-import { CompraMaquinaria } from "./compraMaquinaria.entity.js"
-import { VentaMaquinaria } from "./ventaMaquinaria.entity.js"
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from "typeorm"
+import { Maquinaria } from "./maquinaria.entity.js"
 
+// Importar el enum explícitamente
 export enum GrupoMaquinaria {
   CAMION_TOLVA = "camion_tolva",
   BATEA = "batea",
@@ -12,25 +12,22 @@ export enum GrupoMaquinaria {
   CARGADOR_FRONTAL = "cargador_frontal",
 }
 
-export enum EstadoMaquinaria {
-  DISPONIBLE = "disponible",
-  EN_USO = "en_uso",
-  MANTENIMIENTO = "mantenimiento",
-  VENDIDA = "vendida",
-  FUERA_SERVICIO = "fuera_servicio",
-}
-
-@Entity("maquinarias")
-export class Maquinaria {
+@Entity("compras_maquinaria")
+export class CompraMaquinaria {
   @PrimaryGeneratedColumn()
   id!: number
 
+  @Column({ type: "int", nullable: false })
+  maquinariaId!: number
+
+  // Campos de la compra (casi iguales a maquinaria)
   @Column({ type: "varchar", length: 20, nullable: false })
   patente!: string
 
   @Column({
     type: "enum",
     enum: GrupoMaquinaria,
+    enumName: "grupo_maquinaria",
     nullable: false,
   })
   grupo!: GrupoMaquinaria
@@ -53,8 +50,7 @@ export class Maquinaria {
   @Column({ type: "decimal", precision: 15, scale: 2, nullable: false })
   avaluoFiscal!: number
 
-  @Index({ unique: true })
-  @Column({ type: "varchar", length: 100, nullable: false, unique: true })
+  @Column({ type: "varchar", length: 100, nullable: false })
   numeroChasis!: string
 
   @Column({ type: "int", nullable: false })
@@ -63,23 +59,20 @@ export class Maquinaria {
   @Column({ type: "int", nullable: false })
   kilometrajeActual!: number
 
-  @Column({
-    type: "enum",
-    enum: EstadoMaquinaria,
-    default: EstadoMaquinaria.DISPONIBLE,
-  })
-  estado!: EstadoMaquinaria
+  // Campos específicos de la compra
+  @Column({ type: "varchar", length: 255, nullable: true })
+  proveedor?: string
 
-  // Relaciones
-  @OneToMany(
-    () => CompraMaquinaria,
-    (compra) => compra.maquinaria,
-  )
-  compras!: CompraMaquinaria[]
+  @Column({ type: "text", nullable: true })
+  observaciones?: string
 
-  @OneToMany(
-    () => VentaMaquinaria,
-    (venta) => venta.maquinaria,
+  @Column({ type: "timestamp", default: () => "CURRENT_TIMESTAMP" })
+  fechaRegistro!: Date
+
+  @ManyToOne(
+    () => Maquinaria,
+    (maquinaria) => maquinaria.compras,
   )
-  ventas!: VentaMaquinaria[]
+  @JoinColumn({ name: "maquinariaId" })
+  maquinaria!: Maquinaria
 }

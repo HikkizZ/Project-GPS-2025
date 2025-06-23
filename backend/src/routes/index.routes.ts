@@ -1,19 +1,24 @@
-import { Router } from 'express';
-import  authRoutes from './auth.routes.js';
-import userRoutes from './user.routes.js';
-import { maquinariaRoutes } from './maquinaria/maquinaria.routes.js';
-import { conductorRoutes } from './maquinaria/conductor.routes.js';
-const router: Router = Router();
+import { Router } from "express"
+import authRoutes from "./auth.routes.js"
+import userRoutes from "./user.routes.js"
+import maquinariaRoutes from "./maquinaria/maquinaria.routes.js"
+import compraMaquinariaRoutes from "./maquinaria/compraMaquinaria.routes.js"
+import ventaMaquinariaRoutes from "./maquinaria/ventaMaquinaria.routes.js"
+
+const router: Router = Router()
 
 /* Test route */
-router.get('/', (req, res) => {
-  res.send('Hello World');
-});
+router.get("/", (req, res) => {
+  res.send("Hello World")
+})
 
 /* Here are the routes */
-router.use('/auth', authRoutes);
-router.use('/user', userRoutes);
-router.use('/maquinaria', maquinariaRoutes);
-router.use('/conductor',conductorRoutes)
+router.use("/auth", authRoutes)
+router.use("/user", userRoutes)
 
-export default router;
+/* Maquinaria routes */
+router.use("/maquinaria", maquinariaRoutes)
+router.use("/compras-maquinaria", compraMaquinariaRoutes)
+router.use("/ventas-maquinaria", ventaMaquinariaRoutes)
+
+export default router

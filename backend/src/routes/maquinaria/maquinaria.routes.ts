@@ -1,30 +1,30 @@
 import { Router } from "express"
-import type { MaquinariaController } from "../../controllers/maquinaria/maquinaria.controller.js"
+import { MaquinariaController } from "../../controllers/maquinaria/maquinaria.controller.js"
 import {
-  validarCrearMaquinaria,
-  validarActualizarMaquinaria,
-  validarActualizarKilometraje,
+  createMaquinariaValidation,
+  updateMaquinariaValidation,
+  idValidation,
+  patenteValidation,
+  grupoValidation,
+  actualizarKilometrajeValidation,
+  cambiarEstadoValidation,
 } from "../../validations/maquinaria/maquinaria.validations.js"
 
-export const maquinariaRoutes = (maquinariaController: MaquinariaController): Router => {
-  const router = Router()
+const router = Router()
+const maquinariaController = new MaquinariaController()
 
-  // CRUD básico
-  router.post("/", validarCrearMaquinaria, maquinariaController.crear)
-  router.get("/", maquinariaController.obtenerTodos)
-  router.get("/buscar", maquinariaController.buscar)
-  router.get("/estadisticas", maquinariaController.obtenerEstadisticas)
-  router.get("/:id", maquinariaController.obtenerPorId)
-  router.get("/patente/:patente", maquinariaController.obtenerPorPatente)
-  router.put("/:id", validarActualizarMaquinaria, maquinariaController.actualizar)
-  router.delete("/:id", maquinariaController.eliminar)
+// Rutas CRUD básicas
+router.post("/", createMaquinariaValidation, maquinariaController.create)
+router.get("/", maquinariaController.findAll)
+router.get("/disponible", maquinariaController.obtenerDisponible)
+router.get("/grupo/:grupo", grupoValidation, maquinariaController.obtenerPorGrupo)
+router.get("/patente/:patente", patenteValidation, maquinariaController.findByPatente)
+router.get("/:id", idValidation, maquinariaController.findOne)
+router.put("/:id", idValidation, updateMaquinariaValidation, maquinariaController.update)
+router.delete("/:id", idValidation, maquinariaController.remove)
 
-  // Gestión de conductores
-  router.post("/:id/conductores", maquinariaController.asignarConductor)
-  router.delete("/:id/conductores", maquinariaController.desasignarConductor)
+// Rutas para operaciones específicas
+router.patch("/:id/kilometraje", actualizarKilometrajeValidation, maquinariaController.actualizarKilometraje)
+router.patch("/:id/estado", cambiarEstadoValidation, maquinariaController.cambiarEstado)
 
-  // Funciones específicas
-  router.patch("/:id/kilometraje", validarActualizarKilometraje, maquinariaController.actualizarKilometraje)
-
-  return router
-}
+export default router
