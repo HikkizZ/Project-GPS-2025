@@ -4,6 +4,7 @@ export * from './auth.types';
 // Re-export all recursosHumanos types
 export * from './recursosHumanos/fichaEmpresa.types';
 export * from './recursosHumanos/trabajador.types';
+export * from './recursosHumanos/licenciaPermiso.types';
 
 // Import UserRole from auth types
 import { UserRole } from './auth.types';

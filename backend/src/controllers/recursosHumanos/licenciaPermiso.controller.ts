@@ -112,6 +112,38 @@ export async function getAllLicenciasPermisos(req: Request, res: Response): Prom
   }
 }
 
+export async function getMisSolicitudes(req: Request, res: Response): Promise<void> {
+  try {
+    // Verificar que el usuario esté autenticado
+    if (!req.user?.id) {
+      handleErrorClient(res, 401, "Usuario no autenticado");
+      return;
+    }
+
+    // Buscar el trabajador asociado al usuario
+    const trabajadorRepo = AppDataSource.getRepository(Trabajador);
+    const trabajador = await trabajadorRepo.findOne({ where: { rut: req.user.rut } });
+
+    if (!trabajador) {
+      handleErrorClient(res, 400, "Trabajador no encontrado");
+      return;
+    }
+
+    // Obtener solo las solicitudes del trabajador actual
+    const licenciaRepo = AppDataSource.getRepository(LicenciaPermiso);
+    const misSolicitudes = await licenciaRepo.find({
+      where: { trabajador: { id: trabajador.id } },
+      relations: ['trabajador', 'revisadoPor'],
+      order: { fechaSolicitud: 'DESC' }
+    });
+
+    handleSuccess(res, 200, "Mis solicitudes recuperadas exitosamente", misSolicitudes);
+  } catch (error) {
+    console.error("Error al obtener mis solicitudes:", error);
+    handleErrorServer(res, 500, "Error interno del servidor");
+  }
+}
+
 export async function getLicenciaPermisoById(req: Request, res: Response): Promise<void> {
   try {
     const validationResult = LicenciaPermisoQueryValidation.validate({ id: req.params.id }, { abortEarly: false });

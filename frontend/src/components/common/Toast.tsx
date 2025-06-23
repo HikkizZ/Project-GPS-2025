@@ -1,0 +1,98 @@
+import React, { useState, useEffect } from 'react';
+import { Toast as BootstrapToast, ToastContainer } from 'react-bootstrap';
+
+export interface ToastMessage {
+  id: string;
+  type: 'success' | 'error' | 'warning' | 'info';
+  title: string;
+  message: string;
+  duration?: number;
+}
+
+interface ToastProps {
+  toasts: ToastMessage[];
+  removeToast: (id: string) => void;
+}
+
+export const Toast: React.FC<ToastProps> = ({ toasts, removeToast }) => {
+  return (
+    <ToastContainer position="top-end" className="p-3" style={{ zIndex: 9999 }}>
+      {toasts.map((toast) => (
+        <BootstrapToast
+          key={toast.id}
+          onClose={() => removeToast(toast.id)}
+          show={true}
+          delay={toast.duration || 5000}
+          autohide
+          className="toast-custom"
+        >
+          <BootstrapToast.Header className={`toast-header-${toast.type}`}>
+            <div className="d-flex align-items-center">
+              <i className={`bi ${getIconForType(toast.type)} me-2`}></i>
+              <strong className="me-auto">{toast.title}</strong>
+            </div>
+          </BootstrapToast.Header>
+          <BootstrapToast.Body className="toast-body">
+            {toast.message}
+          </BootstrapToast.Body>
+        </BootstrapToast>
+      ))}
+    </ToastContainer>
+  );
+};
+
+const getIconForType = (type: ToastMessage['type']): string => {
+  switch (type) {
+    case 'success': return 'bi-check-circle-fill';
+    case 'error': return 'bi-exclamation-triangle-fill';
+    case 'warning': return 'bi-exclamation-circle-fill';
+    case 'info': return 'bi-info-circle-fill';
+    default: return 'bi-info-circle-fill';
+  }
+};
+
+// Hook para manejar toasts
+export const useToast = () => {
+  const [toasts, setToasts] = useState<ToastMessage[]>([]);
+
+  const addToast = (toast: Omit<ToastMessage, 'id'>) => {
+    const id = Date.now().toString() + Math.random().toString(36).substr(2, 9);
+    const newToast: ToastMessage = { ...toast, id };
+    setToasts(prev => [...prev, newToast]);
+  };
+
+  const removeToast = (id: string) => {
+    setToasts(prev => prev.filter(toast => toast.id !== id));
+  };
+
+  const showSuccess = (title: string, message: string, duration?: number) => {
+    addToast({ type: 'success', title, message, duration });
+  };
+
+  const showError = (title: string, message: string, duration?: number) => {
+    addToast({ type: 'error', title, message, duration });
+  };
+
+  const showWarning = (title: string, message: string, duration?: number) => {
+    addToast({ type: 'warning', title, message, duration });
+  };
+
+  const showInfo = (title: string, message: string, duration?: number) => {
+    addToast({ type: 'info', title, message, duration });
+  };
+
+  const clearAllToasts = () => {
+    setToasts([]);
+  };
+
+  return {
+    toasts,
+    addToast,
+    removeToast,
+    showSuccess,
+    showError,
+    showWarning,
+    showInfo,
+    clearAllToasts
+  };
+}; 

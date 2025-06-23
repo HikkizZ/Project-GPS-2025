@@ -1,26 +1,75 @@
-import React from 'react';
-import { Container, Card } from 'react-bootstrap';
+import React, { useState } from 'react';
+import { Container, Row, Col, Tab, Tabs, Card } from 'react-bootstrap';
+import { FormularioSolicitudLicenciaPermiso } from '@/components/recursosHumanos/FormularioSolicitudLicenciaPermiso';
+import { ListaSolicitudesPersonales } from '@/components/recursosHumanos/ListaSolicitudesPersonales';
 
-const MisLicenciasPermisosPage: React.FC = () => {
+export const MisLicenciasPermisosPage: React.FC = () => {
+  const [activeTab, setActiveTab] = useState<string>('lista');
+
+  // Función para cambiar a la pestaña de nueva solicitud
+  const irANuevaSolicitud = () => {
+    setActiveTab('nueva');
+  };
+
+  // Función para volver a la lista después de crear una solicitud
+  const volverALista = () => {
+    setActiveTab('lista');
+  };
+
   return (
-    <Container className="py-4">
-      <h2 className="mb-4">Mis Licencias y Permisos</h2>
-      
-      <Card className="shadow-sm">
-        <Card.Body className="text-center py-5">
-          <i className="bi bi-calendar-check fs-1 mb-3 text-info"></i>
-          <Card.Title className="mb-3">Mis Licencias y Permisos</Card.Title>
-          <Card.Text className="text-muted">
-            Aquí podrás crear nuevas solicitudes de licencias médicas y permisos administrativos, 
-            así como consultar el estado de tus solicitudes existentes.
-          </Card.Text>
-          <Card.Text className="text-muted">
-            <strong>Próximamente:</strong> Formulario de solicitud y listado de solicitudes
-          </Card.Text>
-        </Card.Body>
-      </Card>
+    <Container fluid className="py-4">
+      <Row>
+        <Col>
+          {/* Encabezado de página */}
+          <Card className="shadow-sm mb-4">
+            <Card.Header className="bg-gradient-primary text-white">
+              <div className="d-flex align-items-center">
+                <i className="bi bi-calendar-heart fs-4 me-3"></i>
+                <div>
+                  <h3 className="mb-1">Mis Licencias y Permisos</h3>
+                  <p className="mb-0 opacity-75">
+                    Gestiona tus solicitudes de licencias médicas y permisos laborales
+                  </p>
+                </div>
+              </div>
+            </Card.Header>
+          </Card>
+
+          {/* Pestañas principales */}
+          <Tabs
+            activeKey={activeTab}
+            onSelect={(k) => setActiveTab(k || 'lista')}
+            className="mb-4"
+            variant="pills"
+          >
+            {/* Pestaña: Mis Solicitudes */}
+            <Tab 
+              eventKey="lista" 
+              title={
+                <span>
+                  <i className="bi bi-list-ul me-2"></i>
+                  Mis Solicitudes
+                </span>
+              }
+            >
+              <ListaSolicitudesPersonales onNuevaSolicitud={irANuevaSolicitud} />
+            </Tab>
+
+            {/* Pestaña: Nueva Solicitud */}
+            <Tab 
+              eventKey="nueva" 
+              title={
+                <span>
+                  <i className="bi bi-plus-circle me-2"></i>
+                  Nueva Solicitud
+                </span>
+              }
+            >
+              <FormularioSolicitudLicenciaPermiso onSuccess={volverALista} />
+            </Tab>
+          </Tabs>
+        </Col>
+      </Row>
     </Container>
   );
-};
-
-export default MisLicenciasPermisosPage; 
+}; 

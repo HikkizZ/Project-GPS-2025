@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useRut } from '@/hooks/useRut';
 import { GlobalMessages } from './GlobalMessages';
+import { Toast, useToast } from './Toast';
 
 interface MainLayoutProps {
   user: { name: string; role: string; rut: string };
@@ -12,6 +13,7 @@ interface MainLayoutProps {
 const MainLayout: React.FC<MainLayoutProps> = ({ user, onLogout, children }) => {
   const navigate = useNavigate();
   const { formatRUT } = useRut();
+  const { toasts, removeToast } = useToast();
 
   return (
     <div className="min-vh-100 d-flex flex-column">
@@ -72,6 +74,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({ user, onLogout, children }) => 
           <small>&copy; 2025 Sistema GPS - Gestión de Procesos Empresariales</small>
         </div>
       </footer>
+      
+      {/* Sistema de notificaciones globales */}
+      <Toast toasts={toasts} removeToast={removeToast} />
     </div>
   );
 };

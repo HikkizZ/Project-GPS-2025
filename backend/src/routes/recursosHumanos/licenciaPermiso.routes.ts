@@ -5,6 +5,7 @@ import { FileUploadService } from "../../services/fileUpload.service.js";
 import {
     getLicenciaPermisoById,
     getAllLicenciasPermisos,
+    getMisSolicitudes,
     createLicenciaPermiso,
     updateLicenciaPermiso,
     deleteLicenciaPermiso,
@@ -19,7 +20,7 @@ router.use(authenticateJWT);
 
 // Rutas para usuarios
 router.post("/", FileUploadService.uploadSingle('archivo'), createLicenciaPermiso); // Crear solicitud con subida de archivo
-router.get("/mis-solicitudes", getAllLicenciasPermisos); // Ver propias solicitudes
+router.get("/mis-solicitudes", getMisSolicitudes); // Ver propias solicitudes
 
 // Rutas para RRHH y Gerencia
 router.get("/", verifyRole(["RecursosHumanos"]), getAllLicenciasPermisos); // Ver todas las solicitudes

@@ -31,4 +31,12 @@
 
 .hover-card:hover .bi {
   transform: scale(1.1);
+}
+
+/* Solo evitar el fondo negro que aparecía en el dashboard */
+@media (prefers-color-scheme: dark) {
+  .card {
+    background-color: #ffffff !important;
+    color: #212529 !important;
+  }
 } 
