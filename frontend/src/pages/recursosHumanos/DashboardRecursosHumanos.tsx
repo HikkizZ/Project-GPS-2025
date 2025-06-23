@@ -12,6 +12,9 @@ const DashboardRecursosHumanos: React.FC = () => {
   
   // Verificar si el usuario tiene permisos completos
   const tienePermisosCompletos = user && rolesPrivilegiados.includes(user.role as UserRole);
+  
+  // Super Administrador no debe poder solicitar licencias (es un usuario ficticio)
+  const puedesolicitarLicencias = user && user.role !== 'SuperAdministrador';
 
   return (
     <div className="dashboard-rh-page">
@@ -58,18 +61,20 @@ const DashboardRecursosHumanos: React.FC = () => {
                 </Link>
               </Col>
 
-              {/* Tarjeta de Mis Licencias y Permisos - NUEVA */}
-              <Col md={6}>
-                <Link to="/mis-licencias-permisos" style={{ textDecoration: 'none' }}>
-                  <Card className="h-100 shadow-sm dashboard-card">
-                    <Card.Body className="d-flex flex-column align-items-center justify-content-center text-center">
-                      <i className="bi bi-calendar-check fs-1 mb-3 text-info"></i>
-                      <Card.Title>Mis Licencias y Permisos</Card.Title>
-                      <Card.Text>Crea y gestiona tus propias solicitudes</Card.Text>
-                    </Card.Body>
-                  </Card>
-                </Link>
-              </Col>
+              {/* Tarjeta de Mis Licencias y Permisos - NUEVA (solo si puede solicitar licencias) */}
+              {puedesolicitarLicencias && (
+                <Col md={6}>
+                  <Link to="/mis-licencias-permisos" style={{ textDecoration: 'none' }}>
+                    <Card className="h-100 shadow-sm dashboard-card">
+                      <Card.Body className="d-flex flex-column align-items-center justify-content-center text-center">
+                        <i className="bi bi-calendar-check fs-1 mb-3 text-info"></i>
+                        <Card.Title>Mis Licencias y Permisos</Card.Title>
+                        <Card.Text>Crea y gestiona tus propias solicitudes</Card.Text>
+                      </Card.Body>
+                    </Card>
+                  </Link>
+                </Col>
+              )}
             </>
           )}
 
@@ -89,18 +94,20 @@ const DashboardRecursosHumanos: React.FC = () => {
                 </Link>
               </Col>
 
-              {/* Tarjeta de Mis Licencias y Permisos - NUEVA */}
-              <Col md={6}>
-                <Link to="/mis-licencias-permisos" style={{ textDecoration: 'none' }}>
-                  <Card className="h-100 shadow-sm dashboard-card">
-                    <Card.Body className="d-flex flex-column align-items-center justify-content-center text-center">
-                      <i className="bi bi-calendar-check fs-1 mb-3 text-info"></i>
-                      <Card.Title>Mis Licencias y Permisos</Card.Title>
-                      <Card.Text>Crea y gestiona tus solicitudes</Card.Text>
-                    </Card.Body>
-                  </Card>
-                </Link>
-              </Col>
+              {/* Tarjeta de Mis Licencias y Permisos - NUEVA (solo si puede solicitar licencias) */}
+              {puedesolicitarLicencias && (
+                <Col md={6}>
+                  <Link to="/mis-licencias-permisos" style={{ textDecoration: 'none' }}>
+                    <Card className="h-100 shadow-sm dashboard-card">
+                      <Card.Body className="d-flex flex-column align-items-center justify-content-center text-center">
+                        <i className="bi bi-calendar-check fs-1 mb-3 text-info"></i>
+                        <Card.Title>Mis Licencias y Permisos</Card.Title>
+                        <Card.Text>Crea y gestiona tus solicitudes</Card.Text>
+                      </Card.Body>
+                    </Card>
+                  </Link>
+                </Col>
+                )}
             </>
           )}
         </Row>

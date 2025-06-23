@@ -26,6 +26,12 @@ export async function createLicenciaPermiso(req: Request, res: Response): Promis
       return;
     }
 
+    // Validar que el Super Administrador no pueda crear solicitudes (es un usuario ficticio)
+    if (req.user.role === 'SuperAdministrador') {
+      handleErrorClient(res, 403, "Los Super Administradores no pueden crear solicitudes de licencias o permisos");
+      return;
+    }
+
     // Buscar el trabajador asociado al usuario
     const trabajadorRepo = AppDataSource.getRepository(Trabajador);
     const trabajador = await trabajadorRepo.findOne({ where: { rut: req.user.rut } });
@@ -123,6 +129,12 @@ export async function getMisSolicitudes(req: Request, res: Response): Promise<vo
     // Verificar que el usuario esté autenticado
     if (!req.user?.id) {
       handleErrorClient(res, 401, "Usuario no autenticado");
+      return;
+    }
+
+    // Validar que el Super Administrador no pueda acceder a solicitudes personales (es un usuario ficticio)
+    if (req.user.role === 'SuperAdministrador') {
+      handleErrorClient(res, 403, "Los Super Administradores no tienen solicitudes personales");
       return;
     }
 
