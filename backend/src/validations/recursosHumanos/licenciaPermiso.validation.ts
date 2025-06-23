@@ -98,7 +98,11 @@ export const CreateLicenciaPermisoValidation = Joi.object({
         .optional()
         .messages({
             "string.uri": "La URL del archivo adjunto no es válida."
-        })
+        }),
+
+    file: Joi.any()
+        .optional()
+        .description("Archivo adjunto para licencias médicas")
 });
 
 /* Body validation para actualización de licencias/permisos */

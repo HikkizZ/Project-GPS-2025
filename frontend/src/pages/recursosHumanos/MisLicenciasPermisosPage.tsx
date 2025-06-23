@@ -5,15 +5,18 @@ import { ListaSolicitudesPersonales } from '@/components/recursosHumanos/ListaSo
 
 export const MisLicenciasPermisosPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>('lista');
+  const [refreshKey, setRefreshKey] = useState<number>(0);
 
   // Función para cambiar a la pestaña de nueva solicitud
   const irANuevaSolicitud = () => {
     setActiveTab('nueva');
   };
 
-  // Función para volver a la lista después de crear una solicitud
-  const volverALista = () => {
+  // Función para volver a la lista después de crear una solicitud y forzar recarga
+  const volverAListaYActualizar = () => {
     setActiveTab('lista');
+    // Forzar recarga del componente ListaSolicitudesPersonales
+    setRefreshKey(prev => prev + 1);
   };
 
   return (
@@ -52,7 +55,10 @@ export const MisLicenciasPermisosPage: React.FC = () => {
                 </span>
               }
             >
-              <ListaSolicitudesPersonales onNuevaSolicitud={irANuevaSolicitud} />
+              <ListaSolicitudesPersonales 
+                key={refreshKey} 
+                onNuevaSolicitud={irANuevaSolicitud} 
+              />
             </Tab>
 
             {/* Pestaña: Nueva Solicitud */}
@@ -65,7 +71,7 @@ export const MisLicenciasPermisosPage: React.FC = () => {
                 </span>
               }
             >
-              <FormularioSolicitudLicenciaPermiso onSuccess={volverALista} />
+              <FormularioSolicitudLicenciaPermiso onSuccess={volverAListaYActualizar} />
             </Tab>
           </Tabs>
         </Col>
