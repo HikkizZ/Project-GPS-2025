@@ -34,16 +34,35 @@ export async function createLicenciaPermisoService(data: CreateLicenciaPermisoDT
       return [null, "No se puede crear solicitud para un trabajador inactivo"];
     }
 
-    // Validar fechas
-    const fechaInicio = new Date(data.fechaInicio);
-    const fechaFin = new Date(data.fechaFin);
+    // Validar fechas - usar comparación de strings y crear fechas locales correctamente
     const hoy = new Date();
-    hoy.setHours(0, 0, 0, 0);
+    const fechaHoyString = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
 
-    if (fechaInicio < hoy) {
+    // Comparar directamente las cadenas de fecha en formato yyyy-mm-dd
+    if (data.fechaInicio < fechaHoyString) {
       await queryRunner.rollbackTransaction();
       await queryRunner.release();
-      return [null, "La fecha de inicio no puede ser en el pasado"];
+      return [null, "La fecha de inicio debe ser hoy o en el futuro"];
+    }
+
+    // Crear fechas locales correctamente manejando tanto strings como objetos Date
+    let fechaInicio: Date;
+    let fechaFin: Date;
+    
+    if (typeof data.fechaInicio === 'string') {
+      fechaInicio = new Date(data.fechaInicio + 'T12:00:00');
+    } else {
+      // Si ya es un objeto Date, extraer solo la parte de fecha y crear nuevo Date al mediodía
+      const fechaString = data.fechaInicio.toISOString().split('T')[0];
+      fechaInicio = new Date(fechaString + 'T12:00:00');
+    }
+    
+    if (typeof data.fechaFin === 'string') {
+      fechaFin = new Date(data.fechaFin + 'T12:00:00');
+    } else {
+      // Si ya es un objeto Date, extraer solo la parte de fecha y crear nuevo Date al mediodía
+      const fechaString = data.fechaFin.toISOString().split('T')[0];
+      fechaFin = new Date(fechaString + 'T12:00:00');
     }
 
     if (fechaFin <= fechaInicio) {

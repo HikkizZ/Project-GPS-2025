@@ -47,16 +47,28 @@ export const FormularioSolicitudLicenciaPermiso: React.FC<FormularioSolicitudLic
   // Validaciones del frontend
   const validarFormulario = (): boolean => {
     const errores: Record<string, string> = {};
+    // Crear fecha de hoy en formato local para evitar problemas de zona horaria
     const hoy = new Date();
-    hoy.setHours(0, 0, 0, 0);
+    const fechaHoyString = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
+
+    // Debug temporal
+    console.log('=== DEBUG FECHAS ===');
+    console.log('formData.fechaInicio:', formData.fechaInicio);
+    console.log('fechaHoyString:', fechaHoyString);
+    console.log('formData.tipo:', formData.tipo);
+    console.log('comparación (inicio < hoy):', formData.fechaInicio < fechaHoyString);
+    console.log('error del hook:', error);
+    console.log('localErrors:', localErrors);
+    console.log('validationErrors:', validationErrors);
+    console.log('==================');
 
     // Validar fechas
     if (!formData.fechaInicio) {
       errores.fechaInicio = 'La fecha de inicio es requerida';
     } else {
-      const fechaInicio = new Date(formData.fechaInicio);
-      if (fechaInicio < hoy) {
-        errores.fechaInicio = 'La fecha de inicio no puede ser en el pasado';
+      // Usar >= para permitir fechas de hoy en adelante
+      if (formData.fechaInicio < fechaHoyString) {
+        errores.fechaInicio = 'La fecha de inicio debe ser hoy o en el futuro';
       }
     }
 
@@ -122,7 +134,8 @@ export const FormularioSolicitudLicenciaPermiso: React.FC<FormularioSolicitudLic
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
     
-    // Limpiar error específico del campo
+    // Limpiar errores cuando el usuario hace cambios
+    limpiarErrores(); // Limpiar error general del hook
     if (localErrors[name]) {
       setLocalErrors(prev => ({ ...prev, [name]: '' }));
     }
@@ -192,14 +205,15 @@ export const FormularioSolicitudLicenciaPermiso: React.FC<FormularioSolicitudLic
     }
   };
 
-  // Limpiar errores cuando se monta el componente - SIN DEPENDENCIAS PROBLEMÁTICAS
+  // Limpiar errores cuando se monta el componente
   useEffect(() => {
+    limpiarErrores(); // Limpiar errores al montar
     return () => {
-      limpiarErrores();
+      limpiarErrores(); // Limpiar errores al desmontar
     };
   }, []); // Array vacío - solo se ejecuta al montar/desmontar
 
-  const tieneErrores = error || Object.keys(localErrors).length > 0 || Object.keys(validationErrors).length > 0;
+  const tieneErrores = !!error || Object.keys(localErrors).length > 0 || Object.keys(validationErrors).length > 0;
   const diasCalculados = calcularDias();
 
   return (
