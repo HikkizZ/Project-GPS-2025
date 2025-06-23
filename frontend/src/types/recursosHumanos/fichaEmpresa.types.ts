@@ -1,6 +1,6 @@
 export enum EstadoLaboral {
   ACTIVO = "Activo",
-  LICENCIA = "Licencia", 
+  LICENCIA = "Licencia médica",
   PERMISO = "Permiso administrativo",
   DESVINCULADO = "Desvinculado"
 }
