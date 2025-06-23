@@ -1,6 +1,6 @@
 import { Supplier } from '../../entity/stakeholders/supplier.entity.js';
 import { AppDataSource } from '../../config/configDB.js';
-import { CreateSupplierDTO, UpdateSupplierDTO } from '../../types/index.js';
+import { CreateSupplierDTO, UpdateSupplierDTO } from '../../types/stakeholders/supplier.dto.js';
 import { ServiceResponse, QueryParams } from '../../../types.js';
 import { formatRut } from '../../helpers/rut.helper.js';
 

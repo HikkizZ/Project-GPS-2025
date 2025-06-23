@@ -1,6 +1,6 @@
 import { Customer } from '../../entity/stakeholders/customer.entity.js';
 import { AppDataSource } from '../../config/configDB.js';
-import { CreateCustomerDTO, UpdateCustomerDTO } from '../../types/index.js';
+import { CreateCustomerDTO, UpdateCustomerDTO } from '../../types/stakeholders/customer.dto.js';
 import { ServiceResponse, QueryParams } from '../../../types.js';
 import { formatRut } from '../../helpers/rut.helper.js';
 

@@ -6,7 +6,7 @@ import {
   deleteInventoryExitService
 } from '../../services/inventory/inventoryExit.service.js';
 
-import { CreateInventoryExitDTO } from '../../types/index.js';
+import { CreateInventoryExitDTO } from '../../types/inventory/inventory.dto.js';
 import { handleSuccess, handleErrorClient, handleErrorServer } from '../../handlers/responseHandlers.js';
 import { createInventoryExitValidation, inventoryQueryValidation } from '../../validations/inventory/inventory.validation.js';
 
