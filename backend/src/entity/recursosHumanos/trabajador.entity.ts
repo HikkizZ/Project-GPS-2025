@@ -11,7 +11,9 @@ import { FichaEmpresa } from "./fichaEmpresa.entity.js";
 import { HistorialLaboral } from "./historialLaboral.entity.js";
 import { LicenciaPermiso } from "./licenciaPermiso.entity.js";
 import { Capacitacion } from "./capacitacion.entity.js";
+import { AsignarBono } from "./Remuneraciones/asignarBono.entity.js";
 import { User } from "../user.entity.js";
+import { DatosPrevisionalesTrabajador } from "./Remuneraciones/datosPrevisionalesTrabajador.entity.js";
 
 @Entity("trabajadores")
 export class Trabajador {
@@ -68,9 +70,6 @@ export class Trabajador {
   @Column({ type: "varchar", length: 12, nullable: true })
   numeroEmergencia!: string;
 
-  @Column({ type: "varchar", length: 100, nullable: true })
-    datosPrevisionales!: string;
-
   @Column({ type: "varchar", length: 255, nullable: false })
   direccion!: string;
 
@@ -119,6 +118,13 @@ export class Trabajador {
   // Relación 1:1 con usuario
   @OneToOne(() => User, user => user.trabajador)
   usuario!: User;
+
+  @OneToMany(() => AsignarBono, asignacion => asignacion.trabajador)
+  asignaciones!: AsignarBono[];
+
+  @OneToOne(() => DatosPrevisionalesTrabajador, datosPrevisionales => datosPrevisionales.trabajador)
+  datosPrevisionales!: DatosPrevisionalesTrabajador;
+
 
   @CreateDateColumn({ type: "timestamp" })
   fechaRegistro!: Date;
