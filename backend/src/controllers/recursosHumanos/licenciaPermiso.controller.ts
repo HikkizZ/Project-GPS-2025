@@ -101,11 +101,17 @@ export async function getAllLicenciasPermisos(req: Request, res: Response): Prom
     const [licenciasPermisos, error] = await getAllLicenciasPermisosService();
 
     if (error) {
+      // Si es el mensaje de "no hay solicitudes", devolver respuesta exitosa con array vacío
+      if (error === "No hay solicitudes registradas.") {
+        handleSuccess(res, 200, error, []);
+        return;
+      }
+      // Solo otros errores van como 404
       handleErrorClient(res, 404, error as string);
       return;
     }
 
-    handleSuccess(res, 200, "Solicitudes recuperadas exitosamente", licenciasPermisos || {});
+    handleSuccess(res, 200, "Solicitudes recuperadas exitosamente", licenciasPermisos || []);
   } catch (error) {
     console.error("Error al obtener licencias/permisos:", error);
     handleErrorServer(res, 500, "Error interno del servidor");
