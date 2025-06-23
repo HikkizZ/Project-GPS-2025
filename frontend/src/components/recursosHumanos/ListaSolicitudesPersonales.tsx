@@ -27,7 +27,6 @@ export const ListaSolicitudesPersonales: React.FC<ListaSolicitudesPersonalesProp
     cargarMisSolicitudes,
     recargarSolicitudes,
     descargarArchivo,
-    obtenerEstadisticas,
     limpiarErrores
   } = useLicenciasPermisos(HOOK_OPTIONS_PERSONAL);
 
@@ -38,8 +37,7 @@ export const ListaSolicitudesPersonales: React.FC<ListaSolicitudesPersonalesProp
   // Toast notifications
   const { toasts, removeToast, showSuccess, showError, showInfo } = useToast();
 
-  // Estadísticas
-  const estadisticas = obtenerEstadisticas();
+  // Estadísticas eliminadas - funcionalidad no requerida
 
   // Cargar datos al montar el componente - Sin dependencias problemáticas
   useEffect(() => {
@@ -157,8 +155,8 @@ export const ListaSolicitudesPersonales: React.FC<ListaSolicitudesPersonalesProp
 
   return (
     <>
-      {/* Encabezado con estadísticas */}
-      <Card className="shadow-sm mb-4 fade-in-up">
+      {/* Encabezado simple */}
+      <Card className="shadow-sm mb-4">
         <Card.Header className="bg-light">
           <div className="d-flex justify-content-between align-items-center">
             <h5 className="mb-0">
@@ -173,47 +171,6 @@ export const ListaSolicitudesPersonales: React.FC<ListaSolicitudesPersonalesProp
             )}
           </div>
         </Card.Header>
-        <Card.Body>
-          {/* Estadísticas */}
-          <Row className="text-center">
-            <Col md={2}>
-              <div className="stat-item">
-                <h3 className="text-primary">{estadisticas.total}</h3>
-                <small className="text-muted">Total</small>
-              </div>
-            </Col>
-            <Col md={2}>
-              <div className="stat-item">
-                <h3 className="text-warning">{estadisticas.pendientes}</h3>
-                <small className="text-muted">Pendientes</small>
-              </div>
-            </Col>
-            <Col md={2}>
-              <div className="stat-item">
-                <h3 className="text-success">{estadisticas.aprobadas}</h3>
-                <small className="text-muted">Aprobadas</small>
-              </div>
-            </Col>
-            <Col md={2}>
-              <div className="stat-item">
-                <h3 className="text-danger">{estadisticas.rechazadas}</h3>
-                <small className="text-muted">Rechazadas</small>
-              </div>
-            </Col>
-            <Col md={2}>
-              <div className="stat-item">
-                <h3 className="text-info">{estadisticas.licencias}</h3>
-                <small className="text-muted">Licencias</small>
-              </div>
-            </Col>
-            <Col md={2}>
-              <div className="stat-item">
-                <h3 className="text-secondary">{estadisticas.permisos}</h3>
-                <small className="text-muted">Permisos</small>
-              </div>
-            </Col>
-          </Row>
-        </Card.Body>
       </Card>
 
       {/* Lista de solicitudes */}

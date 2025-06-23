@@ -8,7 +8,7 @@ import {
   LicenciaPermiso, 
   TipoSolicitud, 
   EstadoSolicitud,
-  ActualizarSolicitudDTO 
+  UpdateLicenciaPermisoDTO 
 } from '@/types/recursosHumanos/licenciaPermiso.types';
 import { Toast, useToast } from '@/components/common/Toast';
 
@@ -25,7 +25,6 @@ export const ListaGestionSolicitudes: React.FC = () => {
     actualizarSolicitud,
     eliminarSolicitud,
     descargarArchivo,
-    obtenerEstadisticas,
     limpiarErrores
   } = useLicenciasPermisos(HOOK_OPTIONS_GESTION);
 
@@ -50,8 +49,7 @@ export const ListaGestionSolicitudes: React.FC = () => {
   const [accionRespuesta, setAccionRespuesta] = useState<'aprobar' | 'rechazar' | null>(null);
   const [respuestaTexto, setRespuestaTexto] = useState('');
 
-  // Estadísticas
-  const estadisticas = obtenerEstadisticas();
+  // Estadísticas eliminadas - funcionalidad no requerida
 
   // Cargar datos al montar el componente - Sin dependencias problemáticas  
   useEffect(() => {
@@ -178,9 +176,9 @@ export const ListaGestionSolicitudes: React.FC = () => {
     setProcesandoId(solicitudSeleccionada.id);
     
     try {
-      const datosActualizacion: ActualizarSolicitudDTO = {
-        estado: accionRespuesta === 'aprobar' ? EstadoSolicitud.APROBADA : EstadoSolicitud.RECHAZADA,
-        respuestaEncargado: respuestaTexto.trim() || undefined
+      const datosActualizacion: UpdateLicenciaPermisoDTO = {
+        estadoSolicitud: accionRespuesta === 'aprobar' ? EstadoSolicitud.APROBADA : EstadoSolicitud.RECHAZADA,
+        respuestaEncargado: respuestaTexto.trim() || ''
       };
 
       const result = await actualizarSolicitud(solicitudSeleccionada.id, datosActualizacion);
@@ -262,7 +260,7 @@ export const ListaGestionSolicitudes: React.FC = () => {
 
   return (
     <>
-      {/* Encabezado con estadísticas */}
+      {/* Encabezado simple */}
       <Card className="shadow-sm mb-4">
         <Card.Header className="bg-gradient-primary text-white">
           <div className="d-flex justify-content-between align-items-center">
@@ -272,47 +270,6 @@ export const ListaGestionSolicitudes: React.FC = () => {
             </h5>
           </div>
         </Card.Header>
-        <Card.Body>
-          {/* Estadísticas */}
-          <Row className="text-center">
-            <Col md={2}>
-              <div className="stat-item">
-                <h3 className="text-primary">{estadisticas.total}</h3>
-                <small className="text-muted">Total</small>
-              </div>
-            </Col>
-            <Col md={2}>
-              <div className="stat-item">
-                <h3 className="text-warning">{estadisticas.pendientes}</h3>
-                <small className="text-muted">Pendientes</small>
-              </div>
-            </Col>
-            <Col md={2}>
-              <div className="stat-item">
-                <h3 className="text-success">{estadisticas.aprobadas}</h3>
-                <small className="text-muted">Aprobadas</small>
-              </div>
-            </Col>
-            <Col md={2}>
-              <div className="stat-item">
-                <h3 className="text-danger">{estadisticas.rechazadas}</h3>
-                <small className="text-muted">Rechazadas</small>
-              </div>
-            </Col>
-            <Col md={2}>
-              <div className="stat-item">
-                <h3 className="text-info">{estadisticas.licencias}</h3>
-                <small className="text-muted">Licencias</small>
-              </div>
-            </Col>
-            <Col md={2}>
-              <div className="stat-item">
-                <h3 className="text-secondary">{estadisticas.permisos}</h3>
-                <small className="text-muted">Permisos</small>
-              </div>
-            </Col>
-          </Row>
-        </Card.Body>
       </Card>
 
       {/* Panel de filtros */}

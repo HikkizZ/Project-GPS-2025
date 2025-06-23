@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { licenciaPermisoService } from '@/services/recursosHumanos/licenciaPermiso.service';
 import {
   LicenciaPermiso,
@@ -17,18 +17,6 @@ export interface UseLicenciasPermisosOptions {
 }
 
 export const useLicenciasPermisos = (options: UseLicenciasPermisosOptions = {}) => {
-  // Crear referencias estables para las opciones usando useRef
-  const autoLoadRef = useRef(options.autoLoad ?? false);
-  const tipoVistaRef = useRef(options.tipoVista ?? 'mis-solicitudes');
-  
-  // Actualizar refs solo si cambian (sin causar re-renders)
-  autoLoadRef.current = options.autoLoad ?? false;
-  tipoVistaRef.current = options.tipoVista ?? 'mis-solicitudes';
-  
-  // Valores estables que NO cambian
-  const autoLoad = autoLoadRef.current;
-  const tipoVista = tipoVistaRef.current;
-  
   // Estados principales
   const [solicitudes, setSolicitudes] = useState<LicenciaPermiso[]>([]);
   const [solicitudActual, setSolicitudActual] = useState<LicenciaPermiso | null>(null);
@@ -46,64 +34,74 @@ export const useLicenciasPermisos = (options: UseLicenciasPermisosOptions = {}) 
   // Filtros aplicados
   const [filtrosAplicados, setFiltrosAplicados] = useState<LicenciaPermisoFilters>({});
 
-  // Flag para controlar la carga inicial
-  const hasLoaded = useRef(false);
+  // Opciones del hook
+  const tipoVista = options.tipoVista ?? 'mis-solicitudes';
 
   // ===============================
   // FUNCIONES DE CARGA SIMPLES
   // ===============================
 
-  const cargarMisSolicitudes = useCallback(async () => {
+  const cargarMisSolicitudes = async () => {
+    console.log('🔄 Hook: Cargando MIS solicitudes...');
     setIsLoading(true);
     setError('');
     try {
       const result = await licenciaPermisoService.obtenerMisSolicitudes();
+      console.log('📥 Hook: Resultado mis solicitudes:', result);
       if (result.success && result.data) {
         setSolicitudes(result.data);
+        console.log('✅ Hook: Mis solicitudes cargadas:', result.data.length);
       } else {
         setError(result.error || 'Error al cargar solicitudes');
         setSolicitudes([]);
+        console.log('❌ Hook: Error en mis solicitudes:', result.error);
       }
     } catch (error) {
       setError('Error de conexión al cargar solicitudes');
       setSolicitudes([]);
+      console.log('💥 Hook: Excepción en mis solicitudes:', error);
     } finally {
       setIsLoading(false);
     }
-  }, []); // Array vacío - función estable
+  };
 
-  const cargarTodasLasSolicitudes = useCallback(async () => {
+  const cargarTodasLasSolicitudes = async () => {
+    console.log('🔄 Hook: Cargando TODAS las solicitudes...');
     setIsLoading(true);
     setError('');
     try {
       const result = await licenciaPermisoService.obtenerTodasLasSolicitudes();
+      console.log('📥 Hook: Resultado todas solicitudes:', result);
       if (result.success && result.data) {
         setSolicitudes(result.data);
+        console.log('✅ Hook: Todas solicitudes cargadas:', result.data.length);
       } else {
         setError(result.error || 'Error al cargar solicitudes');
         setSolicitudes([]);
+        console.log('❌ Hook: Error en todas solicitudes:', result.error);
       }
     } catch (error) {
       setError('Error de conexión al cargar solicitudes');
       setSolicitudes([]);
+      console.log('💥 Hook: Excepción en todas solicitudes:', error);
     } finally {
       setIsLoading(false);
     }
-  }, []); // Array vacío - función estable
+  };
 
-  const recargarSolicitudes = useCallback(async () => {
-    if (tipoVistaRef.current === 'mis-solicitudes') {
+  const recargarSolicitudes = async () => {
+    if (tipoVista === 'mis-solicitudes') {
       await cargarMisSolicitudes();
     } else {
       await cargarTodasLasSolicitudes();
     }
-  }, [cargarMisSolicitudes, cargarTodasLasSolicitudes]); // Usa tipoVistaRef.current directamente
+  };
 
   // ===============================
   // FUNCIONES CRUD
   // ===============================
 
-  const crearSolicitud = useCallback(async (solicitudData: CreateLicenciaPermisoForm) => {
+  const crearSolicitud = async (solicitudData: CreateLicenciaPermisoForm) => {
     setIsCreating(true);
     setError('');
     setValidationErrors({});
@@ -111,12 +109,7 @@ export const useLicenciasPermisos = (options: UseLicenciasPermisosOptions = {}) 
     try {
       const result = await licenciaPermisoService.crearSolicitud(solicitudData);
       if (result.success && result.data) {
-        // Recargar después de crear - usar directamente las funciones memoizadas
-        if (tipoVistaRef.current === 'mis-solicitudes') {
-          await cargarMisSolicitudes();
-        } else {
-          await cargarTodasLasSolicitudes();
-        }
+        await recargarSolicitudes();
         return { 
           success: true, 
           solicitud: result.data,
@@ -140,9 +133,9 @@ export const useLicenciasPermisos = (options: UseLicenciasPermisosOptions = {}) 
     } finally {
       setIsCreating(false);
     }
-  }, [cargarMisSolicitudes, cargarTodasLasSolicitudes]); // Dependencias estables únicamente
+  };
 
-  const actualizarSolicitud = useCallback(async (id: number, updateData: UpdateLicenciaPermisoDTO) => {
+  const actualizarSolicitud = async (id: number, updateData: UpdateLicenciaPermisoDTO) => {
     setIsUpdating(true);
     setError('');
     setValidationErrors({});
@@ -150,13 +143,7 @@ export const useLicenciasPermisos = (options: UseLicenciasPermisosOptions = {}) 
     try {
       const result = await licenciaPermisoService.actualizarSolicitud(id, updateData);
       if (result.success && result.data) {
-        // Recargar después de actualizar - usar directamente las funciones memoizadas
-        if (tipoVistaRef.current === 'mis-solicitudes') {
-          await cargarMisSolicitudes();
-        } else {
-          await cargarTodasLasSolicitudes();
-        }
-        // Actualizar la solicitud actual si es la misma
+        await recargarSolicitudes();
         if (solicitudActual?.id === id) {
           setSolicitudActual(result.data);
         }
@@ -183,22 +170,16 @@ export const useLicenciasPermisos = (options: UseLicenciasPermisosOptions = {}) 
     } finally {
       setIsUpdating(false);
     }
-  }, [cargarMisSolicitudes, cargarTodasLasSolicitudes, solicitudActual?.id]); // Dependencias estables únicamente
+  };
 
-  const eliminarSolicitud = useCallback(async (id: number) => {
+  const eliminarSolicitud = async (id: number) => {
     setIsDeleting(true);
     setError('');
 
     try {
       const result = await licenciaPermisoService.eliminarSolicitud(id);
       if (result.success) {
-        // Recargar después de eliminar - usar directamente las funciones memoizadas
-        if (tipoVistaRef.current === 'mis-solicitudes') {
-          await cargarMisSolicitudes();
-        } else {
-          await cargarTodasLasSolicitudes();
-        }
-        // Limpiar solicitud actual si es la misma que se eliminó
+        await recargarSolicitudes();
         if (solicitudActual?.id === id) {
           setSolicitudActual(null);
         }
@@ -217,9 +198,9 @@ export const useLicenciasPermisos = (options: UseLicenciasPermisosOptions = {}) 
     } finally {
       setIsDeleting(false);
     }
-  }, [cargarMisSolicitudes, cargarTodasLasSolicitudes, solicitudActual?.id]); // Dependencias estables únicamente
+  };
 
-  const obtenerSolicitudPorId = useCallback(async (id: number) => {
+  const obtenerSolicitudPorId = async (id: number) => {
     setIsLoading(true);
     setError('');
     try {
@@ -238,13 +219,13 @@ export const useLicenciasPermisos = (options: UseLicenciasPermisosOptions = {}) 
     } finally {
       setIsLoading(false);
     }
-  }, []); // Sin dependencias - solo actualiza estado interno
+  };
 
   // ===============================
   // OTRAS FUNCIONES
   // ===============================
 
-  const descargarArchivo = useCallback(async (id: number) => {
+  const descargarArchivo = async (id: number) => {
     try {
       const result = await licenciaPermisoService.descargarArchivo(id);
       if (result.success && result.blob && result.filename) {
@@ -267,21 +248,16 @@ export const useLicenciasPermisos = (options: UseLicenciasPermisosOptions = {}) 
       setError(errorMsg);
       return { success: false, error: errorMsg };
     }
-  }, []); // Sin dependencias - solo interactúa con API y DOM
+  };
 
-  const verificarLicenciasVencidas = useCallback(async () => {
+  const verificarLicenciasVencidas = async () => {
     setIsLoading(true);
     setError('');
 
     try {
       const result = await licenciaPermisoService.verificarLicenciasVencidas();
       if (result.success) {
-        // Recargar después de verificar - usar directamente las funciones memoizadas
-        if (tipoVistaRef.current === 'mis-solicitudes') {
-          await cargarMisSolicitudes();
-        } else {
-          await cargarTodasLasSolicitudes();
-        }
+        await recargarSolicitudes();
         return { 
           success: true, 
           actualizaciones: result.data?.actualizaciones || 0,
@@ -298,75 +274,52 @@ export const useLicenciasPermisos = (options: UseLicenciasPermisosOptions = {}) 
     } finally {
       setIsLoading(false);
     }
-  }, [cargarMisSolicitudes, cargarTodasLasSolicitudes]); // Dependencias estables únicamente
+  };
 
   // ===============================
   // FUNCIONES DE UTILIDAD
   // ===============================
 
-  const aplicarFiltros = useCallback((filtros: LicenciaPermisoFilters) => {
+  const aplicarFiltros = (filtros: LicenciaPermisoFilters) => {
     setFiltrosAplicados(filtros);
-  }, []); // Sin dependencias - solo actualiza estado
-
-  const limpiarFiltros = useCallback(() => {
-    setFiltrosAplicados({});
-  }, []); // Sin dependencias - solo actualiza estado
-
-  const limpiarErrores = useCallback(() => {
-    setError('');
-    setValidationErrors({});
-  }, []); // Sin dependencias - solo actualiza estado
-
-  const limpiarSolicitudActual = useCallback(() => {
-    setSolicitudActual(null);
-  }, []); // Sin dependencias - solo actualiza estado
-
-  // Filtrar solicitudes - MEMOIZADO para estabilidad
-  const solicitudesFiltradas = useMemo(() => {
-    return solicitudes.filter(solicitud => {
-      if (filtrosAplicados.estado && solicitud.estado !== filtrosAplicados.estado) {
-        return false;
-      }
-      if (filtrosAplicados.tipo && solicitud.tipo !== filtrosAplicados.tipo) {
-        return false;
-      }
-      if (filtrosAplicados.trabajadorId && solicitud.trabajador.id !== filtrosAplicados.trabajadorId) {
-        return false;
-      }
-      if (filtrosAplicados.fechaDesde && solicitud.fechaInicio < filtrosAplicados.fechaDesde) {
-        return false;
-      }
-      if (filtrosAplicados.fechaHasta && solicitud.fechaFin > filtrosAplicados.fechaHasta) {
-        return false;
-      }
-      return true;
-    });
-  }, [solicitudes, filtrosAplicados]); // Solo depende de estados estables
-
-  const obtenerEstadisticas = () => {
-    const total = solicitudesFiltradas.length;
-    const pendientes = solicitudesFiltradas.filter(s => s.estado === EstadoSolicitud.PENDIENTE).length;
-    const aprobadas = solicitudesFiltradas.filter(s => s.estado === EstadoSolicitud.APROBADA).length;
-    const rechazadas = solicitudesFiltradas.filter(s => s.estado === EstadoSolicitud.RECHAZADA).length;
-    const licencias = solicitudesFiltradas.filter(s => s.tipo === TipoSolicitud.LICENCIA).length;
-    const permisos = solicitudesFiltradas.filter(s => s.tipo === TipoSolicitud.PERMISO).length;
-
-    return {
-      total,
-      pendientes,
-      aprobadas,
-      rechazadas,
-      licencias,
-      permisos
-    };
   };
 
-  // ===============================
-  // CARGA INICIAL MANUAL (sin useEffect)
-  // ===============================
+  const limpiarFiltros = () => {
+    setFiltrosAplicados({});
+  };
 
-  // Los componentes llamarán manualmente a recargarSolicitudes() cuando necesiten cargar datos
-  // Esto elimina completamente los problemas de dependencias circulares del useEffect
+  const limpiarErrores = () => {
+    setError('');
+    setValidationErrors({});
+  };
+
+  const limpiarSolicitudActual = () => {
+    setSolicitudActual(null);
+  };
+
+  // Filtrar solicitudes
+  const solicitudesFiltradas = solicitudes.filter(solicitud => {
+    if (filtrosAplicados.estado && solicitud.estado !== filtrosAplicados.estado) {
+      return false;
+    }
+    if (filtrosAplicados.tipo && solicitud.tipo !== filtrosAplicados.tipo) {
+      return false;
+    }
+    if (filtrosAplicados.trabajadorId && solicitud.trabajador.id !== filtrosAplicados.trabajadorId) {
+      return false;
+    }
+    if (filtrosAplicados.fechaDesde && solicitud.fechaInicio < filtrosAplicados.fechaDesde) {
+      return false;
+    }
+    if (filtrosAplicados.fechaHasta && solicitud.fechaFin > filtrosAplicados.fechaHasta) {
+      return false;
+    }
+    return true;
+  });
+
+  // Funciones de estadísticas eliminadas - no requeridas
+
+  // SIN useEffect automático - los componentes cargan manualmente
 
   // Retornar todas las funciones y estados
   return {
@@ -410,7 +363,6 @@ export const useLicenciasPermisos = (options: UseLicenciasPermisosOptions = {}) 
     
     // Funciones de utilidad
     limpiarErrores,
-    limpiarSolicitudActual,
-    obtenerEstadisticas
+    limpiarSolicitudActual
   };
 }; 

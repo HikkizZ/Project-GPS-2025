@@ -192,12 +192,12 @@ export const FormularioSolicitudLicenciaPermiso: React.FC<FormularioSolicitudLic
     }
   };
 
-  // Limpiar errores cuando se monta el componente
+  // Limpiar errores cuando se monta el componente - SIN DEPENDENCIAS PROBLEMÁTICAS
   useEffect(() => {
     return () => {
       limpiarErrores();
     };
-  }, [limpiarErrores]);
+  }, []); // Array vacío - solo se ejecuta al montar/desmontar
 
   const tieneErrores = error || Object.keys(localErrors).length > 0 || Object.keys(validationErrors).length > 0;
   const diasCalculados = calcularDias();
