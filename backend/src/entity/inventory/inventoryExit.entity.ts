@@ -4,7 +4,7 @@
  */
 
 import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, OneToMany } from 'typeorm';
-import { Customer } from '../customer.entity.js';
+import { Customer } from '../stakeholders/customer.entity.js';
 import { InventoryExitDetail } from './inventoryExitDetail.entity.js';
 
 @Entity("inventory_exits")

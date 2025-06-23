@@ -5,9 +5,9 @@ import {
     getAllInventoryExits,
     getInventoryExitById,
     deleteInventoryExit
-} from '../controllers/inventory/inventoryExit.controller.js';
+} from '../../controllers/inventory/inventoryExit.controller.js';
 
-import { authenticateJWT } from '../middlewares/authentication.middleware.js';
+import { authenticateJWT } from '../../middlewares/authentication.middleware.js';
 
 const router = Router();
 

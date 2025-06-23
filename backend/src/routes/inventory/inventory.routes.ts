@@ -2,9 +2,9 @@ import { Router } from 'express';
 
 import {
     getAllInventory
-} from '../controllers/inventory/inventory.controller.js';
+} from '../../controllers/inventory/inventory.controller.js';
 
-import { authenticateJWT } from '../middlewares/authentication.middleware.js';
+import { authenticateJWT } from '../../middlewares/authentication.middleware.js';
 
 const router = Router();
 

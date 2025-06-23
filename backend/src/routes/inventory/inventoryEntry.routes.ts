@@ -5,9 +5,9 @@ import {
     getAllInventoryEntries,
     getInventoryEntryById,
     deleteInventoryEntry
-} from '../controllers/inventory/inventoryEntry.controller.js';
+} from '../../controllers/inventory/inventoryEntry.controller.js';
 
-import { authenticateJWT } from '../middlewares/authentication.middleware.js';
+import { authenticateJWT } from '../../middlewares/authentication.middleware.js';
 
 const router = Router();
 

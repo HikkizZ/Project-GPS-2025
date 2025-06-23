@@ -1,8 +1,8 @@
-import { Customer } from '../entity/customer.entity.js';
-import { AppDataSource } from '../config/configDB.js';
-import { CreateCustomerDTO, UpdateCustomerDTO } from '../types/index.js';
-import { ServiceResponse, QueryParams } from '../../types.js';
-import { formatRut } from '../helpers/rut.helper.js';
+import { Customer } from '../../entity/stakeholders/customer.entity.js';
+import { AppDataSource } from '../../config/configDB.js';
+import { CreateCustomerDTO, UpdateCustomerDTO } from '../../types/index.js';
+import { ServiceResponse, QueryParams } from '../../../types.js';
+import { formatRut } from '../../helpers/rut.helper.js';
 
 export async function getAllCustomersService(): Promise<ServiceResponse<Customer[]>> {
     try {

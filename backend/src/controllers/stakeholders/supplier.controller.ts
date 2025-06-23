@@ -5,11 +5,11 @@ import {
     createSupplierService,
     updateSupplierService,
     deleteSupplierService,
-} from '../services/supplier.service.js';
+} from '../../services/stakeholders/supplier.service.js';
 
-import { handleSuccess, handleErrorClient, handleErrorServer } from '../handlers/responseHandlers.js';
+import { handleSuccess, handleErrorClient, handleErrorServer } from '../../handlers/responseHandlers.js';
 
-import { personQueryValidation, personBodyValidation } from '../validations/person.validation.js';
+import { personQueryValidation, personBodyValidation } from '../../validations/stakeholders/person.validation.js';
 
 export async function getSuppliers(_req: Request, res: Response): Promise<void> {
     try {

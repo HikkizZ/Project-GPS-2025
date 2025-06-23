@@ -5,11 +5,11 @@ import {
     createCustomerService,
     updateCustomerService,
     deleteCustomerService,
-} from '../services/customer.service.js';
+} from '../../services/stakeholders/customer.service.js';
 
-import { handleSuccess, handleErrorClient, handleErrorServer } from '../handlers/responseHandlers.js';
+import { handleSuccess, handleErrorClient, handleErrorServer } from '../../handlers/responseHandlers.js';
 
-import { personQueryValidation, personBodyValidation } from '../validations/person.validation.js';
+import { personQueryValidation, personBodyValidation } from '../../validations/stakeholders/person.validation.js';
 
 export async function getCustomers(_req: Request, res: Response): Promise<void> {
     try {

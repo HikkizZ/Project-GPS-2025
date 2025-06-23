@@ -6,9 +6,9 @@ import {
     createProduct,
     updateProduct,
     deleteProduct
-} from "../controllers/inventory/product.controller.js";
+} from "../../controllers/inventory/product.controller.js";
 
-import { authenticateJWT } from "../middlewares/authentication.middleware.js";
+import { authenticateJWT } from "../../middlewares/authentication.middleware.js";
 
 const router: Router = Router();
 
