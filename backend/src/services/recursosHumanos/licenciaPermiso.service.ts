@@ -204,6 +204,11 @@ export async function updateLicenciaPermisoService(id: number, data: UpdateLicen
       }
 
       // Actualizar el estado en la ficha de empresa
+      console.log(`🏢 Actualizando ficha de empresa para licencia ID ${licencia.id}`);
+      console.log(`👤 Trabajador: ${licencia.trabajador.nombres} ${licencia.trabajador.apellidoPaterno}`);
+      console.log(`📋 Tipo solicitud: ${licencia.tipo} → Estado laboral: ${estadoLaboral}`);
+      console.log(`🏢 Ficha ID: ${licencia.trabajador.fichaEmpresa.id}`);
+      
       const [fichaActualizada, errorFicha] = await actualizarEstadoFichaService(
         licencia.trabajador.fichaEmpresa.id,
         estadoLaboral,
@@ -211,6 +216,10 @@ export async function updateLicenciaPermisoService(id: number, data: UpdateLicen
         licencia.fechaFin,
         licencia.motivoSolicitud
       );
+      
+      if (fichaActualizada) {
+        console.log(`✅ Ficha actualizada exitosamente - Nuevo estado: ${fichaActualizada.estado}`);
+      }
 
       if (errorFicha) {
         await queryRunner.rollbackTransaction();

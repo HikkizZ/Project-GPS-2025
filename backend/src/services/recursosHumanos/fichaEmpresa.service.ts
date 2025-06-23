@@ -278,8 +278,37 @@ export async function actualizarEstadoFichaService(
             ficha.motivoDesvinculacion = motivo;
         }
 
+        console.log(`🔄 actualizarEstadoFichaService - Actualizando ficha ID ${id} a estado: ${estado}`);
+        console.log(`📅 Fechas recibidas - Inicio: ${fechaInicio}, Fin: ${fechaFin}`);
+        console.log(`📝 Motivo: ${motivo}`);
+
         // Actualizar el estado y otros campos
         ficha.estado = estado;
+
+        // Para licencias y permisos, guardar las fechas
+        if (estado === EstadoLaboral.LICENCIA || estado === EstadoLaboral.PERMISO) {
+            console.log(`📋 Procesando estado ${estado} - Guardando fechas de licencia`);
+            if (fechaInicioDate) {
+                ficha.fechaInicioLicencia = fechaInicioDate;
+                console.log(`✅ Fecha inicio licencia guardada: ${fechaInicioDate}`);
+            }
+            if (fechaFinDate) {
+                ficha.fechaFinLicencia = fechaFinDate;
+                console.log(`✅ Fecha fin licencia guardada: ${fechaFinDate}`);
+            }
+            if (motivo) {
+                ficha.motivoLicencia = motivo;
+                console.log(`✅ Motivo licencia guardado: ${motivo}`);
+            }
+        }
+
+        // Si vuelve a estado ACTIVO, limpiar fechas de licencia
+        if (estado === EstadoLaboral.ACTIVO) {
+            console.log(`🔄 Volviendo a estado ACTIVO - Limpiando fechas de licencia`);
+            ficha.fechaInicioLicencia = null;
+            ficha.fechaFinLicencia = null;
+            ficha.motivoLicencia = null;
+        }
 
         // Guardar los cambios
         const fichaActualizada = await fichaRepo.save(ficha);
