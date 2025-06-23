@@ -17,7 +17,7 @@ const isDevelopment = !isProduction && !isTest;
 
 /* Dynamic route for the entities according to the environment */
 const entitiesPath = isProduction
-    ? "build/entity/**/*.js" // For production
+    ? "dist/entity/**/*.js" // For production
     : "src/entity/**/*.ts"; // For development
 
 config();
