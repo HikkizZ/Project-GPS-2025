@@ -155,23 +155,16 @@ export const ListaSolicitudesPersonales: React.FC<ListaSolicitudesPersonalesProp
 
   return (
     <>
-      {/* Encabezado simple */}
-      <Card className="shadow-sm mb-4">
-        <Card.Header className="bg-light">
-          <div className="d-flex justify-content-between align-items-center">
-            <h5 className="mb-0">
-              <i className="bi bi-calendar-check me-2"></i>
-              Mis Solicitudes de Licencias y Permisos
-            </h5>
-            {onNuevaSolicitud && (
-              <Button variant="primary" onClick={onNuevaSolicitud}>
-                <i className="bi bi-plus-circle me-2"></i>
-                Nueva Solicitud
-              </Button>
-            )}
-          </div>
-        </Card.Header>
-      </Card>
+      {/* Encabezado simplificado */}
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <div>
+          <h4 className="mb-1">
+            <i className="bi bi-calendar-check me-2"></i>
+            Mis Solicitudes
+          </h4>
+          <p className="text-muted mb-0">Historial de licencias y permisos solicitados</p>
+        </div>
+      </div>
 
       {/* Lista de solicitudes */}
       <Card className="shadow-sm">
