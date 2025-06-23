@@ -264,31 +264,25 @@ export const ListaGestionSolicitudes: React.FC = () => {
 
   return (
     <>
-      {/* Encabezado con botón de filtros */}
-      <Card className="shadow-sm mb-4">
-        <Card.Header className="bg-gradient-primary text-white">
-          <div className="d-flex justify-content-between align-items-center">
-            <div>
-              <h5 className="mb-1">
-                <i className="bi bi-clipboard-check me-2"></i>
-                Gestión de Licencias y Permisos
-              </h5>
-              <p className="mb-0 opacity-75">
-                Administrar y revisar solicitudes de licencias y permisos
-              </p>
-            </div>
-            <div>
-              <Button 
-                variant={showFilters ? "outline-light" : "light"}
-                onClick={() => setShowFilters(!showFilters)}
-              >
-                <i className={`bi bi-funnel${showFilters ? '-fill' : ''} me-2`}></i>
-                {showFilters ? 'Ocultar' : 'Mostrar'} Filtros
-              </Button>
-            </div>
-          </div>
-        </Card.Header>
-      </Card>
+      {/* Encabezado simplificado con botón de filtros */}
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <div>
+          <h4 className="mb-1">
+            <i className="bi bi-clipboard-check me-2"></i>
+            Solicitudes del Sistema
+          </h4>
+          <p className="text-muted mb-0">Gestionar y revisar todas las solicitudes</p>
+        </div>
+        <div>
+          <Button 
+            variant={showFilters ? "outline-secondary" : "outline-primary"}
+            onClick={() => setShowFilters(!showFilters)}
+          >
+            <i className={`bi bi-funnel${showFilters ? '-fill' : ''} me-2`}></i>
+            {showFilters ? 'Ocultar' : 'Mostrar'} Filtros
+          </Button>
+        </div>
+      </div>
 
       {/* Panel de filtros */}
       {showFilters && (
