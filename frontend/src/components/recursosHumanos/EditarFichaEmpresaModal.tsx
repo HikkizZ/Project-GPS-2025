@@ -51,6 +51,7 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [validated, setValidated] = useState(false);
 
   const [formData, setFormData] = useState<UpdateFichaEmpresaData & { sueldoBase: string }>({
     cargo: ficha.cargo || '',
@@ -67,6 +68,7 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
       setError(null);
       setSuccess(null);
       setSelectedFile(null);
+      setValidated(false);
       setFormData({
         cargo: ficha.cargo || '',
         area: ficha.area || '',
@@ -136,6 +138,22 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setValidated(true);
+    
+    // Validar campos requeridos
+    const isValid = formData.cargo.trim() && 
+                   formData.area.trim() && 
+                   formData.tipoContrato && 
+                   formData.jornadaLaboral && 
+                   formData.sueldoBase && 
+                   parseInt(cleanNumber(formData.sueldoBase)) > 0 && 
+                   formData.fechaInicioContrato;
+    
+    if (!isValid) {
+      setError('Por favor, completa todos los campos requeridos');
+      return;
+    }
+    
     setLoading(true);
     setError(null);
     setSuccess(null);
@@ -242,7 +260,7 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
           </Alert>
         )}
 
-        <Form onSubmit={handleSubmit}>
+        <Form onSubmit={handleSubmit} noValidate>
           <Row className="g-3 mb-3">
             {/* Cargo y Área */}
             <Col md={6}>
@@ -256,7 +274,11 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
                   required
                   style={{ borderRadius: '8px' }}
                   placeholder="Ej: Desarrollador Senior"
+                  isInvalid={validated && !formData.cargo.trim()}
                 />
+                <Form.Control.Feedback type="invalid">
+                  Completa este campo
+                </Form.Control.Feedback>
               </Form.Group>
             </Col>
             <Col md={6}>
@@ -270,7 +292,11 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
                   required
                   style={{ borderRadius: '8px' }}
                   placeholder="Ej: Tecnología"
+                  isInvalid={validated && !formData.area.trim()}
                 />
+                <Form.Control.Feedback type="invalid">
+                  Completa este campo
+                </Form.Control.Feedback>
               </Form.Group>
             </Col>
           </Row>
@@ -286,6 +312,7 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
                   onChange={handleInputChange}
                   required
                   style={{ borderRadius: '8px' }}
+                  isInvalid={validated && !formData.tipoContrato}
                 >
                   <option value="">Seleccione...</option>
                   <option value="Indefinido">Indefinido</option>
@@ -293,6 +320,9 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
                   <option value="Por Obra">Por Obra</option>
                   <option value="Part-Time">Part-Time</option>
                 </Form.Select>
+                <Form.Control.Feedback type="invalid">
+                  Completa este campo
+                </Form.Control.Feedback>
               </Form.Group>
             </Col>
             <Col md={6}>
@@ -304,12 +334,16 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
                   onChange={handleInputChange}
                   required
                   style={{ borderRadius: '8px' }}
+                  isInvalid={validated && !formData.jornadaLaboral}
                 >
                   <option value="">Seleccione...</option>
-                  <option value="Tiempo Completo">Tiempo Completo</option>
-                  <option value="Medio Tiempo">Medio Tiempo</option>
-                  <option value="Por Horas">Por Horas</option>
+                  <option value="Completa">Completa</option>
+                  <option value="Media">Media</option>
+                  <option value="Part-Time">Part-Time</option>
                 </Form.Select>
+                <Form.Control.Feedback type="invalid">
+                  Completa este campo
+                </Form.Control.Feedback>
               </Form.Group>
             </Col>
           </Row>
@@ -327,7 +361,11 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
                   required
                   style={{ borderRadius: '8px' }}
                   placeholder="1.000.000"
+                  isInvalid={validated && (!formData.sueldoBase || parseInt(cleanNumber(formData.sueldoBase)) <= 0)}
                 />
+                <Form.Control.Feedback type="invalid">
+                  {!formData.sueldoBase ? 'Completa este campo' : 'El sueldo debe ser mayor a 0'}
+                </Form.Control.Feedback>
               </Form.Group>
             </Col>
             {/* Fecha Inicio Contrato */}
@@ -341,7 +379,11 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
                   onChange={handleInputChange}
                   required
                   style={{ borderRadius: '8px' }}
+                  isInvalid={validated && !formData.fechaInicioContrato}
                 />
+                <Form.Control.Feedback type="invalid">
+                  Completa este campo
+                </Form.Control.Feedback>
               </Form.Group>
             </Col>
             {/* Fecha Fin Contrato */}
