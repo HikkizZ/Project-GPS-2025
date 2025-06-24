@@ -186,11 +186,8 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
       const response = await updateFichaEmpresa(fichaId, dataToSubmit);
       
       if (response.success) {
-        showSuccess('¡Ficha actualizada!', 'La ficha de empresa se ha actualizado exitosamente', 7000);
         if (onUpdate) onUpdate();
-        setTimeout(() => {
-          onHide();
-        }, 1500);
+        onHide(); // Cerrar inmediatamente
       } else {
         showError('Error al actualizar', response.message || 'Error al actualizar la ficha', 6000);
       }

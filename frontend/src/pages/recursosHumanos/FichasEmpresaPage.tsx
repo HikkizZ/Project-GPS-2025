@@ -184,7 +184,8 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
   const handleUpdateSuccess = () => {
     // Recargar las fichas
     handleSearch();
-    // No mostrar toast aquí porque ya se muestra desde el modal
+    // Mostrar toast de éxito
+    showSuccess('¡Ficha actualizada!', 'La ficha de empresa se ha actualizado exitosamente', 7000);
   };
 
   const handleDownloadContrato = async (fichaId: number) => {
