@@ -225,11 +225,6 @@ export async function updateLicenciaPermisoService(id: number, data: UpdateLicen
       }
 
       // Actualizar el estado en la ficha de empresa
-      console.log(`🏢 Actualizando ficha de empresa para licencia ID ${licencia.id}`);
-      console.log(`👤 Trabajador: ${licencia.trabajador.nombres} ${licencia.trabajador.apellidoPaterno}`);
-      console.log(`📋 Tipo solicitud: ${licencia.tipo} → Estado laboral: ${estadoLaboral}`);
-      console.log(`🏢 Ficha ID: ${licencia.trabajador.fichaEmpresa.id}`);
-      
       const [fichaActualizada, errorFicha] = await actualizarEstadoFichaService(
         licencia.trabajador.fichaEmpresa.id,
         estadoLaboral,
@@ -237,10 +232,6 @@ export async function updateLicenciaPermisoService(id: number, data: UpdateLicen
         licencia.fechaFin,
         licencia.motivoSolicitud
       );
-      
-      if (fichaActualizada) {
-        console.log(`✅ Ficha actualizada exitosamente - Nuevo estado: ${fichaActualizada.estado}`);
-      }
 
       if (errorFicha) {
         await queryRunner.rollbackTransaction();
@@ -363,8 +354,6 @@ export async function verificarLicenciasVencidasService(): Promise<ServiceRespon
  */
 export async function descargarArchivoLicenciaService(id: number, userRut: string): Promise<ServiceResponse<{ filePath: string; customFilename: string }>> {
   try {
-    console.log(`📋 [SERVICIO-DESCARGA] Buscando licencia ID: ${id}`);
-    
     const licenciaRepo = AppDataSource.getRepository(LicenciaPermiso);
     const licencia = await licenciaRepo.findOne({
       where: { id },
@@ -372,29 +361,20 @@ export async function descargarArchivoLicenciaService(id: number, userRut: strin
     });
 
     if (!licencia) {
-      console.log(`❌ [SERVICIO-DESCARGA] Licencia no encontrada: ${id}`);
       return [null, "Licencia/permiso no encontrado"];
     }
 
-    console.log(`✅ [SERVICIO-DESCARGA] Licencia encontrada: ${licencia.tipo} - Trabajador: ${licencia.trabajador.nombres} ${licencia.trabajador.apellidoPaterno}`);
-    console.log(`📁 [SERVICIO-DESCARGA] URL del archivo: ${licencia.archivoAdjuntoURL}`);
-
     if (!licencia.archivoAdjuntoURL) {
-      console.log(`❌ [SERVICIO-DESCARGA] No hay archivo adjunto para la licencia ${id}`);
       return [null, "No hay archivo adjunto para esta solicitud"];
     }
 
     // Buscar el usuario para verificar rol y permisos
-    console.log(`👤 [SERVICIO-DESCARGA] Verificando usuario: ${userRut}`);
     const userRepo = AppDataSource.getRepository(User);
     const usuario = await userRepo.findOne({ where: { rut: userRut } });
     
     if (!usuario) {
-      console.log(`❌ [SERVICIO-DESCARGA] Usuario no encontrado: ${userRut}`);
       return [null, "Usuario no encontrado"];
     }
-
-    console.log(`👤 [SERVICIO-DESCARGA] Usuario encontrado: ${usuario.nombres} ${usuario.apellidoPaterno} - Rol: ${usuario.role}`);
 
     // Verificar permisos: 
     // 1. Si es RRHH, Administrador o SuperAdministrador → puede descargar cualquier archivo
@@ -402,24 +382,16 @@ export async function descargarArchivoLicenciaService(id: number, userRut: strin
     const rolesPrivilegiados = ['RecursosHumanos', 'Administrador', 'SuperAdministrador'];
     const tienePrivilegios = rolesPrivilegiados.includes(usuario.role);
 
-    console.log(`🔐 [SERVICIO-DESCARGA] ¿Tiene privilegios? ${tienePrivilegios} (Rol: ${usuario.role})`);
-
     if (!tienePrivilegios) {
       // Es un trabajador normal, verificar que sea el propietario
-      console.log(`🔍 [SERVICIO-DESCARGA] Verificando propietario del archivo...`);
       const trabajadorRepo = AppDataSource.getRepository(Trabajador);
       const trabajador = await trabajadorRepo.findOne({ where: { rut: userRut } });
       
       if (!trabajador) {
-        console.log(`❌ [SERVICIO-DESCARGA] Trabajador no encontrado para RUT: ${userRut}`);
         return [null, "Trabajador no encontrado"];
       }
 
-      console.log(`👤 [SERVICIO-DESCARGA] Trabajador encontrado: ${trabajador.nombres} ${trabajador.apellidoPaterno} (ID: ${trabajador.id})`);
-      console.log(`🔍 [SERVICIO-DESCARGA] ¿Es propietario? Trabajador ID: ${trabajador.id} vs Licencia Trabajador ID: ${licencia.trabajador.id}`);
-
       if (licencia.trabajador.id !== trabajador.id) {
-        console.log(`❌ [SERVICIO-DESCARGA] Sin permisos: el trabajador ${trabajador.id} no es propietario de la licencia del trabajador ${licencia.trabajador.id}`);
         return [null, "No tiene permisos para descargar este archivo"];
       }
     }
@@ -427,21 +399,15 @@ export async function descargarArchivoLicenciaService(id: number, userRut: strin
     // Usar el servicio de archivos para obtener la ruta absoluta y correcta
     const filePath = FileUploadService.getLicenciaPath(licencia.archivoAdjuntoURL);
     
-    console.log(`📂 [SERVICIO-DESCARGA] Ruta calculada: ${filePath}`);
-    
     // Verificar si el archivo existe
     if (!FileUploadService.fileExists(filePath)) {
-      console.log(`❌ [SERVICIO-DESCARGA] El archivo no se encuentra en el servidor: ${filePath}`);
       return [null, "El archivo del certificado no se encuentra en el servidor."];
     }
 
-    // Generar nombre personalizado del archivo
+    // Generar nombre personalizado del archivo - SOLO para licencias médicas
     const nombres = licencia.trabajador.nombres?.trim() || '';
     const apellidoPaterno = licencia.trabajador.apellidoPaterno?.trim() || '';
     const apellidoMaterno = licencia.trabajador.apellidoMaterno?.trim() || '';
-    
-    console.log(`👤 [SERVICIO-DESCARGA] Datos del trabajador - Nombres: "${nombres}", Apellido P: "${apellidoPaterno}", Apellido M: "${apellidoMaterno}"`);
-    console.log(`📋 [SERVICIO-DESCARGA] Tipo de licencia: "${licencia.tipo}"`);
     
     // Función para limpiar nombres (solo letras, números y algunos caracteres seguros)
     const limpiarNombre = (texto: string): string => {
@@ -456,29 +422,27 @@ export async function descargarArchivoLicenciaService(id: number, userRut: strin
     const apellidoPaternoLimpio = limpiarNombre(apellidoPaterno);
     const apellidoMaternoLimpio = limpiarNombre(apellidoMaterno);
     
-    console.log(`🧹 [SERVICIO-DESCARGA] Nombres limpios - Nombres: "${nombreLimpio}", Apellido P: "${apellidoPaternoLimpio}", Apellido M: "${apellidoMaternoLimpio}"`);
-    
-    // Construir el nombre del archivo
+    // Construir el nombre del archivo - SOLO para licencias médicas (permisos no tienen archivo)
     let customFilename = '';
-    if (nombreLimpio) customFilename += nombreLimpio;
-    if (apellidoPaternoLimpio) customFilename += (customFilename ? '_' : '') + apellidoPaternoLimpio;
-    if (apellidoMaternoLimpio) customFilename += (customFilename ? '_' : '') + apellidoMaternoLimpio;
-    
-    // Si no hay nombres válidos, usar un fallback
-    if (!customFilename) {
-      customFilename = 'Documento';
+    if (licencia.tipo === TipoSolicitud.LICENCIA) {
+      if (nombreLimpio) customFilename += nombreLimpio;
+      if (apellidoPaternoLimpio) customFilename += (customFilename ? '_' : '') + apellidoPaternoLimpio;
+      if (apellidoMaternoLimpio) customFilename += (customFilename ? '_' : '') + apellidoMaternoLimpio;
+      
+      // Si no hay nombres válidos, usar un fallback
+      if (!customFilename) {
+        customFilename = 'Documento';
+      }
+      
+      customFilename += `-Licencia_Medica.pdf`;
+    } else {
+      // Esto no debería pasar, pero por seguridad
+      customFilename = `Licencia_${id}.pdf`;
     }
-    
-    // Agregar el tipo de solicitud
-    const tipoSolicitud = licencia.tipo === TipoSolicitud.LICENCIA ? 'Licencia_Medica' : 'Permiso_Administrativo';
-    customFilename += `-${tipoSolicitud}.pdf`;
-    
-    console.log(`📝 [SERVICIO-DESCARGA] Nombre personalizado generado: "${customFilename}"`);
-    console.log(`✅ [SERVICIO-DESCARGA] Permisos validados correctamente. Retornando datos.`);
     
     return [{ filePath, customFilename }, null];
   } catch (error) {
-    console.error("❌ [SERVICIO-DESCARGA] Error inesperado:", error);
+    console.error("Error en descargarArchivoLicenciaService:", error);
     return [null, "Error interno del servidor"];
   }
 }

@@ -122,7 +122,6 @@ export class FichaEmpresaService {
   // Actualizar ficha
   async updateFichaEmpresa(id: number, data: UpdateFichaEmpresaData): Promise<ApiResponse<FichaEmpresa>> {
     try {
-      console.log('Actualizando ficha:', { id, data });
       const response = await apiClient.put<{ data: FichaEmpresa }>(`${this.baseURL}/${id}`, data);
       return {
         success: true,
@@ -224,19 +223,12 @@ export class FichaEmpresaService {
         const contentDisposition = response.headers.get('Content-Disposition');
         let filename = `contrato_${fichaId}.pdf`;
         
-        console.log('🔍 [CONTRATO] Content-Disposition header:', contentDisposition);
-        
         if (contentDisposition) {
           // Buscar filename= seguido de comillas opcionales y cualquier carácter hasta comillas opcionales o fin de línea
           const filenameMatch = contentDisposition.match(/filename\*?=(?:"([^"]*)"|([^;,\s]*))/);
           if (filenameMatch) {
             filename = filenameMatch[1] || filenameMatch[2] || `contrato_${fichaId}.pdf`;
-            console.log('✅ [CONTRATO] Filename extraído:', filename);
-          } else {
-            console.log('❌ [CONTRATO] No se pudo extraer filename del header');
           }
-        } else {
-          console.log('❌ [CONTRATO] No hay Content-Disposition header');
         }
 
         // Crear enlace de descarga
@@ -249,8 +241,6 @@ export class FichaEmpresaService {
         a.click();
         window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
-        
-        console.log('✅ [CONTRATO] Archivo descargado:', filename);
       } else {
         const errorData = await response.json();
         throw new Error(errorData.message || 'Error al descargar contrato');

@@ -278,33 +278,24 @@ export async function actualizarEstadoFichaService(
             ficha.motivoDesvinculacion = motivo;
         }
 
-        console.log(`🔄 actualizarEstadoFichaService - Actualizando ficha ID ${id} a estado: ${estado}`);
-        console.log(`📅 Fechas recibidas - Inicio: ${fechaInicio}, Fin: ${fechaFin}`);
-        console.log(`📝 Motivo: ${motivo}`);
-
         // Actualizar el estado y otros campos
         ficha.estado = estado;
 
         // Para licencias y permisos, guardar las fechas
         if (estado === EstadoLaboral.LICENCIA || estado === EstadoLaboral.PERMISO) {
-            console.log(`📋 Procesando estado ${estado} - Guardando fechas de licencia`);
             if (fechaInicioDate) {
                 ficha.fechaInicioLicencia = fechaInicioDate;
-                console.log(`✅ Fecha inicio licencia guardada: ${fechaInicioDate}`);
             }
             if (fechaFinDate) {
                 ficha.fechaFinLicencia = fechaFinDate;
-                console.log(`✅ Fecha fin licencia guardada: ${fechaFinDate}`);
             }
             if (motivo) {
                 ficha.motivoLicencia = motivo;
-                console.log(`✅ Motivo licencia guardado: ${motivo}`);
             }
         }
 
         // Si vuelve a estado ACTIVO, limpiar fechas de licencia
         if (estado === EstadoLaboral.ACTIVO) {
-            console.log(`🔄 Volviendo a estado ACTIVO - Limpiando fechas de licencia`);
             ficha.fechaInicioLicencia = null;
             ficha.fechaFinLicencia = null;
             ficha.motivoLicencia = null;
@@ -417,8 +408,6 @@ export async function updateFichaEmpresaService(
 
 export async function descargarContratoService(id: number, userId: number): Promise<ServiceResponse<{filePath: string, customFilename: string}>> {
     try {
-        console.log(`📋 [SERVICIO-DESCARGA-CONTRATO] Buscando ficha ID: ${id}`);
-        
         const fichaRepo = AppDataSource.getRepository(FichaEmpresa);
         const userRepo = AppDataSource.getRepository(User);
 
@@ -430,8 +419,6 @@ export async function descargarContratoService(id: number, userId: number): Prom
         if (!ficha) {
             return [null, { message: "Ficha no encontrada" }];
         }
-
-        console.log(`✅ [SERVICIO-DESCARGA-CONTRATO] Ficha encontrada - Trabajador: ${ficha.trabajador.nombres} ${ficha.trabajador.apellidoPaterno}`);
 
         if (ficha.trabajador && ficha.trabajador.rut === "11.111.111-1") {
             return [null, { message: "No se puede modificar ni eliminar la ficha del superadministrador." }];
@@ -446,9 +433,6 @@ export async function descargarContratoService(id: number, userId: number): Prom
             return [null, { message: "Usuario no encontrado" }];
         }
 
-        console.log(`👤 [SERVICIO-DESCARGA-CONTRATO] Verificando usuario: ${user.rut}`);
-        console.log(`👤 [SERVICIO-DESCARGA-CONTRATO] Usuario encontrado: ${user.nombres || 'undefined'} ${user.apellidos || 'undefined'} - Rol: ${user.role}`);
-
         // Permitir acceso a RRHH, Admin, Superadmin o al dueño de la ficha
         const esRRHH = user.role === "RecursosHumanos";
         const esAdmin = user.role === "Administrador";
@@ -456,7 +440,6 @@ export async function descargarContratoService(id: number, userId: number): Prom
         const esDueno = user.trabajador?.id === ficha.trabajador.id;
 
         const tienePrivilegios = esRRHH || esAdmin || esSuperAdmin || esDueno;
-        console.log(`🔐 [SERVICIO-DESCARGA-CONTRATO] ¿Tiene privilegios? ${tienePrivilegios} (Rol: ${user.role})`);
 
         if (!tienePrivilegios) {
             return [null, { message: "No tiene permiso para descargar este contrato" }];
@@ -466,12 +449,8 @@ export async function descargarContratoService(id: number, userId: number): Prom
             return [null, { message: "No hay contrato disponible para descargar" }];
         }
 
-        console.log(`📁 [SERVICIO-DESCARGA-CONTRATO] URL del archivo: ${ficha.contratoURL}`);
-
         // Usar el servicio de archivos para obtener la ruta absoluta y correcta
         const filePath = FileUploadService.getContratoPath(ficha.contratoURL);
-        
-        console.log(`📂 [SERVICIO-DESCARGA-CONTRATO] Ruta calculada: ${filePath}`);
 
         // Verificar si el archivo existe
         if (!FileUploadService.fileExists(filePath)) {
@@ -480,7 +459,6 @@ export async function descargarContratoService(id: number, userId: number): Prom
 
         // Generar nombre personalizado
         const trabajador = ficha.trabajador;
-        console.log(`👤 [SERVICIO-DESCARGA-CONTRATO] Datos del trabajador - Nombres: "${trabajador.nombres}", Apellido P: "${trabajador.apellidoPaterno}", Apellido M: "${trabajador.apellidoMaterno}"`);
 
         // Función para limpiar caracteres especiales y espacios
         const limpiarNombre = (nombre: string): string => {
@@ -501,8 +479,6 @@ export async function descargarContratoService(id: number, userId: number): Prom
         const apellidoPLimpio = limpiarNombre(trabajador.apellidoPaterno || '');
         const apellidoMLimpio = limpiarNombre(trabajador.apellidoMaterno || '');
 
-        console.log(`🧹 [SERVICIO-DESCARGA-CONTRATO] Nombres limpios - Nombres: "${nombresLimpios}", Apellido P: "${apellidoPLimpio}", Apellido M: "${apellidoMLimpio}"`);
-
         // Construir nombre personalizado
         let customFilename = '';
         if (nombresLimpios && apellidoPLimpio) {
@@ -513,15 +489,10 @@ export async function descargarContratoService(id: number, userId: number): Prom
             customFilename += '-Contrato.pdf';
         }
 
-        console.log(`📝 [SERVICIO-DESCARGA-CONTRATO] Nombre personalizado generado: "${customFilename}"`);
-
         // Validar que el nombre personalizado sea válido
         if (!customFilename || customFilename.length < 5 || !customFilename.includes('-Contrato.pdf')) {
-            console.log(`❌ [SERVICIO-DESCARGA-CONTRATO] Nombre personalizado inválido, usando fallback`);
             customFilename = `Contrato_${id}.pdf`;
         }
-
-        console.log(`✅ [SERVICIO-DESCARGA-CONTRATO] Permisos validados correctamente. Retornando datos.`);
 
         return [{ filePath, customFilename }, null];
     } catch (error) {

@@ -275,51 +275,37 @@ export async function deleteLicenciaPermiso(req: Request, res: Response): Promis
 
 export async function descargarArchivoLicencia(req: Request, res: Response): Promise<void> {
   try {
-    console.log(`🔍 [DESCARGA] Iniciando descarga de archivo para licencia ID: ${req.params.id}`);
-    
     const id = parseInt(req.params.id);
     if (isNaN(id)) {
-      console.log(`❌ [DESCARGA] ID inválido: ${req.params.id}`);
       handleErrorClient(res, 400, "ID inválido");
       return;
     }
 
     if (!req.user) {
-      console.log(`❌ [DESCARGA] Usuario no autenticado`);
       handleErrorClient(res, 401, "Usuario no autenticado");
       return;
     }
 
-    console.log(`👤 [DESCARGA] Usuario: ${req.user.rut} (${req.user.role})`);
-
     const [result, error] = await descargarArchivoLicenciaService(id, req.user.rut);
-    
-    console.log(`📁 [DESCARGA] Resultado del servicio - Resultado: ${JSON.stringify(result)}, Error: ${error}`);
     
     if (error) {
       const errorMessage = typeof error === 'string' ? error : error.message;
       const statusCode = errorMessage.includes("no encontrado") ? 404 : 
                         errorMessage.includes("permisos") ? 403 : 400;
-      console.log(`❌ [DESCARGA] Error del servicio: ${errorMessage} (${statusCode})`);
       handleErrorClient(res, statusCode, errorMessage);
       return;
     }
 
     if (!result || !result.filePath) {
-      console.log(`❌ [DESCARGA] Resultado vacío o sin ruta de archivo`);
       handleErrorClient(res, 404, "Archivo no encontrado");
       return;
     }
 
     const { filePath, customFilename } = result;
-    console.log(`📂 [DESCARGA] Ruta del archivo: ${filePath}`);
-    console.log(`📝 [DESCARGA] Nombre personalizado: "${customFilename}"`);
     
     // Validar que el nombre personalizado es válido
     if (!customFilename || customFilename.trim() === '' || customFilename === 'undefined' || customFilename === 'null') {
-      console.log(`❌ [DESCARGA] Nombre personalizado inválido, usando fallback`);
       const fallbackName = `Licencia_${id}.pdf`;
-      console.log(`📝 [DESCARGA] Usando nombre fallback: "${fallbackName}"`);
       
       // Configurar headers para evitar cache y forzar descarga ANTES de res.download
       res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
@@ -329,16 +315,9 @@ export async function descargarArchivoLicencia(req: Request, res: Response): Pro
       res.setHeader('Content-Disposition', `attachment; filename="${fallbackName}"`);
       res.setHeader('Access-Control-Expose-Headers', 'Content-Disposition');
       
-      console.log(`🔧 [DESCARGA] Headers fallback configurados. Content-Disposition: attachment; filename="${fallbackName}"`);
-      
       res.download(filePath, fallbackName, (err) => {
-        if (err) {
-          console.error("❌ [DESCARGA] Error al enviar el archivo con res.download:", err);
-          if (!res.headersSent) {
-            handleErrorServer(res, 500, "No se pudo descargar el archivo.");
-          }
-        } else {
-          console.log(`✅ [DESCARGA] Archivo fallback enviado exitosamente: ${fallbackName}`);
+        if (err && !res.headersSent) {
+          handleErrorServer(res, 500, "No se pudo descargar el archivo.");
         }
       });
       return;
@@ -346,12 +325,9 @@ export async function descargarArchivoLicencia(req: Request, res: Response): Pro
 
     // Verificar que el archivo existe antes de intentar enviarlo
     if (!fs.existsSync(filePath)) {
-      console.log(`❌ [DESCARGA] El archivo no existe físicamente en: ${filePath}`);
       handleErrorClient(res, 404, "El archivo del certificado no se encuentra en el servidor");
       return;
     }
-
-    console.log(`✅ [DESCARGA] Enviando archivo: ${customFilename} desde ${filePath}`);
 
     // Configurar headers para evitar cache y forzar descarga ANTES de res.download
     res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
@@ -361,22 +337,15 @@ export async function descargarArchivoLicencia(req: Request, res: Response): Pro
     res.setHeader('Content-Disposition', `attachment; filename="${customFilename}"`);
     res.setHeader('Access-Control-Expose-Headers', 'Content-Disposition');
 
-    console.log(`🔧 [DESCARGA] Headers configurados manualmente. Content-Disposition: attachment; filename="${customFilename}"`);
-
     // Enviar archivo con nombre personalizado
     res.download(filePath, customFilename, (err) => {
-      if (err) {
-        console.error("❌ [DESCARGA] Error al enviar el archivo con res.download:", err);
-        if (!res.headersSent) {
-          handleErrorServer(res, 500, "No se pudo descargar el archivo.");
-        }
-      } else {
-        console.log(`✅ [DESCARGA] Archivo enviado exitosamente: ${customFilename}`);
+      if (err && !res.headersSent) {
+        handleErrorServer(res, 500, "No se pudo descargar el archivo.");
       }
     });
 
   } catch (error) {
-    console.error("❌ [DESCARGA] Error inesperado:", error);
+    console.error("Error en descargarArchivoLicencia:", error);
     handleErrorServer(res, 500, "Error interno del servidor");
   }
 }

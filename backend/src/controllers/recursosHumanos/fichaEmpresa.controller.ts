@@ -176,7 +176,6 @@ export async function actualizarEstadoFicha(req: Request, res: Response) {
 export async function descargarContrato(req: Request, res: Response): Promise<void> {
     try {
         const id = parseInt(req.params.id);
-        console.log(`🔍 [DESCARGA-CONTRATO] Iniciando descarga de contrato para ficha ID: ${id}`);
         
         if (isNaN(id)) {
             handleErrorClient(res, 400, "ID inválido");
@@ -188,35 +187,25 @@ export async function descargarContrato(req: Request, res: Response): Promise<vo
             return;
         }
 
-        console.log(`👤 [DESCARGA-CONTRATO] Usuario: ${req.user.rut} (${req.user.role})`);
-
         const [resultado, error] = await descargarContratoService(id, req.user.id);
 
         if (error || !resultado) {
             const errorMessage = typeof error === 'string' ? error.message || error : "Contrato no encontrado.";
-            console.log(`❌ [DESCARGA-CONTRATO] Error: ${errorMessage}`);
             handleErrorClient(res, 404, errorMessage);
             return;
         }
 
         const { filePath, customFilename } = resultado;
-        console.log(`📁 [DESCARGA-CONTRATO] Resultado del servicio - Ruta: ${filePath}, Nombre: ${customFilename}`);
 
         // Verificar que el archivo existe antes de intentar enviarlo
         if (!fs.existsSync(filePath)) {
-            console.log(`❌ [DESCARGA-CONTRATO] Archivo no encontrado en: ${filePath}`);
             handleErrorClient(res, 404, "El archivo del contrato no se encuentra en el servidor");
             return;
         }
 
-        console.log(`📂 [DESCARGA-CONTRATO] Ruta del archivo: ${filePath}`);
-        console.log(`📝 [DESCARGA-CONTRATO] Nombre personalizado: "${customFilename}"`);
-
         // Validar nombre personalizado
         if (!customFilename || customFilename.trim() === '') {
-            console.log(`❌ [DESCARGA-CONTRATO] Nombre personalizado inválido, usando fallback`);
             const fallbackName = `Contrato_${id}.pdf`;
-            console.log(`📝 [DESCARGA-CONTRATO] Usando nombre fallback: "${fallbackName}"`);
             
             // Configurar headers para evitar cache y forzar descarga ANTES de res.download
             res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
@@ -226,22 +215,13 @@ export async function descargarContrato(req: Request, res: Response): Promise<vo
             res.setHeader('Content-Disposition', `attachment; filename="${fallbackName}"`);
             res.setHeader('Access-Control-Expose-Headers', 'Content-Disposition');
             
-            console.log(`🔧 [DESCARGA-CONTRATO] Headers fallback configurados. Content-Disposition: attachment; filename="${fallbackName}"`);
-            
             res.download(filePath, fallbackName, (err) => {
-                if (err) {
-                    console.error("❌ [DESCARGA-CONTRATO] Error al enviar el archivo con res.download:", err);
-                    if (!res.headersSent) {
-                        handleErrorServer(res, 500, "No se pudo descargar el archivo.");
-                    }
-                } else {
-                    console.log(`✅ [DESCARGA-CONTRATO] Archivo fallback enviado exitosamente: ${fallbackName}`);
+                if (err && !res.headersSent) {
+                    handleErrorServer(res, 500, "No se pudo descargar el archivo.");
                 }
             });
             return;
         }
-
-        console.log(`✅ [DESCARGA-CONTRATO] Enviando archivo: ${customFilename} desde ${filePath}`);
 
         // Configurar headers para evitar cache y forzar descarga ANTES de res.download
         res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
@@ -251,17 +231,10 @@ export async function descargarContrato(req: Request, res: Response): Promise<vo
         res.setHeader('Content-Disposition', `attachment; filename="${customFilename}"`);
         res.setHeader('Access-Control-Expose-Headers', 'Content-Disposition');
 
-        console.log(`🔧 [DESCARGA-CONTRATO] Headers configurados manualmente. Content-Disposition: attachment; filename="${customFilename}"`);
-
         // Enviar archivo con nombre personalizado
         res.download(filePath, customFilename, (err) => {
-            if (err) {
-                console.error("❌ [DESCARGA-CONTRATO] Error al enviar el archivo con res.download:", err);
-                if (!res.headersSent) {
-                    handleErrorServer(res, 500, "No se pudo descargar el archivo.");
-                }
-            } else {
-                console.log(`✅ [DESCARGA-CONTRATO] Archivo enviado exitosamente: ${customFilename}`);
+            if (err && !res.headersSent) {
+                handleErrorServer(res, 500, "No se pudo descargar el archivo.");
             }
         });
 
