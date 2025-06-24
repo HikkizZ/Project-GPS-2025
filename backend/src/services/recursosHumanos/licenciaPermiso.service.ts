@@ -9,6 +9,7 @@ import { actualizarEstadoFichaService } from "./fichaEmpresa.service.js";
 import { LessThan, Not, LessThanOrEqual, MoreThanOrEqual, MoreThan } from "typeorm";
 import { FileManagementService } from "../fileManagement.service.js";
 import { FileUploadService } from "../fileUpload.service.js";
+import { sendLicenciaPermisoApprovedEmail, sendLicenciaPermisoRejectedEmail } from "../email.service.js";
 
 export async function createLicenciaPermisoService(data: CreateLicenciaPermisoDTO & { file?: Express.Multer.File }): Promise<ServiceResponse<LicenciaPermiso>> {
   const queryRunner = AppDataSource.createQueryRunner();
@@ -271,6 +272,38 @@ export async function updateLicenciaPermisoService(id: number, data: UpdateLicen
 
     // Guardar los cambios de la licencia
     await queryRunner.manager.save(licencia);
+    
+    // Enviar notificación por correo electrónico después de guardar exitosamente
+    if (estadoAnterior !== data.estadoSolicitud) {
+      try {
+        const nombreCompleto = `${licencia.trabajador.nombres} ${licencia.trabajador.apellidoPaterno}`;
+        const tipoSolicitudTexto = licencia.tipo === TipoSolicitud.LICENCIA ? 'Licencia Médica' : 'Permiso Administrativo';
+        
+        if (data.estadoSolicitud === EstadoSolicitud.APROBADA) {
+          await sendLicenciaPermisoApprovedEmail({
+            to: licencia.trabajador.correoPersonal,
+            nombre: nombreCompleto,
+            tipoSolicitud: tipoSolicitudTexto,
+            fechaInicio: licencia.fechaInicio.toISOString(),
+            fechaFin: licencia.fechaFin.toISOString(),
+            motivoRespuesta: data.respuestaEncargado || undefined
+          });
+        } else if (data.estadoSolicitud === EstadoSolicitud.RECHAZADA) {
+          await sendLicenciaPermisoRejectedEmail({
+            to: licencia.trabajador.correoPersonal,
+            nombre: nombreCompleto,
+            tipoSolicitud: tipoSolicitudTexto,
+            fechaInicio: licencia.fechaInicio.toISOString(),
+            fechaFin: licencia.fechaFin.toISOString(),
+            motivoRechazo: data.respuestaEncargado || 'No se proporcionó motivo específico'
+          });
+        }
+      } catch (emailError) {
+        // Si hay error en el envío de correo, lo registramos pero no fallamons la operación
+        console.error('Error al enviar correo de notificación:', emailError);
+      }
+    }
+
     await queryRunner.commitTransaction();
 
     return [licencia, null];
