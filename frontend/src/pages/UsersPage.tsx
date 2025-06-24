@@ -94,7 +94,7 @@ export const UsersPage: React.FC = () => {
       } else {
         // Si no hay filtros específicos, obtener todos los usuarios
         const allUsers = await userService.getAllUsers();
-        filteredUsers = allUsers;
+        filteredUsers = allUsers || [];
       }
       
       // Aplicar filtros de estado de cuenta
@@ -110,6 +110,7 @@ export const UsersPage: React.FC = () => {
       setUsers(filteredUsers);
       setError('');
     } catch (err) {
+      console.error('Error al buscar usuarios:', err);
       setError('Error al buscar usuarios');
       setUsers([]);
     } finally {

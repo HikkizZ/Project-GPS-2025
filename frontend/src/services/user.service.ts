@@ -5,7 +5,7 @@ class UserService {
   async getAllUsers(): Promise<SafeUser[]> {
     try {
       const data = await apiClient.get<{ data: SafeUser[] }>('/users/');
-      return data.data;
+      return data.data || [];
     } catch (error) {
       console.error('Error en getAllUsers:', error);
       throw error;
@@ -43,8 +43,8 @@ class UserService {
         `/users/search?${queryParams}`
       );
       
-      if (data.status === 'success' && data.data) {
-        return { users: data.data };
+      if (data.status === 'success') {
+        return { users: data.data || [] };
       }
       return { error: data.message };
     } catch (error: any) {

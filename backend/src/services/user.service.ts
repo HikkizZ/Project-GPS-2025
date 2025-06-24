@@ -108,7 +108,8 @@ export async function getUsersService(): Promise<User[]> {
     try {
         const userRepository = AppDataSource.getRepository(User);
         const users = await userRepository.find();
-        return users;
+        // Devolver array vacío en lugar de null cuando no hay usuarios
+        return users || [];
     } catch (error) {
         console.error('Error en getUsersService:', error);
         throw error;
