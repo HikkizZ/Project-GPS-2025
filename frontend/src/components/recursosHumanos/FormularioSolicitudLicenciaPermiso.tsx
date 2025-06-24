@@ -44,6 +44,20 @@ export const FormularioSolicitudLicenciaPermiso: React.FC<FormularioSolicitudLic
     return 0;
   };
 
+  // Obtener fecha mínima para los campos (hoy en formato YYYY-MM-DD)
+  const getFechaMinima = () => {
+    const hoy = new Date();
+    return `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
+  };
+
+  // Obtener fecha mínima para fecha fin (fecha de inicio o hoy, lo que sea mayor)
+  const getFechaMinimalFin = () => {
+    if (formData.fechaInicio) {
+      return formData.fechaInicio;
+    }
+    return getFechaMinima();
+  };
+
   // Validaciones del frontend
   const validarFormulario = (): boolean => {
     const errores: Record<string, string> = {};
@@ -75,10 +89,9 @@ export const FormularioSolicitudLicenciaPermiso: React.FC<FormularioSolicitudLic
     if (!formData.fechaFin) {
       errores.fechaFin = 'La fecha de fin es requerida';
     } else if (formData.fechaInicio) {
-      const fechaInicio = new Date(formData.fechaInicio);
-      const fechaFin = new Date(formData.fechaFin);
-      if (fechaFin <= fechaInicio) {
-        errores.fechaFin = 'La fecha de fin debe ser posterior a la fecha de inicio';
+      // La fecha de fin debe ser igual o posterior a la fecha de inicio
+      if (formData.fechaFin < formData.fechaInicio) {
+        errores.fechaFin = 'La fecha de fin debe ser igual o posterior a la fecha de inicio';
       }
     }
 
@@ -132,7 +145,18 @@ export const FormularioSolicitudLicenciaPermiso: React.FC<FormularioSolicitudLic
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    
+    setFormData(prev => {
+      const newData = { ...prev, [name]: value };
+      
+      // Si se cambia la fecha de inicio y ya hay una fecha de fin
+      // verificar que la fecha de fin no sea anterior a la nueva fecha de inicio
+      if (name === 'fechaInicio' && prev.fechaFin && value && value > prev.fechaFin) {
+        newData.fechaFin = ''; // Limpiar fecha de fin si es inválida
+      }
+      
+      return newData;
+    });
     
     // Limpiar TODOS los errores cuando el usuario hace cambios
     limpiarErrores(); // Limpiar error general y validationErrors del hook
@@ -290,6 +314,7 @@ export const FormularioSolicitudLicenciaPermiso: React.FC<FormularioSolicitudLic
                   name="fechaInicio"
                   value={formData.fechaInicio}
                   onChange={handleInputChange}
+                  min={getFechaMinima()}
                   isInvalid={!!(localErrors.fechaInicio || validationErrors.fechaInicio)}
                   required
                 />
@@ -308,6 +333,7 @@ export const FormularioSolicitudLicenciaPermiso: React.FC<FormularioSolicitudLic
                   name="fechaFin"
                   value={formData.fechaFin}
                   onChange={handleInputChange}
+                  min={getFechaMinimalFin()}
                   isInvalid={!!(localErrors.fechaFin || validationErrors.fechaFin)}
                   required
                 />
