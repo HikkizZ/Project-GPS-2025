@@ -254,36 +254,7 @@ export async function updateLicenciaPermisoService(id: number, data: UpdateLicen
   }
 }
 
-export async function deleteLicenciaPermisoService(id: number): Promise<ServiceResponse<LicenciaPermiso>> {
-  try {
-    const licenciaRepo = AppDataSource.getRepository(LicenciaPermiso);
-    const licencia = await licenciaRepo.findOne({
-      where: { id },
-      relations: ["trabajador", "trabajador.fichaEmpresa", "revisadoPor"]
-    });
 
-    if (!licencia) return [null, "Solicitud no encontrada."];
-
-    // Si la licencia estaba aprobada, volver el estado a ACTIVO
-    if (licencia.estado === EstadoSolicitud.APROBADA && licencia.trabajador?.fichaEmpresa?.id) {
-      const [fichaActualizada, errorFicha] = await actualizarEstadoFichaService(
-        licencia.trabajador.fichaEmpresa.id,
-        EstadoLaboral.ACTIVO,
-        new Date()
-      );
-
-      if (errorFicha) {
-        return [null, errorFicha];
-      }
-    }
-
-    await licenciaRepo.remove(licencia);
-    return [licencia, null];
-  } catch (error) {
-    console.error("Error al eliminar la solicitud:", error);
-    return [null, "Error interno del servidor."];
-  }
-}
 
 export async function verificarLicenciasVencidasService(): Promise<ServiceResponse<number>> {
     const queryRunner = AppDataSource.createQueryRunner();

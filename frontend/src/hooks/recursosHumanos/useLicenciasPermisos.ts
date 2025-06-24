@@ -25,7 +25,6 @@ export const useLicenciasPermisos = (options: UseLicenciasPermisosOptions = {}) 
   const [isLoading, setIsLoading] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
   
   // Estados de error
   const [error, setError] = useState<string>('');
@@ -184,33 +183,7 @@ export const useLicenciasPermisos = (options: UseLicenciasPermisosOptions = {}) 
     }
   };
 
-  const eliminarSolicitud = async (id: number) => {
-    setIsDeleting(true);
-    setError('');
 
-    try {
-      const result = await licenciaPermisoService.eliminarSolicitud(id);
-      if (result.success) {
-        await recargarSolicitudes();
-        if (solicitudActual?.id === id) {
-          setSolicitudActual(null);
-        }
-        return { 
-          success: true,
-          message: 'Solicitud eliminada exitosamente'
-        };
-      } else {
-        setError(result.message || 'Error al eliminar solicitud');
-        return { success: false, error: result.message };
-      }
-    } catch (error: any) {
-      const errorMsg = error.message || 'Error al eliminar solicitud';
-      setError(errorMsg);
-      return { success: false, error: errorMsg };
-    } finally {
-      setIsDeleting(false);
-    }
-  };
 
   const obtenerSolicitudPorId = async (id: number) => {
     setIsLoading(true);
@@ -343,7 +316,6 @@ export const useLicenciasPermisos = (options: UseLicenciasPermisosOptions = {}) 
     isLoading,
     isCreating,
     isUpdating,
-    isDeleting,
     
     // Estados de error
     error,
@@ -361,7 +333,6 @@ export const useLicenciasPermisos = (options: UseLicenciasPermisosOptions = {}) 
     // Funciones CRUD
     crearSolicitud,
     actualizarSolicitud,
-    eliminarSolicitud,
     
     // Funciones de archivos
     descargarArchivo,

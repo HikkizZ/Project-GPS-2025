@@ -223,37 +223,7 @@ export class LicenciaPermisoService {
     }
   }
 
-  /**
-   * Eliminar solicitud - solo RRHH
-   */
-  async eliminarSolicitud(id: number): Promise<ApiResponse> {
-    try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}${this.baseURL}/${id}`, {
-        method: 'DELETE',
-        headers: this.getHeaders()
-      });
 
-      const responseData = await response.json();
-
-      if (response.ok && responseData.status === 'success') {
-        return {
-          success: true,
-          message: responseData.message || 'Solicitud eliminada exitosamente'
-        };
-      }
-
-      return {
-        success: false,
-        message: responseData.message || 'Error al eliminar solicitud'
-      };
-    } catch (error: any) {
-      console.error('Error al eliminar solicitud:', error);
-      return {
-        success: false,
-        message: error.message || 'Error al eliminar solicitud'
-      };
-    }
-  }
 
   // ==============================
   // MÉTODOS DE ARCHIVOS
@@ -402,6 +372,6 @@ export const obtenerMisSolicitudes = () => licenciaPermisoService.obtenerMisSoli
 export const obtenerTodasLasSolicitudes = () => licenciaPermisoService.obtenerTodasLasSolicitudes();
 export const obtenerSolicitudPorId = (id: number) => licenciaPermisoService.obtenerSolicitudPorId(id);
 export const actualizarSolicitud = (id: number, data: UpdateLicenciaPermisoDTO) => licenciaPermisoService.actualizarSolicitud(id, data);
-export const eliminarSolicitud = (id: number) => licenciaPermisoService.eliminarSolicitud(id);
+
 export const descargarArchivo = (id: number) => licenciaPermisoService.descargarArchivo(id);
 export const verificarLicenciasVencidas = () => licenciaPermisoService.verificarLicenciasVencidas(); 

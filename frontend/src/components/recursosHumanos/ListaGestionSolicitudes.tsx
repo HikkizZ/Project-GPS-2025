@@ -24,7 +24,7 @@ export const ListaGestionSolicitudes: React.FC = () => {
     cargarTodasLasSolicitudes,
     recargarSolicitudes,
     actualizarSolicitud,
-    eliminarSolicitud,
+
     descargarArchivo,
     limpiarErrores
   } = useLicenciasPermisos(HOOK_OPTIONS_GESTION);
@@ -207,27 +207,7 @@ export const ListaGestionSolicitudes: React.FC = () => {
     }
   };
 
-  // Eliminar solicitud
-  const handleEliminarSolicitud = async (solicitud: LicenciaPermiso) => {
-    if (!confirm(`¿Está seguro de eliminar la solicitud de ${solicitud.trabajador.nombres} ${solicitud.trabajador.apellidoPaterno}?`)) {
-      return;
-    }
 
-    setProcesandoId(solicitud.id);
-    try {
-      const result = await eliminarSolicitud(solicitud.id);
-      if (!result.success) {
-        showError('Error al eliminar', result.error || 'Error al eliminar solicitud');
-      } else {
-        showSuccess('Solicitud eliminada', 'La solicitud ha sido eliminada exitosamente');
-      }
-    } catch (error) {
-      console.error('Error al eliminar:', error);
-      showError('Error inesperado', 'Error inesperado al eliminar solicitud');
-    } finally {
-      setProcesandoId(null);
-    }
-  };
 
   if (isLoading) {
     return (
@@ -503,14 +483,7 @@ export const ListaGestionSolicitudes: React.FC = () => {
                               </>
                             )}
                             
-                            <Dropdown.Item 
-                              onClick={() => handleEliminarSolicitud(solicitud)}
-                              disabled={procesandoId === solicitud.id}
-                              className="text-danger"
-                            >
-                              <i className="bi bi-trash me-2"></i>
-                              {procesandoId === solicitud.id ? 'Eliminando...' : 'Eliminar'}
-                            </Dropdown.Item>
+
                           </Dropdown.Menu>
                         </Dropdown>
                       </td>

@@ -8,7 +8,6 @@ import {
     getMisSolicitudes,
     createLicenciaPermiso,
     updateLicenciaPermiso,
-    deleteLicenciaPermiso,
     descargarArchivoLicencia,
     verificarLicenciasVencidas
 } from "../../controllers/recursosHumanos/licenciaPermiso.controller.js";
@@ -26,7 +25,7 @@ router.get("/mis-solicitudes", getMisSolicitudes); // Ver propias solicitudes
 router.get("/", verifyRole(["RecursosHumanos"]), getAllLicenciasPermisos); // Ver todas las solicitudes
 router.get("/:id", getLicenciaPermisoById); // Ver una solicitud específica
 router.put("/:id", verifyRole(["RecursosHumanos"]), updateLicenciaPermiso); // Aprobar/Rechazar solicitud (solo RRHH)
-router.delete("/:id", verifyRole(["RecursosHumanos"]), deleteLicenciaPermiso); // Eliminar solicitud (solo RRHH)
+
 router.get("/:id/archivo", descargarArchivoLicencia);
 router.post("/verificar-vencimientos", verifyRole(["RecursosHumanos"]), verificarLicenciasVencidas);
 
