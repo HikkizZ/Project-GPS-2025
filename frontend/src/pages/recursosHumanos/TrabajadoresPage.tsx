@@ -7,13 +7,15 @@ import { useUI } from '@/context';
 import { RegisterTrabajadorForm } from '@/components/trabajador/RegisterTrabajadorForm';
 import { EditarTrabajadorModal } from '@/components/trabajador/EditarTrabajadorModal';
 import { FiltrosBusquedaHeader } from '@/components/common/FiltrosBusquedaHeader';
+import { useToast, Toast } from '@/components/common/Toast';
 import '../../styles/trabajadores.css';
 
 export const TrabajadoresPage: React.FC = () => {
   const { trabajadores, isLoading, error, loadTrabajadores, searchTrabajadores, desvincularTrabajador } = useTrabajadores();
   const { formatRUT } = useRut();
   const { formatPhone } = usePhone();
-  const { setSuccess, setError: setUIError } = useUI();
+  const { setError: setUIError } = useUI();
+  const { toasts, removeToast, showSuccess, showError } = useToast();
   
   // Estados para los modales y filtros
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -81,7 +83,7 @@ export const TrabajadoresPage: React.FC = () => {
       if (result.success) {
         setShowDesvincularModal(false);
         loadTrabajadores(); // Recargar la lista
-        setSuccess('Trabajador desvinculado exitosamente');
+        showSuccess('¡Trabajador desvinculado!', 'El trabajador se ha desvinculado exitosamente del sistema', 4000);
       } else {
         setDesvincularError(result.error || 'Error al desvincular trabajador');
       }
@@ -456,7 +458,7 @@ export const TrabajadoresPage: React.FC = () => {
             onSuccess={() => {
               setShowCreateModal(false);
               loadTrabajadores();
-                          setSuccess('Trabajador registrado exitosamente');
+              showSuccess('¡Trabajador registrado!', 'El trabajador se ha registrado exitosamente y se ha creado su ficha de empresa', 4000);
             }}
             onCancel={() => setShowCreateModal(false)}
           />
@@ -581,10 +583,13 @@ export const TrabajadoresPage: React.FC = () => {
           trabajador={trabajadorToEdit}
           onSuccess={() => {
             loadTrabajadores();
-                          setSuccess('Trabajador actualizado exitosamente');
+            showSuccess('¡Trabajador actualizado!', 'Los datos del trabajador se han actualizado exitosamente', 4000);
           }}
         />
       )}
+      
+      {/* Sistema de notificaciones */}
+      <Toast toasts={toasts} removeToast={removeToast} />
     </Container>
   );
 }; 
