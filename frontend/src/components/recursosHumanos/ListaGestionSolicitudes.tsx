@@ -445,7 +445,7 @@ export const ListaGestionSolicitudes: React.FC = () => {
                           onClick={() => mostrarDetalles(solicitud)}
                           title="Ver detalles y gestionar solicitud"
                         >
-                          <i className="bi bi-pencil"></i>
+                                                      <i className="bi bi-eye"></i>
                         </Button>
                       </td>
                     </tr>
