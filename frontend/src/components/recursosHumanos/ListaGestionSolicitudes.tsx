@@ -12,11 +12,13 @@ import {
 } from '@/types/recursosHumanos/licenciaPermiso.types';
 import { Toast, useToast } from '@/components/common/Toast';
 import { FiltrosBusquedaHeader } from '@/components/common/FiltrosBusquedaHeader';
+import { useAuth } from '@/context';
 
 // Configuración estable fuera del componente
 const HOOK_OPTIONS_GESTION = { autoLoad: true, tipoVista: 'todas' as const };
 
 export const ListaGestionSolicitudes: React.FC = () => {
+  const { user } = useAuth();
   const {
     solicitudes,
     isLoading,
@@ -106,6 +108,13 @@ export const ListaGestionSolicitudes: React.FC = () => {
   // Obtener icono según tipo
   const getTipoIcon = (tipo: TipoSolicitud) => {
     return tipo === TipoSolicitud.LICENCIA ? 'bi-heart-pulse' : 'bi-calendar-event';
+  };
+
+  // Verificar si el usuario actual puede gestionar la solicitud (no es su propia solicitud)
+  const puedeGestionarSolicitud = (solicitud: LicenciaPermiso) => {
+    if (!user) return false;
+    // El usuario no puede gestionar su propia solicitud
+    return solicitud.trabajador.rut !== user.rut;
   };
 
   // Filtrar solicitudes localmente
@@ -658,7 +667,7 @@ export const ListaGestionSolicitudes: React.FC = () => {
           
           <div className="d-flex gap-2">
             {/* Botones de acción para solicitudes pendientes */}
-            {solicitudSeleccionada?.estado === 'Pendiente' && (
+            {solicitudSeleccionada?.estado === 'Pendiente' && puedeGestionarSolicitud(solicitudSeleccionada) && (
               <>
                 <Button 
                   variant="success" 
@@ -687,6 +696,14 @@ export const ListaGestionSolicitudes: React.FC = () => {
                   Rechazar
                 </Button>
               </>
+            )}
+            
+            {/* Mensaje cuando es la propia solicitud */}
+            {solicitudSeleccionada?.estado === 'Pendiente' && !puedeGestionarSolicitud(solicitudSeleccionada) && (
+              <Alert variant="info" className="mb-0 py-2 px-3">
+                <i className="bi bi-info-circle me-2"></i>
+                <small>No puede gestionar su propia solicitud. Esta acción debe ser realizada por otro usuario con permisos adecuados.</small>
+              </Alert>
             )}
             
             {/* Botón cerrar */}

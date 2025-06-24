@@ -218,6 +218,24 @@ export async function updateLicenciaPermiso(req: Request, res: Response): Promis
       return;
     }
 
+    // Buscar la solicitud para verificar quién es el solicitante
+    const licenciaRepo = AppDataSource.getRepository(LicenciaPermiso);
+    const solicitudExistente = await licenciaRepo.findOne({
+      where: { id: licenciaId },
+      relations: ["trabajador"]
+    });
+
+    if (!solicitudExistente) {
+      handleErrorClient(res, 404, "Solicitud no encontrada");
+      return;
+    }
+
+    // Validar que el usuario no puede aprobar/rechazar su propia solicitud
+    if (solicitudExistente.trabajador.rut === req.user.rut) {
+      handleErrorClient(res, 403, "No puede aprobar o rechazar su propia solicitud. Esta acción debe ser realizada por otro usuario con permisos adecuados");
+      return;
+    }
+
     // Buscar el usuario que está revisando la solicitud
     const userRepo = AppDataSource.getRepository(User);
     const revisadoPor = await userRepo.findOne({ where: { id: req.user.id } });
