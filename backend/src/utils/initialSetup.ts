@@ -41,7 +41,7 @@ export async function initialSetup(): Promise<void> {
         const superAdminHashedPassword = await encryptPassword(superAdminPlainPassword);
         
         const superAdminUser = userRepo.create({
-            name: "Super Administrador Técnico",
+            name: "Super Administrador Sistema",
             email: "super.administrador@lamas.com",
             password: superAdminHashedPassword,
             role: 'SuperAdministrador' as userRole,
