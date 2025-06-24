@@ -194,98 +194,101 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
         closeButton 
         style={{
           background: 'linear-gradient(135deg, #17a2b8 0%, #138496 100%)',
-          border: 'none'
+          border: 'none',
+          padding: '0.75rem 1rem'
         }}
         className="text-white"
       >
-        <Modal.Title className="fw-semibold">
+        <Modal.Title className="fw-semibold fs-5">
           <i className="bi bi-clipboard-data me-2"></i>
           Editar Ficha de Empresa
         </Modal.Title>
       </Modal.Header>
 
-      <Modal.Body style={{ padding: '1.5rem' }}>
-        {/* Información del Trabajador */}
+      <Modal.Body style={{ padding: '1rem' }}>
+        {/* Información del Trabajador - Más compacta */}
         <div 
-          className="mb-3 p-3" 
+          className="mb-2 p-2" 
           style={{ 
             backgroundColor: '#f8f9fa', 
-            borderRadius: '12px',
+            borderRadius: '8px',
             border: '1px solid #e9ecef'
           }}
         >
-          <h6 className="text-primary mb-2 fw-semibold">Información del Trabajador</h6>
           <div className="row">
             <div className="col-md-8">
-              <strong>Trabajador:</strong> {ficha.trabajador.nombres} {ficha.trabajador.apellidoPaterno} {ficha.trabajador.apellidoMaterno}
+              <small className="text-muted">Trabajador:</small>
+              <strong className="ms-1">{ficha.trabajador.nombres} {ficha.trabajador.apellidoPaterno} {ficha.trabajador.apellidoMaterno}</strong>
             </div>
             <div className="col-md-4">
-              <strong>RUT:</strong> {formatearRut(ficha.trabajador.rut)}
+              <small className="text-muted">RUT:</small>
+              <strong className="ms-1">{formatearRut(ficha.trabajador.rut)}</strong>
             </div>
           </div>
         </div>
 
-        {/* Alertas */}
+        {/* Alertas - Más compactas */}
         {error && (
-          <Alert variant="danger" className="border-0 mb-3" style={{ borderRadius: '12px' }}>
+          <Alert variant="danger" className="border-0 mb-2 py-2" style={{ borderRadius: '8px' }}>
             <i className="bi bi-exclamation-triangle me-2"></i>
-            {error}
+            <small>{error}</small>
           </Alert>
         )}
 
         {success && (
-          <Alert variant="success" className="border-0 mb-3" style={{ borderRadius: '12px' }}>
+          <Alert variant="success" className="border-0 mb-2 py-2" style={{ borderRadius: '8px' }}>
             <i className="bi bi-check-circle me-2"></i>
-            {success}
+            <small>{success}</small>
           </Alert>
         )}
 
         <Form onSubmit={handleSubmit}>
-          <h6 className="text-primary mb-3 fw-semibold">Información Laboral</h6>
-          
-          <Row className="g-3 mb-3">
+          <Row className="g-2 mb-2">
             {/* Cargo y Área */}
             <Col md={6}>
-              <Form.Group>
-                <Form.Label className="fw-semibold">Cargo <span className="text-danger">*</span></Form.Label>
+              <Form.Group className="mb-2">
+                <Form.Label className="fw-semibold small">Cargo <span className="text-danger">*</span></Form.Label>
                 <Form.Control
                   type="text"
                   name="cargo"
                   value={formData.cargo}
                   onChange={handleInputChange}
                   required
-                  style={{ borderRadius: '8px' }}
+                  size="sm"
+                  style={{ borderRadius: '6px' }}
                   placeholder="Ej: Desarrollador Senior"
                 />
               </Form.Group>
             </Col>
             <Col md={6}>
-              <Form.Group>
-                <Form.Label className="fw-semibold">Área <span className="text-danger">*</span></Form.Label>
+              <Form.Group className="mb-2">
+                <Form.Label className="fw-semibold small">Área <span className="text-danger">*</span></Form.Label>
                 <Form.Control
                   type="text"
                   name="area"
                   value={formData.area}
                   onChange={handleInputChange}
                   required
-                  style={{ borderRadius: '8px' }}
+                  size="sm"
+                  style={{ borderRadius: '6px' }}
                   placeholder="Ej: Tecnología"
                 />
               </Form.Group>
             </Col>
           </Row>
 
-          <Row className="g-3 mb-3">
+          <Row className="g-2 mb-2">
             {/* Tipo de Contrato y Jornada */}
             <Col md={6}>
-              <Form.Group>
-                <Form.Label className="fw-semibold">Tipo de Contrato <span className="text-danger">*</span></Form.Label>
+              <Form.Group className="mb-2">
+                <Form.Label className="fw-semibold small">Tipo de Contrato <span className="text-danger">*</span></Form.Label>
                 <Form.Select
                   name="tipoContrato"
                   value={formData.tipoContrato}
                   onChange={handleInputChange}
                   required
-                  style={{ borderRadius: '8px' }}
+                  size="sm"
+                  style={{ borderRadius: '6px' }}
                 >
                   <option value="">Seleccione...</option>
                   <option value="Indefinido">Indefinido</option>
@@ -296,14 +299,15 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
               </Form.Group>
             </Col>
             <Col md={6}>
-              <Form.Group>
-                <Form.Label className="fw-semibold">Jornada Laboral <span className="text-danger">*</span></Form.Label>
+              <Form.Group className="mb-2">
+                <Form.Label className="fw-semibold small">Jornada Laboral <span className="text-danger">*</span></Form.Label>
                 <Form.Select
                   name="jornadaLaboral"
                   value={formData.jornadaLaboral}
                   onChange={handleInputChange}
                   required
-                  style={{ borderRadius: '8px' }}
+                  size="sm"
+                  style={{ borderRadius: '6px' }}
                 >
                   <option value="">Seleccione...</option>
                   <option value="Tiempo Completo">Tiempo Completo</option>
@@ -314,119 +318,112 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
             </Col>
           </Row>
 
-          <Row className="g-3 mb-3">
+          <Row className="g-2 mb-2">
             {/* Sueldo Base */}
             <Col md={4}>
-              <Form.Group>
-                <Form.Label className="fw-semibold">Sueldo Base <span className="text-danger">*</span></Form.Label>
+              <Form.Group className="mb-2">
+                <Form.Label className="fw-semibold small">Sueldo Base <span className="text-danger">*</span></Form.Label>
                 <Form.Control
                   type="text"
                   name="sueldoBase"
                   value={formData.sueldoBase}
                   onChange={handleInputChange}
                   required
-                  style={{ borderRadius: '8px' }}
+                  size="sm"
+                  style={{ borderRadius: '6px' }}
                   placeholder="1.000.000"
                 />
-                <Form.Text className="text-muted small">
-                  <i className="bi bi-currency-exchange me-1"></i>
-                  Formato automático con puntos de miles
-                </Form.Text>
               </Form.Group>
             </Col>
             {/* Fecha Inicio Contrato */}
             <Col md={4}>
-              <Form.Group>
-                <Form.Label className="fw-semibold">Fecha Inicio Contrato <span className="text-danger">*</span></Form.Label>
+              <Form.Group className="mb-2">
+                <Form.Label className="fw-semibold small">Fecha Inicio <span className="text-danger">*</span></Form.Label>
                 <Form.Control
                   type="date"
                   name="fechaInicioContrato"
                   value={formData.fechaInicioContrato}
                   onChange={handleInputChange}
                   required
-                  style={{ borderRadius: '8px' }}
+                  size="sm"
+                  style={{ borderRadius: '6px' }}
                 />
               </Form.Group>
             </Col>
             {/* Fecha Fin Contrato */}
             <Col md={4}>
-              <Form.Group>
-                <Form.Label className="fw-semibold">Fecha Fin Contrato</Form.Label>
+              <Form.Group className="mb-2">
+                <Form.Label className="fw-semibold small">Fecha Fin</Form.Label>
                 <Form.Control
                   type="date"
                   name="fechaFinContrato"
                   value={formData.fechaFinContrato}
                   onChange={handleInputChange}
-                  style={{ borderRadius: '8px' }}
+                  size="sm"
+                  style={{ borderRadius: '6px' }}
                 />
-                <Form.Text className="text-muted small">
-                  <i className="bi bi-info-circle me-1"></i>
-                  Opcional para contratos indefinidos
-                </Form.Text>
               </Form.Group>
             </Col>
           </Row>
 
-          {/* Sección de Contrato */}
-          <div style={{ borderTop: '1px solid #e9ecef', paddingTop: '1rem', marginTop: '1.5rem' }}>
-            <h6 className="text-primary mb-3 fw-semibold">Contrato</h6>
+          {/* Sección de Contrato - Más compacta */}
+          <div style={{ borderTop: '1px solid #e9ecef', paddingTop: '0.75rem', marginTop: '0.75rem' }}>
+            <h6 className="text-primary mb-2 fw-semibold small">Contrato</h6>
             
-            {/* Estado actual del contrato */}
+            {/* Estado actual del contrato - Más compacto */}
             {ficha.contrato && (
-              <div className="mb-3 p-3" style={{ backgroundColor: '#d1ecf1', borderRadius: '8px', border: '1px solid #bee5eb' }}>
+              <div className="mb-2 p-2" style={{ backgroundColor: '#d1ecf1', borderRadius: '6px', border: '1px solid #bee5eb' }}>
                 <div className="d-flex justify-content-between align-items-center">
                   <div>
-                    <i className="bi bi-file-pdf text-danger me-2"></i>
-                    <strong>Contrato actual disponible</strong>
+                    <i className="bi bi-file-pdf text-danger me-1"></i>
+                    <small className="fw-semibold">Contrato disponible</small>
                   </div>
                   <div>
                     <Button 
                       variant="outline-primary" 
                       size="sm" 
                       onClick={handleDownloadFile}
-                      className="me-2"
-                      style={{ borderRadius: '6px' }}
+                      className="me-1 py-1 px-2"
+                      style={{ borderRadius: '4px', fontSize: '0.75rem' }}
                     >
-                      <i className="bi bi-download me-1"></i>
-                      Descargar
+                      <i className="bi bi-download"></i>
                     </Button>
                     <Button 
                       variant="outline-danger" 
                       size="sm" 
                       onClick={handleDeleteFile}
-                      style={{ borderRadius: '6px' }}
+                      className="py-1 px-2"
+                      style={{ borderRadius: '4px', fontSize: '0.75rem' }}
                     >
-                      <i className="bi bi-trash me-1"></i>
-                      Eliminar
+                      <i className="bi bi-trash"></i>
                     </Button>
                   </div>
                 </div>
               </div>
             )}
 
-            {/* Subir nuevo contrato */}
-            <Form.Group>
-              <Form.Label className="fw-semibold">
+            {/* Subir nuevo contrato - Más compacto */}
+            <Form.Group className="mb-0">
+              <Form.Label className="fw-semibold small">
                 {ficha.contrato ? 'Reemplazar contrato' : 'Subir nuevo contrato'}
               </Form.Label>
               <Form.Control
                 type="file"
                 accept=".pdf"
                 onChange={handleFileSelect}
-                style={{ borderRadius: '8px' }}
+                size="sm"
+                style={{ borderRadius: '6px' }}
               />
-              <Form.Text className="text-muted small">
-                <i className="bi bi-info-circle me-1"></i>
-                Solo archivos PDF, máximo 10MB
-              </Form.Text>
               {selectedFile && (
-                <div className="mt-2 p-2 bg-light rounded">
-                  <i className="bi bi-file-pdf text-danger me-2"></i>
-                  <strong>{selectedFile.name}</strong>
+                <div className="mt-1 p-1 bg-light rounded d-flex align-items-center justify-content-between">
+                  <div>
+                    <i className="bi bi-file-pdf text-danger me-1"></i>
+                    <small className="fw-semibold">{selectedFile.name}</small>
+                  </div>
                   <Button 
                     variant="link" 
                     size="sm" 
-                    className="text-danger p-0 ms-2"
+                    className="text-danger p-0"
                     onClick={() => setSelectedFile(null)}
                   >
                     <i className="bi bi-x"></i>
@@ -438,9 +435,10 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
         </Form>
       </Modal.Body>
 
-      <Modal.Footer style={{ borderTop: '1px solid #e9ecef', padding: '1rem 1.5rem' }}>
+      <Modal.Footer style={{ borderTop: '1px solid #e9ecef', padding: '0.75rem 1rem' }}>
         <Button 
           variant="outline-secondary" 
+          size="sm"
           onClick={onHide}
           style={{ borderRadius: '20px', fontWeight: '500' }}
         >
@@ -448,19 +446,20 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
         </Button>
         <Button 
           variant="primary" 
+          size="sm"
           onClick={handleSubmit}
           disabled={loading}
-          style={{ borderRadius: '20px', fontWeight: '500', minWidth: '120px' }}
+          style={{ borderRadius: '20px', fontWeight: '500', minWidth: '100px' }}
         >
           {loading ? (
             <>
-              <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+              <span className="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
               Guardando...
             </>
           ) : (
             <>
-              <i className="bi bi-check-lg me-2"></i>
-              Guardar Cambios
+              <i className="bi bi-check-lg me-1"></i>
+              Guardar
             </>
           )}
         </Button>
