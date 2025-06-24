@@ -360,12 +360,12 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
                   </div>
                 )}
                 <div className="card shadow-lg border-0" style={{ borderRadius: '12px', overflow: 'hidden' }}>
-                  <div className="card-header bg-gradient-primary text-white border-0" style={{ padding: '1.25rem 1.5rem' }}>
+                  <div className="card-header bg-gradient-primary text-white border-0" style={{ padding: '0.75rem 1.25rem' }}>
                     <div className="d-flex align-items-center">
-                      <i className="bi bi-house fs-4 me-2"></i>
+                      <i className="bi bi-house fs-5 me-2"></i>
                       <div>
-                        <h4 className="mb-0 fw-bold">Dashboard Principal</h4>
-                        <small className="opacity-75">Centro de control y navegación del sistema</small>
+                        <h5 className="mb-0 fw-bold">Dashboard Principal</h5>
+                        <small className="opacity-75" style={{ fontSize: '0.75rem' }}>Centro de control y navegación del sistema</small>
                       </div>
                     </div>
                   </div>
