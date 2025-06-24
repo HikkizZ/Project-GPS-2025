@@ -73,7 +73,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ user, onLogout, children }) => 
       </nav>
       {/* Contenido */}
       <main className="flex-grow-1 bg-light">
-        <div className="container-fluid pt-3">
+        <div className="container-fluid pt-1">
           <GlobalMessages />
           {children}
         </div>

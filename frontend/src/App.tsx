@@ -345,7 +345,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
         return <TrabajadoresPage />;
       default:
         return (
-          <div className="container py-3">
+          <div className="container pt-2 pb-3">
             <div className="row">
               <div className="col-12">
                 {successMessage && (
