@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, Button, Form, Alert, Spinner, Row, Col, OverlayTrigger, Tooltip } from 'react-bootstrap';
+import { Modal, Button, Form, Alert, Row, Col } from 'react-bootstrap';
 import { FichaEmpresa, UpdateFichaEmpresaData, EstadoLaboral } from '@/types/recursosHumanos/fichaEmpresa.types';
 import { updateFichaEmpresa, uploadContrato, downloadContrato, deleteContrato, getFichaEmpresa } from '@/services/recursosHumanos/fichaEmpresa.service';
 
@@ -9,16 +9,6 @@ interface EditarFichaEmpresaModalProps {
   ficha: FichaEmpresa;
   onUpdate?: () => void;
 }
-
-// Componente para el ícono de información con tooltip
-const InfoIcon: React.FC<{ text: string }> = ({ text }) => (
-  <OverlayTrigger
-    placement="right"
-    overlay={<Tooltip>{text}</Tooltip>}
-  >
-    <i className="bi bi-info-circle ms-2" style={{ cursor: 'help' }}></i>
-  </OverlayTrigger>
-);
 
 // Función para formatear el RUT con puntos y guion
 function formatearRut(rut: string): string {
@@ -41,6 +31,16 @@ function cleanNumber(value: string): string {
   return value.replace(/\./g, '');
 }
 
+// Función para formatear sueldo
+function formatSueldo(sueldo: number): string {
+  return new Intl.NumberFormat('es-CL', {
+    style: 'currency',
+    currency: 'CLP',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(sueldo);
+}
+
 export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = ({
   show,
   onHide,
@@ -51,14 +51,13 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [isContratoDeleted, setIsContratoDeleted] = useState(false);
 
   const [formData, setFormData] = useState<UpdateFichaEmpresaData & { sueldoBase: string }>({
     cargo: ficha.cargo || '',
     area: ficha.area || '',
     tipoContrato: ficha.tipoContrato || '',
     jornadaLaboral: ficha.jornadaLaboral || '',
-    sueldoBase: ficha.sueldoBase ? ficha.sueldoBase.toString() : '',
+    sueldoBase: ficha.sueldoBase ? formatMiles(ficha.sueldoBase) : '',
     fechaInicioContrato: ficha.fechaInicioContrato ? new Date(ficha.fechaInicioContrato).toISOString().split('T')[0] : '',
     fechaFinContrato: ficha.fechaFinContrato ? new Date(ficha.fechaFinContrato).toISOString().split('T')[0] : ''
   });
@@ -68,13 +67,12 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
       setError(null);
       setSuccess(null);
       setSelectedFile(null);
-      setIsContratoDeleted(false);
       setFormData({
         cargo: ficha.cargo || '',
         area: ficha.area || '',
         tipoContrato: ficha.tipoContrato || '',
         jornadaLaboral: ficha.jornadaLaboral || '',
-        sueldoBase: ficha.sueldoBase ? ficha.sueldoBase.toString() : '',
+        sueldoBase: ficha.sueldoBase ? formatMiles(ficha.sueldoBase) : '',
         fechaInicioContrato: ficha.fechaInicioContrato ? new Date(ficha.fechaInicioContrato).toISOString().split('T')[0] : '',
         fechaFinContrato: ficha.fechaFinContrato ? new Date(ficha.fechaFinContrato).toISOString().split('T')[0] : ''
       });
@@ -84,13 +82,9 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
   const handleInputChange = (e: any) => {
     const { name, value } = e.target;
     if (name === 'sueldoBase') {
-      // Limpiar puntos y dejar solo números
       const numericValue = cleanNumber(value).replace(/[^0-9]/g, '');
-      // Formatear con puntos de miles
       const formatted = numericValue ? formatMiles(numericValue) : '';
       setFormData(prev => ({ ...prev, [name]: formatted }));
-    } else if (name === 'fechaInicioContrato' || name === 'fechaFinContrato') {
-      setFormData(prev => ({ ...prev, [name]: value }));
     } else {
       setFormData(prev => ({ ...prev, [name]: value }));
     }
@@ -104,7 +98,7 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
         e.target.value = '';
         return;
       }
-      if (file.size > 10 * 1024 * 1024) { // 10MB
+      if (file.size > 10 * 1024 * 1024) {
         setError('El archivo no puede superar los 10MB');
         e.target.value = '';
         return;
@@ -129,25 +123,14 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
     try {
       const response = await deleteContrato(ficha.id);
       if (response.success) {
-        setIsContratoDeleted(true);
         if (onUpdate) onUpdate();
         setSuccess('Contrato eliminado exitosamente');
-        // Hacer que el mensaje desaparezca después de 3 segundos
-        setTimeout(() => {
-          setSuccess(null);
-        }, 1500);
+        setTimeout(() => setSuccess(null), 2000);
       } else {
         setError(response.message || 'Error al eliminar el contrato');
       }
     } catch (error: any) {
       setError(error.message || 'Error al eliminar el contrato');
-    }
-  };
-
-  const handleRemoveFile = () => {
-    setSelectedFile(null);
-    if (document.getElementById('contratoFile')) {
-      (document.getElementById('contratoFile') as HTMLInputElement).value = '';
     }
   };
 
@@ -158,16 +141,7 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
     setSuccess(null);
 
     try {
-      // Verificar si la ficha existe antes de actualizarla
       const fichaId = typeof ficha.id === 'string' ? parseInt(ficha.id) : ficha.id;
-      const verificacion = await getFichaEmpresa(fichaId);
-      
-      if (!verificacion.success) {
-        throw new Error('No se pudo encontrar la ficha para actualizar. Por favor, recargue la página e intente nuevamente.');
-      }
-
-      console.log('Ficha encontrada:', verificacion.data);
-      console.log('Datos a actualizar:', formData);
 
       // Si hay un archivo seleccionado, subirlo
       if (selectedFile) {
@@ -200,100 +174,120 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
       if (response.success) {
         setSuccess('Ficha actualizada exitosamente');
         if (onUpdate) onUpdate();
-        onHide();
+        setTimeout(() => {
+          setSuccess(null);
+          onHide();
+        }, 1500);
       } else {
-        throw new Error(response.message || 'Error al actualizar la ficha');
+        setError(response.message || 'Error al actualizar la ficha');
       }
     } catch (error: any) {
-      setError(error.message || 'Error al actualizar la información');
+      setError(error.message || 'Error inesperado al actualizar la ficha');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <Modal show={show} onHide={onHide} size="lg">
-      <Modal.Header closeButton>
-        <Modal.Title>Editar Ficha de Empresa</Modal.Title>
+    <Modal show={show} onHide={onHide} size="lg" centered>
+      <Modal.Header 
+        closeButton 
+        style={{
+          background: 'linear-gradient(135deg, #17a2b8 0%, #138496 100%)',
+          border: 'none'
+        }}
+        className="text-white"
+      >
+        <Modal.Title className="fw-semibold">
+          <i className="bi bi-clipboard-data me-2"></i>
+          Editar Ficha de Empresa
+        </Modal.Title>
       </Modal.Header>
-      <Form onSubmit={handleSubmit}>
-        <Modal.Body>
-          {error && (
-            <Alert variant="danger" className="mb-3">
-              <i className="bi bi-exclamation-triangle me-2"></i>
-              {error}
-            </Alert>
-          )}
-          {success && (
-            <Alert variant="success" className="mb-3">
-              <i className="bi bi-check-circle me-2"></i>
-              {success}
-            </Alert>
-          )}
-          {loading && (
-            <div className="text-center p-3">
-              <Spinner animation="border" role="status">
-                <span className="visually-hidden">Cargando...</span>
-              </Spinner>
+
+      <Modal.Body style={{ padding: '1.5rem' }}>
+        {/* Información del Trabajador */}
+        <div 
+          className="mb-3 p-3" 
+          style={{ 
+            backgroundColor: '#f8f9fa', 
+            borderRadius: '12px',
+            border: '1px solid #e9ecef'
+          }}
+        >
+          <h6 className="text-primary mb-2 fw-semibold">Información del Trabajador</h6>
+          <div className="row">
+            <div className="col-md-8">
+              <strong>Trabajador:</strong> {ficha.trabajador.nombres} {ficha.trabajador.apellidoPaterno} {ficha.trabajador.apellidoMaterno}
             </div>
-          )}
-
-          <h5 className="mb-3 mt-4">Información del Trabajador</h5>
-          <div className="alert alert-info">
-            <strong>Trabajador:</strong>
-            <span className="ms-2">{ficha.trabajador.nombres} {ficha.trabajador.apellidoPaterno} {ficha.trabajador.apellidoMaterno}</span>
-            <span className="mx-4"></span>
-            <strong>RUT:</strong>
-            <span className="ms-2">{formatearRut(ficha.trabajador.rut)}</span>
+            <div className="col-md-4">
+              <strong>RUT:</strong> {formatearRut(ficha.trabajador.rut)}
+            </div>
           </div>
+        </div>
 
-          <h5 className="mb-3">Información Laboral</h5>
-          <Row>
+        {/* Alertas */}
+        {error && (
+          <Alert variant="danger" className="border-0 mb-3" style={{ borderRadius: '12px' }}>
+            <i className="bi bi-exclamation-triangle me-2"></i>
+            {error}
+          </Alert>
+        )}
+
+        {success && (
+          <Alert variant="success" className="border-0 mb-3" style={{ borderRadius: '12px' }}>
+            <i className="bi bi-check-circle me-2"></i>
+            {success}
+          </Alert>
+        )}
+
+        <Form onSubmit={handleSubmit}>
+          <h6 className="text-primary mb-3 fw-semibold">Información Laboral</h6>
+          
+          <Row className="g-3 mb-3">
+            {/* Cargo y Área */}
             <Col md={6}>
-              <Form.Group className="mb-3">
-                <Form.Label>
-                  Cargo *
-                  <InfoIcon text="El cargo debe tener entre 3 y 100 caracteres" />
-                </Form.Label>
+              <Form.Group>
+                <Form.Label className="fw-semibold">Cargo <span className="text-danger">*</span></Form.Label>
                 <Form.Control
                   type="text"
                   name="cargo"
                   value={formData.cargo}
                   onChange={handleInputChange}
                   required
+                  style={{ borderRadius: '8px' }}
+                  placeholder="Ej: Desarrollador Senior"
                 />
               </Form.Group>
             </Col>
             <Col md={6}>
-              <Form.Group className="mb-3">
-                <Form.Label>
-                  Área *
-                  <InfoIcon text="El área debe tener entre 3 y 100 caracteres" />
-                </Form.Label>
+              <Form.Group>
+                <Form.Label className="fw-semibold">Área <span className="text-danger">*</span></Form.Label>
                 <Form.Control
                   type="text"
                   name="area"
                   value={formData.area}
                   onChange={handleInputChange}
                   required
+                  style={{ borderRadius: '8px' }}
+                  placeholder="Ej: Tecnología"
                 />
               </Form.Group>
             </Col>
           </Row>
 
-          <Row>
+          <Row className="g-3 mb-3">
+            {/* Tipo de Contrato y Jornada */}
             <Col md={6}>
-              <Form.Group className="mb-3">
-                <Form.Label>
-                  Tipo de Contrato *
-                </Form.Label>
+              <Form.Group>
+                <Form.Label className="fw-semibold">Tipo de Contrato <span className="text-danger">*</span></Form.Label>
                 <Form.Select
                   name="tipoContrato"
                   value={formData.tipoContrato}
                   onChange={handleInputChange}
                   required
+                  style={{ borderRadius: '8px' }}
                 >
-                  <option value="">Seleccione</option>
+                  <option value="">Seleccione...</option>
                   <option value="Indefinido">Indefinido</option>
                   <option value="Plazo Fijo">Plazo Fijo</option>
                   <option value="Por Obra">Por Obra</option>
@@ -301,144 +295,176 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
                 </Form.Select>
               </Form.Group>
             </Col>
-          </Row>
-
-          <Row>
             <Col md={6}>
-              <Form.Group className="mb-3">
-                <Form.Label>
-                  Jornada Laboral *
-                </Form.Label>
+              <Form.Group>
+                <Form.Label className="fw-semibold">Jornada Laboral <span className="text-danger">*</span></Form.Label>
                 <Form.Select
                   name="jornadaLaboral"
                   value={formData.jornadaLaboral}
                   onChange={handleInputChange}
                   required
+                  style={{ borderRadius: '8px' }}
                 >
                   <option value="">Seleccione...</option>
-                  <option value="Completa">Completa</option>
-                  <option value="Media">Media</option>
-                  <option value="Part-Time">Part-Time</option>
+                  <option value="Tiempo Completo">Tiempo Completo</option>
+                  <option value="Medio Tiempo">Medio Tiempo</option>
+                  <option value="Por Horas">Por Horas</option>
                 </Form.Select>
               </Form.Group>
             </Col>
-            <Col md={6}>
-              <Form.Group className="mb-3">
-                <Form.Label>
-                  Sueldo Base *
-                  <InfoIcon text="El sueldo base debe ser mayor a 0" />
-                </Form.Label>
+          </Row>
+
+          <Row className="g-3 mb-3">
+            {/* Sueldo Base */}
+            <Col md={4}>
+              <Form.Group>
+                <Form.Label className="fw-semibold">Sueldo Base <span className="text-danger">*</span></Form.Label>
                 <Form.Control
                   type="text"
-                  inputMode="numeric"
                   name="sueldoBase"
                   value={formData.sueldoBase}
                   onChange={handleInputChange}
-                  maxLength={12}
                   required
+                  style={{ borderRadius: '8px' }}
+                  placeholder="1.000.000"
                 />
+                <Form.Text className="text-muted small">
+                  <i className="bi bi-currency-exchange me-1"></i>
+                  Formato automático con puntos de miles
+                </Form.Text>
               </Form.Group>
             </Col>
-          </Row>
-
-          <Row>
-            <Col md={6}>
-              <Form.Group className="mb-3">
-                <Form.Label>
-                  Fecha Inicio Contrato *
-                </Form.Label>
+            {/* Fecha Inicio Contrato */}
+            <Col md={4}>
+              <Form.Group>
+                <Form.Label className="fw-semibold">Fecha Inicio Contrato <span className="text-danger">*</span></Form.Label>
                 <Form.Control
                   type="date"
                   name="fechaInicioContrato"
-                  value={formData.fechaInicioContrato?.toString() || ''}
+                  value={formData.fechaInicioContrato}
                   onChange={handleInputChange}
                   required
+                  style={{ borderRadius: '8px' }}
                 />
               </Form.Group>
             </Col>
-            <Col md={6}>
-              <Form.Group className="mb-3">
-                <Form.Label>
-                  Fecha Fin Contrato
-                  <InfoIcon text="La fecha de fin debe ser posterior a la fecha de inicio" />
-                </Form.Label>
+            {/* Fecha Fin Contrato */}
+            <Col md={4}>
+              <Form.Group>
+                <Form.Label className="fw-semibold">Fecha Fin Contrato</Form.Label>
                 <Form.Control
                   type="date"
                   name="fechaFinContrato"
-                  value={formData.fechaFinContrato?.toString() || ''}
+                  value={formData.fechaFinContrato}
                   onChange={handleInputChange}
-                  min={formData.fechaInicioContrato?.toString() || ''}
+                  style={{ borderRadius: '8px' }}
                 />
+                <Form.Text className="text-muted small">
+                  <i className="bi bi-info-circle me-1"></i>
+                  Opcional para contratos indefinidos
+                </Form.Text>
               </Form.Group>
             </Col>
           </Row>
 
-          <hr className="my-4" />
+          {/* Sección de Contrato */}
+          <div style={{ borderTop: '1px solid #e9ecef', paddingTop: '1rem', marginTop: '1.5rem' }}>
+            <h6 className="text-primary mb-3 fw-semibold">Contrato</h6>
+            
+            {/* Estado actual del contrato */}
+            {ficha.contrato && (
+              <div className="mb-3 p-3" style={{ backgroundColor: '#d1ecf1', borderRadius: '8px', border: '1px solid #bee5eb' }}>
+                <div className="d-flex justify-content-between align-items-center">
+                  <div>
+                    <i className="bi bi-file-pdf text-danger me-2"></i>
+                    <strong>Contrato actual disponible</strong>
+                  </div>
+                  <div>
+                    <Button 
+                      variant="outline-primary" 
+                      size="sm" 
+                      onClick={handleDownloadFile}
+                      className="me-2"
+                      style={{ borderRadius: '6px' }}
+                    >
+                      <i className="bi bi-download me-1"></i>
+                      Descargar
+                    </Button>
+                    <Button 
+                      variant="outline-danger" 
+                      size="sm" 
+                      onClick={handleDeleteFile}
+                      style={{ borderRadius: '6px' }}
+                    >
+                      <i className="bi bi-trash me-1"></i>
+                      Eliminar
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
 
-          <h5 className="mb-3">Contrato</h5>
-          {ficha.contratoURL && !isContratoDeleted ? (
-            <div className="d-flex gap-2 align-items-center">
-              <Button 
-                variant="outline-primary" 
-                onClick={handleDownloadFile}
-                disabled={loading}
-              >
-                <i className="bi bi-download me-2"></i>
-                Descargar Contrato
-              </Button>
-              <Button 
-                variant="outline-danger" 
-                onClick={handleDeleteFile}
-                disabled={loading}
-              >
-                <i className="bi bi-trash me-2"></i>
-                Eliminar Contrato
-              </Button>
-            </div>
-          ) : (
+            {/* Subir nuevo contrato */}
             <Form.Group>
-              <Form.Label>Subir Contrato (PDF, máx. 10MB)</Form.Label>
+              <Form.Label className="fw-semibold">
+                {ficha.contrato ? 'Reemplazar contrato' : 'Subir nuevo contrato'}
+              </Form.Label>
               <Form.Control
-                id="contratoFile"
                 type="file"
                 accept=".pdf"
                 onChange={handleFileSelect}
+                style={{ borderRadius: '8px' }}
               />
+              <Form.Text className="text-muted small">
+                <i className="bi bi-info-circle me-1"></i>
+                Solo archivos PDF, máximo 10MB
+              </Form.Text>
               {selectedFile && (
-                <div className="d-flex align-items-center gap-2 mt-2">
-                  <span className="text-success">
-                    <i className="bi bi-check-circle me-1"></i>
-                    Archivo seleccionado: {selectedFile.name}
-                  </span>
-                  <Button
-                    variant="outline-danger"
-                    size="sm"
-                    onClick={handleRemoveFile}
+                <div className="mt-2 p-2 bg-light rounded">
+                  <i className="bi bi-file-pdf text-danger me-2"></i>
+                  <strong>{selectedFile.name}</strong>
+                  <Button 
+                    variant="link" 
+                    size="sm" 
+                    className="text-danger p-0 ms-2"
+                    onClick={() => setSelectedFile(null)}
                   >
-                    <i className="bi bi-x-circle me-1"></i>
-                    Quitar archivo
+                    <i className="bi bi-x"></i>
                   </Button>
                 </div>
               )}
-              <Form.Text className="text-muted">
-                Solo archivos PDF. Máximo 10MB.
-              </Form.Text>
             </Form.Group>
+          </div>
+        </Form>
+      </Modal.Body>
+
+      <Modal.Footer style={{ borderTop: '1px solid #e9ecef', padding: '1rem 1.5rem' }}>
+        <Button 
+          variant="outline-secondary" 
+          onClick={onHide}
+          style={{ borderRadius: '20px', fontWeight: '500' }}
+        >
+          Cancelar
+        </Button>
+        <Button 
+          variant="primary" 
+          onClick={handleSubmit}
+          disabled={loading}
+          style={{ borderRadius: '20px', fontWeight: '500', minWidth: '120px' }}
+        >
+          {loading ? (
+            <>
+              <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+              Guardando...
+            </>
+          ) : (
+            <>
+              <i className="bi bi-check-lg me-2"></i>
+              Guardar Cambios
+            </>
           )}
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={onHide}>
-            Cancelar
-          </Button>
-          <Button 
-            variant="primary" 
-            type="submit" 
-            disabled={loading}
-          >
-            {loading ? 'Guardando...' : 'Guardar Cambios'}
-          </Button>
-        </Modal.Footer>
-      </Form>
+        </Button>
+      </Modal.Footer>
     </Modal>
   );
 }; 
