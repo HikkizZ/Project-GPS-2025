@@ -93,11 +93,11 @@ export const TrabajadoresPage: React.FC = () => {
   };
 
   return (
-    <Container fluid className="py-4">
+    <Container fluid className="py-2">
       <Row>
         <Col>
           {/* Encabezado de página */}
-          <Card className="shadow-sm mb-4">
+          <Card className="shadow-sm mb-3">
             <Card.Header className="bg-gradient-primary text-white">
               <div className="d-flex align-items-center justify-content-between">
                 <div className="d-flex align-items-center">
@@ -132,7 +132,7 @@ export const TrabajadoresPage: React.FC = () => {
 
           {/* Panel de filtros */}
           {showFilters && (
-            <Card className="shadow-sm mb-4">
+            <Card className="shadow-sm mb-3">
               <FiltrosBusquedaHeader />
               <Card.Body>
                 <Row>
