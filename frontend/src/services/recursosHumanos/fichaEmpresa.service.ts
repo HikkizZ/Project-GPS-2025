@@ -49,7 +49,7 @@ export class FichaEmpresaService {
       return {
         success: true,
         message: 'Fichas obtenidas exitosamente',
-        data: data.data
+        data: data.data || []
       };
     } catch (error: any) {
       console.error('Error al obtener fichas:', error);

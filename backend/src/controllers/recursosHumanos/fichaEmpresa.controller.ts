@@ -24,11 +24,17 @@ export async function getFichasEmpresa(req: Request, res: Response) {
 
         if (error) {
             const errorMessage = typeof error === 'string' ? error : error.message;
-            handleErrorClient(res, 404, errorMessage);
+            handleErrorClient(res, 400, errorMessage);
             return;
         }
 
-        handleSuccess(res, 200, "Fichas de empresa recuperadas exitosamente", fichas!);
+        // Si no hay fichas, devolver array vacío con mensaje amigable
+        const fichasData = fichas || [];
+        const mensaje = fichasData.length === 0 
+            ? "No hay fichas de empresa que coincidan con los criterios de búsqueda" 
+            : "Fichas de empresa recuperadas exitosamente";
+
+        handleSuccess(res, 200, mensaje, fichasData);
     } catch (error) {
         console.error("Error al obtener fichas de empresa:", error);
         handleErrorServer(res, 500, "Error interno del servidor");

@@ -140,7 +140,7 @@ export class LicenciaPermisoService {
       if (response.ok && responseData.status === 'success') {
         return {
           success: true,
-          data: responseData.data
+          data: responseData.data || []
         };
       }
 

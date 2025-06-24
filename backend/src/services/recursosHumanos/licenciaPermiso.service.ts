@@ -154,7 +154,7 @@ export async function getAllLicenciasPermisosService(): Promise<ServiceResponse<
       }
     }
 
-    if (!licencias.length) return [null, "No hay solicitudes registradas."];
+    // Devolver array vacío en lugar de error cuando no hay solicitudes
     return [licencias, null];
   } catch (error) {
     console.error("Error al obtener licencias/permisos:", error);

@@ -47,19 +47,14 @@ export const useLicenciasPermisos = (options: UseLicenciasPermisosOptions = {}) 
     try {
       const result = await licenciaPermisoService.obtenerMisSolicitudes();
       console.log('📥 Hook: Resultado mis solicitudes:', result);
-      if (result.success && result.data) {
-        setSolicitudes(result.data);
-        console.log('✅ Hook: Mis solicitudes cargadas:', result.data.length);
+      if (result.success) {
+        // result.data puede ser un array vacío, que es un resultado válido
+        setSolicitudes(result.data || []);
+        console.log('✅ Hook: Mis solicitudes cargadas:', (result.data || []).length);
       } else {
-        // Si el error es "No hay solicitudes", tratar como estado vacío normal
-        if (result.error && result.error.includes('No hay solicitudes')) {
-          setSolicitudes([]);
-          console.log('📋 Hook: No hay solicitudes (estado normal)');
-        } else {
-          setError(result.error || 'Error al cargar solicitudes');
-          setSolicitudes([]);
-          console.log('❌ Hook: Error real en mis solicitudes:', result.error);
-        }
+        setError(result.error || 'Error al cargar solicitudes');
+        setSolicitudes([]);
+        console.log('❌ Hook: Error real en mis solicitudes:', result.error);
       }
     } catch (error) {
       setError('Error de conexión al cargar solicitudes');
@@ -77,19 +72,14 @@ export const useLicenciasPermisos = (options: UseLicenciasPermisosOptions = {}) 
     try {
       const result = await licenciaPermisoService.obtenerTodasLasSolicitudes();
       console.log('📥 Hook: Resultado todas solicitudes:', result);
-      if (result.success && result.data) {
-        setSolicitudes(result.data);
-        console.log('✅ Hook: Todas solicitudes cargadas:', result.data.length);
+      if (result.success) {
+        // result.data puede ser un array vacío, que es un resultado válido
+        setSolicitudes(result.data || []);
+        console.log('✅ Hook: Todas solicitudes cargadas:', (result.data || []).length);
       } else {
-        // Si el error es "No hay solicitudes", tratar como estado vacío normal
-        if (result.error && result.error.includes('No hay solicitudes')) {
-          setSolicitudes([]);
-          console.log('📋 Hook: No hay solicitudes (estado normal)');
-        } else {
-          setError(result.error || 'Error al cargar solicitudes');
-          setSolicitudes([]);
-          console.log('❌ Hook: Error real en todas solicitudes:', result.error);
-        }
+        setError(result.error || 'Error al cargar solicitudes');
+        setSolicitudes([]);
+        console.log('❌ Hook: Error real en todas solicitudes:', result.error);
       }
     } catch (error) {
       setError('Error de conexión al cargar solicitudes');

@@ -241,10 +241,7 @@ export async function getTrabajadoresService(incluirInactivos: boolean = false):
             where: incluirInactivos ? {} : { enSistema: true }
         });
 
-        if (!trabajadores.length) {
-            return [null, "No hay trabajadores registrados"];
-        }
-
+        // Devolver array vacío en lugar de error cuando no hay trabajadores
         return [trabajadores, null];
     } catch (error) {
         console.error("Error en getTrabajadoresService:", error);
@@ -333,10 +330,7 @@ export async function searchTrabajadoresService(query: any): Promise<ServiceResp
 
         const trabajadores = await queryBuilder.getMany();
 
-        if (!trabajadores.length) {
-            return [null, "No se encontraron trabajadores"];
-        }
-
+        // Devolver array vacío en lugar de error cuando no hay trabajadores
         return [trabajadores, null];
     } catch (error) {
         console.error("Error en searchTrabajadoresService:", error);

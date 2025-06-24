@@ -13,8 +13,9 @@ export const useTrabajadores = () => {
     setError('');
     try {
       const result = await trabajadorService.getAllTrabajadores();
-      if (result.success && result.data) {
-        setTrabajadores(result.data);
+      if (result.success) {
+        // result.data puede ser un array vacío, que es un resultado válido
+        setTrabajadores(result.data || []);
       } else {
         setError(result.message || 'Error al cargar trabajadores');
       }
@@ -31,8 +32,9 @@ export const useTrabajadores = () => {
     setError('');
     try {
       const result = await trabajadorService.searchTrabajadores(query);
-      if (result.success && result.data) {
-        setTrabajadores(result.data);
+      if (result.success) {
+        // result.data puede ser un array vacío, que es un resultado válido
+        setTrabajadores(result.data || []);
       } else {
         setError(result.message || 'No se encontraron trabajadores');
         setTrabajadores([]);

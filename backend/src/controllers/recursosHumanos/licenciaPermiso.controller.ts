@@ -107,17 +107,17 @@ export async function getAllLicenciasPermisos(req: Request, res: Response): Prom
     const [licenciasPermisos, error] = await getAllLicenciasPermisosService();
 
     if (error) {
-      // Si es el mensaje de "no hay solicitudes", devolver respuesta exitosa con array vacío
-      if (error === "No hay solicitudes registradas.") {
-        handleSuccess(res, 200, error, []);
-        return;
-      }
-      // Solo otros errores van como 404
-      handleErrorClient(res, 404, error as string);
+      handleErrorClient(res, 400, error as string);
       return;
     }
 
-    handleSuccess(res, 200, "Solicitudes recuperadas exitosamente", licenciasPermisos || []);
+    // Si no hay licencias, devolver array vacío con mensaje amigable
+    const licenciasData = licenciasPermisos || [];
+    const mensaje = licenciasData.length === 0 
+      ? "No hay solicitudes registradas en el sistema" 
+      : "Solicitudes recuperadas exitosamente";
+
+    handleSuccess(res, 200, mensaje, licenciasData);
   } catch (error) {
     console.error("Error al obtener licencias/permisos:", error);
     handleErrorServer(res, 500, "Error interno del servidor");
@@ -155,7 +155,12 @@ export async function getMisSolicitudes(req: Request, res: Response): Promise<vo
       order: { fechaSolicitud: 'DESC' }
     });
 
-    handleSuccess(res, 200, "Mis solicitudes recuperadas exitosamente", misSolicitudes);
+    // Si no hay solicitudes, devolver array vacío con mensaje amigable
+    const mensaje = misSolicitudes.length === 0 
+      ? "No tienes solicitudes registradas" 
+      : "Mis solicitudes recuperadas exitosamente";
+
+    handleSuccess(res, 200, mensaje, misSolicitudes);
   } catch (error) {
     console.error("Error al obtener mis solicitudes:", error);
     handleErrorServer(res, 500, "Error interno del servidor");

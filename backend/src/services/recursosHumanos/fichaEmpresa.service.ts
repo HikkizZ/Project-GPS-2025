@@ -156,10 +156,7 @@ export async function searchFichasEmpresa(params: SearchFichaParams): Promise<Se
 
         const fichas = await queryBuilder.getMany();
 
-        if (!fichas.length) {
-            return [null, { message: "No hay fichas de empresa que coincidan con los criterios de búsqueda" }];
-        }
-
+        // Devolver array vacío en lugar de error cuando no hay fichas
         return [fichas, null];
     } catch (error) {
         console.error("Error al buscar fichas de empresa:", error);
