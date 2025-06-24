@@ -275,52 +275,65 @@ export async function deleteLicenciaPermiso(req: Request, res: Response): Promis
 
 export async function descargarArchivoLicencia(req: Request, res: Response): Promise<void> {
   try {
+    console.log(`🔍 [DESCARGA] Iniciando descarga de archivo para licencia ID: ${req.params.id}`);
+    
     const id = parseInt(req.params.id);
     if (isNaN(id)) {
+      console.log(`❌ [DESCARGA] ID inválido: ${req.params.id}`);
       handleErrorClient(res, 400, "ID inválido");
       return;
     }
 
     if (!req.user) {
+      console.log(`❌ [DESCARGA] Usuario no autenticado`);
       handleErrorClient(res, 401, "Usuario no autenticado");
       return;
     }
 
-    const [archivoURL, error] = await descargarArchivoLicenciaService(id, req.user.rut);
+    console.log(`👤 [DESCARGA] Usuario: ${req.user.rut} (${req.user.role})`);
+
+    const [filePath, error] = await descargarArchivoLicenciaService(id, req.user.rut);
+    
+    console.log(`📁 [DESCARGA] Resultado del servicio - Ruta: ${filePath}, Error: ${error}`);
     
     if (error) {
       const errorMessage = typeof error === 'string' ? error : error.message;
       const statusCode = errorMessage.includes("no encontrado") ? 404 : 
                         errorMessage.includes("permisos") ? 403 : 400;
+      console.log(`❌ [DESCARGA] Error del servicio: ${errorMessage} (${statusCode})`);
       handleErrorClient(res, statusCode, errorMessage);
       return;
     }
 
-    if (!archivoURL) {
+    if (!filePath) {
+      console.log(`❌ [DESCARGA] Ruta de archivo vacía`);
       handleErrorClient(res, 404, "Archivo no encontrado");
       return;
     }
 
-    // Obtener información del archivo para descarga
-    const [fileInfo, fileError] = FileManagementService.getFileForDownload(archivoURL);
-    
-    if (fileError || !fileInfo) {
-      handleErrorClient(res, 404, "Archivo no encontrado en el servidor");
+    console.log(`📂 [DESCARGA] Ruta del archivo: ${filePath}`);
+
+    // Verificar que el archivo existe antes de intentar enviarlo
+    if (!fs.existsSync(filePath)) {
+      console.log(`❌ [DESCARGA] El archivo no existe físicamente en: ${filePath}`);
+      handleErrorClient(res, 404, "El archivo del certificado no se encuentra en el servidor");
       return;
     }
 
-    if (!fileInfo.exists) {
-      handleErrorClient(res, 404, "El archivo no existe");
-      return;
-    }
+    const filename = path.basename(filePath);
+    console.log(`✅ [DESCARGA] Enviando archivo: ${filename} desde ${filePath}`);
 
-    // Configurar headers y enviar archivo
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename="${fileInfo.filename}"`);
-    res.sendFile(require('path').resolve(fileInfo.filePath));
+    res.download(filePath, filename, (err) => {
+      if (err) {
+        console.error("❌ [DESCARGA] Error al enviar el archivo con res.download:", err);
+        if (!res.headersSent) {
+          handleErrorServer(res, 500, "No se pudo descargar el archivo.");
+        }
+      }
+    });
 
   } catch (error) {
-    console.error("Error al descargar archivo:", error);
+    console.error("❌ [DESCARGA] Error inesperado:", error);
     handleErrorServer(res, 500, "Error interno del servidor");
   }
 }

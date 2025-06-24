@@ -1,12 +1,14 @@
 import { AppDataSource } from "../../config/configDB.js";
 import { LicenciaPermiso, EstadoSolicitud, TipoSolicitud } from "../../entity/recursosHumanos/licenciaPermiso.entity.js";
 import { Trabajador } from "../../entity/recursosHumanos/trabajador.entity.js";
+import { User } from "../../entity/user.entity.js";
 import { CreateLicenciaPermisoDTO, UpdateLicenciaPermisoDTO } from "../../types/recursosHumanos/licenciaPermiso.dto.js";
 import { ServiceResponse } from "../../../types.js";
 import { EstadoLaboral } from "../../entity/recursosHumanos/fichaEmpresa.entity.js";
 import { actualizarEstadoFichaService } from "./fichaEmpresa.service.js";
 import { LessThan, Not, LessThanOrEqual, MoreThanOrEqual, MoreThan } from "typeorm";
 import { FileManagementService } from "../fileManagement.service.js";
+import { FileUploadService } from "../fileUpload.service.js";
 
 export async function createLicenciaPermisoService(data: CreateLicenciaPermisoDTO & { file?: Express.Multer.File }): Promise<ServiceResponse<LicenciaPermiso>> {
   const queryRunner = AppDataSource.createQueryRunner();
@@ -361,6 +363,8 @@ export async function verificarLicenciasVencidasService(): Promise<ServiceRespon
  */
 export async function descargarArchivoLicenciaService(id: number, userRut: string): Promise<ServiceResponse<string>> {
   try {
+    console.log(`📋 [SERVICIO-DESCARGA] Buscando licencia ID: ${id}`);
+    
     const licenciaRepo = AppDataSource.getRepository(LicenciaPermiso);
     const licencia = await licenciaRepo.findOne({
       where: { id },
@@ -368,29 +372,73 @@ export async function descargarArchivoLicenciaService(id: number, userRut: strin
     });
 
     if (!licencia) {
+      console.log(`❌ [SERVICIO-DESCARGA] Licencia no encontrada: ${id}`);
       return [null, "Licencia/permiso no encontrado"];
     }
 
+    console.log(`✅ [SERVICIO-DESCARGA] Licencia encontrada: ${licencia.tipo} - Trabajador: ${licencia.trabajador.nombres} ${licencia.trabajador.apellidoPaterno}`);
+    console.log(`📁 [SERVICIO-DESCARGA] URL del archivo: ${licencia.archivoAdjuntoURL}`);
+
     if (!licencia.archivoAdjuntoURL) {
+      console.log(`❌ [SERVICIO-DESCARGA] No hay archivo adjunto para la licencia ${id}`);
       return [null, "No hay archivo adjunto para esta solicitud"];
     }
 
-    // Validar permisos: solo el trabajador propietario o RRHH pueden descargar
-    const trabajadorRepo = AppDataSource.getRepository(Trabajador);
-    const trabajador = await trabajadorRepo.findOne({ where: { rut: userRut } });
+    // Buscar el usuario para verificar rol y permisos
+    console.log(`👤 [SERVICIO-DESCARGA] Verificando usuario: ${userRut}`);
+    const userRepo = AppDataSource.getRepository(User);
+    const usuario = await userRepo.findOne({ where: { rut: userRut } });
     
-    if (!trabajador) {
-      return [null, "Trabajador no encontrado"];
+    if (!usuario) {
+      console.log(`❌ [SERVICIO-DESCARGA] Usuario no encontrado: ${userRut}`);
+      return [null, "Usuario no encontrado"];
     }
 
-    // Verificar si el usuario es el propietario de la licencia
-    if (licencia.trabajador.id !== trabajador.id) {
-      return [null, "No tiene permisos para descargar este archivo"];
+    console.log(`👤 [SERVICIO-DESCARGA] Usuario encontrado: ${usuario.nombres} ${usuario.apellidoPaterno} - Rol: ${usuario.role}`);
+
+    // Verificar permisos: 
+    // 1. Si es RRHH, Administrador o SuperAdministrador → puede descargar cualquier archivo
+    // 2. Si es trabajador normal → solo puede descargar sus propios archivos
+    const rolesPrivilegiados = ['RecursosHumanos', 'Administrador', 'SuperAdministrador'];
+    const tienePrivilegios = rolesPrivilegiados.includes(usuario.role);
+
+    console.log(`🔐 [SERVICIO-DESCARGA] ¿Tiene privilegios? ${tienePrivilegios} (Rol: ${usuario.role})`);
+
+    if (!tienePrivilegios) {
+      // Es un trabajador normal, verificar que sea el propietario
+      console.log(`🔍 [SERVICIO-DESCARGA] Verificando propietario del archivo...`);
+      const trabajadorRepo = AppDataSource.getRepository(Trabajador);
+      const trabajador = await trabajadorRepo.findOne({ where: { rut: userRut } });
+      
+      if (!trabajador) {
+        console.log(`❌ [SERVICIO-DESCARGA] Trabajador no encontrado para RUT: ${userRut}`);
+        return [null, "Trabajador no encontrado"];
+      }
+
+      console.log(`👤 [SERVICIO-DESCARGA] Trabajador encontrado: ${trabajador.nombres} ${trabajador.apellidoPaterno} (ID: ${trabajador.id})`);
+      console.log(`🔍 [SERVICIO-DESCARGA] ¿Es propietario? Trabajador ID: ${trabajador.id} vs Licencia Trabajador ID: ${licencia.trabajador.id}`);
+
+      if (licencia.trabajador.id !== trabajador.id) {
+        console.log(`❌ [SERVICIO-DESCARGA] Sin permisos: el trabajador ${trabajador.id} no es propietario de la licencia del trabajador ${licencia.trabajador.id}`);
+        return [null, "No tiene permisos para descargar este archivo"];
+      }
     }
 
-    return [licencia.archivoAdjuntoURL, null];
+    // Usar el servicio de archivos para obtener la ruta absoluta y correcta
+    const filePath = FileUploadService.getLicenciaPath(licencia.archivoAdjuntoURL);
+    
+    console.log(`📂 [SERVICIO-DESCARGA] Ruta calculada: ${filePath}`);
+    
+    // Verificar si el archivo existe
+    if (!FileUploadService.fileExists(filePath)) {
+      console.log(`❌ [SERVICIO-DESCARGA] El archivo no se encuentra en el servidor: ${filePath}`);
+      return [null, "El archivo del certificado no se encuentra en el servidor."];
+    }
+
+    console.log(`✅ [SERVICIO-DESCARGA] Permisos validados correctamente. Retornando ruta: ${filePath}`);
+    return [filePath, null];
   } catch (error) {
-    console.error("Error al obtener archivo de licencia:", error);
+    console.error("❌ [SERVICIO-DESCARGA] Error inesperado:", error);
     return [null, "Error interno del servidor"];
   }
 }
