@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, Button, Form, Alert, Row, Col } from 'react-bootstrap';
+import { Modal, Button, Form, Row, Col, Toast as BootstrapToast } from 'react-bootstrap';
 import { FichaEmpresa, UpdateFichaEmpresaData, EstadoLaboral } from '@/types/recursosHumanos/fichaEmpresa.types';
 import { updateFichaEmpresa, uploadContrato, downloadContrato, deleteContrato, getFichaEmpresa } from '@/services/recursosHumanos/fichaEmpresa.service';
+import { useToast } from '@/components/common/Toast';
 
 interface EditarFichaEmpresaModalProps {
   show: boolean;
@@ -48,10 +49,11 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
   onUpdate
 }) => {
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [validated, setValidated] = useState(false);
+
+  // Toast notifications
+  const { toasts, removeToast, showSuccess, showError } = useToast();
 
   const [formData, setFormData] = useState<UpdateFichaEmpresaData & { sueldoBase: string }>({
     cargo: (ficha.cargo && ficha.cargo !== 'Por Definir') ? ficha.cargo : '',
@@ -65,8 +67,6 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
 
   useEffect(() => {
     if (show) {
-      setError(null);
-      setSuccess(null);
       setSelectedFile(null);
       setValidated(false);
       setFormData({
@@ -96,25 +96,25 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
     const file = e.target.files?.[0];
     if (file) {
       if (file.type !== 'application/pdf') {
-        setError('Solo se permiten archivos PDF');
+        showError('Archivo inválido', 'Solo se permiten archivos PDF');
         e.target.value = '';
         return;
       }
       if (file.size > 10 * 1024 * 1024) {
-        setError('El archivo no puede superar los 10MB');
+        showError('Archivo muy grande', 'El archivo no puede superar los 10MB');
         e.target.value = '';
         return;
       }
       setSelectedFile(file);
-      setError(null);
     }
   };
 
   const handleDownloadFile = async () => {
     try {
       await downloadContrato(ficha.id);
+      showSuccess('Descarga exitosa', 'El contrato se ha descargado correctamente');
     } catch (error: any) {
-      setError(error.message || 'Error al descargar el contrato');
+      showError('Error de descarga', error.message || 'Error al descargar el contrato');
     }
   };
 
@@ -126,13 +126,12 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
       const response = await deleteContrato(ficha.id);
       if (response.success) {
         if (onUpdate) onUpdate();
-        setSuccess('Contrato eliminado exitosamente');
-        setTimeout(() => setSuccess(null), 2000);
+        showSuccess('Contrato eliminado', 'El contrato se ha eliminado exitosamente');
       } else {
-        setError(response.message || 'Error al eliminar el contrato');
+        showError('Error al eliminar', response.message || 'Error al eliminar el contrato');
       }
     } catch (error: any) {
-      setError(error.message || 'Error al eliminar el contrato');
+      showError('Error al eliminar', error.message || 'Error al eliminar el contrato');
     }
   };
 
@@ -154,8 +153,6 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
     }
     
     setLoading(true);
-    setError(null);
-    setSuccess(null);
 
     try {
       const fichaId = typeof ficha.id === 'string' ? parseInt(ficha.id) : ficha.id;
@@ -189,17 +186,16 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
       const response = await updateFichaEmpresa(fichaId, dataToSubmit);
       
       if (response.success) {
-        setSuccess('Ficha actualizada exitosamente');
+        showSuccess('¡Ficha actualizada!', 'La ficha de empresa se ha actualizado exitosamente');
         if (onUpdate) onUpdate();
         setTimeout(() => {
-          setSuccess(null);
           onHide();
         }, 1500);
       } else {
-        setError(response.message || 'Error al actualizar la ficha');
+        showError('Error al actualizar', response.message || 'Error al actualizar la ficha');
       }
     } catch (error: any) {
-      setError(error.message || 'Error inesperado al actualizar la ficha');
+      showError('Error inesperado', error.message || 'Error inesperado al actualizar la ficha');
     } finally {
       setLoading(false);
     }
@@ -244,20 +240,7 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
           </div>
         </div>
 
-        {/* Alertas */}
-        {error && (
-          <Alert variant="danger" className="border-0 mb-3" style={{ borderRadius: '8px' }}>
-            <i className="bi bi-exclamation-triangle me-2"></i>
-            {error}
-          </Alert>
-        )}
 
-        {success && (
-          <Alert variant="success" className="border-0 mb-3" style={{ borderRadius: '8px' }}>
-            <i className="bi bi-check-circle me-2"></i>
-            {success}
-          </Alert>
-        )}
 
         <Form onSubmit={handleSubmit} noValidate>
           <Row className="g-3 mb-3">
@@ -505,6 +488,37 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
           )}
         </Button>
       </Modal.Footer>
+
+      {/* Sistema de notificaciones */}
+      <div 
+        style={{ 
+          position: 'fixed', 
+          top: '20px', 
+          right: '20px', 
+          zIndex: 10000 
+        }}
+      >
+        {toasts.map((toast) => (
+          <BootstrapToast
+            key={toast.id}
+            onClose={() => removeToast(toast.id)}
+            show={true}
+            delay={toast.duration || 5000}
+            autohide
+            className="toast-custom mb-2"
+          >
+            <BootstrapToast.Header className={`toast-header-${toast.type}`}>
+              <div className="d-flex align-items-center">
+                <i className={`bi ${toast.type === 'success' ? 'bi-check-circle-fill' : toast.type === 'error' ? 'bi-exclamation-triangle-fill' : 'bi-info-circle-fill'} me-2`}></i>
+                <strong className="me-auto">{toast.title}</strong>
+              </div>
+            </BootstrapToast.Header>
+            <BootstrapToast.Body className="toast-body">
+              {toast.message}
+            </BootstrapToast.Body>
+          </BootstrapToast>
+        ))}
+      </div>
     </Modal>
   );
 }; 

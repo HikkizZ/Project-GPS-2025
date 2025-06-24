@@ -12,6 +12,7 @@ import { EditarFichaEmpresaModal } from '@/components/recursosHumanos/EditarFich
 import '../../styles/fichasEmpresa.css';
 import { FiltrosBusquedaHeader } from '@/components/common/FiltrosBusquedaHeader';
 import { Container, Row, Col, Card, Button, Alert, Table, Form } from 'react-bootstrap';
+import { Toast, useToast } from '@/components/common/Toast';
 
 interface FichasEmpresaPageProps {
   trabajadorRecienRegistrado?: Trabajador | null;
@@ -33,6 +34,9 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
   const { setSuccess, setError: setUIError } = useUI();
   const { formatRUT } = useRut();
   const [localError, setLocalError] = useState<string | null>(null);
+  
+  // Toast notifications
+  const { toasts, removeToast, showSuccess, showError } = useToast();
   
   const {
     fichas,
@@ -180,15 +184,16 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
   const handleUpdateSuccess = () => {
     // Recargar las fichas
     handleSearch();
-    // Mostrar mensaje de éxito
-    setSuccess('Ficha actualizada exitosamente');
+    // Mostrar mensaje de éxito con toast
+    showSuccess('¡Ficha actualizada!', 'La ficha de empresa se ha actualizado exitosamente');
   };
 
   const handleDownloadContrato = async (fichaId: number) => {
     try {
       await downloadContrato(fichaId);
+      showSuccess('Descarga exitosa', 'El contrato se ha descargado correctamente');
     } catch (error) {
-      setUIError('Error al descargar el contrato. Por favor, intente nuevamente.');
+      showError('Error de descarga', 'Error al descargar el contrato. Por favor, intente nuevamente.');
     }
   };
 
@@ -849,6 +854,9 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
             onUpdate={handleUpdateSuccess}
           />
         )}
+
+        {/* Sistema de notificaciones */}
+        <Toast toasts={toasts} removeToast={removeToast} />
       </Container>
     </div>
   );
