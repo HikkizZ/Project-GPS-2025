@@ -19,6 +19,7 @@ export const RegisterTrabajadorForm: React.FC<RegisterTrabajadorFormProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string>('');
   const [advertencias, setAdvertencias] = useState<string[]>([]);
+  const [validated, setValidated] = useState(false);
   
   const [formData, setFormData] = useState<CreateTrabajadorData>({
     rut: '',
@@ -41,23 +42,21 @@ export const RegisterTrabajadorForm: React.FC<RegisterTrabajadorFormProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setValidated(true);
     setError('');
     setAdvertencias([]);
 
-    // Validaciones
-    if (!validateRUT(formData.rut)) {
-      setError('RUT inválido');
-      return;
-    }
+    // Validar campos obligatorios
+    const isValid = validateRUT(formData.rut) &&
+                   formData.nombres.trim() &&
+                   formData.apellidoPaterno.trim() &&
+                   formData.apellidoMaterno.trim() &&
+                   formData.correoPersonal.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/) &&
+                   formData.telefono.trim() &&
+                   formData.direccion.trim();
 
-    if (!formData.nombres || !formData.apellidoPaterno || !formData.apellidoMaterno) {
-      setError('Los nombres y apellidos son obligatorios');
-      return;
-    }
-
-    if (!formData.correoPersonal.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
-      setError('Correo personal inválido');
-      return;
+    if (!isValid) {
+      return; // No mostrar mensaje de error general, dejar que los campos individuales muestren sus errores
     }
 
     try {
@@ -80,6 +79,12 @@ export const RegisterTrabajadorForm: React.FC<RegisterTrabajadorFormProps> = ({
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
+    
+    // Limpiar errores cuando el usuario empiece a escribir
+    if (validated) {
+      setValidated(false);
+    }
+    
     if (name === 'rut') {
       setFormData({ ...formData, [name]: formatRUT(value) });
     } else if (name === 'telefono' || name === 'numeroEmergencia') {
@@ -116,7 +121,7 @@ export const RegisterTrabajadorForm: React.FC<RegisterTrabajadorFormProps> = ({
         </Alert>
       )}
 
-      <Form onSubmit={handleSubmit}>
+      <Form onSubmit={handleSubmit} noValidate>
         <div className="row g-3">
           {/* Primera fila - RUT y Fecha Ingreso */}
           <div className="col-md-4">
@@ -130,7 +135,11 @@ export const RegisterTrabajadorForm: React.FC<RegisterTrabajadorFormProps> = ({
                 placeholder="12.345.678-9"
                 required
                 style={{ borderRadius: '8px' }}
+                isInvalid={validated && !validateRUT(formData.rut)}
               />
+              <Form.Control.Feedback type="invalid">
+                {!formData.rut.trim() ? 'Completa este campo' : 'RUT inválido'}
+              </Form.Control.Feedback>
             </Form.Group>
           </div>
           <div className="col-md-4">
@@ -175,7 +184,11 @@ export const RegisterTrabajadorForm: React.FC<RegisterTrabajadorFormProps> = ({
                 placeholder="Nombres completos"
                 required
                 style={{ borderRadius: '8px' }}
+                isInvalid={validated && !formData.nombres.trim()}
               />
+              <Form.Control.Feedback type="invalid">
+                Completa este campo
+              </Form.Control.Feedback>
             </Form.Group>
           </div>
           <div className="col-md-4">
@@ -189,7 +202,11 @@ export const RegisterTrabajadorForm: React.FC<RegisterTrabajadorFormProps> = ({
                 placeholder="Apellido paterno"
                 required
                 style={{ borderRadius: '8px' }}
+                isInvalid={validated && !formData.apellidoPaterno.trim()}
               />
+              <Form.Control.Feedback type="invalid">
+                Completa este campo
+              </Form.Control.Feedback>
             </Form.Group>
           </div>
           <div className="col-md-4">
@@ -203,7 +220,11 @@ export const RegisterTrabajadorForm: React.FC<RegisterTrabajadorFormProps> = ({
                 placeholder="Apellido materno"
                 required
                 style={{ borderRadius: '8px' }}
+                isInvalid={validated && !formData.apellidoMaterno.trim()}
               />
+              <Form.Control.Feedback type="invalid">
+                Completa este campo
+              </Form.Control.Feedback>
             </Form.Group>
           </div>
 
@@ -219,7 +240,11 @@ export const RegisterTrabajadorForm: React.FC<RegisterTrabajadorFormProps> = ({
                 placeholder="correo@gmail.com"
                 required
                 style={{ borderRadius: '8px' }}
+                isInvalid={validated && !formData.correoPersonal.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)}
               />
+              <Form.Control.Feedback type="invalid">
+                {!formData.correoPersonal.trim() ? 'Completa este campo' : 'Correo personal inválido'}
+              </Form.Control.Feedback>
             </Form.Group>
           </div>
           <div className="col-md-4">
@@ -233,7 +258,11 @@ export const RegisterTrabajadorForm: React.FC<RegisterTrabajadorFormProps> = ({
                 placeholder="+56912345678"
                 required
                 style={{ borderRadius: '8px' }}
+                isInvalid={validated && !formData.telefono.trim()}
               />
+              <Form.Control.Feedback type="invalid">
+                Completa este campo
+              </Form.Control.Feedback>
             </Form.Group>
           </div>
           <div className="col-md-4">
@@ -262,7 +291,11 @@ export const RegisterTrabajadorForm: React.FC<RegisterTrabajadorFormProps> = ({
                 placeholder="Av. Principal 123, Comuna, Ciudad"
                 required
                 style={{ borderRadius: '8px' }}
+                isInvalid={validated && !formData.direccion.trim()}
               />
+              <Form.Control.Feedback type="invalid">
+                Completa este campo
+              </Form.Control.Feedback>
             </Form.Group>
           </div>
         </div>
