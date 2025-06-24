@@ -55,7 +55,7 @@ export class FichaEmpresaService {
       console.error('Error al obtener fichas:', error);
       return {
         success: false,
-        message: error.message || 'Error al obtener fichas'
+        message: error.response?.data?.message || error.message || 'Error al obtener fichas'
       };
     }
   }
@@ -78,7 +78,7 @@ export class FichaEmpresaService {
       console.error('Error al obtener ficha:', error);
       return {
         success: false,
-        message: error.message || 'Error al obtener ficha'
+        message: error.response?.data?.message || error.message || 'Error al obtener ficha'
       };
     }
   }
@@ -114,7 +114,7 @@ export class FichaEmpresaService {
       console.error('Error al crear ficha:', error);
       return {
         success: false,
-        message: error.message || 'Error al crear ficha'
+        message: error.response?.data?.message || error.message || 'Error al crear ficha'
       };
     }
   }
@@ -132,7 +132,7 @@ export class FichaEmpresaService {
       console.error('Error al actualizar ficha:', error);
       return {
         success: false,
-        message: error.message || 'Error al actualizar ficha'
+        message: error.response?.data?.message || error.message || 'Error al actualizar ficha'
       };
     }
   }
@@ -154,7 +154,7 @@ export class FichaEmpresaService {
       console.error('Error al actualizar estado:', error);
       return {
         success: false,
-        message: error.message || 'Error al actualizar estado'
+        message: error.response?.data?.message || error.message || 'Error al actualizar estado'
       };
     }
   }
@@ -184,7 +184,7 @@ export class FichaEmpresaService {
       console.error('Error al buscar por RUT:', error);
       return {
         success: false,
-        message: error.message || 'Error al buscar por RUT',
+        message: error.response?.data?.message || error.message || 'Error al buscar por RUT',
         data: null
       };
     }
@@ -203,7 +203,7 @@ export class FichaEmpresaService {
       console.error('Error al subir contrato:', error);
       return {
         success: false,
-        message: error.message || 'Error al subir contrato'
+        message: error.response?.data?.message || error.message || 'Error al subir contrato'
       };
     }
   }
@@ -263,7 +263,7 @@ export class FichaEmpresaService {
       console.error('Error al eliminar contrato:', error);
       return {
         success: false,
-        message: error.message || 'Error al eliminar contrato'
+        message: error.response?.data?.message || error.message || 'Error al eliminar contrato'
       };
     }
   }

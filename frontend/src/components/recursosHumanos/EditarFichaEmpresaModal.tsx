@@ -54,10 +54,10 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
   const [validated, setValidated] = useState(false);
 
   const [formData, setFormData] = useState<UpdateFichaEmpresaData & { sueldoBase: string }>({
-    cargo: ficha.cargo || '',
-    area: ficha.area || '',
-    tipoContrato: ficha.tipoContrato || '',
-    jornadaLaboral: ficha.jornadaLaboral || '',
+    cargo: (ficha.cargo && ficha.cargo !== 'Por Definir') ? ficha.cargo : '',
+    area: (ficha.area && ficha.area !== 'Por Definir') ? ficha.area : '',
+    tipoContrato: (ficha.tipoContrato && ficha.tipoContrato !== 'Por Definir') ? ficha.tipoContrato : '',
+    jornadaLaboral: (ficha.jornadaLaboral && ficha.jornadaLaboral !== 'Por Definir') ? ficha.jornadaLaboral : '',
     sueldoBase: ficha.sueldoBase ? formatMiles(ficha.sueldoBase) : '',
     fechaInicioContrato: ficha.fechaInicioContrato ? new Date(ficha.fechaInicioContrato).toISOString().split('T')[0] : '',
     fechaFinContrato: ficha.fechaFinContrato ? new Date(ficha.fechaFinContrato).toISOString().split('T')[0] : ''
@@ -70,10 +70,10 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
       setSelectedFile(null);
       setValidated(false);
       setFormData({
-        cargo: ficha.cargo || '',
-        area: ficha.area || '',
-        tipoContrato: ficha.tipoContrato || '',
-        jornadaLaboral: ficha.jornadaLaboral || '',
+        cargo: (ficha.cargo && ficha.cargo !== 'Por Definir') ? ficha.cargo : '',
+        area: (ficha.area && ficha.area !== 'Por Definir') ? ficha.area : '',
+        tipoContrato: (ficha.tipoContrato && ficha.tipoContrato !== 'Por Definir') ? ficha.tipoContrato : '',
+        jornadaLaboral: (ficha.jornadaLaboral && ficha.jornadaLaboral !== 'Por Definir') ? ficha.jornadaLaboral : '',
         sueldoBase: ficha.sueldoBase ? formatMiles(ficha.sueldoBase) : '',
         fechaInicioContrato: ficha.fechaInicioContrato ? new Date(ficha.fechaInicioContrato).toISOString().split('T')[0] : '',
         fechaFinContrato: ficha.fechaFinContrato ? new Date(ficha.fechaFinContrato).toISOString().split('T')[0] : ''
@@ -141,17 +141,16 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
     setValidated(true);
     
     // Validar campos requeridos
-    const isValid = formData.cargo.trim() && 
-                   formData.area.trim() && 
-                   formData.tipoContrato && 
-                   formData.jornadaLaboral && 
+    const isValid = formData.cargo.trim() && formData.cargo.trim() !== 'Por Definir' &&
+                   formData.area.trim() && formData.area.trim() !== 'Por Definir' &&
+                   formData.tipoContrato && formData.tipoContrato !== 'Por Definir' &&
+                   formData.jornadaLaboral && formData.jornadaLaboral !== 'Por Definir' &&
                    formData.sueldoBase && 
                    parseInt(cleanNumber(formData.sueldoBase)) > 0 && 
                    formData.fechaInicioContrato;
     
     if (!isValid) {
-      setError('Por favor, completa todos los campos requeridos');
-      return;
+      return; // No mostrar mensaje de error general, dejar que los campos individuales muestren sus errores
     }
     
     setLoading(true);
@@ -274,7 +273,7 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
                   required
                   style={{ borderRadius: '8px' }}
                   placeholder="Ej: Desarrollador Senior"
-                  isInvalid={validated && !formData.cargo.trim()}
+                  isInvalid={validated && (!formData.cargo.trim() || formData.cargo.trim() === 'Por Definir')}
                 />
                 <Form.Control.Feedback type="invalid">
                   Completa este campo
@@ -292,7 +291,7 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
                   required
                   style={{ borderRadius: '8px' }}
                   placeholder="Ej: Tecnología"
-                  isInvalid={validated && !formData.area.trim()}
+                  isInvalid={validated && (!formData.area.trim() || formData.area.trim() === 'Por Definir')}
                 />
                 <Form.Control.Feedback type="invalid">
                   Completa este campo
@@ -312,7 +311,7 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
                   onChange={handleInputChange}
                   required
                   style={{ borderRadius: '8px' }}
-                  isInvalid={validated && !formData.tipoContrato}
+                  isInvalid={validated && (!formData.tipoContrato || formData.tipoContrato === 'Por Definir')}
                 >
                   <option value="">Seleccione...</option>
                   <option value="Indefinido">Indefinido</option>
@@ -334,7 +333,7 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
                   onChange={handleInputChange}
                   required
                   style={{ borderRadius: '8px' }}
-                  isInvalid={validated && !formData.jornadaLaboral}
+                  isInvalid={validated && (!formData.jornadaLaboral || formData.jornadaLaboral === 'Por Definir')}
                 >
                   <option value="">Seleccione...</option>
                   <option value="Completa">Completa</option>
