@@ -212,8 +212,49 @@ export class FichaEmpresaService {
   // Download de contrato
   async downloadContrato(fichaId: number): Promise<void> {
     try {
-      // Ruta correcta para la descarga de archivos
-      await apiClient.downloadFile(`${this.baseURL}/${fichaId}/contrato`, `contrato_${fichaId}.pdf`);
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}${this.baseURL}/${fichaId}/contrato`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+        }
+      });
+
+      if (response.ok) {
+        const blob = await response.blob();
+        const contentDisposition = response.headers.get('Content-Disposition');
+        let filename = `contrato_${fichaId}.pdf`;
+        
+        console.log('🔍 [CONTRATO] Content-Disposition header:', contentDisposition);
+        
+        if (contentDisposition) {
+          // Buscar filename= seguido de comillas opcionales y cualquier carácter hasta comillas opcionales o fin de línea
+          const filenameMatch = contentDisposition.match(/filename\*?=(?:"([^"]*)"|([^;,\s]*))/);
+          if (filenameMatch) {
+            filename = filenameMatch[1] || filenameMatch[2] || `contrato_${fichaId}.pdf`;
+            console.log('✅ [CONTRATO] Filename extraído:', filename);
+          } else {
+            console.log('❌ [CONTRATO] No se pudo extraer filename del header');
+          }
+        } else {
+          console.log('❌ [CONTRATO] No hay Content-Disposition header');
+        }
+
+        // Crear enlace de descarga
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        
+        console.log('✅ [CONTRATO] Archivo descargado:', filename);
+      } else {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Error al descargar contrato');
+      }
     } catch (error: any) {
       console.error('Error al descargar contrato:', error);
       throw error;

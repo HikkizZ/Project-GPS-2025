@@ -415,8 +415,10 @@ export async function updateFichaEmpresaService(
     }
 }
 
-export async function descargarContratoService(id: number, userId: number): Promise<ServiceResponse<string>> {
+export async function descargarContratoService(id: number, userId: number): Promise<ServiceResponse<{filePath: string, customFilename: string}>> {
     try {
+        console.log(`📋 [SERVICIO-DESCARGA-CONTRATO] Buscando ficha ID: ${id}`);
+        
         const fichaRepo = AppDataSource.getRepository(FichaEmpresa);
         const userRepo = AppDataSource.getRepository(User);
 
@@ -428,6 +430,8 @@ export async function descargarContratoService(id: number, userId: number): Prom
         if (!ficha) {
             return [null, { message: "Ficha no encontrada" }];
         }
+
+        console.log(`✅ [SERVICIO-DESCARGA-CONTRATO] Ficha encontrada - Trabajador: ${ficha.trabajador.nombres} ${ficha.trabajador.apellidoPaterno}`);
 
         if (ficha.trabajador && ficha.trabajador.rut === "11.111.111-1") {
             return [null, { message: "No se puede modificar ni eliminar la ficha del superadministrador." }];
@@ -442,13 +446,19 @@ export async function descargarContratoService(id: number, userId: number): Prom
             return [null, { message: "Usuario no encontrado" }];
         }
 
+        console.log(`👤 [SERVICIO-DESCARGA-CONTRATO] Verificando usuario: ${user.rut}`);
+        console.log(`👤 [SERVICIO-DESCARGA-CONTRATO] Usuario encontrado: ${user.nombres || 'undefined'} ${user.apellidos || 'undefined'} - Rol: ${user.role}`);
+
         // Permitir acceso a RRHH, Admin, Superadmin o al dueño de la ficha
         const esRRHH = user.role === "RecursosHumanos";
         const esAdmin = user.role === "Administrador";
         const esSuperAdmin = user.role === "SuperAdministrador";
         const esDueno = user.trabajador?.id === ficha.trabajador.id;
 
-        if (!esRRHH && !esAdmin && !esSuperAdmin && !esDueno) {
+        const tienePrivilegios = esRRHH || esAdmin || esSuperAdmin || esDueno;
+        console.log(`🔐 [SERVICIO-DESCARGA-CONTRATO] ¿Tiene privilegios? ${tienePrivilegios} (Rol: ${user.role})`);
+
+        if (!tienePrivilegios) {
             return [null, { message: "No tiene permiso para descargar este contrato" }];
         }
 
@@ -456,15 +466,64 @@ export async function descargarContratoService(id: number, userId: number): Prom
             return [null, { message: "No hay contrato disponible para descargar" }];
         }
 
+        console.log(`📁 [SERVICIO-DESCARGA-CONTRATO] URL del archivo: ${ficha.contratoURL}`);
+
         // Usar el servicio de archivos para obtener la ruta absoluta y correcta
         const filePath = FileUploadService.getContratoPath(ficha.contratoURL);
         
+        console.log(`📂 [SERVICIO-DESCARGA-CONTRATO] Ruta calculada: ${filePath}`);
+
         // Verificar si el archivo existe
         if (!FileUploadService.fileExists(filePath)) {
             return [null, { message: "El archivo del contrato no se encuentra en el servidor." }];
         }
 
-        return [filePath, null];
+        // Generar nombre personalizado
+        const trabajador = ficha.trabajador;
+        console.log(`👤 [SERVICIO-DESCARGA-CONTRATO] Datos del trabajador - Nombres: "${trabajador.nombres}", Apellido P: "${trabajador.apellidoPaterno}", Apellido M: "${trabajador.apellidoMaterno}"`);
+
+        // Función para limpiar caracteres especiales y espacios
+        const limpiarNombre = (nombre: string): string => {
+            return nombre
+                .replace(/[áàäâ]/g, 'a')
+                .replace(/[éèëê]/g, 'e')
+                .replace(/[íìïî]/g, 'i')
+                .replace(/[óòöô]/g, 'o')
+                .replace(/[úùüû]/g, 'u')
+                .replace(/[ñ]/g, 'n')
+                .replace(/[ç]/g, 'c')
+                .replace(/[^a-zA-Z0-9]/g, '_')
+                .replace(/_+/g, '_')
+                .replace(/^_|_$/g, '');
+        };
+
+        const nombresLimpios = limpiarNombre(trabajador.nombres || '');
+        const apellidoPLimpio = limpiarNombre(trabajador.apellidoPaterno || '');
+        const apellidoMLimpio = limpiarNombre(trabajador.apellidoMaterno || '');
+
+        console.log(`🧹 [SERVICIO-DESCARGA-CONTRATO] Nombres limpios - Nombres: "${nombresLimpios}", Apellido P: "${apellidoPLimpio}", Apellido M: "${apellidoMLimpio}"`);
+
+        // Construir nombre personalizado
+        let customFilename = '';
+        if (nombresLimpios && apellidoPLimpio) {
+            customFilename = `${nombresLimpios}_${apellidoPLimpio}`;
+            if (apellidoMLimpio) {
+                customFilename += `_${apellidoMLimpio}`;
+            }
+            customFilename += '-Contrato.pdf';
+        }
+
+        console.log(`📝 [SERVICIO-DESCARGA-CONTRATO] Nombre personalizado generado: "${customFilename}"`);
+
+        // Validar que el nombre personalizado sea válido
+        if (!customFilename || customFilename.length < 5 || !customFilename.includes('-Contrato.pdf')) {
+            console.log(`❌ [SERVICIO-DESCARGA-CONTRATO] Nombre personalizado inválido, usando fallback`);
+            customFilename = `Contrato_${id}.pdf`;
+        }
+
+        console.log(`✅ [SERVICIO-DESCARGA-CONTRATO] Permisos validados correctamente. Retornando datos.`);
+
+        return [{ filePath, customFilename }, null];
     } catch (error) {
         console.error("Error en descargarContratoService:", error);
         return [null, { message: "Error interno del servidor" }];
