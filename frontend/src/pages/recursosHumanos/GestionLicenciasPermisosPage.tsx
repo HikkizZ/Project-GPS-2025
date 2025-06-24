@@ -5,11 +5,11 @@ import { ListaGestionSolicitudes } from '@/components/recursosHumanos/ListaGesti
 export const GestionLicenciasPermisosPage: React.FC = () => {
 
   return (
-    <Container fluid className="py-4">
+    <Container fluid className="py-2">
       <Row>
         <Col>
           {/* Encabezado de página */}
-          <Card className="shadow-sm mb-4">
+          <Card className="shadow-sm mb-3">
             <Card.Header className="bg-gradient-primary text-white">
               <div className="d-flex align-items-center">
                 <i className="bi bi-shield-check fs-4 me-3"></i>
