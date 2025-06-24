@@ -51,6 +51,7 @@ export const RegisterTrabajadorForm: React.FC<RegisterTrabajadorFormProps> = ({
                    formData.nombres.trim() &&
                    formData.apellidoPaterno.trim() &&
                    formData.apellidoMaterno.trim() &&
+                   formData.fechaNacimiento.trim() &&
                    formData.correoPersonal.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/) &&
                    formData.telefono.trim() &&
                    formData.direccion.trim();
@@ -161,14 +162,19 @@ export const RegisterTrabajadorForm: React.FC<RegisterTrabajadorFormProps> = ({
           </div>
           <div className="col-md-4">
             <Form.Group>
-              <Form.Label className="fw-semibold">Fecha de Nacimiento:</Form.Label>
+              <Form.Label className="fw-semibold">Fecha de Nacimiento: <span className="text-danger">*</span></Form.Label>
               <Form.Control
                 type="date"
                 name="fechaNacimiento"
                 value={formData.fechaNacimiento}
                 onChange={handleInputChange}
+                required
                 style={{ borderRadius: '8px' }}
+                isInvalid={validated && !formData.fechaNacimiento.trim()}
               />
+              <Form.Control.Feedback type="invalid">
+                Completa este campo
+              </Form.Control.Feedback>
             </Form.Group>
           </div>
 
