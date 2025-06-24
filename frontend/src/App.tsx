@@ -371,7 +371,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
                   </div>
                   <div className="card-body" style={{ padding: '1.5rem' }}>
                     <div className="mb-3 p-3 rounded-3" style={{ background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)', border: '1px solid #e9ecef' }}>
-                      <h5 className="mb-2 fw-bold text-dark">¡Bienvenido, {user.name}!</h5>
+                      <h6 className="mb-2 fw-bold text-dark">¡Bienvenido, {user.name}!</h6>
                       <div className="d-flex flex-wrap gap-2 align-items-center">
                         <span className="badge bg-primary px-2 py-1" style={{ borderRadius: '20px', fontSize: '0.8rem' }}>
                           <i className="bi bi-person-badge me-1"></i>
