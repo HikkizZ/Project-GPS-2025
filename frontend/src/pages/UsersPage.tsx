@@ -144,6 +144,12 @@ export const UsersPage: React.FC = () => {
   };
 
   const handleUpdateClick = (selectedUser: SafeUser) => {
+    // Prevenir edición del SuperAdministrador
+    if (selectedUser.role === 'SuperAdministrador') {
+      setError('No se puede modificar el SuperAdministrador.');
+      return;
+    }
+    
     setNewRole(selectedUser.role);
     setNewPassword('');
     setSelectedUser(selectedUser);
@@ -450,8 +456,8 @@ export const UsersPage: React.FC = () => {
                             </span>
                           </td>
                           <td className="text-center">
-                            {/* Ocultar acciones si es el admin principal */}
-                            {(user.email !== 'admin.principal@gmail.com') && (
+                            {/* Ocultar acciones si es el admin principal o SuperAdministrador */}
+                            {(user.email !== 'admin.principal@gmail.com' && user.role !== 'SuperAdministrador') && (
                               <div className="btn-group">
                                 <Button
                                   variant="outline-primary"

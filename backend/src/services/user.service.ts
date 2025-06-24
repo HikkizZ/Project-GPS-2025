@@ -125,7 +125,13 @@ export const updateUserService = async (id: number, body: UpdateUserData, reques
 
         if (!user) {
             return null;
-        }const dataUserUpdate: any = {};
+        }
+
+        if (user.role === "SuperAdministrador") {
+            throw { status: 403, message: "No se puede modificar el SuperAdministrador." };
+        }
+
+        const dataUserUpdate: any = {};
 
         if (body.name) {
             dataUserUpdate.name = body.name;
@@ -167,7 +173,13 @@ export const updateUserByTrabajadorService = async (id: number, body: UpdateUser
 
         if (!user) {
             return null;
-        }const dataUserUpdate: any = {};
+        }
+
+        if (user.role === "SuperAdministrador") {
+            throw { status: 403, message: "No se puede modificar el SuperAdministrador." };
+        }
+
+        const dataUserUpdate: any = {};
 
         if (body.name) {
             dataUserUpdate.name = body.name;
