@@ -422,12 +422,13 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
                     <strong>{selectedFile.name}</strong>
                   </div>
                   <Button 
-                    variant="link" 
+                    variant="outline-danger" 
                     size="sm" 
-                    className="text-danger p-0"
                     onClick={() => setSelectedFile(null)}
+                    style={{ borderRadius: '6px' }}
                   >
-                    <i className="bi bi-x"></i>
+                    <i className="bi bi-x me-1"></i>
+                    Quitar archivo
                   </Button>
                 </div>
               )}
