@@ -825,6 +825,16 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
             </Card>
           </Col>
         </Row>
+
+        {/* Modal de Edición */}
+        {showEditModal && selectedFicha && (
+          <EditarFichaEmpresaModal
+            show={showEditModal}
+            onHide={handleCloseEditModal}
+            ficha={selectedFicha}
+            onUpdate={handleUpdateSuccess}
+          />
+        )}
       </Container>
     </div>
   );
