@@ -739,8 +739,21 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                     <p className="text-muted">Intenta ajustar los filtros para obtener más resultados</p>
                   </div>
                 ) : (
-                  <div className="table-responsive">
-                    <Table hover className="mb-0">
+                  <>
+                    <div className="d-flex justify-content-between align-items-center mb-3">
+                      <h6 className="mb-0">
+                        <i className="bi bi-list-ul me-2"></i>
+                        Fichas de Empresa ({fichasFiltradas.length})
+                        <small className="text-muted ms-2">
+                          (Activos: {fichasFiltradas.filter(f => f.estado === 'Activo').length} • 
+                          Licencias: {fichasFiltradas.filter(f => f.estado === 'Licencia').length} • 
+                          Permisos: {fichasFiltradas.filter(f => f.estado === 'Permiso').length} • 
+                          Desvinculados: {fichasFiltradas.filter(f => f.estado === 'Desvinculado').length})
+                        </small>
+                      </h6>
+                    </div>
+                    <div className="table-responsive">
+                      <Table hover className="mb-0">
                       <thead className="table-light">
                         <tr>
                           <th>Trabajador</th>
@@ -819,7 +832,8 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                         ))}
                       </tbody>
                     </Table>
-                  </div>
+                    </div>
+                  </>
                 )}
               </Card.Body>
             </Card>
