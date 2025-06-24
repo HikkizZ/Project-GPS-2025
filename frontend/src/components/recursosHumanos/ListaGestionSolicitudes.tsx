@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Card, Badge, Button, Row, Col, Alert, Spinner, Table, Modal, 
-  Form, ButtonGroup, Dropdown
+  Form, ButtonGroup
 } from 'react-bootstrap';
 import { useLicenciasPermisos } from '@/hooks/recursosHumanos/useLicenciasPermisos';
 import { 
@@ -439,53 +439,14 @@ export const ListaGestionSolicitudes: React.FC = () => {
 
                       {/* Acciones */}
                       <td>
-                        <Dropdown>
-                          <Dropdown.Toggle variant="outline-secondary" size="sm">
-                            <i className="bi bi-three-dots-vertical"></i>
-                          </Dropdown.Toggle>
-                          <Dropdown.Menu>
-                            <Dropdown.Item onClick={() => mostrarDetalles(solicitud)}>
-                              <i className="bi bi-eye me-2"></i>
-                              Ver Detalles
-                            </Dropdown.Item>
-                            
-                            {solicitud.archivoAdjuntoURL && (
-                              <Dropdown.Item 
-                                onClick={() => handleDescargarArchivo(solicitud)}
-                                disabled={descargandoId === solicitud.id}
-                              >
-                                <i className="bi bi-download me-2"></i>
-                                {descargandoId === solicitud.id ? 'Descargando...' : 'Descargar Archivo'}
-                              </Dropdown.Item>
-                            )}
-                            
-                            <Dropdown.Divider />
-                            
-                            {solicitud.estado === 'Pendiente' && (
-                              <>
-                                <Dropdown.Item 
-                                  onClick={() => iniciarRespuesta(solicitud, 'aprobar')}
-                                  disabled={procesandoId === solicitud.id}
-                                  className="text-success"
-                                >
-                                  <i className="bi bi-check-circle me-2"></i>
-                                  Aprobar
-                                </Dropdown.Item>
-                                <Dropdown.Item 
-                                  onClick={() => iniciarRespuesta(solicitud, 'rechazar')}
-                                  disabled={procesandoId === solicitud.id}
-                                  className="text-danger"
-                                >
-                                  <i className="bi bi-x-circle me-2"></i>
-                                  Rechazar
-                                </Dropdown.Item>
-                                <Dropdown.Divider />
-                              </>
-                            )}
-                            
-
-                          </Dropdown.Menu>
-                        </Dropdown>
+                        <Button
+                          variant="outline-primary"
+                          size="sm"
+                          onClick={() => mostrarDetalles(solicitud)}
+                          title="Ver detalles y gestionar solicitud"
+                        >
+                          <i className="bi bi-pencil"></i>
+                        </Button>
                       </td>
                     </tr>
                   ))}
@@ -496,51 +457,235 @@ export const ListaGestionSolicitudes: React.FC = () => {
         </Card.Body>
       </Card>
 
-      {/* Modal de detalles - versión simplificada para este paso */}
-      <Modal show={showDetalleModal} onHide={() => setShowDetalleModal(false)} size="lg">
+      {/* Modal de detalles completo */}
+      <Modal show={showDetalleModal} onHide={() => setShowDetalleModal(false)} size="lg" className="modal-enhanced">
         <Modal.Header closeButton>
-          <Modal.Title>
-            <i className="bi bi-info-circle me-2"></i>
-            Detalles de Solicitud
+          <Modal.Title className="d-flex align-items-center">
+            <i className={`bi ${solicitudSeleccionada?.tipo === TipoSolicitud.LICENCIA ? 'bi-heart-pulse' : 'bi-calendar-event'} me-3 fs-4`}></i>
+            <div>
+              <span>Detalles de Solicitud</span>
+              <small className="d-block text-white-50 mt-1">
+                {solicitudSeleccionada?.tipo}
+              </small>
+            </div>
           </Modal.Title>
         </Modal.Header>
         <Modal.Body>
           {solicitudSeleccionada && (
-            <div>
-              <p><strong>Trabajador:</strong> {solicitudSeleccionada.trabajador.nombres} {solicitudSeleccionada.trabajador.apellidoPaterno}</p>
-              <p><strong>Tipo:</strong> {solicitudSeleccionada.tipo}</p>
-              <p><strong>Estado:</strong> {solicitudSeleccionada.estado}</p>
-              <p><strong>Período:</strong> {formatearFecha(solicitudSeleccionada.fechaInicio)} - {formatearFecha(solicitudSeleccionada.fechaFin)}</p>
-              <p><strong>Motivo:</strong> {solicitudSeleccionada.motivoSolicitud}</p>
-              {solicitudSeleccionada.respuestaEncargado && (
-                <p><strong>Respuesta RRHH:</strong> {solicitudSeleccionada.respuestaEncargado}</p>
-              )}
-            </div>
-          )}
-        </Modal.Body>
-        <Modal.Footer>
-          {solicitudSeleccionada?.estado === 'Pendiente' && (
             <>
-              <Button 
-                variant="success" 
-                onClick={() => iniciarRespuesta(solicitudSeleccionada, 'aprobar')}
-              >
-                <i className="bi bi-check-circle me-2"></i>
-                Aprobar
-              </Button>
-              <Button 
-                variant="danger" 
-                onClick={() => iniciarRespuesta(solicitudSeleccionada, 'rechazar')}
-              >
-                <i className="bi bi-x-circle me-2"></i>
-                Rechazar
-              </Button>
+              {/* Estado actual */}
+              <div className="mb-4 text-center">
+                <Badge 
+                  bg={getEstadoColor(solicitudSeleccionada.estado)} 
+                  className="badge-enhanced fs-6 px-4 py-2"
+                >
+                  <i className={`bi ${solicitudSeleccionada.estado === 'Pendiente' ? 'bi-clock' : solicitudSeleccionada.estado === 'Aprobada' ? 'bi-check-circle' : 'bi-x-circle'} me-2`}></i>
+                  {solicitudSeleccionada.estado}
+                </Badge>
+              </div>
+
+              {/* Información del trabajador */}
+              <Row className="mb-4">
+                <Col md={6}>
+                  <Card className="info-card border-primary h-100">
+                    <Card.Header className="bg-primary text-white">
+                      <i className="bi bi-person-circle me-2"></i>
+                      Información del Trabajador
+                    </Card.Header>
+                    <Card.Body>
+                      <div className="mb-3">
+                        <strong className="text-primary">Nombre Completo:</strong>
+                        <div className="mt-1">
+                          {solicitudSeleccionada.trabajador.nombres} {solicitudSeleccionada.trabajador.apellidoPaterno} {solicitudSeleccionada.trabajador.apellidoMaterno}
+                        </div>
+                      </div>
+                      <div className="mb-3">
+                        <strong className="text-primary">RUT:</strong>
+                        <div className="mt-1 font-monospace">{solicitudSeleccionada.trabajador.rut}</div>
+                      </div>
+                      <div className="mb-3">
+                        <strong className="text-primary">Email:</strong>
+                        <div className="mt-1">
+                          <a href={`mailto:${solicitudSeleccionada.trabajador.correo}`} className="text-decoration-none">
+                            <i className="bi bi-envelope me-1"></i>
+                            {solicitudSeleccionada.trabajador.correo}
+                          </a>
+                        </div>
+                      </div>
+                      <div>
+                        <strong className="text-primary">Teléfono:</strong>
+                        <div className="mt-1">
+                          <a href={`tel:${solicitudSeleccionada.trabajador.telefono}`} className="text-decoration-none">
+                            <i className="bi bi-telephone me-1"></i>
+                            {solicitudSeleccionada.trabajador.telefono}
+                          </a>
+                        </div>
+                      </div>
+                    </Card.Body>
+                  </Card>
+                </Col>
+                <Col md={6}>
+                  <Card className="info-card border-info h-100">
+                    <Card.Header className="bg-info text-white">
+                      <i className="bi bi-calendar-range me-2"></i>
+                      Detalles de la Solicitud
+                    </Card.Header>
+                    <Card.Body>
+                      <div className="mb-3">
+                        <strong className="text-info">Tipo de Solicitud:</strong>
+                        <div className="mt-2">
+                          <Badge bg={getTipoColor(solicitudSeleccionada.tipo)} className="badge-enhanced">
+                            <i className={`bi ${getTipoIcon(solicitudSeleccionada.tipo)} me-1`}></i>
+                            {solicitudSeleccionada.tipo}
+                          </Badge>
+                        </div>
+                      </div>
+                      <div className="mb-3">
+                        <strong className="text-info">Duración:</strong>
+                        <div className="mt-1 fs-5 fw-bold text-primary">
+                          {calcularDias(solicitudSeleccionada.fechaInicio, solicitudSeleccionada.fechaFin)} día{calcularDias(solicitudSeleccionada.fechaInicio, solicitudSeleccionada.fechaFin) !== 1 ? 's' : ''}
+                        </div>
+                      </div>
+                      <div className="mb-3">
+                        <strong className="text-info">Fecha de Solicitud:</strong>
+                        <div className="mt-1">{formatearFechaHora(solicitudSeleccionada.fechaSolicitud)}</div>
+                      </div>
+                      {solicitudSeleccionada.archivoAdjuntoURL && (
+                        <div>
+                          <strong className="text-info">Archivo Adjunto:</strong>
+                          <div className="mt-2">
+                            <i className="bi bi-paperclip text-success me-1"></i>
+                            <span className="text-success small">Disponible para descarga</span>
+                          </div>
+                        </div>
+                      )}
+                    </Card.Body>
+                  </Card>
+                </Col>
+              </Row>
+
+              {/* Período solicitado */}
+              <Card className="info-card border-success mb-4">
+                <Card.Header className="bg-success text-white">
+                  <i className="bi bi-calendar2-range me-2"></i>
+                  Período Solicitado
+                </Card.Header>
+                <Card.Body>
+                  <Row className="text-center">
+                    <Col md={6}>
+                      <div className="border-end">
+                        <strong className="text-success d-block">Fecha de Inicio</strong>
+                        <div className="fs-4 fw-bold text-primary mt-2">
+                          {formatearFecha(solicitudSeleccionada.fechaInicio)}
+                        </div>
+                        <small className="text-muted">
+                          {new Date(solicitudSeleccionada.fechaInicio).toLocaleDateString('es-CL', { weekday: 'long' })}
+                        </small>
+                      </div>
+                    </Col>
+                    <Col md={6}>
+                      <strong className="text-success d-block">Fecha de Fin</strong>
+                      <div className="fs-4 fw-bold text-primary mt-2">
+                        {formatearFecha(solicitudSeleccionada.fechaFin)}
+                      </div>
+                      <small className="text-muted">
+                        {new Date(solicitudSeleccionada.fechaFin).toLocaleDateString('es-CL', { weekday: 'long' })}
+                      </small>
+                    </Col>
+                  </Row>
+                </Card.Body>
+              </Card>
+
+              {/* Motivo de solicitud */}
+              <Card className="info-card border-warning mb-4">
+                <Card.Header className="bg-warning text-dark">
+                  <i className="bi bi-chat-left-text me-2"></i>
+                  Motivo de la Solicitud
+                </Card.Header>
+                <Card.Body>
+                  <p className="mb-0">{solicitudSeleccionada.motivoSolicitud}</p>
+                </Card.Body>
+              </Card>
+
+              {/* Respuesta del encargado (si existe) */}
+              {solicitudSeleccionada.respuestaEncargado && (
+                <Card className="info-card border-secondary mb-4">
+                  <Card.Header className="bg-secondary text-white">
+                    <i className="bi bi-chat-left-dots me-2"></i>
+                    Respuesta de RRHH
+                  </Card.Header>
+                  <Card.Body>
+                    <p className="mb-2">{solicitudSeleccionada.respuestaEncargado}</p>
+                    {solicitudSeleccionada.revisadoPor && (
+                      <small className="text-muted">
+                        <i className="bi bi-person me-1"></i>
+                        Revisado por: {solicitudSeleccionada.revisadoPor.name}
+                      </small>
+                    )}
+                  </Card.Body>
+                </Card>
+              )}
             </>
           )}
-          <Button variant="secondary" onClick={() => setShowDetalleModal(false)}>
-            <i className="bi bi-x-circle me-2"></i>
-            Cerrar
-          </Button>
+        </Modal.Body>
+        <Modal.Footer className="d-flex justify-content-between">
+          <div className="d-flex gap-2">
+            {/* Botón de descarga */}
+            {solicitudSeleccionada?.archivoAdjuntoURL && (
+              <Button 
+                variant="outline-info"
+                onClick={() => {
+                  if (solicitudSeleccionada) {
+                    handleDescargarArchivo(solicitudSeleccionada);
+                  }
+                }}
+                disabled={descargandoId === solicitudSeleccionada?.id}
+              >
+                <i className="bi bi-download me-2"></i>
+                {descargandoId === solicitudSeleccionada?.id ? 'Descargando...' : 'Descargar Archivo'}
+              </Button>
+            )}
+          </div>
+          
+          <div className="d-flex gap-2">
+            {/* Botones de acción para solicitudes pendientes */}
+            {solicitudSeleccionada?.estado === 'Pendiente' && (
+              <>
+                <Button 
+                  variant="success" 
+                  onClick={() => {
+                    if (solicitudSeleccionada) {
+                      setShowDetalleModal(false);
+                      iniciarRespuesta(solicitudSeleccionada, 'aprobar');
+                    }
+                  }}
+                  disabled={procesandoId === solicitudSeleccionada?.id}
+                >
+                  <i className="bi bi-check-circle me-2"></i>
+                  Aprobar
+                </Button>
+                <Button 
+                  variant="danger" 
+                  onClick={() => {
+                    if (solicitudSeleccionada) {
+                      setShowDetalleModal(false);
+                      iniciarRespuesta(solicitudSeleccionada, 'rechazar');
+                    }
+                  }}
+                  disabled={procesandoId === solicitudSeleccionada?.id}
+                >
+                  <i className="bi bi-x-circle me-2"></i>
+                  Rechazar
+                </Button>
+              </>
+            )}
+            
+            {/* Botón cerrar */}
+            <Button variant="secondary" onClick={() => setShowDetalleModal(false)}>
+              <i className="bi bi-x-circle me-2"></i>
+              Cerrar
+            </Button>
+          </div>
         </Modal.Footer>
       </Modal>
 
