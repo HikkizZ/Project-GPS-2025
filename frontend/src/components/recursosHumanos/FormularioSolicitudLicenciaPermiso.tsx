@@ -166,14 +166,14 @@ export const FormularioSolicitudLicenciaPermiso: React.FC<FormularioSolicitudLic
   const handleArchivoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const archivo = e.target.files?.[0];
     if (archivo) {
-      // Validar tipo de archivo
-      const tiposPermitidos = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'];
+      // Validar tipo de archivo - SOLO PDF
+      const tiposPermitidos = ['application/pdf'];
       if (!tiposPermitidos.includes(archivo.type)) {
         setLocalErrors(prev => ({ 
           ...prev, 
-          archivo: 'Solo se permiten archivos PDF, JPG, JPEG o PNG' 
+          archivo: 'Solo se permiten archivos PDF' 
         }));
-        showWarning('Archivo no válido', 'Solo se permiten archivos PDF, JPG, JPEG o PNG');
+        showWarning('Archivo no válido', 'Solo se permiten archivos PDF');
         return;
       }
 
@@ -399,7 +399,7 @@ export const FormularioSolicitudLicenciaPermiso: React.FC<FormularioSolicitudLic
                   <Form.Control
                     type="file"
                     id="archivo"
-                    accept=".pdf,.jpg,.jpeg,.png"
+                    accept=".pdf"
                     onChange={handleArchivoChange}
                     isInvalid={!!(localErrors.archivo || validationErrors.archivo)}
                   />
@@ -407,7 +407,7 @@ export const FormularioSolicitudLicenciaPermiso: React.FC<FormularioSolicitudLic
                     {localErrors.archivo || validationErrors.archivo}
                   </Form.Control.Feedback>
                   <Form.Text className="text-muted">
-                    Formatos permitidos: PDF, JPG, PNG (máximo 10MB)
+                    Formato permitido: Solo PDF (máximo 10MB)
                   </Form.Text>
                   
                   {archivoInfo && (
