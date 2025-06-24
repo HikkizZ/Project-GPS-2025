@@ -96,12 +96,12 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
     const file = e.target.files?.[0];
     if (file) {
       if (file.type !== 'application/pdf') {
-        showError('Archivo inválido', 'Solo se permiten archivos PDF', 5000);
+        showError('Archivo inválido', 'Solo se permiten archivos PDF', 4000);
         e.target.value = '';
         return;
       }
       if (file.size > 10 * 1024 * 1024) {
-        showError('Archivo muy grande', 'El archivo no puede superar los 10MB', 5000);
+        showError('Archivo muy grande', 'El archivo no puede superar los 10MB', 4000);
         e.target.value = '';
         return;
       }
@@ -112,7 +112,7 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
   const handleDownloadFile = async () => {
     try {
       await downloadContrato(ficha.id);
-      showSuccess('Descarga exitosa', 'El contrato se ha descargado correctamente', 5000);
+      showSuccess('Descarga exitosa', 'El contrato se ha descargado correctamente', 4000);
     } catch (error: any) {
       showError('Error de descarga', error.message || 'Error al descargar el contrato', 6000);
     }
@@ -126,7 +126,7 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
       const response = await deleteContrato(ficha.id);
       if (response.success) {
         if (onUpdate) onUpdate();
-        showSuccess('Contrato eliminado', 'El contrato se ha eliminado exitosamente', 5000);
+        showSuccess('Contrato eliminado', 'El contrato se ha eliminado exitosamente', 4000);
       } else {
         showError('Error al eliminar', response.message || 'Error al eliminar el contrato', 6000);
       }

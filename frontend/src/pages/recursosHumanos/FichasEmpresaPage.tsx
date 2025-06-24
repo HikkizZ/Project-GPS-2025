@@ -185,13 +185,13 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
     // Recargar las fichas
     handleSearch();
     // Mostrar toast de éxito
-    showSuccess('¡Ficha actualizada!', 'La ficha de empresa se ha actualizado exitosamente', 7000);
+    showSuccess('¡Ficha actualizada!', 'La ficha de empresa se ha actualizado exitosamente', 4000);
   };
 
   const handleDownloadContrato = async (fichaId: number) => {
     try {
       await downloadContrato(fichaId);
-      showSuccess('Descarga exitosa', 'El contrato se ha descargado correctamente', 5000);
+      showSuccess('Descarga exitosa', 'El contrato se ha descargado correctamente', 4000);
     } catch (error) {
       showError('Error de descarga', 'Error al descargar el contrato. Por favor, intente nuevamente.', 6000);
     }
