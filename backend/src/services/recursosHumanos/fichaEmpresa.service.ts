@@ -177,13 +177,7 @@ export async function getFichaEmpresaById(id: number): Promise<ServiceResponse<F
 
         if (!ficha) {
             return [null, { message: "Ficha no encontrada" }];
-        }
-
-        if (ficha.trabajador && ficha.trabajador.rut === "11.111.111-1") {
-            return [null, { message: "No se puede modificar ni eliminar la ficha del superadministrador." }];
-        }
-
-        return [ficha, null];
+        }return [ficha, null];
     } catch (error) {
         console.error("Error en getFichaEmpresaById:", error);
         return [null, { message: "Error interno del servidor" }];
@@ -211,13 +205,7 @@ export async function getMiFichaService(userId: number): Promise<ServiceResponse
 
         if (!ficha) {
             return [null, { message: "Ficha no encontrada" }];
-        }
-
-        if (ficha.trabajador && ficha.trabajador.rut === "11.111.111-1") {
-            return [null, { message: "No se puede modificar ni eliminar la ficha del superadministrador." }];
-        }
-
-        return [ficha, null];
+        }return [ficha, null];
     } catch (error) {
         console.error("Error en getMiFichaService:", error);
         return [null, { message: "Error interno del servidor" }];
@@ -252,13 +240,7 @@ export async function actualizarEstadoFichaService(
             await queryRunner.rollbackTransaction();
             await queryRunner.release();
             return [null, { message: "Ficha no encontrada" }];
-        }
-
-        if (ficha.trabajador && ficha.trabajador.rut === "11.111.111-1") {
-            return [null, { message: "No se puede modificar ni eliminar la ficha del superadministrador." }];
-        }
-
-        // Verificar permisos del usuario
+        }// Verificar permisos del usuario
         if (userId) {
             const userRepo = queryRunner.manager.getRepository(User);
             const user = await userRepo.findOne({ where: { id: userId } });
@@ -341,13 +323,7 @@ export async function updateFichaEmpresaService(
 
         if (!fichaActual) {
             return [null, { message: "Ficha no encontrada" }];
-        }
-
-        if (fichaActual.trabajador && fichaActual.trabajador.rut === "11.111.111-1") {
-            return [null, { message: "No se puede modificar ni eliminar la ficha del superadministrador." }];
-        }
-
-        // 2. Validar campos protegidos
+        }// 2. Validar campos protegidos
         const camposInvalidos = CAMPOS_PROTEGIDOS.filter(campo => campo in fichaData);
         if (camposInvalidos.length > 0) {
             return [null, { message: `No se pueden modificar los siguientes campos: ${camposInvalidos.join(', ')}` }];
@@ -418,13 +394,7 @@ export async function descargarContratoService(id: number, userId: number): Prom
 
         if (!ficha) {
             return [null, { message: "Ficha no encontrada" }];
-        }
-
-        if (ficha.trabajador && ficha.trabajador.rut === "11.111.111-1") {
-            return [null, { message: "No se puede modificar ni eliminar la ficha del superadministrador." }];
-        }
-
-        const user = await userRepo.findOne({
+        }const user = await userRepo.findOne({
             where: { id: userId },
             relations: ["trabajador"]
         });

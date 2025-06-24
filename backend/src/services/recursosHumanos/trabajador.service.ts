@@ -171,20 +171,18 @@ export async function createTrabajadorService(trabajadorData: Partial<Trabajador
             });
             await queryRunner.manager.save(User, newUser);
 
-            // Enviar correo con credenciales (excepto superadmin)
+            // Enviar correo con credenciales
             let advertencias: string[] = [];
-            if (!(trabajador.rut === "11.111.111-1")) {
-                try {
-                    await sendCredentialsEmail({
-                        to: trabajador.correoPersonal,
-                        nombre: trabajador.nombres,
-                        correoUsuario,
-                        passwordTemporal: randomPassword
-                    });
-                } catch (err) {
-                    console.error("Error enviando correo de credenciales:", err);
-                    advertencias.push("No se pudo enviar el correo de credenciales.");
-                }
+            try {
+                await sendCredentialsEmail({
+                    to: trabajador.correoPersonal,
+                    nombre: trabajador.nombres,
+                    correoUsuario,
+                    passwordTemporal: randomPassword
+                });
+            } catch (err) {
+                console.error("Error enviando correo de credenciales:", err);
+                advertencias.push("No se pudo enviar el correo de credenciales.");
             }
 
             // Crear ficha de empresa
@@ -363,11 +361,7 @@ export async function desvincularTrabajadorService(id: number, motivo: string, u
             return [null, "Trabajador no encontrado o ya desvinculado"];
         }
 
-        if (trabajador.rut === "11.111.111-1") {
-            await queryRunner.rollbackTransaction();
-            await queryRunner.release();
-            return [null, "No se puede modificar, eliminar ni desvincular al superadministrador."];
-        }
+
 
         // Soft delete del trabajador
         trabajador.enSistema = false;
@@ -411,9 +405,7 @@ export async function updateTrabajadorService(id: number, data: any): Promise<Se
         if (!trabajador) return [null, "Trabajador no encontrado"];
         if (!trabajador.usuario) return [null, "El trabajador no tiene usuario asociado"];
 
-        if (trabajador.rut === "11.111.111-1") {
-            return [null, "No se puede modificar, eliminar ni desvincular al superadministrador."];
-        }
+
 
         let updated = false;
         let correoUsuarioAnterior = trabajador.usuario.email;

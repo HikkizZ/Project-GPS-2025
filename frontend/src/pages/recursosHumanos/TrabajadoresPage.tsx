@@ -342,7 +342,7 @@ export const TrabajadoresPage: React.FC = () => {
                         <td>{new Date(trabajador.fechaIngreso).toLocaleDateString()}</td>
                         <td className="text-center">
                           {/* Ocultar acciones si es el admin principal */}
-                          {(trabajador.correoPersonal !== 'admin.principal@gmail.com' && trabajador.rut !== '11.111.111-1') && (
+                          {(trabajador.correoPersonal !== 'admin.principal@gmail.com') && (
                             <div className="btn-group">
                               <Button 
                                 variant="outline-primary" 

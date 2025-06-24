@@ -125,13 +125,7 @@ export const updateUserService = async (id: number, body: UpdateUserData, reques
 
         if (!user) {
             return null;
-        }
-
-        if (user.rut === "11.111.111-1") {
-            throw { status: 403, message: "No se puede modificar el superadministrador." };
-        }
-
-        const dataUserUpdate: any = {};
+        }const dataUserUpdate: any = {};
 
         if (body.name) {
             dataUserUpdate.name = body.name;
@@ -173,13 +167,7 @@ export const updateUserByTrabajadorService = async (id: number, body: UpdateUser
 
         if (!user) {
             return null;
-        }
-
-        if (user.rut === "11.111.111-1") {
-            throw { status: 403, message: "No se puede modificar el superadministrador." };
-        }
-
-        const dataUserUpdate: any = {};
+        }const dataUserUpdate: any = {};
 
         if (body.name) {
             dataUserUpdate.name = body.name;

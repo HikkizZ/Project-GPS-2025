@@ -39,7 +39,7 @@ async function limpiarBaseDatos() {
       .createQueryBuilder()
       .delete()
       .where("rut NOT IN (:...ruts)", { 
-        ruts: ['11.111.111-1'] 
+        ruts: [] 
       })
       .execute();
 
@@ -48,7 +48,7 @@ async function limpiarBaseDatos() {
       .createQueryBuilder()
       .delete()
       .where("rut NOT IN (:...ruts)", { 
-        ruts: ['11.111.111-1'] 
+        ruts: [] 
       })
       .execute();
 

@@ -799,7 +799,7 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                             </td>
                             <td>
                               {/* Ocultar acciones si es el admin principal */}
-                              {(ficha.trabajador.rut !== '11.111.111-1') && (
+                              {(
                                 <div className="btn-group btn-group-sm">
                                   <button
                                     className={`btn ${ficha.contratoURL ? 'btn-outline-danger' : 'btn-outline-secondary'}`}

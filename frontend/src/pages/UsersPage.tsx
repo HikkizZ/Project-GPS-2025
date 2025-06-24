@@ -451,7 +451,7 @@ export const UsersPage: React.FC = () => {
                           </td>
                           <td className="text-center">
                             {/* Ocultar acciones si es el admin principal */}
-                            {(user.email !== 'admin.principal@gmail.com' && user.rut !== '11.111.111-1') && (
+                            {(user.email !== 'admin.principal@gmail.com') && (
                               <div className="btn-group">
                                 <Button
                                   variant="outline-primary"

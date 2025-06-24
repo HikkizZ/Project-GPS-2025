@@ -78,13 +78,13 @@ after(async function() {
             await AppDataSource.getRepository(User)
                 .createQueryBuilder()
                 .delete()
-                .where("rut NOT IN (:...ruts)", { ruts: ['11.111.111-1'] })
+                .where("rut NOT IN (:...ruts)", { ruts: [] })
                 .execute();
                 
             await AppDataSource.getRepository(Trabajador)
                 .createQueryBuilder()
                 .delete()
-                .where("rut NOT IN (:...ruts)", { ruts: ['11.111.111-1'] })
+                .where("rut NOT IN (:...ruts)", { ruts: [] })
                 .execute();
         }
     } catch (error) {
