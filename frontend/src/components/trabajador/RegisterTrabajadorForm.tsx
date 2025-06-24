@@ -117,9 +117,9 @@ export const RegisterTrabajadorForm: React.FC<RegisterTrabajadorFormProps> = ({
       )}
 
       <Form onSubmit={handleSubmit}>
-        {/* Primera fila - Identificación */}
-        <Row className="mb-3">
-          <Col md={6}>
+        <div className="row g-3">
+          {/* Primera fila - RUT y Fecha Ingreso */}
+          <div className="col-md-4">
             <Form.Group>
               <Form.Label className="fw-semibold">RUT: <span className="text-danger">*</span></Form.Label>
               <Form.Control
@@ -132,8 +132,8 @@ export const RegisterTrabajadorForm: React.FC<RegisterTrabajadorFormProps> = ({
                 style={{ borderRadius: '8px' }}
               />
             </Form.Group>
-          </Col>
-          <Col md={6}>
+          </div>
+          <div className="col-md-4">
             <Form.Group>
               <Form.Label className="fw-semibold">Fecha de Ingreso:</Form.Label>
               <Form.Control
@@ -146,15 +146,25 @@ export const RegisterTrabajadorForm: React.FC<RegisterTrabajadorFormProps> = ({
               />
               <Form.Text className="text-muted small">
                 <i className="bi bi-info-circle me-1"></i>
-                Se establece automáticamente al día de hoy
+                Automática (hoy)
               </Form.Text>
             </Form.Group>
-          </Col>
-        </Row>
+          </div>
+          <div className="col-md-4">
+            <Form.Group>
+              <Form.Label className="fw-semibold">Fecha de Nacimiento:</Form.Label>
+              <Form.Control
+                type="date"
+                name="fechaNacimiento"
+                value={formData.fechaNacimiento}
+                onChange={handleInputChange}
+                style={{ borderRadius: '8px' }}
+              />
+            </Form.Group>
+          </div>
 
-        {/* Segunda fila - Nombres y Fecha Nacimiento */}
-        <Row className="mb-3">
-          <Col md={6}>
+          {/* Segunda fila - Nombres completos */}
+          <div className="col-md-4">
             <Form.Group>
               <Form.Label className="fw-semibold">Nombres: <span className="text-danger">*</span></Form.Label>
               <Form.Control
@@ -167,25 +177,8 @@ export const RegisterTrabajadorForm: React.FC<RegisterTrabajadorFormProps> = ({
                 style={{ borderRadius: '8px' }}
               />
             </Form.Group>
-          </Col>
-          <Col md={6}>
-            <Form.Group>
-              <Form.Label className="fw-semibold">Fecha de Nacimiento:</Form.Label>
-              <Form.Control
-                type="date"
-                name="fechaNacimiento"
-                value={formData.fechaNacimiento}
-                onChange={handleInputChange}
-                placeholder="dd-mm-aaaa"
-                style={{ borderRadius: '8px' }}
-              />
-            </Form.Group>
-          </Col>
-        </Row>
-
-        {/* Tercera fila - Apellidos */}
-        <Row className="mb-3">
-          <Col md={6}>
+          </div>
+          <div className="col-md-4">
             <Form.Group>
               <Form.Label className="fw-semibold">Apellido Paterno: <span className="text-danger">*</span></Form.Label>
               <Form.Control
@@ -198,8 +191,8 @@ export const RegisterTrabajadorForm: React.FC<RegisterTrabajadorFormProps> = ({
                 style={{ borderRadius: '8px' }}
               />
             </Form.Group>
-          </Col>
-          <Col md={6}>
+          </div>
+          <div className="col-md-4">
             <Form.Group>
               <Form.Label className="fw-semibold">Apellido Materno: <span className="text-danger">*</span></Form.Label>
               <Form.Control
@@ -212,12 +205,10 @@ export const RegisterTrabajadorForm: React.FC<RegisterTrabajadorFormProps> = ({
                 style={{ borderRadius: '8px' }}
               />
             </Form.Group>
-          </Col>
-        </Row>
+          </div>
 
-        {/* Cuarta fila - Contacto */}
-        <Row className="mb-3">
-          <Col md={6}>
+          {/* Tercera fila - Contacto */}
+          <div className="col-md-4">
             <Form.Group>
               <Form.Label className="fw-semibold">Correo Personal: <span className="text-danger">*</span></Form.Label>
               <Form.Control
@@ -225,13 +216,13 @@ export const RegisterTrabajadorForm: React.FC<RegisterTrabajadorFormProps> = ({
                 name="correoPersonal"
                 value={formData.correoPersonal}
                 onChange={handleInputChange}
-                placeholder="correo.personal@gmail.com"
+                placeholder="correo@gmail.com"
                 required
                 style={{ borderRadius: '8px' }}
               />
             </Form.Group>
-          </Col>
-          <Col md={6}>
+          </div>
+          <div className="col-md-4">
             <Form.Group>
               <Form.Label className="fw-semibold">Teléfono: <span className="text-danger">*</span></Form.Label>
               <Form.Control
@@ -244,12 +235,8 @@ export const RegisterTrabajadorForm: React.FC<RegisterTrabajadorFormProps> = ({
                 style={{ borderRadius: '8px' }}
               />
             </Form.Group>
-          </Col>
-        </Row>
-
-        {/* Quinta fila - Teléfono Emergencia y Dirección */}
-        <Row className="mb-4">
-          <Col md={6}>
+          </div>
+          <div className="col-md-4">
             <Form.Group>
               <Form.Label className="fw-semibold">Teléfono de Emergencia:</Form.Label>
               <Form.Control
@@ -261,8 +248,10 @@ export const RegisterTrabajadorForm: React.FC<RegisterTrabajadorFormProps> = ({
                 style={{ borderRadius: '8px' }}
               />
             </Form.Group>
-          </Col>
-          <Col md={6}>
+          </div>
+
+          {/* Cuarta fila - Dirección */}
+          <div className="col-12">
             <Form.Group>
               <Form.Label className="fw-semibold">Dirección: <span className="text-danger">*</span></Form.Label>
               <Form.Control
@@ -275,11 +264,11 @@ export const RegisterTrabajadorForm: React.FC<RegisterTrabajadorFormProps> = ({
                 style={{ borderRadius: '8px' }}
               />
             </Form.Group>
-          </Col>
-        </Row>
+          </div>
+        </div>
 
         {/* Botones */}
-        <div className="d-flex justify-content-end gap-2 pt-3 border-top">
+        <div className="d-flex justify-content-end gap-2 pt-3 border-top mt-3">
           <Button 
             variant="outline-secondary" 
             onClick={onCancel} 
