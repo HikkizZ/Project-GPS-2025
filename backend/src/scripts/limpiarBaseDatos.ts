@@ -13,6 +13,9 @@ async function limpiarBaseDatos() {
     await AppDataSource.initialize();
     console.log("✅ Conexión a la base de datos establecida");
 
+    // RUT del SuperAdministrador que debe ser preservado
+    const superAdminRut = "11.111.111-1";
+
     // Limpiar en orden correcto (por dependencias)
     console.log("🔄 Eliminando licencias y permisos...");
     await AppDataSource.getRepository(LicenciaPermiso)
@@ -34,25 +37,23 @@ async function limpiarBaseDatos() {
 
     // IMPORTANTE: Eliminar usuarios primero (userauth) antes que trabajadores
     // porque User tiene una FK hacia Trabajador por RUT
-    console.log("🔄 Eliminando usuarios (excepto admin)...");
+    // Preservar únicamente al SuperAdministrador
+    console.log("🔄 Eliminando usuarios (excepto SuperAdministrador)...");
     await AppDataSource.getRepository(User)
       .createQueryBuilder()
       .delete()
-      .where("rut NOT IN (:...ruts)", { 
-        ruts: [] 
-      })
+      .where("rut != :superAdminRut", { superAdminRut })
       .execute();
 
-    console.log("🔄 Eliminando trabajadores (excepto admin)...");
+    // Eliminar todos los trabajadores (el SuperAdmin NO es trabajador según la memoria)
+    console.log("🔄 Eliminando todos los trabajadores...");
     await AppDataSource.getRepository(Trabajador)
       .createQueryBuilder()
       .delete()
-      .where("rut NOT IN (:...ruts)", { 
-        ruts: [] 
-      })
       .execute();
 
     console.log("✅ Base de datos limpiada exitosamente");
+    console.log(`📋 Usuario preservado: SuperAdministrador (${superAdminRut})`);
     process.exit(0);
   } catch (error) {
     console.error("❌ Error al limpiar la base de datos:", error);
