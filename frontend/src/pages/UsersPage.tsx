@@ -39,8 +39,8 @@ export const UsersPage: React.FC = () => {
 
   const availableRoles: UserRole[] = ['Usuario', 'RecursosHumanos', 'Gerencia', 'Ventas', 'Arriendo', 'Finanzas', 'Mecánico', 'Mantenciones de Maquinaria'];
   
-  // Solo admin puede crear otros admins
-  if (user?.role === 'Administrador') {
+  // Admin, SuperAdmin y RecursosHumanos pueden asignar rol de Administrador
+  if (user?.role === 'Administrador' || user?.role === 'SuperAdministrador' || user?.role === 'RecursosHumanos') {
     availableRoles.push('Administrador');
   }
 
