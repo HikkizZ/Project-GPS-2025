@@ -134,11 +134,9 @@ export const FormularioSolicitudLicenciaPermiso: React.FC<FormularioSolicitudLic
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
     
-    // Limpiar errores cuando el usuario hace cambios
-    limpiarErrores(); // Limpiar error general del hook
-    if (localErrors[name]) {
-      setLocalErrors(prev => ({ ...prev, [name]: '' }));
-    }
+    // Limpiar TODOS los errores cuando el usuario hace cambios
+    limpiarErrores(); // Limpiar error general y validationErrors del hook
+    setLocalErrors({}); // Limpiar todos los errores locales (no solo el campo específico)
   };
 
   const handleArchivoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -169,10 +167,9 @@ export const FormularioSolicitudLicenciaPermiso: React.FC<FormularioSolicitudLic
       setFormData(prev => ({ ...prev, archivo }));
       setArchivoInfo(`${archivo.name} (${(archivo.size / 1024 / 1024).toFixed(2)} MB)`);
       
-      // Limpiar error de archivo
-      if (localErrors.archivo) {
-        setLocalErrors(prev => ({ ...prev, archivo: '' }));
-      }
+      // Limpiar TODOS los errores cuando se selecciona un archivo válido
+      limpiarErrores(); // Limpiar error general y validationErrors del hook
+      setLocalErrors({}); // Limpiar todos los errores locales
     }
   };
 
@@ -203,6 +200,10 @@ export const FormularioSolicitudLicenciaPermiso: React.FC<FormularioSolicitudLic
         fileInput.value = '';
       }
     }
+    
+    // Limpiar TODOS los errores cuando se cambia el tipo
+    limpiarErrores(); // Limpiar error general y validationErrors del hook
+    setLocalErrors({}); // Limpiar todos los errores locales
   };
 
   // Limpiar errores cuando se monta el componente
@@ -213,6 +214,7 @@ export const FormularioSolicitudLicenciaPermiso: React.FC<FormularioSolicitudLic
     };
   }, []); // Array vacío - solo se ejecuta al montar/desmontar
 
+  // El botón se deshabilita solo si hay errores actuales Y no se está escribiendo activamente
   const tieneErrores = !!error || Object.keys(localErrors).length > 0 || Object.keys(validationErrors).length > 0;
   const diasCalculados = calcularDias();
 
