@@ -420,7 +420,8 @@ export const FormularioSolicitudLicenciaPermiso: React.FC<FormularioSolicitudLic
                         className="ms-2"
                         onClick={removerArchivo}
                       >
-                        <i className="bi bi-x"></i>
+                        <i className="bi bi-x-circle me-1"></i>
+                        Quitar archivo
                       </Button>
                     </Alert>
                   )}
