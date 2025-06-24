@@ -334,8 +334,19 @@ export const TrabajadoresPage: React.FC = () => {
                     </Button>
                   </div>
                 ) : (
-                  <div className="table-responsive">
-                    <Table hover>
+                  <>
+                    <div className="d-flex justify-content-between align-items-center mb-3">
+                      <h6 className="mb-0">
+                        <i className="bi bi-list-ul me-2"></i>
+                        Trabajadores Registrados ({trabajadores.length})
+                        <small className="text-muted ms-2">
+                          (Activos: {trabajadores.filter(t => t.enSistema).length} • 
+                          Desvinculados: {trabajadores.filter(t => !t.enSistema).length})
+                        </small>
+                      </h6>
+                    </div>
+                    <div className="table-responsive">
+                      <Table hover>
                       <thead className="table-light">
                         <tr>
                           <th>RUT</th>
@@ -402,7 +413,8 @@ export const TrabajadoresPage: React.FC = () => {
                         ))}
                       </tbody>
                     </Table>
-                  </div>
+                    </div>
+                  </>
                 )}
               </Card.Body>
             </Card>
