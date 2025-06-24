@@ -251,30 +251,13 @@ export const ListaSolicitudesPersonales: React.FC<ListaSolicitudesPersonalesProp
 
                       {/* Acciones */}
                       <td>
-                        <div className="d-flex gap-1">
-                          <Button
-                            variant="outline-info"
-                            size="sm"
-                            onClick={() => mostrarDetalles(solicitud)}
-                          >
-                            <i className="bi bi-eye"></i>
-                          </Button>
-                          
-                          {solicitud.archivoAdjuntoURL && (
-                            <Button
-                              variant="outline-success"
-                              size="sm"
-                              onClick={() => handleDescargarArchivo(solicitud)}
-                              disabled={descargandoId === solicitud.id}
-                            >
-                              {descargandoId === solicitud.id ? (
-                                <Spinner size="sm" />
-                              ) : (
-                                <i className="bi bi-download"></i>
-                              )}
-                            </Button>
-                          )}
-                        </div>
+                        <Button
+                          variant="outline-info"
+                          size="sm"
+                          onClick={() => mostrarDetalles(solicitud)}
+                        >
+                          <i className="bi bi-eye"></i>
+                        </Button>
                       </td>
                     </tr>
                   ))}
