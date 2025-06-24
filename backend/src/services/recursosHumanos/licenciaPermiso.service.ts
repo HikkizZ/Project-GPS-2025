@@ -131,12 +131,27 @@ export async function createLicenciaPermisoService(data: CreateLicenciaPermisoDT
 export async function getAllLicenciasPermisosService(): Promise<ServiceResponse<LicenciaPermiso[]>> {
   try {
     const licenciaRepo = AppDataSource.getRepository(LicenciaPermiso);
+    const userRepo = AppDataSource.getRepository(User);
+    
     const licencias = await licenciaRepo.find({ 
       relations: ["trabajador", "revisadoPor"],
       order: {
         fechaSolicitud: "DESC"
       }
     });
+
+    // Cargar usuarios manualmente para cada trabajador
+    for (const licencia of licencias) {
+      if (licencia.trabajador?.rut) {
+        const usuario = await userRepo.findOne({
+          where: { rut: licencia.trabajador.rut },
+          select: ['id', 'email', 'role']
+        });
+        if (usuario) {
+          licencia.trabajador.usuario = usuario;
+        }
+      }
+    }
 
     if (!licencias.length) return [null, "No hay solicitudes registradas."];
     return [licencias, null];
@@ -149,12 +164,26 @@ export async function getAllLicenciasPermisosService(): Promise<ServiceResponse<
 export async function getLicenciaPermisoByIdService(id: number): Promise<ServiceResponse<LicenciaPermiso>> {
   try {
     const licenciaRepo = AppDataSource.getRepository(LicenciaPermiso);
+    const userRepo = AppDataSource.getRepository(User);
+    
     const licencia = await licenciaRepo.findOne({
       where: { id },
       relations: ["trabajador", "revisadoPor"]
     });
 
     if (!licencia) return [null, "Solicitud no encontrada."];
+
+    // Cargar usuario manualmente para el trabajador
+    if (licencia.trabajador?.rut) {
+      const usuario = await userRepo.findOne({
+        where: { rut: licencia.trabajador.rut },
+        select: ['id', 'email', 'role']
+      });
+      if (usuario) {
+        licencia.trabajador.usuario = usuario;
+      }
+    }
+
     return [licencia, null];
   } catch (error) {
     console.error("Error al buscar la solicitud:", error);

@@ -19,6 +19,14 @@ export interface LicenciaPermiso {
     apellidoPaterno: string;
     apellidoMaterno: string;
     rut: string;
+    telefono: string;
+    correoPersonal: string;
+    correo?: string; // Alias para compatibilidad
+    usuario?: {
+      id: number;
+      email: string;
+      role: string;
+    };
   };
   tipo: TipoSolicitud;
   fechaInicio: string; // formato YYYY-MM-DD
