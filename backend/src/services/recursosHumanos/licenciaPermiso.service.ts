@@ -361,7 +361,7 @@ export async function verificarLicenciasVencidasService(): Promise<ServiceRespon
 /**
  * Servicio para descargar archivo de licencia/permiso
  */
-export async function descargarArchivoLicenciaService(id: number, userRut: string): Promise<ServiceResponse<string>> {
+export async function descargarArchivoLicenciaService(id: number, userRut: string): Promise<ServiceResponse<{ filePath: string; customFilename: string }>> {
   try {
     console.log(`📋 [SERVICIO-DESCARGA] Buscando licencia ID: ${id}`);
     
@@ -435,8 +435,48 @@ export async function descargarArchivoLicenciaService(id: number, userRut: strin
       return [null, "El archivo del certificado no se encuentra en el servidor."];
     }
 
-    console.log(`✅ [SERVICIO-DESCARGA] Permisos validados correctamente. Retornando ruta: ${filePath}`);
-    return [filePath, null];
+    // Generar nombre personalizado del archivo
+    const nombres = licencia.trabajador.nombres?.trim() || '';
+    const apellidoPaterno = licencia.trabajador.apellidoPaterno?.trim() || '';
+    const apellidoMaterno = licencia.trabajador.apellidoMaterno?.trim() || '';
+    
+    console.log(`👤 [SERVICIO-DESCARGA] Datos del trabajador - Nombres: "${nombres}", Apellido P: "${apellidoPaterno}", Apellido M: "${apellidoMaterno}"`);
+    console.log(`📋 [SERVICIO-DESCARGA] Tipo de licencia: "${licencia.tipo}"`);
+    
+    // Función para limpiar nombres (solo letras, números y algunos caracteres seguros)
+    const limpiarNombre = (texto: string): string => {
+      return texto
+        .replace(/\s+/g, '_') // Espacios a guiones bajos
+        .replace(/[^a-zA-ZÀ-ÿ\u00f1\u00d10-9_]/g, '') // Solo letras, números y guiones bajos
+        .replace(/_+/g, '_') // Múltiples guiones bajos a uno solo
+        .replace(/^_|_$/g, ''); // Quitar guiones bajos al inicio y final
+    };
+    
+    const nombreLimpio = limpiarNombre(nombres);
+    const apellidoPaternoLimpio = limpiarNombre(apellidoPaterno);
+    const apellidoMaternoLimpio = limpiarNombre(apellidoMaterno);
+    
+    console.log(`🧹 [SERVICIO-DESCARGA] Nombres limpios - Nombres: "${nombreLimpio}", Apellido P: "${apellidoPaternoLimpio}", Apellido M: "${apellidoMaternoLimpio}"`);
+    
+    // Construir el nombre del archivo
+    let customFilename = '';
+    if (nombreLimpio) customFilename += nombreLimpio;
+    if (apellidoPaternoLimpio) customFilename += (customFilename ? '_' : '') + apellidoPaternoLimpio;
+    if (apellidoMaternoLimpio) customFilename += (customFilename ? '_' : '') + apellidoMaternoLimpio;
+    
+    // Si no hay nombres válidos, usar un fallback
+    if (!customFilename) {
+      customFilename = 'Documento';
+    }
+    
+    // Agregar el tipo de solicitud
+    const tipoSolicitud = licencia.tipo === TipoSolicitud.LICENCIA ? 'Licencia_Medica' : 'Permiso_Administrativo';
+    customFilename += `-${tipoSolicitud}.pdf`;
+    
+    console.log(`📝 [SERVICIO-DESCARGA] Nombre personalizado generado: "${customFilename}"`);
+    console.log(`✅ [SERVICIO-DESCARGA] Permisos validados correctamente. Retornando datos.`);
+    
+    return [{ filePath, customFilename }, null];
   } catch (error) {
     console.error("❌ [SERVICIO-DESCARGA] Error inesperado:", error);
     return [null, "Error interno del servidor"];

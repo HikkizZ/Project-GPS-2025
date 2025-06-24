@@ -276,11 +276,19 @@ export class LicenciaPermisoService {
         const contentDisposition = response.headers.get('Content-Disposition');
         let filename = 'archivo.pdf';
         
+        console.log('🔍 Content-Disposition header:', contentDisposition);
+        
         if (contentDisposition) {
-          const filenameMatch = contentDisposition.match(/filename="?(.+)"?/);
+          // Buscar filename= seguido de comillas opcionales y cualquier carácter hasta comillas opcionales o fin de línea
+          const filenameMatch = contentDisposition.match(/filename\*?=(?:"([^"]*)"|([^;,\s]*))/);
           if (filenameMatch) {
-            filename = filenameMatch[1];
+            filename = filenameMatch[1] || filenameMatch[2] || 'archivo.pdf';
+            console.log('✅ Filename extraído:', filename);
+          } else {
+            console.log('❌ No se pudo extraer filename del header');
           }
+        } else {
+          console.log('❌ No hay Content-Disposition header');
         }
 
         return {

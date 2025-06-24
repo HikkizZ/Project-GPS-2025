@@ -292,9 +292,9 @@ export async function descargarArchivoLicencia(req: Request, res: Response): Pro
 
     console.log(`👤 [DESCARGA] Usuario: ${req.user.rut} (${req.user.role})`);
 
-    const [filePath, error] = await descargarArchivoLicenciaService(id, req.user.rut);
+    const [result, error] = await descargarArchivoLicenciaService(id, req.user.rut);
     
-    console.log(`📁 [DESCARGA] Resultado del servicio - Ruta: ${filePath}, Error: ${error}`);
+    console.log(`📁 [DESCARGA] Resultado del servicio - Resultado: ${JSON.stringify(result)}, Error: ${error}`);
     
     if (error) {
       const errorMessage = typeof error === 'string' ? error : error.message;
@@ -305,13 +305,44 @@ export async function descargarArchivoLicencia(req: Request, res: Response): Pro
       return;
     }
 
-    if (!filePath) {
-      console.log(`❌ [DESCARGA] Ruta de archivo vacía`);
+    if (!result || !result.filePath) {
+      console.log(`❌ [DESCARGA] Resultado vacío o sin ruta de archivo`);
       handleErrorClient(res, 404, "Archivo no encontrado");
       return;
     }
 
+    const { filePath, customFilename } = result;
     console.log(`📂 [DESCARGA] Ruta del archivo: ${filePath}`);
+    console.log(`📝 [DESCARGA] Nombre personalizado: "${customFilename}"`);
+    
+    // Validar que el nombre personalizado es válido
+    if (!customFilename || customFilename.trim() === '' || customFilename === 'undefined' || customFilename === 'null') {
+      console.log(`❌ [DESCARGA] Nombre personalizado inválido, usando fallback`);
+      const fallbackName = `Licencia_${id}.pdf`;
+      console.log(`📝 [DESCARGA] Usando nombre fallback: "${fallbackName}"`);
+      
+      // Configurar headers para evitar cache y forzar descarga ANTES de res.download
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="${fallbackName}"`);
+      res.setHeader('Access-Control-Expose-Headers', 'Content-Disposition');
+      
+      console.log(`🔧 [DESCARGA] Headers fallback configurados. Content-Disposition: attachment; filename="${fallbackName}"`);
+      
+      res.download(filePath, fallbackName, (err) => {
+        if (err) {
+          console.error("❌ [DESCARGA] Error al enviar el archivo con res.download:", err);
+          if (!res.headersSent) {
+            handleErrorServer(res, 500, "No se pudo descargar el archivo.");
+          }
+        } else {
+          console.log(`✅ [DESCARGA] Archivo fallback enviado exitosamente: ${fallbackName}`);
+        }
+      });
+      return;
+    }
 
     // Verificar que el archivo existe antes de intentar enviarlo
     if (!fs.existsSync(filePath)) {
@@ -320,15 +351,27 @@ export async function descargarArchivoLicencia(req: Request, res: Response): Pro
       return;
     }
 
-    const filename = path.basename(filePath);
-    console.log(`✅ [DESCARGA] Enviando archivo: ${filename} desde ${filePath}`);
+    console.log(`✅ [DESCARGA] Enviando archivo: ${customFilename} desde ${filePath}`);
 
-    res.download(filePath, filename, (err) => {
+    // Configurar headers para evitar cache y forzar descarga ANTES de res.download
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${customFilename}"`);
+    res.setHeader('Access-Control-Expose-Headers', 'Content-Disposition');
+
+    console.log(`🔧 [DESCARGA] Headers configurados manualmente. Content-Disposition: attachment; filename="${customFilename}"`);
+
+    // Enviar archivo con nombre personalizado
+    res.download(filePath, customFilename, (err) => {
       if (err) {
         console.error("❌ [DESCARGA] Error al enviar el archivo con res.download:", err);
         if (!res.headersSent) {
           handleErrorServer(res, 500, "No se pudo descargar el archivo.");
         }
+      } else {
+        console.log(`✅ [DESCARGA] Archivo enviado exitosamente: ${customFilename}`);
       }
     });
 
