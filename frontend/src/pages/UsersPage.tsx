@@ -7,6 +7,7 @@ import { userService } from '@/services/user.service';
 import { Table, Button, Form, Spinner, Modal, Container, Row, Col, Card } from 'react-bootstrap';
 import '../styles/usuarios.css';
 import { FiltrosBusquedaHeader } from '@/components/common/FiltrosBusquedaHeader';
+import { useToast, Toast } from '@/components/common/Toast';
 
 // Interfaz para los parámetros de búsqueda
 interface UserSearchParams {
@@ -20,7 +21,8 @@ interface UserSearchParams {
 
 export const UsersPage: React.FC = () => {
   const { user } = useAuth();
-  const { setError, setSuccess, setLoading } = useUI();
+  const { setError, setLoading } = useUI();
+  const { toasts, removeToast, showSuccess, showError } = useToast();
   const { formatRUT } = useRut();
   const [showFilters, setShowFilters] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -194,7 +196,7 @@ export const UsersPage: React.FC = () => {
         // Solo enviar la petición si hay cambios
         if (Object.keys(updates).length > 0) {
             await userService.updateUser(selectedUser.id, selectedUser.rut, updates);
-            setSuccess(`Usuario ${selectedUser.name} actualizado exitosamente`);
+            showSuccess('¡Usuario actualizado!', `El usuario ${selectedUser.name} se ha actualizado exitosamente`, 4000);
             setShowUpdateModal(false);
             loadUsers(); // Recargar la lista después de actualizar
         } else {
@@ -602,6 +604,8 @@ export const UsersPage: React.FC = () => {
           </Modal>
         </Col>
       </Row>
+      {/* Sistema de notificaciones */}
+      <Toast toasts={toasts} removeToast={removeToast} />
     </Container>
   );
 };
