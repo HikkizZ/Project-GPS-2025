@@ -417,19 +417,28 @@ export const TrabajadoresPage: React.FC = () => {
         size="lg"
         centered
       >
-        <Modal.Header closeButton className="bg-primary text-white">
-          <Modal.Title>
+        <Modal.Header 
+          closeButton 
+          style={{
+            background: 'linear-gradient(135deg, #007bff 0%, #0056b3 100%)',
+            border: 'none'
+          }}
+          className="text-white"
+        >
+          <Modal.Title className="fw-semibold">
             <i className="bi bi-person-plus me-2"></i>
             Registrar Nuevo Trabajador
           </Modal.Title>
         </Modal.Header>
-        <Modal.Body>
-          <div className="alert alert-info">
-            <span className="me-2 align-middle">
-              <i className="bi bi-info-circle"></i>
-            </span>
-            <strong className="align-middle me-2">Nota:</strong>
-            Al registrar un trabajador se creará automáticamente una ficha de empresa con valores por defecto que podrás editar inmediatamente.
+        <Modal.Body style={{ padding: '1.5rem' }}>
+          <div className="alert alert-info border-0 mb-3" style={{ borderRadius: '12px' }}>
+            <div className="d-flex align-items-start">
+              <i className="bi bi-info-circle me-3 mt-1"></i>
+              <div>
+                <strong>Nota Importante:</strong>
+                <p className="mb-0 mt-1">Al registrar un trabajador se creará automáticamente una ficha de empresa con valores por defecto que podrás editar inmediatamente.</p>
+              </div>
+            </div>
           </div>
           <RegisterTrabajadorForm
             onSuccess={() => {
@@ -448,43 +457,58 @@ export const TrabajadoresPage: React.FC = () => {
         onHide={() => setShowDesvincularModal(false)}
         centered
       >
-        <Modal.Header closeButton className="bg-danger text-white">
-          <Modal.Title>
+        <Modal.Header 
+          closeButton 
+          style={{
+            background: 'linear-gradient(135deg, #dc3545 0%, #a71e2a 100%)',
+            border: 'none'
+          }}
+          className="text-white"
+        >
+          <Modal.Title className="fw-semibold">
             <i className="bi bi-person-x me-2"></i>
             Desvincular Trabajador
           </Modal.Title>
         </Modal.Header>
-        <Modal.Body>
+        <Modal.Body style={{ padding: '1.5rem' }}>
           {desvincularError && (
-            <Alert variant="danger" className="mb-3">
+            <Alert variant="danger" className="border-0 mb-3" style={{ borderRadius: '12px' }}>
               <i className="bi bi-exclamation-circle me-2"></i>
               {desvincularError}
             </Alert>
           )}
-          <Alert variant="warning" className="mb-3">
-            <div>
-              <span className="me-2 align-middle">
-                <i className="bi bi-exclamation-triangle"></i>
-              </span>
-              <strong className="align-middle">Advertencia:</strong>
-              <br />
-              Esta acción:
-              <ul className="mb-0 mt-2">
-                <li>Marcará al trabajador como desvinculado en el sistema</li>
-                <li>Cambiará el estado de su ficha a "Desvinculado"</li>
-                <li>Desactivará su cuenta de usuario</li>
-                <li>Registrará el motivo de desvinculación en el historial laboral</li>
-              </ul>
+          <Alert variant="warning" className="border-0 mb-3" style={{ borderRadius: '12px' }}>
+            <div className="d-flex align-items-start">
+              <i className="bi bi-exclamation-triangle me-3 mt-1 text-warning"></i>
+              <div>
+                <strong>Advertencia:</strong>
+                <p className="mb-2 mt-1">Esta acción:</p>
+                <ul className="mb-0">
+                  <li>Marcará al trabajador como desvinculado en el sistema</li>
+                  <li>Cambiará el estado de su ficha a "Desvinculado"</li>
+                  <li>Desactivará su cuenta de usuario</li>
+                  <li>Registrará el motivo de desvinculación en el historial laboral</li>
+                </ul>
+              </div>
             </div>
           </Alert>
-          <p>¿Estás seguro que deseas desvincular al trabajador?</p>
-          <p className="mb-3">
-            <strong>Nombre:</strong> {trabajadorToDesvincular ? `${trabajadorToDesvincular.nombres} ${trabajadorToDesvincular.apellidoPaterno} ${trabajadorToDesvincular.apellidoMaterno}` : ''}
-            <br />
-            <strong>RUT:</strong> {trabajadorToDesvincular ? formatRUT(trabajadorToDesvincular.rut) : ''}
-          </p>
+          
+          <div className="mb-3 p-3 bg-light rounded-3">
+            <p className="mb-2 fw-semibold">¿Estás seguro que deseas desvincular al trabajador?</p>
+            <div className="d-flex flex-column gap-1">
+              <div>
+                <span className="fw-semibold text-muted">Nombre:</span> 
+                <span className="ms-2">{trabajadorToDesvincular ? `${trabajadorToDesvincular.nombres} ${trabajadorToDesvincular.apellidoPaterno} ${trabajadorToDesvincular.apellidoMaterno}` : ''}</span>
+              </div>
+              <div>
+                <span className="fw-semibold text-muted">RUT:</span> 
+                <span className="ms-2">{trabajadorToDesvincular ? formatRUT(trabajadorToDesvincular.rut) : ''}</span>
+              </div>
+            </div>
+          </div>
+          
           <Form.Group>
-            <Form.Label>Motivo de Desvinculación</Form.Label>
+            <Form.Label className="fw-semibold">Motivo de Desvinculación <span className="text-danger">*</span></Form.Label>
             <Form.Control
               as="textarea"
               rows={3}
@@ -492,14 +516,16 @@ export const TrabajadoresPage: React.FC = () => {
               onChange={(e) => setMotivoDesvinculacion(e.target.value)}
               placeholder="Ingrese el motivo de la desvinculación..."
               required
+              style={{ borderRadius: '8px' }}
             />
           </Form.Group>
         </Modal.Body>
-        <Modal.Footer>
+        <Modal.Footer style={{ padding: '1rem 1.5rem', borderTop: '1px solid #dee2e6' }}>
           <Button 
-            variant="secondary" 
+            variant="outline-secondary" 
             onClick={() => setShowDesvincularModal(false)}
             disabled={isDesvinculando}
+            style={{ borderRadius: '20px', fontWeight: '500' }}
           >
             <i className="bi bi-x-circle me-2"></i>
             Cancelar
@@ -508,6 +534,7 @@ export const TrabajadoresPage: React.FC = () => {
             variant="danger" 
             onClick={handleDesvincularConfirm}
             disabled={isDesvinculando || !motivoDesvinculacion.trim()}
+            style={{ borderRadius: '20px', fontWeight: '500' }}
           >
             {isDesvinculando ? (
               <>

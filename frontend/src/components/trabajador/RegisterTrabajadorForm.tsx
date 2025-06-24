@@ -93,190 +93,222 @@ export const RegisterTrabajadorForm: React.FC<RegisterTrabajadorFormProps> = ({
   };
 
   return (
-    <Form onSubmit={handleSubmit} className="px-2">
-      {error && <Alert variant="danger">{error}</Alert>}
+    <div style={{ padding: '0.5rem 1rem' }}>
+      {error && (
+        <Alert variant="danger" className="border-0 mb-3" style={{ borderRadius: '12px' }}>
+          <i className="bi bi-exclamation-circle me-2"></i>
+          {error}
+        </Alert>
+      )}
       {advertencias.length > 0 && (
-        <Alert variant="warning">
-          <strong>Advertencias:</strong>
-          <ul className="mb-0">
-            {advertencias.map((adv, index) => (
-              <li key={index}>{adv}</li>
-            ))}
-          </ul>
+        <Alert variant="warning" className="border-0 mb-3" style={{ borderRadius: '12px' }}>
+          <div className="d-flex align-items-start">
+            <i className="bi bi-exclamation-triangle me-2 mt-1"></i>
+            <div>
+              <strong>Advertencias:</strong>
+              <ul className="mb-0 mt-1">
+                {advertencias.map((adv, index) => (
+                  <li key={index}>{adv}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
         </Alert>
       )}
 
-      {/* Primera fila - Identificación */}
-      <Row className="mb-2">
-        <Col md={6}>
-          <Form.Group>
-            <Form.Label>RUT: <span className="text-danger">*</span></Form.Label>
-            <Form.Control
-              type="text"
-              name="rut"
-              value={formData.rut}
-              onChange={handleInputChange}
-              placeholder="12.345.678-9"
-              required
-            />
-          </Form.Group>
-        </Col>
-        <Col md={6}>
-          <Form.Group>
-            <Form.Label>Fecha de Ingreso:</Form.Label>
-            <Form.Control
-              type="date"
-              value={formData.fechaIngreso}
-              readOnly
-              disabled
-              className="bg-light"
-            />
-            <Form.Text className="text-muted small">
-              Se establece automáticamente al día de hoy
-            </Form.Text>
-          </Form.Group>
-        </Col>
-      </Row>
+      <Form onSubmit={handleSubmit}>
+        {/* Primera fila - Identificación */}
+        <Row className="mb-3">
+          <Col md={6}>
+            <Form.Group>
+              <Form.Label className="fw-semibold">RUT: <span className="text-danger">*</span></Form.Label>
+              <Form.Control
+                type="text"
+                name="rut"
+                value={formData.rut}
+                onChange={handleInputChange}
+                placeholder="12.345.678-9"
+                required
+                style={{ borderRadius: '8px' }}
+              />
+            </Form.Group>
+          </Col>
+          <Col md={6}>
+            <Form.Group>
+              <Form.Label className="fw-semibold">Fecha de Ingreso:</Form.Label>
+              <Form.Control
+                type="date"
+                value={formData.fechaIngreso}
+                readOnly
+                disabled
+                className="bg-light"
+                style={{ borderRadius: '8px' }}
+              />
+              <Form.Text className="text-muted small">
+                <i className="bi bi-info-circle me-1"></i>
+                Se establece automáticamente al día de hoy
+              </Form.Text>
+            </Form.Group>
+          </Col>
+        </Row>
 
-      {/* Segunda fila - Nombres y Fecha Nacimiento */}
-      <Row className="mb-2">
-        <Col md={6}>
-          <Form.Group>
-            <Form.Label>Nombres: <span className="text-danger">*</span></Form.Label>
-            <Form.Control
-              type="text"
-              name="nombres"
-              value={formData.nombres}
-              onChange={handleInputChange}
-              placeholder="Nombres completos"
-              required
-            />
-          </Form.Group>
-        </Col>
-        <Col md={6}>
-          <Form.Group>
-            <Form.Label>Fecha de Nacimiento:</Form.Label>
-            <Form.Control
-              type="date"
-              name="fechaNacimiento"
-              value={formData.fechaNacimiento}
-              onChange={handleInputChange}
-              placeholder="dd-mm-aaaa"
-            />
-          </Form.Group>
-        </Col>
-      </Row>
+        {/* Segunda fila - Nombres y Fecha Nacimiento */}
+        <Row className="mb-3">
+          <Col md={6}>
+            <Form.Group>
+              <Form.Label className="fw-semibold">Nombres: <span className="text-danger">*</span></Form.Label>
+              <Form.Control
+                type="text"
+                name="nombres"
+                value={formData.nombres}
+                onChange={handleInputChange}
+                placeholder="Nombres completos"
+                required
+                style={{ borderRadius: '8px' }}
+              />
+            </Form.Group>
+          </Col>
+          <Col md={6}>
+            <Form.Group>
+              <Form.Label className="fw-semibold">Fecha de Nacimiento:</Form.Label>
+              <Form.Control
+                type="date"
+                name="fechaNacimiento"
+                value={formData.fechaNacimiento}
+                onChange={handleInputChange}
+                placeholder="dd-mm-aaaa"
+                style={{ borderRadius: '8px' }}
+              />
+            </Form.Group>
+          </Col>
+        </Row>
 
-      {/* Tercera fila - Apellidos */}
-      <Row className="mb-2">
-        <Col md={6}>
-          <Form.Group>
-            <Form.Label>Apellido Paterno: <span className="text-danger">*</span></Form.Label>
-            <Form.Control
-              type="text"
-              name="apellidoPaterno"
-              value={formData.apellidoPaterno}
-              onChange={handleInputChange}
-              placeholder="Apellido paterno"
-              required
-            />
-          </Form.Group>
-        </Col>
-        <Col md={6}>
-          <Form.Group>
-            <Form.Label>Apellido Materno: <span className="text-danger">*</span></Form.Label>
-            <Form.Control
-              type="text"
-              name="apellidoMaterno"
-              value={formData.apellidoMaterno}
-              onChange={handleInputChange}
-              placeholder="Apellido materno"
-              required
-            />
-          </Form.Group>
-        </Col>
-      </Row>
+        {/* Tercera fila - Apellidos */}
+        <Row className="mb-3">
+          <Col md={6}>
+            <Form.Group>
+              <Form.Label className="fw-semibold">Apellido Paterno: <span className="text-danger">*</span></Form.Label>
+              <Form.Control
+                type="text"
+                name="apellidoPaterno"
+                value={formData.apellidoPaterno}
+                onChange={handleInputChange}
+                placeholder="Apellido paterno"
+                required
+                style={{ borderRadius: '8px' }}
+              />
+            </Form.Group>
+          </Col>
+          <Col md={6}>
+            <Form.Group>
+              <Form.Label className="fw-semibold">Apellido Materno: <span className="text-danger">*</span></Form.Label>
+              <Form.Control
+                type="text"
+                name="apellidoMaterno"
+                value={formData.apellidoMaterno}
+                onChange={handleInputChange}
+                placeholder="Apellido materno"
+                required
+                style={{ borderRadius: '8px' }}
+              />
+            </Form.Group>
+          </Col>
+        </Row>
 
-      {/* Cuarta fila - Contacto */}
-      <Row className="mb-2">
-        <Col md={6}>
-          <Form.Group>
-            <Form.Label>Correo Personal: <span className="text-danger">*</span></Form.Label>
-            <Form.Control
-              type="email"
-              name="correoPersonal"
-              value={formData.correoPersonal}
-              onChange={handleInputChange}
-              placeholder="correo.personal@gmail.com"
-              required
-            />
-          </Form.Group>
-        </Col>
-        <Col md={6}>
-          <Form.Group>
-            <Form.Label>Teléfono: <span className="text-danger">*</span></Form.Label>
-            <Form.Control
-              type="text"
-              name="telefono"
-              value={formData.telefono}
-              onChange={handleInputChange}
-              placeholder="+56912345678"
-              required
-            />
-          </Form.Group>
-        </Col>
-      </Row>
+        {/* Cuarta fila - Contacto */}
+        <Row className="mb-3">
+          <Col md={6}>
+            <Form.Group>
+              <Form.Label className="fw-semibold">Correo Personal: <span className="text-danger">*</span></Form.Label>
+              <Form.Control
+                type="email"
+                name="correoPersonal"
+                value={formData.correoPersonal}
+                onChange={handleInputChange}
+                placeholder="correo.personal@gmail.com"
+                required
+                style={{ borderRadius: '8px' }}
+              />
+            </Form.Group>
+          </Col>
+          <Col md={6}>
+            <Form.Group>
+              <Form.Label className="fw-semibold">Teléfono: <span className="text-danger">*</span></Form.Label>
+              <Form.Control
+                type="text"
+                name="telefono"
+                value={formData.telefono}
+                onChange={handleInputChange}
+                placeholder="+56912345678"
+                required
+                style={{ borderRadius: '8px' }}
+              />
+            </Form.Group>
+          </Col>
+        </Row>
 
-      {/* Quinta fila - Teléfono Emergencia y Dirección */}
-      <Row className="mb-3">
-        <Col md={6}>
-          <Form.Group>
-            <Form.Label>Teléfono de Emergencia:</Form.Label>
-            <Form.Control
-              type="tel"
-              name="numeroEmergencia"
-              value={formData.numeroEmergencia}
-              onChange={handleInputChange}
-              placeholder="+56987654321"
-            />
-          </Form.Group>
-        </Col>
-        <Col md={6}>
-          <Form.Group>
-            <Form.Label>Dirección: <span className="text-danger">*</span></Form.Label>
-            <Form.Control
-              type="text"
-              name="direccion"
-              value={formData.direccion}
-              onChange={handleInputChange}
-              placeholder="Av. Principal 123, Comuna, Ciudad"
-              required
-            />
-          </Form.Group>
-        </Col>
-      </Row>
+        {/* Quinta fila - Teléfono Emergencia y Dirección */}
+        <Row className="mb-4">
+          <Col md={6}>
+            <Form.Group>
+              <Form.Label className="fw-semibold">Teléfono de Emergencia:</Form.Label>
+              <Form.Control
+                type="tel"
+                name="numeroEmergencia"
+                value={formData.numeroEmergencia}
+                onChange={handleInputChange}
+                placeholder="+56987654321"
+                style={{ borderRadius: '8px' }}
+              />
+            </Form.Group>
+          </Col>
+          <Col md={6}>
+            <Form.Group>
+              <Form.Label className="fw-semibold">Dirección: <span className="text-danger">*</span></Form.Label>
+              <Form.Control
+                type="text"
+                name="direccion"
+                value={formData.direccion}
+                onChange={handleInputChange}
+                placeholder="Av. Principal 123, Comuna, Ciudad"
+                required
+                style={{ borderRadius: '8px' }}
+              />
+            </Form.Group>
+          </Col>
+        </Row>
 
-      {/* Botones */}
-      <div className="d-flex justify-content-end gap-2 mt-3">
-        <Button 
-          variant="secondary" 
-          onClick={onCancel} 
-          disabled={isLoading}
-          size="sm"
-        >
-          <i className="bi bi-x-circle me-1"></i>
-          Cancelar
-        </Button>
-        <Button 
-          type="submit" 
-          variant="primary" 
-          disabled={isLoading}
-          size="sm"
-        >
-          <i className="bi bi-check-circle me-1"></i>
-          {isLoading ? 'Registrando...' : 'Registrar Trabajador'}
-        </Button>
-      </div>
-    </Form>
+        {/* Botones */}
+        <div className="d-flex justify-content-end gap-2 pt-3 border-top">
+          <Button 
+            variant="outline-secondary" 
+            onClick={onCancel} 
+            disabled={isLoading}
+            style={{ borderRadius: '20px', fontWeight: '500' }}
+          >
+            <i className="bi bi-x-circle me-2"></i>
+            Cancelar
+          </Button>
+          <Button 
+            type="submit" 
+            variant="primary" 
+            disabled={isLoading}
+            style={{ borderRadius: '20px', fontWeight: '500' }}
+          >
+            {isLoading ? (
+              <>
+                <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                Registrando...
+              </>
+            ) : (
+              <>
+                <i className="bi bi-person-plus me-2"></i>
+                Registrar Trabajador
+              </>
+            )}
+          </Button>
+        </div>
+      </Form>
+    </div>
   );
 }; 
