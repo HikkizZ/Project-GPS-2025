@@ -96,12 +96,12 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
     const file = e.target.files?.[0];
     if (file) {
       if (file.type !== 'application/pdf') {
-        showError('Archivo inválido', 'Solo se permiten archivos PDF');
+        showError('Archivo inválido', 'Solo se permiten archivos PDF', 5000);
         e.target.value = '';
         return;
       }
       if (file.size > 10 * 1024 * 1024) {
-        showError('Archivo muy grande', 'El archivo no puede superar los 10MB');
+        showError('Archivo muy grande', 'El archivo no puede superar los 10MB', 5000);
         e.target.value = '';
         return;
       }
@@ -112,9 +112,9 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
   const handleDownloadFile = async () => {
     try {
       await downloadContrato(ficha.id);
-      showSuccess('Descarga exitosa', 'El contrato se ha descargado correctamente');
+      showSuccess('Descarga exitosa', 'El contrato se ha descargado correctamente', 5000);
     } catch (error: any) {
-      showError('Error de descarga', error.message || 'Error al descargar el contrato');
+      showError('Error de descarga', error.message || 'Error al descargar el contrato', 6000);
     }
   };
 
@@ -126,12 +126,12 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
       const response = await deleteContrato(ficha.id);
       if (response.success) {
         if (onUpdate) onUpdate();
-        showSuccess('Contrato eliminado', 'El contrato se ha eliminado exitosamente');
+        showSuccess('Contrato eliminado', 'El contrato se ha eliminado exitosamente', 5000);
       } else {
-        showError('Error al eliminar', response.message || 'Error al eliminar el contrato');
+        showError('Error al eliminar', response.message || 'Error al eliminar el contrato', 6000);
       }
     } catch (error: any) {
-      showError('Error al eliminar', error.message || 'Error al eliminar el contrato');
+      showError('Error al eliminar', error.message || 'Error al eliminar el contrato', 6000);
     }
   };
 
@@ -186,16 +186,16 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
       const response = await updateFichaEmpresa(fichaId, dataToSubmit);
       
       if (response.success) {
-        showSuccess('¡Ficha actualizada!', 'La ficha de empresa se ha actualizado exitosamente');
+        showSuccess('¡Ficha actualizada!', 'La ficha de empresa se ha actualizado exitosamente', 7000);
         if (onUpdate) onUpdate();
         setTimeout(() => {
           onHide();
         }, 1500);
       } else {
-        showError('Error al actualizar', response.message || 'Error al actualizar la ficha');
+        showError('Error al actualizar', response.message || 'Error al actualizar la ficha', 6000);
       }
     } catch (error: any) {
-      showError('Error inesperado', error.message || 'Error inesperado al actualizar la ficha');
+      showError('Error inesperado', error.message || 'Error inesperado al actualizar la ficha', 6000);
     } finally {
       setLoading(false);
     }

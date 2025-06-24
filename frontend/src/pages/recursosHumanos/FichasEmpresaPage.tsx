@@ -184,16 +184,15 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
   const handleUpdateSuccess = () => {
     // Recargar las fichas
     handleSearch();
-    // Mostrar mensaje de éxito con toast
-    showSuccess('¡Ficha actualizada!', 'La ficha de empresa se ha actualizado exitosamente');
+    // No mostrar toast aquí porque ya se muestra desde el modal
   };
 
   const handleDownloadContrato = async (fichaId: number) => {
     try {
       await downloadContrato(fichaId);
-      showSuccess('Descarga exitosa', 'El contrato se ha descargado correctamente');
+      showSuccess('Descarga exitosa', 'El contrato se ha descargado correctamente', 5000);
     } catch (error) {
-      showError('Error de descarga', 'Error al descargar el contrato. Por favor, intente nuevamente.');
+      showError('Error de descarga', 'Error al descargar el contrato. Por favor, intente nuevamente.', 6000);
     }
   };
 
