@@ -19,7 +19,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ user, onLogout, children }) => 
     <div className="min-vh-100 d-flex flex-column">
       {/* Navbar */}
       <nav className="navbar navbar-expand-lg navbar-dark bg-gradient-primary shadow-sm">
-        <div className="container">
+        <div className="container-fluid" style={{ paddingLeft: '36px', paddingRight: '36px' }}>
           <span className="navbar-brand mb-0 h1 fw-bold" style={{ cursor: 'pointer' }} onClick={() => navigate('/dashboard')}>
             <i className="bi bi-truck me-2"></i>
             S.G. Lamas
@@ -31,7 +31,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ user, onLogout, children }) => 
               style={{ borderRadius: '25px', transition: 'all 0.3s ease' }}
             >
               <i className="bi bi-house me-2"></i>
-              Dashboard
+              Inicio
             </button>
             <div className="nav-item dropdown">
               <button 
