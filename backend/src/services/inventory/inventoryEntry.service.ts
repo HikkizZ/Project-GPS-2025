@@ -1,9 +1,9 @@
 import { AppDataSource } from '../../config/configDB.js';
 import { InventoryEntry } from '../../entity/inventory/inventoryEntry.entity.js';
 import { InventoryEntryDetail } from '../../entity/inventory/inventoryEntryDetail.entity.js';
-import { Supplier } from '../../entity/supplier.entity.js';
+import { Supplier } from '../../entity/stakeholders/supplier.entity.js';
 import { Product } from '../../entity/inventory/product.entity.js';
-import { CreateInventoryEntryDTO } from '../../types/index.js';
+import { CreateInventoryEntryDTO } from '../../types/inventory/inventory.dto.js';
 import { ServiceResponse } from '../../../types.js';
 import { incrementInventory } from './inventory.service.js';
 

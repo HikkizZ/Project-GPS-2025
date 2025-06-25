@@ -6,9 +6,9 @@ import {
     createSupplier,
     updateSupplier,
     deleteSupplier,
-} from "../controllers/supplier.controller.js";
+} from "../../controllers/stakeholders/supplier.controller.js";
 
-import { authenticateJWT } from "../middlewares/authentication.middleware.js";
+import { authenticateJWT } from "../../middlewares/authentication.middleware.js";
 
 const router: Router = Router();
 

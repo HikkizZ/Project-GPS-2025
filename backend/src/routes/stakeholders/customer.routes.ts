@@ -6,9 +6,9 @@ import {
     createCustomer,
     updateCustomer,
     deleteCustomer,
-} from "../controllers/customer.controller.js";
+} from "../../controllers/stakeholders/customer.controller.js";
 
-import { authenticateJWT } from "../middlewares/authentication.middleware.js";
+import { authenticateJWT } from "../../middlewares/authentication.middleware.js";
 
 const router: Router = Router();
 

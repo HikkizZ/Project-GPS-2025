@@ -1,18 +1,18 @@
 import { Router } from 'express';
 import authRoutes from './auth.routes.js';
 import userRoutes from './user.routes.js';
-import productRoutes from './product.routes.js';
-import customerRoutes from './customer.routes.js';
-import supplierRoutes from './supplier.routes.js';
+import productRoutes from './inventory/product.routes.js';
+import customerRoutes from './stakeholders/customer.routes.js';
+import supplierRoutes from './stakeholders/supplier.routes.js';
 import fichaEmpresaRoutes from './recursosHumanos/fichaEmpresa.routes.js';
 import licenciaPermisoRoutes from './recursosHumanos/licenciaPermiso.routes.js';
 import trabajadorRoutes from './recursosHumanos/trabajador.routes.js';
 import historialLaboralRoutes from './recursosHumanos/historialLaboral.routes.js';
 import filesRoutes from './files.routes.js';
 import { authenticateJWT } from '../middlewares/authentication.middleware.js';
-import inventoryEntryRoutes from './inventoryEntry.routes.js';
-import inventoryExitRoutes from './inventoryExit.routes.js';
-import inventoryRoutes from './inventory.routes.js';
+import inventoryEntryRoutes from './inventory/inventoryEntry.routes.js';
+import inventoryExitRoutes from './inventory/inventoryExit.routes.js';
+import inventoryRoutes from './inventory/inventory.routes.js';
 
 const router: Router = Router();
 

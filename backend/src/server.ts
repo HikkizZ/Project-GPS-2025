@@ -86,7 +86,7 @@ async function setupServer(): Promise<void> {
         app.disable("x-powered-by");
 
         app.use(cors({
-            origin: ['http://localhost:5173', 'http://127.0.0.1:5173'],
+            origin: ['http://localhost:5173', 'http://127.0.0.1:5173', 'https://hoppscotch.io'],
             credentials: true,
             methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
             allowedHeaders: ['Content-Type', 'Authorization', 'Accept']
@@ -160,7 +160,7 @@ export async function setupTestServer(): Promise<{ app: Application; server: any
         app.disable("x-powered-by");
 
         app.use(cors({
-            origin: ['http://localhost:5173', 'http://127.0.0.1:5173'],
+            origin: ['http://localhost:5173', 'http://127.0.0.1:5173', 'https://hoppscotch.io'],
             credentials: true,
             methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
             allowedHeaders: ['Content-Type', 'Authorization', 'Accept']

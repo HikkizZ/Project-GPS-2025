@@ -1,5 +1,5 @@
 import Joi, { CustomHelpers, ObjectSchema }from "joi";
-import { validateRut } from "../helpers/rut.helper.js";
+import { validateRut } from "../../helpers/rut.helper.js";
 
 const allowedEmailDomains = ["gmail.com", "outlook.com", "hotmail.com", "gmail.cl", "outlook.cl", "hotmail.cl", "lamas.com", "live.cl"];
 

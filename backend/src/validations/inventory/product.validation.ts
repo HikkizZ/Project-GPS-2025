@@ -1,5 +1,5 @@
 import Joi from "joi";
-import { ProductType } from '../../types/index.js';
+import { ProductType } from '../../types/inventory/product.dto.js';
 
 export const createProductValidation = Joi.object({
     product: Joi.string()
