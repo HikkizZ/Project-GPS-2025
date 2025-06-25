@@ -4,7 +4,6 @@ import {
   getAllLicenciasPermisosService,
   getLicenciaPermisoByIdService,
   updateLicenciaPermisoService,
-  deleteLicenciaPermisoService,
   descargarArchivoLicenciaService,
   verificarLicenciasVencidasService
 } from "../../services/recursosHumanos/licenciaPermiso.service.js";
@@ -268,8 +267,6 @@ export async function updateLicenciaPermiso(req: Request, res: Response): Promis
     handleErrorServer(res, 500, "Error interno del servidor");
   }
 }
-
-
 
 export async function descargarArchivoLicencia(req: Request, res: Response): Promise<void> {
   try {

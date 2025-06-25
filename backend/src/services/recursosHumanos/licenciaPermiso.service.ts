@@ -56,7 +56,7 @@ export async function createLicenciaPermisoService(data: CreateLicenciaPermisoDT
       fechaInicio = new Date(data.fechaInicio + 'T12:00:00');
     } else {
       // Si ya es un objeto Date, extraer solo la parte de fecha y crear nuevo Date al mediodía
-      const fechaString = data.fechaInicio.toISOString().split('T')[0];
+      const fechaString = (data.fechaInicio as Date).toISOString().split('T')[0];
       fechaInicio = new Date(fechaString + 'T12:00:00');
     }
     
@@ -64,7 +64,7 @@ export async function createLicenciaPermisoService(data: CreateLicenciaPermisoDT
       fechaFin = new Date(data.fechaFin + 'T12:00:00');
     } else {
       // Si ya es un objeto Date, extraer solo la parte de fecha y crear nuevo Date al mediodía
-      const fechaString = data.fechaFin.toISOString().split('T')[0];
+      const fechaString = (data.fechaFin as Date).toISOString().split('T')[0];
       fechaFin = new Date(fechaString + 'T12:00:00');
     }
 
@@ -220,7 +220,7 @@ export async function updateLicenciaPermisoService(id: number, data: UpdateLicen
     
     // Actualizar los campos de la licencia
     licencia.estado = data.estadoSolicitud;
-    licencia.respuestaEncargado = data.respuestaEncargado;
+    licencia.respuestaEncargado = data.respuestaEncargado || '';
     licencia.revisadoPor = data.revisadoPor;
     
     // Si el estado está cambiando a APROBADA

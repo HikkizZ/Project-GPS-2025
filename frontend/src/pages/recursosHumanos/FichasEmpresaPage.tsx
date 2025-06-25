@@ -750,10 +750,10 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                         <i className="bi bi-list-ul me-2"></i>
                         Fichas de Empresa ({fichasFiltradas.length})
                         <small className="text-muted ms-2">
-                          (Activos: {fichasFiltradas.filter(f => f.estado === 'Activo').length} • 
-                          Licencias: {fichasFiltradas.filter(f => f.estado === 'Licencia').length} • 
-                          Permisos: {fichasFiltradas.filter(f => f.estado === 'Permiso').length} • 
-                          Desvinculados: {fichasFiltradas.filter(f => f.estado === 'Desvinculado').length})
+                          (Activos: {fichasFiltradas.filter(f => f.estado === EstadoLaboral.ACTIVO).length} • 
+                          Licencias: {fichasFiltradas.filter(f => f.estado === EstadoLaboral.LICENCIA).length} • 
+                          Permisos: {fichasFiltradas.filter(f => f.estado === EstadoLaboral.PERMISO).length} • 
+                          Desvinculados: {fichasFiltradas.filter(f => f.estado === EstadoLaboral.DESVINCULADO).length})
                         </small>
                       </h6>
                     </div>
@@ -821,7 +821,7 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                                 >
                                   <i className="bi bi-pencil"></i>
                                 </Button>
-                                {ficha.contrato && (
+                                {ficha.contratoURL && (
                                   <Button 
                                     variant="outline-success" 
                                     size="sm"

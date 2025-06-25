@@ -237,8 +237,6 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
           </div>
         </div>
 
-
-
         <Form onSubmit={handleSubmit} noValidate>
           <Row className="g-3 mb-3">
             {/* Cargo y Área */}
@@ -389,42 +387,17 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
             <h6 className="text-primary mb-3 fw-semibold">Contrato</h6>
             
             {/* Estado actual del contrato */}
-            {ficha.contrato && (
-              <div className="mb-3 p-2" style={{ backgroundColor: '#d1ecf1', borderRadius: '8px', border: '1px solid #bee5eb' }}>
-                <div className="d-flex justify-content-between align-items-center">
-                  <div>
-                    <i className="bi bi-file-pdf text-danger me-2"></i>
-                    <span className="fw-semibold">Contrato disponible</span>
-                  </div>
-                  <div>
-                    <Button 
-                      variant="outline-primary" 
-                      size="sm" 
-                      onClick={handleDownloadFile}
-                      className="me-2"
-                      style={{ borderRadius: '6px' }}
-                    >
-                      <i className="bi bi-download me-1"></i>
-                      Descargar
-                    </Button>
-                    <Button 
-                      variant="outline-danger" 
-                      size="sm" 
-                      onClick={handleDeleteFile}
-                      style={{ borderRadius: '6px' }}
-                    >
-                      <i className="bi bi-trash me-1"></i>
-                      Eliminar
-                    </Button>
-                  </div>
-                </div>
+            {ficha.contratoURL && (
+              <div className="d-flex align-items-center text-success mb-2">
+                <i className="bi bi-file-earmark-pdf me-2"></i>
+                <small>Contrato actual disponible</small>
               </div>
             )}
 
             {/* Subir nuevo contrato */}
             <Form.Group>
               <Form.Label className="fw-semibold">
-                {ficha.contrato ? 'Reemplazar contrato' : 'Subir nuevo contrato'}
+                {ficha.contratoURL ? 'Reemplazar contrato' : 'Subir nuevo contrato'}
               </Form.Label>
               <Form.Control
                 type="file"

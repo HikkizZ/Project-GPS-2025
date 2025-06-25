@@ -196,7 +196,7 @@ export async function descargarContrato(req: Request, res: Response): Promise<vo
         const [resultado, error] = await descargarContratoService(id, req.user.id);
 
         if (error || !resultado) {
-            const errorMessage = typeof error === 'string' ? error.message || error : "Contrato no encontrado.";
+            const errorMessage = typeof error === 'string' ? error : "Contrato no encontrado.";
             handleErrorClient(res, 404, errorMessage);
             return;
         }
