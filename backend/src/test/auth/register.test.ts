@@ -50,7 +50,7 @@ describe('🔒 Auth API - Registro y Login', () => {
                 .createQueryBuilder()
                 .delete()
                 .where("rut NOT IN (:...ruts)", { 
-                    ruts: ['11.111.111-1', '22.222.222-2'] 
+                    ruts: ['22.222.222-2'] 
                 })
                 .execute();
 
@@ -59,7 +59,7 @@ describe('🔒 Auth API - Registro y Login', () => {
                 .createQueryBuilder()
                 .delete()
                 .where("rut NOT IN (:...ruts)", { 
-                    ruts: ['11.111.111-1', '22.222.222-2'] 
+                    ruts: ['22.222.222-2'] 
                 })
                 .execute();
 

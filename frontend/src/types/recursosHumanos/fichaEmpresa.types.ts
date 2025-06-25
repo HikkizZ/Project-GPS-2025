@@ -1,6 +1,6 @@
 export enum EstadoLaboral {
   ACTIVO = "Activo",
-  LICENCIA = "Licencia", 
+  LICENCIA = "Licencia médica",
   PERMISO = "Permiso administrativo",
   DESVINCULADO = "Desvinculado"
 }
@@ -30,6 +30,9 @@ export interface FichaEmpresa {
   fechaInicioContrato: Date | string;
   fechaFinContrato?: Date | string | null;
   estado: EstadoLaboral;
+  fechaInicioLicencia?: Date | string | null;
+  fechaFinLicencia?: Date | string | null;
+  motivoLicencia?: string | null;
   contratoURL?: string | null;
 }
 

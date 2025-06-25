@@ -83,7 +83,7 @@ describe("👥 Users API", () => {
                 .createQueryBuilder()
                 .delete()
                 .where("rut NOT IN (:...ruts)", { 
-                    ruts: ['11.111.111-1'] 
+                    ruts: [] 
                 })
                 .execute();
 
@@ -92,7 +92,7 @@ describe("👥 Users API", () => {
                 .createQueryBuilder()
                 .delete()
                 .where("rut NOT IN (:...ruts)", { 
-                    ruts: ['11.111.111-1'] 
+                    ruts: [] 
                 })
                 .execute();
 

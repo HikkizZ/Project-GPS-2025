@@ -123,9 +123,9 @@ export class Trabajador {
   @OneToMany(() => LicenciaPermiso, licenciaPermiso => licenciaPermiso.trabajador)
   licenciasPermisos!: LicenciaPermiso[];
 
-  // Relación 1:1 con usuario
-  @OneToOne(() => User, user => user.trabajador)
-  usuario!: User;
+  // Relación 1:1 con usuario (por RUT)
+  @OneToOne(() => User, user => user.trabajador, { eager: false })
+  usuario?: User;
 
   @CreateDateColumn({ type: "timestamp" })
   fechaRegistro!: Date;

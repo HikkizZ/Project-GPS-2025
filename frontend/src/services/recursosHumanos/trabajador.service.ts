@@ -54,7 +54,7 @@ export class TrabajadorService {
         return {
           success: true,
           message: responseData.message || 'Trabajadores obtenidos exitosamente',
-          data: responseData.data
+          data: responseData.data || []
         };
       }
 
@@ -178,7 +178,7 @@ export class TrabajadorService {
         return {
           success: true,
           message: responseData.message || 'Búsqueda completada exitosamente',
-          data: responseData.data
+          data: responseData.data || []
         };
       }
 

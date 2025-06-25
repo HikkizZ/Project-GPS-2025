@@ -24,11 +24,17 @@ export async function getFichasEmpresa(req: Request, res: Response) {
 
         if (error) {
             const errorMessage = typeof error === 'string' ? error : error.message;
-            handleErrorClient(res, 404, errorMessage);
+            handleErrorClient(res, 400, errorMessage);
             return;
         }
 
-        handleSuccess(res, 200, "Fichas de empresa recuperadas exitosamente", fichas!);
+        // Si no hay fichas, devolver array vacío con mensaje amigable
+        const fichasData = fichas || [];
+        const mensaje = fichasData.length === 0 
+            ? "No hay fichas de empresa que coincidan con los criterios de búsqueda" 
+            : "Fichas de empresa recuperadas exitosamente";
+
+        handleSuccess(res, 200, mensaje, fichasData);
     } catch (error) {
         console.error("Error al obtener fichas de empresa:", error);
         handleErrorServer(res, 500, "Error interno del servidor");
@@ -176,6 +182,7 @@ export async function actualizarEstadoFicha(req: Request, res: Response) {
 export async function descargarContrato(req: Request, res: Response): Promise<void> {
     try {
         const id = parseInt(req.params.id);
+        
         if (isNaN(id)) {
             handleErrorClient(res, 400, "ID inválido");
             return;
@@ -186,13 +193,15 @@ export async function descargarContrato(req: Request, res: Response): Promise<vo
             return;
         }
 
-        const [filePath, error] = await descargarContratoService(id, req.user.id);
+        const [resultado, error] = await descargarContratoService(id, req.user.id);
 
-        if (error || !filePath) {
+        if (error || !resultado) {
             const errorMessage = typeof error === 'string' ? error : "Contrato no encontrado.";
             handleErrorClient(res, 404, errorMessage);
             return;
         }
+
+        const { filePath, customFilename } = resultado;
 
         // Verificar que el archivo existe antes de intentar enviarlo
         if (!fs.existsSync(filePath)) {
@@ -200,14 +209,38 @@ export async function descargarContrato(req: Request, res: Response): Promise<vo
             return;
         }
 
-        const filename = path.basename(filePath);
-
-        res.download(filePath, filename, (err) => {
-            if (err) {
-                console.error("Error al enviar el archivo con res.download:", err);
-                if (!res.headersSent) {
+        // Validar nombre personalizado
+        if (!customFilename || customFilename.trim() === '') {
+            const fallbackName = `Contrato_${id}.pdf`;
+            
+            // Configurar headers para evitar cache y forzar descarga ANTES de res.download
+            res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+            res.setHeader('Pragma', 'no-cache');
+            res.setHeader('Expires', '0');
+            res.setHeader('Content-Type', 'application/pdf');
+            res.setHeader('Content-Disposition', `attachment; filename="${fallbackName}"`);
+            res.setHeader('Access-Control-Expose-Headers', 'Content-Disposition');
+            
+            res.download(filePath, fallbackName, (err) => {
+                if (err && !res.headersSent) {
                     handleErrorServer(res, 500, "No se pudo descargar el archivo.");
                 }
+            });
+            return;
+        }
+
+        // Configurar headers para evitar cache y forzar descarga ANTES de res.download
+        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+        res.setHeader('Pragma', 'no-cache');
+        res.setHeader('Expires', '0');
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename="${customFilename}"`);
+        res.setHeader('Access-Control-Expose-Headers', 'Content-Disposition');
+
+        // Enviar archivo con nombre personalizado
+        res.download(filePath, customFilename, (err) => {
+            if (err && !res.headersSent) {
+                handleErrorServer(res, 500, "No se pudo descargar el archivo.");
             }
         });
 

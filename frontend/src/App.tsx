@@ -9,6 +9,8 @@ import { authService } from './services/auth.service';
 import { Card, Row, Col } from 'react-bootstrap';
 import { useNavigate, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import DashboardRecursosHumanos from './pages/recursosHumanos/DashboardRecursosHumanos';
+import { GestionLicenciasPermisosPage } from './pages/recursosHumanos/GestionLicenciasPermisosPage';
+import { MisLicenciasPermisosPage } from './pages/recursosHumanos/MisLicenciasPermisosPage';
 import MainLayout from './components/common/MainLayout';
 import GestionPersonalPage from './pages/GestionPersonalPage';
 import { LoginPage } from './pages/LoginPage';
@@ -343,7 +345,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
         return <TrabajadoresPage />;
       default:
         return (
-          <div className="container py-4">
+          <div className="container pt-2 pb-3">
             <div className="row">
               <div className="col-12">
                 {successMessage && (
@@ -357,61 +359,212 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
                     ></button>
                   </div>
                 )}
-                <div className="card">
-                  <div className="card-header bg-primary text-white">
-                    <h4 className="mb-0">
-                      <i className="bi bi-house me-2"></i>
-                      Dashboard Principal
-                    </h4>
+                <div className="card shadow-lg border-0" style={{ borderRadius: '12px', overflow: 'hidden' }}>
+                  <div className="card-header bg-gradient-primary text-white border-0" style={{ padding: '0.75rem 1.25rem' }}>
+                    <div className="d-flex align-items-center">
+                      <i className="bi bi-house fs-5 me-2"></i>
+                      <div>
+                        <h5 className="mb-0 fw-bold">Dashboard Principal</h5>
+                        <small className="opacity-75" style={{ fontSize: '0.75rem' }}>Centro de control y navegación del sistema</small>
+                      </div>
+                    </div>
                   </div>
-                  <div className="card-body">
-                    <h5>¡Bienvenido, {user.name}!</h5>
-                    <p className="text-muted">Rol: <strong>{user.role}</strong> • RUT: {user.rut}</p>
+                  <div className="card-body" style={{ padding: '1.5rem' }}>
+                    <div className="mb-3 p-3 rounded-3" style={{ background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)', border: '1px solid #e9ecef' }}>
+                      <h6 className="mb-2 fw-bold text-dark">¡Bienvenido, {user.name}!</h6>
+                      <div className="d-flex flex-wrap gap-2 align-items-center">
+                        <span className="badge bg-primary px-2 py-1" style={{ borderRadius: '20px', fontSize: '0.8rem' }}>
+                          <i className="bi bi-person-badge me-1"></i>
+                          {user.role}
+                        </span>
+                        <span className="text-muted small">
+                          <i className="bi bi-card-text me-1"></i>
+                          RUT: {user.rut}
+                        </span>
+                      </div>
+                    </div>
+                    
                     {/* Sección de Recursos Humanos */}
-                    <div className="row mt-4">
-                      <div className="col-12">
-                        <h6 className="text-primary mb-3">
-                          <i className="bi bi-people me-2"></i>
-                          Recursos Humanos
-                        </h6>
+                    <div className="mb-3">
+                      <div className="d-flex align-items-center mb-3">
+                        <div className="p-2 rounded-circle bg-primary bg-opacity-10 me-2">
+                          <i className="bi bi-grid fs-5 text-primary"></i>
+                        </div>
+                        <div>
+                          <h6 className="mb-0 fw-bold text-dark">Módulos del Sistema</h6>
+                          <small className="text-muted">Accede a las diferentes áreas de gestión</small>
+                        </div>
                       </div>
                     </div>
                     <Row>
                       <Col md={3} className="mb-4">
-                        <Card className="h-100 shadow-sm border-primary" style={{ cursor: 'pointer', borderTop: '4px solid #2563eb' }} onClick={() => navigate('/recursos-humanos')}>
-                          <Card.Body className="d-flex flex-column align-items-center justify-content-center text-center">
-                            <i className="bi bi-people-fill fs-1 mb-3 text-primary"></i>
-                            <Card.Title>Recursos Humanos</Card.Title>
+                        <Card 
+                          className="h-100 border-0 shadow-lg" 
+                          style={{ 
+                            cursor: 'pointer', 
+                            borderRadius: '20px',
+                            transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+                            background: 'white',
+                            border: '1px solid #e3f2fd'
+                          }} 
+                          onClick={() => navigate('/recursos-humanos')}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.transform = 'translateY(-12px) scale(1.02)';
+                            e.currentTarget.style.boxShadow = '0 25px 50px rgba(13, 110, 253, 0.25)';
+                            e.currentTarget.style.borderColor = '#0d6efd';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.transform = 'translateY(0) scale(1)';
+                            e.currentTarget.style.boxShadow = '0 10px 30px rgba(0, 0, 0, 0.1)';
+                            e.currentTarget.style.borderColor = '#e3f2fd';
+                          }}
+                        >
+                          <Card.Body className="p-4 text-center">
+                            <div 
+                              className="d-inline-flex align-items-center justify-content-center mb-4"
+                              style={{
+                                width: '80px',
+                                height: '80px',
+                                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                borderRadius: '24px',
+                                position: 'relative',
+                                boxShadow: '0 8px 32px rgba(102, 126, 234, 0.3)'
+                              }}
+                            >
+                              <i className="bi bi-people-fill text-white" style={{ fontSize: '2.5rem' }}></i>
+                              <div 
+                                style={{
+                                  position: 'absolute',
+                                  top: '-8px',
+                                  right: '-8px',
+                                  width: '24px',
+                                  height: '24px',
+                                  background: '#28a745',
+                                  borderRadius: '50%',
+                                  border: '3px solid white',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center'
+                                }}
+                              >
+                                <i className="bi bi-check text-white" style={{ fontSize: '0.7rem' }}></i>
+                              </div>
+                            </div>
+                            <Card.Title className="fw-bold text-dark mb-2 fs-5">Recursos Humanos</Card.Title>
                             {tienePermisosCompletos && (
-                              <Card.Text>Gestión del personal y Gestión de sueldos</Card.Text>
+                              <Card.Text className="text-muted small mb-3">Gestión del personal y sueldos</Card.Text>
                             )}
+                            <div className="d-flex align-items-center justify-content-center">
+                              <small className="text-primary fw-semibold">
+                                <i className="bi bi-arrow-right me-1"></i>
+                                Acceder
+                              </small>
+                            </div>
                           </Card.Body>
                         </Card>
                       </Col>
+                      
                       <Col md={3} className="mb-4">
-                        <Card className="h-100 shadow-sm border-success" style={{ border: '1.5px solid #059669', borderTop: '3px solid #059669' }}>
-                          <Card.Body className="d-flex flex-column align-items-center justify-content-center text-center">
-                            <i className="bi bi-box-seam fs-1 mb-3" style={{ color: '#059669' }}></i>
-                            <Card.Title className="fw-bold">Inventario</Card.Title>
-                            <Card.Text className="text-secondary">Próximamente</Card.Text>
+                        <Card 
+                          className="h-100 border-0 shadow-sm" 
+                          style={{ 
+                            borderRadius: '20px',
+                            background: 'white',
+                            border: '1px solid #f1f5f9',
+                            opacity: 0.8
+                          }}
+                        >
+                          <Card.Body className="p-4 text-center">
+                            <div 
+                              className="d-inline-flex align-items-center justify-content-center mb-4"
+                              style={{
+                                width: '80px',
+                                height: '80px',
+                                background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                                borderRadius: '24px',
+                                boxShadow: '0 8px 32px rgba(16, 185, 129, 0.2)'
+                              }}
+                            >
+                              <i className="bi bi-box-seam text-white" style={{ fontSize: '2.5rem' }}></i>
+                            </div>
+                            <Card.Title className="fw-bold text-dark mb-2 fs-5">Inventario</Card.Title>
+                            <Card.Text className="text-muted small mb-3">Control de stock y productos</Card.Text>
+                            <div className="d-flex align-items-center justify-content-center">
+                              <small className="text-muted">
+                                <i className="bi bi-clock me-1"></i>
+                                Próximamente
+                              </small>
+                            </div>
                           </Card.Body>
                         </Card>
                       </Col>
+                      
                       <Col md={3} className="mb-4">
-                        <Card className="h-100 shadow-sm border-info" style={{ border: '1.5px solid #0ea5e9', borderTop: '3px solid #0ea5e9' }}>
-                          <Card.Body className="d-flex flex-column align-items-center justify-content-center text-center">
-                            <i className="bi bi-truck fs-1 mb-3" style={{ color: '#0ea5e9' }}></i>
-                            <Card.Title className="fw-bold">Maquinaria</Card.Title>
-                            <Card.Text className="text-secondary">Próximamente</Card.Text>
+                        <Card 
+                          className="h-100 border-0 shadow-sm" 
+                          style={{ 
+                            borderRadius: '20px',
+                            background: 'white',
+                            border: '1px solid #f1f5f9',
+                            opacity: 0.8
+                          }}
+                        >
+                          <Card.Body className="p-4 text-center">
+                            <div 
+                              className="d-inline-flex align-items-center justify-content-center mb-4"
+                              style={{
+                                width: '80px',
+                                height: '80px',
+                                background: 'linear-gradient(135deg, #06b6d4 0%, #0891b2 100%)',
+                                borderRadius: '24px',
+                                boxShadow: '0 8px 32px rgba(6, 182, 212, 0.2)'
+                              }}
+                            >
+                              <i className="bi bi-truck text-white" style={{ fontSize: '2.5rem' }}></i>
+                            </div>
+                            <Card.Title className="fw-bold text-dark mb-2 fs-5">Maquinaria</Card.Title>
+                            <Card.Text className="text-muted small mb-3">Gestión de equipos y mantención</Card.Text>
+                            <div className="d-flex align-items-center justify-content-center">
+                              <small className="text-muted">
+                                <i className="bi bi-clock me-1"></i>
+                                Próximamente
+                              </small>
+                            </div>
                           </Card.Body>
                         </Card>
                       </Col>
+                      
                       <Col md={3} className="mb-4">
-                        <Card className="h-100 shadow-sm border-warning" style={{ border: '1.5px solid #fbbf24', borderTop: '3px solid #fbbf24' }}>
-                          <Card.Body className="d-flex flex-column align-items-center justify-content-center text-center">
-                            <i className="bi bi-bar-chart fs-1 mb-3" style={{ color: '#fbbf24' }}></i>
-                            <Card.Title className="fw-bold">Reportes</Card.Title>
-                            <Card.Text className="text-secondary">Próximamente</Card.Text>
+                        <Card 
+                          className="h-100 border-0 shadow-sm" 
+                          style={{ 
+                            borderRadius: '20px',
+                            background: 'white',
+                            border: '1px solid #f1f5f9',
+                            opacity: 0.8
+                          }}
+                        >
+                          <Card.Body className="p-4 text-center">
+                            <div 
+                              className="d-inline-flex align-items-center justify-content-center mb-4"
+                              style={{
+                                width: '80px',
+                                height: '80px',
+                                background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+                                borderRadius: '24px',
+                                boxShadow: '0 8px 32px rgba(245, 158, 11, 0.2)'
+                              }}
+                            >
+                              <i className="bi bi-bar-chart text-white" style={{ fontSize: '2.5rem' }}></i>
+                            </div>
+                            <Card.Title className="fw-bold text-dark mb-2 fs-5">Reportes</Card.Title>
+                            <Card.Text className="text-muted small mb-3">Análisis y estadísticas</Card.Text>
+                            <div className="d-flex align-items-center justify-content-center">
+                              <small className="text-muted">
+                                <i className="bi bi-clock me-1"></i>
+                                Próximamente
+                              </small>
+                            </div>
                           </Card.Body>
                         </Card>
                       </Col>
@@ -472,6 +625,8 @@ function App() {
                 <Route path="fichas-empresa" element={<FichasEmpresaPage />} />
                 <Route path="usuarios" element={<UsersPage />} />
                 <Route path="gestion-personal" element={<GestionPersonalPage />} />
+                <Route path="gestion-licencias-permisos" element={<GestionLicenciasPermisosPage />} />
+                <Route path="mis-licencias-permisos" element={<MisLicenciasPermisosPage />} />
                 <Route path="*" element={<Navigate to="dashboard" replace />} />
               </Routes>
             </MainLayout>

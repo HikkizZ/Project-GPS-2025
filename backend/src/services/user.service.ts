@@ -108,7 +108,8 @@ export async function getUsersService(): Promise<User[]> {
     try {
         const userRepository = AppDataSource.getRepository(User);
         const users = await userRepository.find();
-        return users;
+        // Devolver array vacío en lugar de null cuando no hay usuarios
+        return users || [];
     } catch (error) {
         console.error('Error en getUsersService:', error);
         throw error;
@@ -127,8 +128,8 @@ export const updateUserService = async (id: number, body: UpdateUserData, reques
             return null;
         }
 
-        if (user.rut === "11.111.111-1") {
-            throw { status: 403, message: "No se puede modificar el superadministrador." };
+        if (user.role === "SuperAdministrador") {
+            throw { status: 403, message: "No se puede modificar el SuperAdministrador." };
         }
 
         const dataUserUpdate: any = {};
@@ -175,8 +176,8 @@ export const updateUserByTrabajadorService = async (id: number, body: UpdateUser
             return null;
         }
 
-        if (user.rut === "11.111.111-1") {
-            throw { status: 403, message: "No se puede modificar el superadministrador." };
+        if (user.role === "SuperAdministrador") {
+            throw { status: 403, message: "No se puede modificar el SuperAdministrador." };
         }
 
         const dataUserUpdate: any = {};

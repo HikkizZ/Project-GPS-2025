@@ -11,6 +11,8 @@ import { Trabajador } from '@/types/recursosHumanos/trabajador.types';
 import { EditarFichaEmpresaModal } from '@/components/recursosHumanos/EditarFichaEmpresaModal';
 import '../../styles/fichasEmpresa.css';
 import { FiltrosBusquedaHeader } from '@/components/common/FiltrosBusquedaHeader';
+import { Container, Row, Col, Card, Button, Alert, Table, Form } from 'react-bootstrap';
+import { Toast, useToast } from '@/components/common/Toast';
 
 interface FichasEmpresaPageProps {
   trabajadorRecienRegistrado?: Trabajador | null;
@@ -32,6 +34,9 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
   const { setSuccess, setError: setUIError } = useUI();
   const { formatRUT } = useRut();
   const [localError, setLocalError] = useState<string | null>(null);
+  
+  // Toast notifications
+  const { toasts, removeToast, showSuccess, showError } = useToast();
   
   const {
     fichas,
@@ -179,15 +184,16 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
   const handleUpdateSuccess = () => {
     // Recargar las fichas
     handleSearch();
-    // Mostrar mensaje de éxito
-    setSuccess('Ficha actualizada exitosamente');
+    // Mostrar toast de éxito
+    showSuccess('¡Ficha actualizada!', 'La ficha de empresa se ha actualizado exitosamente', 4000);
   };
 
   const handleDownloadContrato = async (fichaId: number) => {
     try {
       await downloadContrato(fichaId);
+      showSuccess('Descarga exitosa', 'El contrato se ha descargado correctamente', 4000);
     } catch (error) {
-      setUIError('Error al descargar el contrato. Por favor, intente nuevamente.');
+      showError('Error de descarga', 'Error al descargar el contrato. Por favor, intente nuevamente.', 6000);
     }
   };
 
@@ -269,17 +275,20 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
   if (user?.role === 'Usuario') {
     return (
       <div className="fichas-empresa-page">
-        <div className="container py-4">
-          <div className="row">
-            <div className="col-12">
-              <div className="card">
-                <div className="card-header bg-primary text-white">
-                  <h5 className="card-title mb-0">
-                    <i className="bi bi-person-badge me-2"></i>
-                    Mi Ficha de Empresa
-                  </h5>
-                </div>
-                <div className="card-body">
+        <Container fluid className="py-2">
+          <Row>
+            <Col>
+              <Card className="shadow-sm">
+                <Card.Header className="bg-gradient-primary text-white">
+                  <div className="d-flex align-items-center">
+                    <i className="bi bi-person-badge fs-4 me-3"></i>
+                    <div>
+                      <h3 className="mb-1">Mi Ficha de Empresa</h3>
+                      <p className="mb-0 opacity-75">Información personal y laboral</p>
+                    </div>
+                  </div>
+                </Card.Header>
+                <Card.Body>
                   {isLoading ? (
                     <div className="text-center py-5">
                       <div className="spinner-border text-primary" role="status">
@@ -429,11 +438,11 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                       <p className="text-muted">Contacta con Recursos Humanos para más información.</p>
                     </div>
                   )}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+                </Card.Body>
+              </Card>
+            </Col>
+          </Row>
+        </Container>
       </div>
     );
   }
@@ -441,217 +450,255 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
   // Vista para RRHH/Admin
   return (
     <div className="fichas-empresa-page">
-      <div className="container py-4">
+      <Container fluid className="py-2">
+        <Row>
+          <Col>
+            {/* Encabezado de página */}
+            <Card className="shadow-sm mb-3">
+              <Card.Header className="bg-gradient-primary text-white">
+                <div className="d-flex align-items-center justify-content-between">
+                  <div className="d-flex align-items-center">
+                    <i className="bi bi-clipboard-data fs-4 me-3"></i>
+                    <div>
+                      <h3 className="mb-1">Fichas de Empresa</h3>
+                      <p className="mb-0 opacity-75">
+                        Gestión de información laboral y contratos
+                      </p>
+                    </div>
+                  </div>
+                  <div>
+                    <Button 
+                      variant={showFilters ? "outline-light" : "light"}
+                      onClick={() => setShowFilters(!showFilters)}
+                    >
+                      <i className={`bi bi-funnel${showFilters ? '-fill' : ''} me-2`}></i>
+                      {showFilters ? 'Ocultar' : 'Mostrar'} Filtros
+                    </Button>
+                  </div>
+                </div>
+              </Card.Header>
+            </Card>
 
-
-        {/* Header */}
-        <div className="row mb-4">
-          <div className="col-12">
-            <div className="d-flex justify-content-between align-items-center">
-              <div>
-                <h2 className="mb-1 mt-0 d-flex align-items-center">
-                  <i className="bi bi-clipboard-data me-2"></i>
-                  Fichas de Empresa
-                </h2>
-                <p className="text-muted mb-0">Gestión de información laboral y contratos</p>
-              </div>
-              <button 
-                className="btn btn-outline-primary"
-                onClick={() => setShowFilters(!showFilters)}
-              >
-                <i className="bi bi-funnel me-2"></i>
-                {showFilters ? 'Ocultar' : 'Mostrar'} Filtros
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Filtros de búsqueda */}
-        {showFilters && (
-          <div className="row mb-4">
-            <div className="col-12">
-              <div className="card">
+            {/* Panel de filtros */}
+            {showFilters && (
+              <Card className="shadow-sm mb-3">
                 <FiltrosBusquedaHeader />
-                <div className="card-body">
+                <Card.Body>
                   {/* Checkboxes de estado */}
                   <div className="row mb-4">
                     <div className="col-12">
-                      <h6 className="mb-3">Estados a mostrar:</h6>
-                      <div className="form-check form-check-inline">
-                        <input
-                          className="form-check-input"
-                          type="checkbox"
-                          id="incluirDesvinculados"
-                          checked={incluirDesvinculados}
-                          onChange={(e) => setIncluirDesvinculados(e.target.checked)}
-                        />
-                        <label className="form-check-label" htmlFor="incluirDesvinculados">
-                          Desvinculados
-                        </label>
-                      </div>
-                      <div className="form-check form-check-inline">
-                        <input
-                          className="form-check-input"
-                          type="checkbox"
-                          id="incluirLicencias"
-                          checked={incluirLicencias}
-                          onChange={(e) => setIncluirLicencias(e.target.checked)}
-                        />
-                        <label className="form-check-label" htmlFor="incluirLicencias">
-                          Licencias
-                        </label>
-                      </div>
-                      <div className="form-check form-check-inline">
-                        <input
-                          className="form-check-input"
-                          type="checkbox"
-                          id="incluirPermisos"
-                          checked={incluirPermisos}
-                          onChange={(e) => setIncluirPermisos(e.target.checked)}
-                        />
-                        <label className="form-check-label" htmlFor="incluirPermisos">
-                          Permisos Administrativos
-                        </label>
+                      <h6 className="mb-3 fw-semibold">Estados a mostrar:</h6>
+                      <div className="d-flex gap-4">
+                        <div className="form-check">
+                          <input
+                            className="form-check-input"
+                            type="checkbox"
+                            id="incluirDesvinculados"
+                            checked={incluirDesvinculados}
+                            onChange={(e) => setIncluirDesvinculados(e.target.checked)}
+                          />
+                          <label className="form-check-label fw-semibold" htmlFor="incluirDesvinculados">
+                            Desvinculados
+                          </label>
+                        </div>
+                        <div className="form-check">
+                          <input
+                            className="form-check-input"
+                            type="checkbox"
+                            id="incluirLicencias"
+                            checked={incluirLicencias}
+                            onChange={(e) => setIncluirLicencias(e.target.checked)}
+                          />
+                          <label className="form-check-label fw-semibold" htmlFor="incluirLicencias">
+                            Licencia Médica
+                          </label>
+                        </div>
+                        <div className="form-check">
+                          <input
+                            className="form-check-input"
+                            type="checkbox"
+                            id="incluirPermisos"
+                            checked={incluirPermisos}
+                            onChange={(e) => setIncluirPermisos(e.target.checked)}
+                          />
+                          <label className="form-check-label fw-semibold" htmlFor="incluirPermisos">
+                            Permisos Administrativos
+                          </label>
+                        </div>
                       </div>
                     </div>
                   </div>
 
                   <div className="row g-3">
                     <div className="col-md-3">
-                      <label className="form-label">RUT:</label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        placeholder="Ej: 12.345.678-9"
-                        value={searchQuery.rut || ''}
-                        onChange={handleRutChange}
-                      />
+                      <Form.Group>
+                        <Form.Label className="fw-semibold">RUT:</Form.Label>
+                        <Form.Control
+                          type="text"
+                          placeholder="Ej: 12.345.678-9"
+                          value={searchQuery.rut || ''}
+                          onChange={handleRutChange}
+                          style={{ borderRadius: '8px' }}
+                        />
+                      </Form.Group>
                     </div>
                     <div className="col-md-3">
-                      <label className="form-label">Estado:</label>
-                      <select
-                        className="form-select"
-                        value={searchQuery.estado || ''}
-                        onChange={(e) => setSearchQuery({ ...searchQuery, estado: e.target.value as EstadoLaboral })}
-                      >
-                        <option value="">Todos los estados</option>
-                        {Object.values(EstadoLaboral).map(estado => (
-                          <option key={estado} value={estado}>{estado}</option>
-                        ))}
-                      </select>
+                      <Form.Group>
+                        <Form.Label className="fw-semibold">Estado:</Form.Label>
+                        <Form.Select
+                          value={searchQuery.estado || ''}
+                          onChange={(e) => setSearchQuery({ ...searchQuery, estado: e.target.value as EstadoLaboral })}
+                          style={{ borderRadius: '8px' }}
+                        >
+                          <option value="">Todos los estados</option>
+                          {Object.values(EstadoLaboral).map(estado => (
+                            <option key={estado} value={estado}>{estado}</option>
+                          ))}
+                        </Form.Select>
+                      </Form.Group>
                     </div>
                     <div className="col-md-3">
-                      <label className="form-label">Cargo:</label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        placeholder="Cargo"
-                        value={searchQuery.cargo || ''}
-                        onChange={(e) => setSearchQuery({ ...searchQuery, cargo: e.target.value })}
-                      />
+                      <Form.Group>
+                        <Form.Label className="fw-semibold">Cargo:</Form.Label>
+                        <Form.Control
+                          type="text"
+                          placeholder="Cargo"
+                          value={searchQuery.cargo || ''}
+                          onChange={(e) => setSearchQuery({ ...searchQuery, cargo: e.target.value })}
+                          style={{ borderRadius: '8px' }}
+                        />
+                      </Form.Group>
                     </div>
                     <div className="col-md-3">
-                      <label className="form-label">Área:</label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        placeholder="Departamento o área"
-                        value={searchQuery.area || ''}
-                        onChange={(e) => setSearchQuery({ ...searchQuery, area: e.target.value })}
-                      />
+                      <Form.Group>
+                        <Form.Label className="fw-semibold">Área:</Form.Label>
+                        <Form.Control
+                          type="text"
+                          placeholder="Departamento o área"
+                          value={searchQuery.area || ''}
+                          onChange={(e) => setSearchQuery({ ...searchQuery, area: e.target.value })}
+                          style={{ borderRadius: '8px' }}
+                        />
+                      </Form.Group>
                     </div>
                     <div className="col-md-3">
-                      <label className="form-label">Tipo de Contrato:</label>
-                      <select
-                        className="form-select"
-                        value={searchQuery.tipoContrato || ''}
-                        onChange={(e) => setSearchQuery({ ...searchQuery, tipoContrato: e.target.value })}
-                      >
-                        <option value="">Todos los tipos</option>
-                        <option value="Indefinido">Indefinido</option>
-                        <option value="Plazo Fijo">Plazo Fijo</option>
-                        <option value="Por Obra">Por Obra</option>
-                        <option value="Part-Time">Part-Time</option>
-                      </select>
+                      <Form.Group>
+                        <Form.Label className="fw-semibold">Tipo de Contrato:</Form.Label>
+                        <Form.Select
+                          value={searchQuery.tipoContrato || ''}
+                          onChange={(e) => setSearchQuery({ ...searchQuery, tipoContrato: e.target.value })}
+                          style={{ borderRadius: '8px' }}
+                        >
+                          <option value="">Todos los tipos</option>
+                          <option value="Indefinido">Indefinido</option>
+                          <option value="Plazo Fijo">Plazo Fijo</option>
+                          <option value="Por Obra">Por Obra</option>
+                          <option value="Part-Time">Part-Time</option>
+                        </Form.Select>
+                      </Form.Group>
                     </div>
                     <div className="col-md-3">
-                      <label className="form-label">Sueldo desde:</label>
-                      <input
-                        type="text"
-                        inputMode="numeric"
-                        className="form-control"
-                        placeholder="Monto mínimo"
-                        value={searchQuery.sueldoBaseDesde !== undefined && searchQuery.sueldoBaseDesde !== null ? formatMiles(searchQuery.sueldoBaseDesde) : ''}
-                        onChange={(e) => {
-                          const raw = e.target.value.replace(/\D/g, '');
-                          if (raw === '') {
-                            setSearchQuery({ ...searchQuery, sueldoBaseDesde: undefined });
-                          } else {
-                            setSearchQuery({ ...searchQuery, sueldoBaseDesde: Number(raw) });
-                          }
-                        }}
-                        maxLength={12}
-                      />
+                      <Form.Group>
+                        <Form.Label className="fw-semibold">Sueldo desde:</Form.Label>
+                        <Form.Control
+                          type="text"
+                          inputMode="numeric"
+                          placeholder="Monto mínimo"
+                          value={searchQuery.sueldoBaseDesde !== undefined && searchQuery.sueldoBaseDesde !== null ? formatMiles(searchQuery.sueldoBaseDesde) : ''}
+                          onChange={(e) => {
+                            const raw = e.target.value.replace(/\D/g, '');
+                            if (raw === '') {
+                              setSearchQuery({ ...searchQuery, sueldoBaseDesde: undefined });
+                            } else {
+                              setSearchQuery({ ...searchQuery, sueldoBaseDesde: Number(raw) });
+                            }
+                          }}
+                          maxLength={12}
+                          style={{ borderRadius: '8px' }}
+                        />
+                      </Form.Group>
                     </div>
                     <div className="col-md-3">
-                      <label className="form-label">Sueldo hasta:</label>
-                      <input
-                        type="text"
-                        inputMode="numeric"
-                        className="form-control"
-                        placeholder="Monto máximo"
-                        value={searchQuery.sueldoBaseHasta !== undefined && searchQuery.sueldoBaseHasta !== null ? formatMiles(searchQuery.sueldoBaseHasta) : ''}
-                        onChange={(e) => {
-                          const raw = e.target.value.replace(/\D/g, '');
-                          if (raw === '') {
-                            setSearchQuery({ ...searchQuery, sueldoBaseHasta: undefined });
-                          } else {
-                            setSearchQuery({ ...searchQuery, sueldoBaseHasta: Number(raw) });
-                          }
-                        }}
-                        maxLength={12}
-                      />
+                      <Form.Group>
+                        <Form.Label className="fw-semibold">Sueldo hasta:</Form.Label>
+                        <Form.Control
+                          type="text"
+                          inputMode="numeric"
+                          placeholder="Monto máximo"
+                          value={searchQuery.sueldoBaseHasta !== undefined && searchQuery.sueldoBaseHasta !== null ? formatMiles(searchQuery.sueldoBaseHasta) : ''}
+                          onChange={(e) => {
+                            const raw = e.target.value.replace(/\D/g, '');
+                            if (raw === '') {
+                              setSearchQuery({ ...searchQuery, sueldoBaseHasta: undefined });
+                            } else {
+                              setSearchQuery({ ...searchQuery, sueldoBaseHasta: Number(raw) });
+                            }
+                          }}
+                          maxLength={12}
+                          style={{ borderRadius: '8px' }}
+                        />
+                      </Form.Group>
                     </div>
                     <div className="col-md-3">
-                      <label className="form-label">Fecha Inicio Desde:</label>
-                      <input
-                        type="date"
-                        className="form-control"
-                        value={searchQuery.fechaInicioDesde || ''}
-                        onChange={(e) => setSearchQuery({ ...searchQuery, fechaInicioDesde: e.target.value })}
-                      />
+                      <Form.Group>
+                        <Form.Label className="fw-semibold">Fecha Inicio Desde:</Form.Label>
+                        <Form.Control
+                          type="date"
+                          value={searchQuery.fechaInicioDesde || ''}
+                          onChange={(e) => setSearchQuery({ ...searchQuery, fechaInicioDesde: e.target.value })}
+                          style={{ borderRadius: '8px' }}
+                        />
+                      </Form.Group>
                     </div>
                     <div className="col-md-3">
-                      <label className="form-label">Fecha Inicio Hasta:</label>
-                      <input
-                        type="date"
-                        className="form-control"
-                        value={searchQuery.fechaInicioHasta || ''}
-                        onChange={(e) => setSearchQuery({ ...searchQuery, fechaInicioHasta: e.target.value })}
-                      />
+                      <Form.Group>
+                        <Form.Label className="fw-semibold">Fecha Inicio Hasta:</Form.Label>
+                        <Form.Control
+                          type="date"
+                          value={searchQuery.fechaInicioHasta || ''}
+                          onChange={(e) => setSearchQuery({ ...searchQuery, fechaInicioHasta: e.target.value })}
+                          style={{ borderRadius: '8px' }}
+                        />
+                      </Form.Group>
                     </div>
                     <div className="col-md-3">
-                      <label className="form-label">Fecha Fin Desde:</label>
-                      <input
-                        type="date"
-                        className="form-control"
-                        value={searchQuery.fechaFinDesde || ''}
-                        onChange={(e) => setSearchQuery({ ...searchQuery, fechaFinDesde: e.target.value })}
-                      />
+                      <Form.Group>
+                        <Form.Label className="fw-semibold">Fecha Fin Desde:</Form.Label>
+                        <Form.Control
+                          type="date"
+                          value={searchQuery.fechaFinDesde || ''}
+                          onChange={(e) => setSearchQuery({ ...searchQuery, fechaFinDesde: e.target.value })}
+                          style={{ borderRadius: '8px' }}
+                        />
+                      </Form.Group>
                     </div>
                     <div className="col-md-3">
-                      <label className="form-label">Fecha Fin Hasta:</label>
-                      <input
-                        type="date"
-                        className="form-control"
-                        value={searchQuery.fechaFinHasta || ''}
-                        onChange={(e) => setSearchQuery({ ...searchQuery, fechaFinHasta: e.target.value })}
-                      />
+                      <Form.Group>
+                        <Form.Label className="fw-semibold">Fecha Fin Hasta:</Form.Label>
+                        <Form.Control
+                          type="date"
+                          value={searchQuery.fechaFinHasta || ''}
+                          onChange={(e) => setSearchQuery({ ...searchQuery, fechaFinHasta: e.target.value })}
+                          style={{ borderRadius: '8px' }}
+                        />
+                      </Form.Group>
+                    </div>
+                    <div className="col-md-6 d-flex align-items-end">
+                      <div className="d-flex gap-2 mb-3">
+                        <Button variant="primary" onClick={handleSearch} style={{ borderRadius: '20px', fontWeight: '500' }}>
+                          <i className="bi bi-search me-2"></i>
+                          Buscar
+                        </Button>
+                        <Button variant="outline-secondary" onClick={handleReset} style={{ borderRadius: '20px', fontWeight: '500' }}>
+                          <i className="bi bi-x-circle me-2"></i>
+                          Limpiar
+                        </Button>
+                      </div>
                     </div>
                   </div>
-                  
-                  {/* Checkbox para incluir fichas sin fecha fin */}
-                  <div className="row mb-3">
+
+                  {/* Opción adicional */}
+                  <div className="row">
                     <div className="col-12">
                       <div className="form-check">
                         <input
@@ -660,72 +707,29 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                           id="incluirSinFechaFin"
                           checked={incluirSinFechaFin}
                           onChange={(e) => setIncluirSinFechaFin(e.target.checked)}
-                          disabled={!searchQuery.fechaFinDesde && !searchQuery.fechaFinHasta}
                         />
-                        <label className="form-check-label d-flex align-items-center gap-2" htmlFor="incluirSinFechaFin">
-                          Incluir " Fecha Fin: - "
-                          <span
-                            tabIndex={0}
-                            data-bs-toggle="tooltip"
-                            data-bs-placement="right"
-                            title="Se activa cuando se utiliza el filtro de fecha fin desde y/o fecha fin hasta"
-                            style={{ cursor: 'pointer' }}
-                          >
-                            <i className="bi bi-info-circle" style={{ fontSize: '1rem' }}></i>
-                          </span>
+                        <label className="form-check-label fw-semibold" htmlFor="incluirSinFechaFin">
+                          Incluir fichas sin fecha de fin
                         </label>
                       </div>
                     </div>
                   </div>
+                </Card.Body>
+              </Card>
+            )}
 
-                  <div className="row mt-3">
-                    <div className="col-12">
-                      <button
-                        onClick={handleSearch}
-                        disabled={isLoading}
-                        className="btn btn-primary me-2"
-                      >
-                        <i className="bi bi-search me-2"></i>
-                        {isLoading ? 'Buscando...' : 'Buscar'}
-                      </button>
-                      <button
-                        onClick={handleReset}
-                        disabled={isLoading}
-                        className="btn btn-outline-secondary"
-                      >
-                        <i className="bi bi-arrow-clockwise me-2"></i>
-                        Limpiar filtros
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-
-
-        {/* Resultados */}
-        <div className="row">
-          <div className="col-12">
-            <div className="card">
-              <div className="card-header">
-                <h6 className="card-title mb-0">
-                  <i className="bi bi-table me-2"></i>
-                  Fichas Encontradas ({fichasFiltradas.length})
-                </h6>
-              </div>
-              <div className="card-body">
-                {fichasFiltradas.length > 0 && (
-                  <small className="text-muted mb-3 d-block">
-                    Activos: {fichasFiltradas.filter(f => f.estado === EstadoLaboral.ACTIVO).length} • 
-                    Licencias: {fichasFiltradas.filter(f => f.estado === EstadoLaboral.LICENCIA).length} • 
-                    Permisos: {fichasFiltradas.filter(f => f.estado === EstadoLaboral.PERMISO).length} • 
-                    Desvinculados: {fichasFiltradas.filter(f => f.estado === EstadoLaboral.DESVINCULADO).length}
-                  </small>
+            {/* Contenido principal */}
+            <Card className="shadow-sm">
+              <Card.Body>
+                {/* Mostrar errores */}
+                {(localError || fichaError) && (
+                  <Alert variant="danger" className="border-0 mb-3" style={{ borderRadius: '12px' }}>
+                    <i className="bi bi-exclamation-triangle me-2"></i>
+                    {localError || fichaError}
+                  </Alert>
                 )}
 
+                {/* Contenido de la tabla */}
                 {isLoading ? (
                   <div className="text-center py-5">
                     <div className="spinner-border text-primary" role="status">
@@ -737,10 +741,24 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                   <div className="text-center py-5">
                     <i className="bi bi-clipboard-x display-1 text-muted"></i>
                     <h5 className="mt-3">No hay resultados que coincidan con tu búsqueda</h5>
+                    <p className="text-muted">Intenta ajustar los filtros para obtener más resultados</p>
                   </div>
                 ) : (
-                  <div className="table-responsive">
-                    <table className="table table-hover">
+                  <>
+                    <div className="d-flex justify-content-between align-items-center mb-3">
+                      <h6 className="mb-0">
+                        <i className="bi bi-list-ul me-2"></i>
+                        Fichas de Empresa ({fichasFiltradas.length})
+                        <small className="text-muted ms-2">
+                          (Activos: {fichasFiltradas.filter(f => f.estado === EstadoLaboral.ACTIVO).length} • 
+                          Licencias: {fichasFiltradas.filter(f => f.estado === EstadoLaboral.LICENCIA).length} • 
+                          Permisos: {fichasFiltradas.filter(f => f.estado === EstadoLaboral.PERMISO).length} • 
+                          Desvinculados: {fichasFiltradas.filter(f => f.estado === EstadoLaboral.DESVINCULADO).length})
+                        </small>
+                      </h6>
+                    </div>
+                    <div className="table-responsive">
+                      <Table hover className="mb-0">
                       <thead className="table-light">
                         <tr>
                           <th>Trabajador</th>
@@ -792,44 +810,40 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                             </td>
                             <td>{formatFecha(ficha.fechaInicioContrato)}</td>
                             <td>{ficha.fechaFinContrato ? formatFecha(ficha.fechaFinContrato) : '-'}</td>
+                            <td>{formatSueldo(ficha.sueldoBase)}</td>
                             <td>
-                              <span className="fw-bold text-success">
-                                {formatSueldo(ficha.sueldoBase)}
-                              </span>
-                            </td>
-                            <td>
-                              {/* Ocultar acciones si es el admin principal */}
-                              {(ficha.trabajador.rut !== '11.111.111-1') && (
-                                <div className="btn-group btn-group-sm">
-                                  <button
-                                    className={`btn ${ficha.contratoURL ? 'btn-outline-danger' : 'btn-outline-secondary'}`}
+                              <div className="btn-group">
+                                <Button 
+                                  variant="outline-primary" 
+                                  size="sm" 
+                                  onClick={() => handleEditFicha(ficha)}
+                                  title="Editar ficha"
+                                >
+                                  <i className="bi bi-pencil"></i>
+                                </Button>
+                                {ficha.contratoURL && (
+                                  <Button 
+                                    variant="outline-success" 
+                                    size="sm"
                                     onClick={() => handleDownloadContrato(ficha.id)}
-                                    title={ficha.contratoURL ? "Descargar contrato" : "No hay contrato disponible"}
-                                    disabled={!ficha.contratoURL || ficha.estado === EstadoLaboral.DESVINCULADO}
+                                    title="Descargar contrato"
                                   >
-                                    <i className="bi bi-file-earmark-pdf"></i>
-                                  </button>
-                                  <button
-                                    className="btn btn-outline-warning"
-                                    onClick={() => handleEditFicha(ficha)}
-                                    title="Editar"
-                                    disabled={ficha.estado === EstadoLaboral.DESVINCULADO}
-                                  >
-                                    <i className="bi bi-pencil"></i>
-                                  </button>
-                                </div>
-                              )}
+                                    <i className="bi bi-download"></i>
+                                  </Button>
+                                )}
+                              </div>
                             </td>
                           </tr>
                         ))}
                       </tbody>
-                    </table>
-                  </div>
+                    </Table>
+                    </div>
+                  </>
                 )}
-              </div>
-            </div>
-          </div>
-        </div>
+              </Card.Body>
+            </Card>
+          </Col>
+        </Row>
 
         {/* Modal de Edición */}
         {showEditModal && selectedFicha && (
@@ -840,7 +854,10 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
             onUpdate={handleUpdateSuccess}
           />
         )}
-      </div>
+
+        {/* Sistema de notificaciones */}
+        <Toast toasts={toasts} removeToast={removeToast} />
+      </Container>
     </div>
   );
 }; 

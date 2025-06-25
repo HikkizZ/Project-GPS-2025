@@ -156,10 +156,7 @@ export async function searchFichasEmpresa(params: SearchFichaParams): Promise<Se
 
         const fichas = await queryBuilder.getMany();
 
-        if (!fichas.length) {
-            return [null, { message: "No hay fichas de empresa que coincidan con los criterios de búsqueda" }];
-        }
-
+        // Devolver array vacío en lugar de error cuando no hay fichas
         return [fichas, null];
     } catch (error) {
         console.error("Error al buscar fichas de empresa:", error);
@@ -177,13 +174,7 @@ export async function getFichaEmpresaById(id: number): Promise<ServiceResponse<F
 
         if (!ficha) {
             return [null, { message: "Ficha no encontrada" }];
-        }
-
-        if (ficha.trabajador && ficha.trabajador.rut === "11.111.111-1") {
-            return [null, { message: "No se puede modificar ni eliminar la ficha del superadministrador." }];
-        }
-
-        return [ficha, null];
+        }return [ficha, null];
     } catch (error) {
         console.error("Error en getFichaEmpresaById:", error);
         return [null, { message: "Error interno del servidor" }];
@@ -211,13 +202,7 @@ export async function getMiFichaService(userId: number): Promise<ServiceResponse
 
         if (!ficha) {
             return [null, { message: "Ficha no encontrada" }];
-        }
-
-        if (ficha.trabajador && ficha.trabajador.rut === "11.111.111-1") {
-            return [null, { message: "No se puede modificar ni eliminar la ficha del superadministrador." }];
-        }
-
-        return [ficha, null];
+        }return [ficha, null];
     } catch (error) {
         console.error("Error en getMiFichaService:", error);
         return [null, { message: "Error interno del servidor" }];
@@ -252,13 +237,7 @@ export async function actualizarEstadoFichaService(
             await queryRunner.rollbackTransaction();
             await queryRunner.release();
             return [null, { message: "Ficha no encontrada" }];
-        }
-
-        if (ficha.trabajador && ficha.trabajador.rut === "11.111.111-1") {
-            return [null, { message: "No se puede modificar ni eliminar la ficha del superadministrador." }];
-        }
-
-        // Verificar permisos del usuario
+        }// Verificar permisos del usuario
         if (userId) {
             const userRepo = queryRunner.manager.getRepository(User);
             const user = await userRepo.findOne({ where: { id: userId } });
@@ -280,6 +259,26 @@ export async function actualizarEstadoFichaService(
 
         // Actualizar el estado y otros campos
         ficha.estado = estado;
+
+        // Para licencias y permisos, guardar las fechas
+        if (estado === EstadoLaboral.LICENCIA || estado === EstadoLaboral.PERMISO) {
+            if (fechaInicioDate) {
+                ficha.fechaInicioLicencia = fechaInicioDate;
+            }
+            if (fechaFinDate) {
+                ficha.fechaFinLicencia = fechaFinDate;
+            }
+            if (motivo) {
+                ficha.motivoLicencia = motivo;
+            }
+        }
+
+        // Si vuelve a estado ACTIVO, limpiar fechas de licencia
+        if (estado === EstadoLaboral.ACTIVO) {
+            ficha.fechaInicioLicencia = null;
+            ficha.fechaFinLicencia = null;
+            ficha.motivoLicencia = null;
+        }
 
         // Guardar los cambios
         const fichaActualizada = await fichaRepo.save(ficha);
@@ -321,13 +320,7 @@ export async function updateFichaEmpresaService(
 
         if (!fichaActual) {
             return [null, { message: "Ficha no encontrada" }];
-        }
-
-        if (fichaActual.trabajador && fichaActual.trabajador.rut === "11.111.111-1") {
-            return [null, { message: "No se puede modificar ni eliminar la ficha del superadministrador." }];
-        }
-
-        // 2. Validar campos protegidos
+        }// 2. Validar campos protegidos
         const camposInvalidos = CAMPOS_PROTEGIDOS.filter(campo => campo in fichaData);
         if (camposInvalidos.length > 0) {
             return [null, { message: `No se pueden modificar los siguientes campos: ${camposInvalidos.join(', ')}` }];
@@ -386,7 +379,7 @@ export async function updateFichaEmpresaService(
     }
 }
 
-export async function descargarContratoService(id: number, userId: number): Promise<ServiceResponse<string>> {
+export async function descargarContratoService(id: number, userId: number): Promise<ServiceResponse<{filePath: string, customFilename: string}>> {
     try {
         const fichaRepo = AppDataSource.getRepository(FichaEmpresa);
         const userRepo = AppDataSource.getRepository(User);
@@ -398,13 +391,7 @@ export async function descargarContratoService(id: number, userId: number): Prom
 
         if (!ficha) {
             return [null, { message: "Ficha no encontrada" }];
-        }
-
-        if (ficha.trabajador && ficha.trabajador.rut === "11.111.111-1") {
-            return [null, { message: "No se puede modificar ni eliminar la ficha del superadministrador." }];
-        }
-
-        const user = await userRepo.findOne({
+        }const user = await userRepo.findOne({
             where: { id: userId },
             relations: ["trabajador"]
         });
@@ -419,7 +406,9 @@ export async function descargarContratoService(id: number, userId: number): Prom
         const esSuperAdmin = user.role === "SuperAdministrador";
         const esDueno = user.trabajador?.id === ficha.trabajador.id;
 
-        if (!esRRHH && !esAdmin && !esSuperAdmin && !esDueno) {
+        const tienePrivilegios = esRRHH || esAdmin || esSuperAdmin || esDueno;
+
+        if (!tienePrivilegios) {
             return [null, { message: "No tiene permiso para descargar este contrato" }];
         }
 
@@ -429,13 +418,50 @@ export async function descargarContratoService(id: number, userId: number): Prom
 
         // Usar el servicio de archivos para obtener la ruta absoluta y correcta
         const filePath = FileUploadService.getContratoPath(ficha.contratoURL);
-        
+
         // Verificar si el archivo existe
         if (!FileUploadService.fileExists(filePath)) {
             return [null, { message: "El archivo del contrato no se encuentra en el servidor." }];
         }
 
-        return [filePath, null];
+        // Generar nombre personalizado
+        const trabajador = ficha.trabajador;
+
+        // Función para limpiar caracteres especiales y espacios
+        const limpiarNombre = (nombre: string): string => {
+            return nombre
+                .replace(/[áàäâ]/g, 'a')
+                .replace(/[éèëê]/g, 'e')
+                .replace(/[íìïî]/g, 'i')
+                .replace(/[óòöô]/g, 'o')
+                .replace(/[úùüû]/g, 'u')
+                .replace(/[ñ]/g, 'n')
+                .replace(/[ç]/g, 'c')
+                .replace(/[^a-zA-Z0-9]/g, '_')
+                .replace(/_+/g, '_')
+                .replace(/^_|_$/g, '');
+        };
+
+        const nombresLimpios = limpiarNombre(trabajador.nombres || '');
+        const apellidoPLimpio = limpiarNombre(trabajador.apellidoPaterno || '');
+        const apellidoMLimpio = limpiarNombre(trabajador.apellidoMaterno || '');
+
+        // Construir nombre personalizado
+        let customFilename = '';
+        if (nombresLimpios && apellidoPLimpio) {
+            customFilename = `${nombresLimpios}_${apellidoPLimpio}`;
+            if (apellidoMLimpio) {
+                customFilename += `_${apellidoMLimpio}`;
+            }
+            customFilename += '-Contrato.pdf';
+        }
+
+        // Validar que el nombre personalizado sea válido
+        if (!customFilename || customFilename.length < 5 || !customFilename.includes('-Contrato.pdf')) {
+            customFilename = `Contrato_${id}.pdf`;
+        }
+
+        return [{ filePath, customFilename }, null];
     } catch (error) {
         console.error("Error en descargarContratoService:", error);
         return [null, { message: "Error interno del servidor" }];

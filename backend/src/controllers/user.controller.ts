@@ -22,9 +22,17 @@ export const searchUsers = async (req: Request, res: Response) => {
         if (error) {
             return res.status(400).json({ status: 'error', message: error, details: {} });
         }
-        return res.json({ status: 'success', message: 'Usuarios encontrados exitosamente', data: users });
+
+        // Si no hay usuarios, devolver array vacío con mensaje amigable
+        const usersData = users || [];
+        const mensaje = usersData.length === 0 
+            ? "No se encontraron usuarios que coincidan con los criterios de búsqueda" 
+            : "Usuarios encontrados exitosamente";
+
+        return res.json({ status: 'success', message: mensaje, data: usersData });
     } catch (error) {
-        return res.status(500).json({ status: 'error', message: "Error al buscar usuarios", details: {} });
+        console.error("Error al buscar usuarios:", error);
+        return res.status(500).json({ status: 'error', message: "Error interno del servidor", details: {} });
     }
 };
 
@@ -52,9 +60,16 @@ export const getUser = async (req: Request, res: Response) => {
 export const getUsers = async (req: Request, res: Response) => {
     try {
         const users = await getUsersService();
-        return res.json({ data: users });
+        // Si no hay usuarios, devolver array vacío con mensaje amigable
+        const usersData = users || [];
+        const mensaje = usersData.length === 0 
+            ? "No hay usuarios registrados en el sistema" 
+            : "Usuarios obtenidos exitosamente";
+        
+        handleSuccess(res, 200, mensaje, usersData);
     } catch (error) {
-        return res.status(500).json({ message: "Error al obtener usuarios" });
+        console.error("Error al obtener usuarios:", error);
+        handleErrorServer(res, 500, "Error interno del servidor");
     }
 };
 

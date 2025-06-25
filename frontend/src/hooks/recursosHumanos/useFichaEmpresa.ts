@@ -63,9 +63,10 @@ export const useFichaEmpresa = () => {
     try {
       const result = await fichaEmpresaService.getFichasEmpresa(searchParams);
       
-      if (result.success && result.data) {
+      if (result.success) {
+        // result.data puede ser un array vacío, que es un resultado válido
         updateState({
-          fichas: result.data,
+          fichas: result.data || [],
           isLoading: false,
         });
       } else {

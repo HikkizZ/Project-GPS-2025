@@ -57,12 +57,13 @@ export async function getTrabajadores(req: Request, res: Response): Promise<void
             return;
         }
 
-        if (!trabajadores) {
-            handleErrorClient(res, 404, "No se encontraron trabajadores");
-            return;
-        }
+        // Si no hay trabajadores, devolver array vacío con mensaje amigable
+        const trabajadoresData = trabajadores || [];
+        const mensaje = trabajadoresData.length === 0 
+            ? "No hay trabajadores registrados en el sistema" 
+            : "Trabajadores obtenidos exitosamente";
 
-        handleSuccess(res, 200, "Trabajadores obtenidos exitosamente", trabajadores);
+        handleSuccess(res, 200, mensaje, trabajadoresData);
     } catch (error) {
         console.error("Error al obtener trabajadores:", error);
         handleErrorServer(res, 500, "Error interno del servidor");
@@ -92,18 +93,18 @@ export async function searchTrabajadores(req: Request, res: Response): Promise<v
 
         if (serviceError) {
             console.log("❌ Error del servicio:", serviceError);
-            handleErrorClient(res, 404, typeof serviceError === 'string' ? serviceError : serviceError.message);
+            handleErrorClient(res, 400, typeof serviceError === 'string' ? serviceError : serviceError.message);
             return;
         }
 
-        if (!trabajadores || trabajadores.length === 0) {
-            console.log("❌ No se encontraron trabajadores");
-            handleErrorClient(res, 404, "No se encontraron trabajadores que coincidan con los criterios de búsqueda");
-            return;
-        }
+        // Si no hay trabajadores, devolver array vacío con mensaje amigable
+        const trabajadoresData = trabajadores || [];
+        const mensaje = trabajadoresData.length === 0 
+            ? "No se encontraron trabajadores que coincidan con los criterios de búsqueda" 
+            : "Trabajadores encontrados exitosamente";
 
-        console.log("✅ Trabajadores encontrados:", trabajadores.length);
-        handleSuccess(res, 200, "Trabajadores encontrados exitosamente", trabajadores);
+        console.log("✅ Respuesta enviada:", { cantidad: trabajadoresData.length, mensaje });
+        handleSuccess(res, 200, mensaje, trabajadoresData);
     } catch (error) {
         console.error("❌ Error en searchTrabajadores:", error);
         handleErrorServer(res, 500, "Error interno del servidor");

@@ -20,6 +20,8 @@ import { authenticateJWT } from "./middlewares/authentication.middleware.js";
 import { FileManagementService } from "./services/fileManagement.service.js";
 import { FileUploadService } from "./services/fileUpload.service.js";
 import userRoutes from "./routes/user.routes.js";
+import { verificarLicenciasVencidasService } from "./services/recursosHumanos/licenciaPermiso.service.js";
+import cron from "node-cron";
 
 // --- Definición de Rutas para ES Modules ---
 const __filename = fileURLToPath(import.meta.url);
@@ -36,6 +38,48 @@ config();
 const isProduction = process.env.NODE_ENV === "production";
 const isTest = process.env.NODE_ENV === "test";
 const isDevelopment = !isProduction && !isTest;
+
+// Función para inicializar la verificación automática de licencias vencidas
+function initializeAutomaticLicenseVerification(): void {
+    // Programar la tarea para que se ejecute todos los días a las 00:01
+    cron.schedule("1 0 * * *", async () => {
+        console.log("🔍 Iniciando verificación automática de licencias vencidas...");
+        
+        try {
+            const [actualizaciones, error] = await verificarLicenciasVencidasService();
+            
+            if (error) {
+                console.error("❌ Error al verificar licencias vencidas:", error);
+                return;
+            }
+
+            console.log(`✅ Verificación completada. ${actualizaciones} estados actualizados a Activo`);
+        } catch (error) {
+            console.error("❌ Error inesperado durante la verificación de licencias:", error);
+        }
+    });
+
+    console.log("✅ Sistema de verificación automática de licencias vencidas iniciado (00:01 diario)");
+    
+    // En desarrollo, también ejecutar inmediatamente para verificar que funciona
+    if (isDevelopment) {
+        console.log("🔧 Ejecutando verificación inicial de licencias (modo desarrollo)...");
+        setTimeout(async () => {
+            try {
+                const [actualizaciones, error] = await verificarLicenciasVencidasService();
+                
+                if (error) {
+                    console.error("❌ Error en verificación inicial:", error);
+                    return;
+                }
+
+                console.log(`✅ Verificación inicial completada. ${actualizaciones} estados actualizados`);
+            } catch (error) {
+                console.error("❌ Error en verificación inicial:", error);
+            }
+        }, 3000); // Esperar 3 segundos después del inicio
+    }
+}
 
 async function setupServer(): Promise<void> {
     try {
@@ -102,6 +146,9 @@ async function setupServer(): Promise<void> {
 
         server = app.listen(PORT, () => {
             console.log(`✅ Servidor iniciado en http://${HOST}:${PORT}/api`);
+            
+            // Inicializar verificación automática de licencias vencidas
+            initializeAutomaticLicenseVerification();
         });
     } catch (error) {
         console.error("❌ Error al iniciar el servidor:", error);

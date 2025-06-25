@@ -57,7 +57,7 @@ export class User {
     @UpdateDateColumn()
     updateAt: Date;
 
-    @OneToOne(() => Trabajador)
+    @OneToOne(() => Trabajador, { nullable: true })
     @JoinColumn({ name: "rut", referencedColumnName: "rut" })
-    trabajador!: Trabajador;
+    trabajador?: Trabajador;
 }
