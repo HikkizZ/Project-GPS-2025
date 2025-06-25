@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, Row, Col } from 'react-bootstrap';
+import { Card, Row, Col, Container } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/useAuth';
 import { UserRole } from '../../types/auth.types';
@@ -17,10 +17,11 @@ const DashboardRecursosHumanos: React.FC = () => {
   const puedesolicitarLicencias = user && user.role !== 'SuperAdministrador';
 
   return (
-    <div className="dashboard-rh-page">
-      <div className="container pt-2 pb-3">
-        {/* Header Elegante */}
-        <div className="card shadow-lg border-0 mb-4" style={{ borderRadius: '12px', overflow: 'hidden' }}>
+    <Container fluid className="py-2">
+      <Row>
+        <Col>
+          {/* Header Elegante */}
+          <div className="card shadow-lg border-0 mb-4" style={{ borderRadius: '12px', overflow: 'hidden' }}>
           <div className="card-header bg-gradient-primary text-white border-0" style={{ padding: '0.75rem 1.25rem' }}>
             <div className="d-flex align-items-center">
               <i className="bi bi-people-fill fs-5 me-2"></i>
@@ -50,7 +51,7 @@ const DashboardRecursosHumanos: React.FC = () => {
               {tienePermisosCompletos && (
                 <>
                   {/* Tarjeta de Gestión del Personal */}
-                  <Col md={6}>
+                  <Col md={3}>
                     <Link to="/gestion-personal" style={{ textDecoration: 'none' }}>
                       <Card 
                         className="h-100 border-0 shadow-lg" 
@@ -100,7 +101,7 @@ const DashboardRecursosHumanos: React.FC = () => {
                   </Col>
 
                   {/* Tarjeta de Gestión de Sueldos */}
-                  <Col md={6}>
+                  <Col md={3}>
                     <Card 
                       className="h-100 border-0 shadow-sm" 
                       style={{ 
@@ -136,7 +137,7 @@ const DashboardRecursosHumanos: React.FC = () => {
                   </Col>
 
                   {/* Tarjeta de Gestión de Licencias y Permisos */}
-                  <Col md={6}>
+                  <Col md={3}>
                     <Link to="/gestion-licencias-permisos" style={{ textDecoration: 'none' }}>
                       <Card 
                         className="h-100 border-0 shadow-lg" 
@@ -186,7 +187,7 @@ const DashboardRecursosHumanos: React.FC = () => {
 
                   {/* Tarjeta de Mis Licencias y Permisos - NUEVA (solo si puede solicitar licencias) */}
                   {puedesolicitarLicencias && (
-                    <Col md={6}>
+                    <Col md={3}>
                       <Link to="/mis-licencias-permisos" style={{ textDecoration: 'none' }}>
                         <Card 
                           className="h-100 border-0 shadow-lg" 
@@ -241,7 +242,7 @@ const DashboardRecursosHumanos: React.FC = () => {
               {!tienePermisosCompletos && (
                 <>
                   {/* Tarjeta de Mi Ficha de Empresa */}
-                  <Col md={6}>
+                  <Col md={3}>
                     <Link to="/fichas-empresa" style={{ textDecoration: 'none' }}>
                       <Card 
                         className="h-100 border-0 shadow-lg" 
@@ -291,7 +292,7 @@ const DashboardRecursosHumanos: React.FC = () => {
 
                   {/* Tarjeta de Mis Licencias y Permisos - NUEVA (solo si puede solicitar licencias) */}
                   {puedesolicitarLicencias && (
-                    <Col md={6}>
+                    <Col md={3}>
                       <Link to="/mis-licencias-permisos" style={{ textDecoration: 'none' }}>
                         <Card 
                           className="h-100 border-0 shadow-lg" 
@@ -344,8 +345,9 @@ const DashboardRecursosHumanos: React.FC = () => {
             </Row>
           </div>
         </div>
-      </div>
-    </div>
+        </Col>
+      </Row>
+    </Container>
   );
 };
 
