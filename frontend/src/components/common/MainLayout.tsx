@@ -31,7 +31,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ user, onLogout, children }) => 
               style={{ borderRadius: '25px', transition: 'all 0.3s ease' }}
             >
               <i className="bi bi-house me-2"></i>
-              Dashboard
+              Inicio
             </button>
             <div className="nav-item dropdown">
               <button 
