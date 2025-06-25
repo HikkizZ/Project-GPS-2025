@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, Row, Col } from 'react-bootstrap';
+import { Card, Row, Col, Container } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
 import { UserRole } from '../types/auth.types';
@@ -14,10 +14,11 @@ const GestionPersonalPage: React.FC = () => {
   const tienePermisosCompletos = user && rolesPrivilegiados.includes(user.role as UserRole);
 
   return (
-    <div className="gestion-personal-page">
-      <div className="container pt-2 pb-3">
-        {/* Header Elegante */}
-        <div className="card shadow-lg border-0 mb-4" style={{ borderRadius: '12px', overflow: 'hidden' }}>
+    <Container fluid className="py-2">
+      <Row>
+        <Col>
+          {/* Header Elegante */}
+          <div className="card shadow-lg border-0 mb-4" style={{ borderRadius: '12px', overflow: 'hidden' }}>
           <div className="card-header bg-gradient-primary text-white border-0" style={{ padding: '0.75rem 1.25rem' }}>
             <div className="d-flex align-items-center">
               <i className="bi bi-person-badge fs-5 me-2"></i>
@@ -206,8 +207,9 @@ const GestionPersonalPage: React.FC = () => {
             </Row>
           </div>
         </div>
-      </div>
-    </div>
+        </Col>
+      </Row>
+    </Container>
   );
 };
 
