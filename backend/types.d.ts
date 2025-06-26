@@ -1,16 +1,26 @@
 /* Role Types */
-export type userRole = 'SuperAdministrador' | 'Administrador' | 'Usuario' | 'RecursosHumanos' | 'Gerencia' | 'Ventas' | 'Arriendo' | 'Finanzas' | 'Mecánico' | 'Mantenciones de Maquinaria';
+export type userRole = 
+    | "SuperAdministrador"
+    | "Administrador" 
+    | "Usuario" 
+    | "RecursosHumanos" 
+    | "Gerencia" 
+    | "Ventas" 
+    | "Arriendo" 
+    | "Finanzas" 
+    | "Mecánico" 
+    | "Mantenciones de Maquinaria";
 
 /* userResponse Interface */
 export interface UserResponse {
     id: number;
     name: string;
     email: string;
-    role: string;
-    rut: string;
+    role: userRole;
+    rut: string | null;
     estadoCuenta: string;
-    createAt: Date | string;
-    updateAt: Date | string;
+    createAt: Date;
+    updateAt: Date;
 }
 
 import { User } from '../entity/user.entity.js';
