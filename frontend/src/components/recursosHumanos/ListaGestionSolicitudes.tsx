@@ -55,6 +55,10 @@ export const ListaGestionSolicitudes: React.FC = () => {
   const [accionRespuesta, setAccionRespuesta] = useState<'aprobar' | 'rechazar' | null>(null);
   const [respuestaTexto, setRespuestaTexto] = useState('');
 
+  // Estados para el modal del revisor
+  const [showRevisorModal, setShowRevisorModal] = useState(false);
+  const [revisorSeleccionado, setRevisorSeleccionado] = useState<LicenciaPermiso['revisadoPor'] | null>(null);
+
   // Estadísticas eliminadas - funcionalidad no requerida
 
   // Cargar datos al montar el componente - Sin dependencias problemáticas  
@@ -216,7 +220,13 @@ export const ListaGestionSolicitudes: React.FC = () => {
     }
   };
 
-
+  // Mostrar información del revisor
+  const mostrarInfoRevisor = (revisor: LicenciaPermiso['revisadoPor']) => {
+    if (revisor) {
+      setRevisorSeleccionado(revisor);
+      setShowRevisorModal(true);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -435,6 +445,17 @@ export const ListaGestionSolicitudes: React.FC = () => {
                         {solicitud.revisadoPor && (
                           <div className="small text-muted mt-1">
                             Por: {solicitud.revisadoPor.name}
+                            <Button
+                              variant="link"
+                              size="sm"
+                              className="p-0 ms-1"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                mostrarInfoRevisor(solicitud.revisadoPor);
+                              }}
+                            >
+                              <i className="bi bi-info-circle text-primary"></i>
+                            </Button>
                           </div>
                         )}
                       </td>
@@ -779,6 +800,57 @@ export const ListaGestionSolicitudes: React.FC = () => {
             )}
           </Button>
         </Modal.Footer>
+      </Modal>
+
+      {/* Modal de información del revisor */}
+      <Modal 
+        show={showRevisorModal} 
+        onHide={() => setShowRevisorModal(false)} 
+        className="modal-enhanced"
+        centered
+        style={{ 
+          position: 'fixed',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: '300px'
+        }}
+      >
+        <Modal.Header closeButton className="bg-primary text-white py-2">
+          <Modal.Title className="d-flex align-items-center">
+            <i className="bi bi-person-badge me-2"></i>
+            Información del Revisor
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body className="p-3">
+          {revisorSeleccionado && (
+            <div>
+              <div className="mb-3">
+                <div className="text-primary mb-1"><strong>Nombre completo</strong></div>
+                <div className="d-flex align-items-center">
+                  <i className="bi bi-person-circle text-primary me-2"></i>
+                  <span>{revisorSeleccionado.name}</span>
+                </div>
+              </div>
+              <div className="mb-3">
+                <div className="text-primary mb-1"><strong>RUT</strong></div>
+                <div className="d-flex align-items-center">
+                  <i className="bi bi-person-vcard text-primary me-2"></i>
+                  <span>{revisorSeleccionado.rut}</span>
+                </div>
+              </div>
+              <div>
+                <div className="text-primary mb-1"><strong>Correo electrónico</strong></div>
+                <div className="d-flex align-items-center">
+                  <i className="bi bi-envelope text-primary me-2"></i>
+                  <a href={`mailto:${revisorSeleccionado.email}`} className="text-decoration-none">
+                    {revisorSeleccionado.email}
+                  </a>
+                </div>
+              </div>
+            </div>
+          )}
+        </Modal.Body>
       </Modal>
 
       {/* Sistema de notificaciones */}
