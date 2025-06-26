@@ -16,7 +16,17 @@ interface ToastProps {
 
 export const Toast: React.FC<ToastProps> = ({ toasts, removeToast }) => {
   return (
-    <ToastContainer position="top-end" className="p-3" style={{ zIndex: 9999 }}>
+    <ToastContainer 
+      className="position-fixed" 
+      style={{ 
+        top: '0.5rem',
+        left: '50%',
+        transform: 'translateX(-50%)',
+        zIndex: 9999,
+        width: 'auto',
+        maxWidth: '90%'
+      }}
+    >
       {toasts.map((toast) => (
         <BootstrapToast
           key={toast.id}
