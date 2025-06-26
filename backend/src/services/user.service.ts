@@ -5,7 +5,9 @@ import { ServiceResponse, QueryParams, UpdateUserData, SafeUser, userRole } from
 import { Not, ILike, FindOptionsWhere, FindOperator, Equal } from "typeorm";
 
 /* Validar formato de RUT */
-function isValidRut(rut: string): boolean {
+function isValidRut(rut: string | null): boolean {
+    // Si el RUT es null, es válido solo para SuperAdmin
+    if (rut === null) return true;
     // Solo aceptar formato xx.xxx.xxx-x
     const rutRegex = /^\d{2}\.\d{3}\.\d{3}-[0-9kK]$/;
     return rutRegex.test(rut);
@@ -144,6 +146,9 @@ export const updateUserService = async (id: number, body: UpdateUserData, reques
             dataUserUpdate.password = await encryptPassword(body.password);
         }
         if (body.role) {
+            if (body.role === "SuperAdministrador") {
+                throw { status: 403, message: "No se puede cambiar un usuario a SuperAdministrador." };
+            }
             dataUserUpdate.role = body.role as string;
         }
         if (body.rut) {

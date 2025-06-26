@@ -53,10 +53,12 @@ const MainLayout: React.FC<MainLayoutProps> = ({ user, onLogout, children }) => 
                         <small className="text-muted">{user.role}</small>
                       </div>
                     </div>
-                    <small className="text-muted">
-                      <i className="bi bi-card-text me-1"></i>
-                      RUT: {formatRUT(user.rut)}
-                    </small>
+                    {user.role !== "SuperAdministrador" && (
+                      <small className="text-muted">
+                        <i className="bi bi-card-text me-1"></i>
+                        RUT: {formatRUT(user.rut)}
+                      </small>
+                    )}
                   </div>
                 </li>
                 <li><hr className="dropdown-divider my-1" /></li>

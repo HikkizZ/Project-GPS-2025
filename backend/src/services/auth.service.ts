@@ -133,21 +133,41 @@ export async function registerService(user: RegisterData, userRole: userRole): P
             return [null, createErrorMessage({ name }, "El nombre solo puede contener letras y espacios.")];
         }
 
-        // Validaciones de RUT
-        if (!rut || rut.trim() === "") {
-            return [null, createErrorMessage({ rut }, "El RUT es requerido.")];
-        }
+        // Validaciones de RUT (solo para usuarios que no son SuperAdministrador)
+        if (role !== "SuperAdministrador") {
+            if (!rut || rut.trim() === "") {
+                return [null, createErrorMessage({ rut }, "El RUT es requerido.")];
+            }
 
-        if (!formatRut(rut)) {
-            return [null, createErrorMessage({ rut }, "El RUT ingresado no es válido.")];
-        }
+            if (!formatRut(rut)) {
+                return [null, createErrorMessage({ rut }, "El RUT ingresado no es válido.")];
+            }
 
-        if (rut.length < 8) {
-            return [null, createErrorMessage({ rut }, "El RUT debe tener al menos 8 caracteres.")];
-        }
+            if (rut.length < 8) {
+                return [null, createErrorMessage({ rut }, "El RUT debe tener al menos 8 caracteres.")];
+            }
 
-        if (rut.length > 12) {
-            return [null, createErrorMessage({ rut }, "El RUT debe tener menos de 12 caracteres.")];
+            if (rut.length > 12) {
+                return [null, createErrorMessage({ rut }, "El RUT debe tener menos de 12 caracteres.")];
+            }
+
+            // Normalizar el RUT antes de buscar al trabajador
+            const rutNormalizado = rut.replace(/\./g, "").trim();
+            
+            // Verificar si existe el trabajador con el RUT normalizado
+            const trabajador = await trabajadorRepository.findOne({ 
+                where: { rut: rutNormalizado } 
+            });
+
+            if (!trabajador) {
+                return [null, createErrorMessage({ rut }, "No existe un trabajador con este RUT.")];
+            }
+
+            // Verificar si ya existe un usuario con el mismo RUT
+            const existingRutUser = await userRepository.findOne({ where: { rut: rutNormalizado } });
+            if (existingRutUser) {
+                return [null, createErrorMessage({ rut }, "El RUT ingresado ya está registrado.")];
+            }
         }
 
         // Validaciones de email
@@ -167,6 +187,12 @@ export async function registerService(user: RegisterData, userRole: userRole): P
             return [null, createErrorMessage({ email }, "El dominio del email no es válido.")];
         }
 
+        // Verificar si ya existe un usuario con el mismo email
+        const existingEmailUser = await userRepository.findOne({ where: { email } });
+        if (existingEmailUser) {
+            return [null, createErrorMessage({ email }, "El email ingresado ya está registrado.")];
+        }
+
         // Validaciones de contraseña
         if (!password || password.trim() === "") {
             return [null, createErrorMessage({ password }, "La contraseña es requerida.")];
@@ -184,32 +210,6 @@ export async function registerService(user: RegisterData, userRole: userRole): P
             return [null, createErrorMessage({ password }, "La contraseña solo puede contener letras y números.")];
         }
 
-        // Normalizar el RUT antes de buscar al trabajador
-        const rutNormalizado = rut.replace(/\./g, "").trim();
-        
-        // Verificar si existe el trabajador con el RUT normalizado
-        const trabajador = await trabajadorRepository.findOne({ 
-            where: { rut: rutNormalizado } 
-        });
-
-        if (!trabajador) {
-            return [null, createErrorMessage({ rut }, "No existe un trabajador con este RUT.")];
-        }
-
-        // Verificar si ya existe un usuario con el mismo email o RUT
-        const [existingEmailUser, existingRutUser] = await Promise.all([
-            userRepository.findOne({ where: { email } }),
-            userRepository.findOne({ where: { rut: rutNormalizado } })
-        ]);
-
-        if (existingEmailUser) {
-            return [null, createErrorMessage({ email }, "El email ingresado ya está registrado.")];
-        }
-
-        if (existingRutUser) {
-            return [null, createErrorMessage({ rut }, "El RUT ingresado ya está registrado.")];
-        }
-
         // Verificar el rol
         if (!role || !allowedRoles.includes(role)) {
             return [null, createErrorMessage({ role }, "El rol especificado no es válido.")];
@@ -220,6 +220,11 @@ export async function registerService(user: RegisterData, userRole: userRole): P
             return [null, "No tienes permisos para crear usuarios administradores."];
         }
 
+        // No permitir crear SuperAdministradores
+        if (role === "SuperAdministrador") {
+            return [null, "No se pueden crear usuarios SuperAdministradores adicionales."];
+        }
+
         const hashedPassword = await encryptPassword(password);
 
         const newUser = userRepository.create({
@@ -227,7 +232,7 @@ export async function registerService(user: RegisterData, userRole: userRole): P
             email,
             password: hashedPassword,
             role,
-            rut,
+            rut: role === "SuperAdministrador" ? null : rut,
             estadoCuenta: "Activa",
             createAt: new Date(),
             updateAt: new Date()
