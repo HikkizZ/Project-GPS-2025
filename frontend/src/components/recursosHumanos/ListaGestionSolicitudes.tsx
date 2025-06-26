@@ -853,7 +853,8 @@ export const ListaGestionSolicitudes: React.FC = () => {
         </Modal.Body>
       </Modal>
 
-      <style jsx global>{`
+      <style>
+        {`
         .modal-revisor {
           max-width: 400px;
         }
@@ -869,7 +870,8 @@ export const ListaGestionSolicitudes: React.FC = () => {
           color: white;
           opacity: 1;
         }
-      `}</style>
+        `}
+      </style>
 
       {/* Sistema de notificaciones */}
       <Toast toasts={toasts} removeToast={removeToast} />
