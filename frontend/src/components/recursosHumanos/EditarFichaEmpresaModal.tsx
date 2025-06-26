@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Modal, Button, Form, Row, Col, Toast as BootstrapToast } from 'react-bootstrap';
 import { FichaEmpresa, UpdateFichaEmpresaData, EstadoLaboral } from '@/types/recursosHumanos/fichaEmpresa.types';
 import { updateFichaEmpresa, uploadContrato, downloadContrato, deleteContrato, getFichaEmpresa } from '@/services/recursosHumanos/fichaEmpresa.service';
@@ -51,6 +51,7 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
   const [loading, setLoading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [validated, setValidated] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Toast notifications
   const { toasts, removeToast, showSuccess, showError } = useToast();
@@ -106,6 +107,13 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
         return;
       }
       setSelectedFile(file);
+    }
+  };
+
+  const handleRemoveFile = () => {
+    setSelectedFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
     }
   };
 
@@ -400,6 +408,7 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
                 {ficha.contratoURL ? 'Reemplazar contrato' : 'Subir nuevo contrato'}
               </Form.Label>
               <Form.Control
+                ref={fileInputRef}
                 type="file"
                 accept=".pdf"
                 onChange={handleFileSelect}
@@ -418,7 +427,7 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
                   <Button 
                     variant="outline-danger" 
                     size="sm" 
-                    onClick={() => setSelectedFile(null)}
+                    onClick={handleRemoveFile}
                     style={{ borderRadius: '6px' }}
                   >
                     <i className="bi bi-x me-1"></i>
