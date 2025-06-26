@@ -39,6 +39,14 @@ const isProduction = process.env.NODE_ENV === "production";
 const isTest = process.env.NODE_ENV === "test";
 const isDevelopment = !isProduction && !isTest;
 
+// Valores por defecto para PORT y HOST
+const DEFAULT_PORT = 3000;
+const DEFAULT_HOST = 'localhost';
+
+// Asegurar que PORT y HOST tengan valores válidos
+const SERVER_PORT = Number(PORT) || DEFAULT_PORT;
+const SERVER_HOST = HOST || DEFAULT_HOST;
+
 // Función para inicializar la verificación automática de licencias vencidas
 function initializeAutomaticLicenseVerification(): void {
     // Programar la tarea para que se ejecute todos los días a las 00:01
@@ -51,7 +59,7 @@ function initializeAutomaticLicenseVerification(): void {
                 return;
             }
 
-            if (actualizaciones > 0) {
+            if (actualizaciones && actualizaciones > 0) {
                 console.log(`✅ Verificación completada. ${actualizaciones} estados actualizados a Activo`);
             }
         } catch (error) {
@@ -70,7 +78,7 @@ function initializeAutomaticLicenseVerification(): void {
                     return;
                 }
 
-                if (actualizaciones > 0) {
+                if (actualizaciones && actualizaciones > 0) {
                     console.log(`✅ Verificación inicial completada. ${actualizaciones} estados actualizados`);
                 }
             } catch (error) {
@@ -143,8 +151,9 @@ async function setupServer(): Promise<void> {
         app.use("/api", indexRoutes);
         app.use("/api/users", userRoutes);
 
-        server = app.listen(PORT, () => {
-            console.log(`✅ Servidor iniciado en http://${HOST}:${PORT}/api`);
+        server = app.listen(SERVER_PORT, SERVER_HOST, () => {
+            console.log("✅ API started successfully.");
+            console.log(`✅ Servidor iniciado en http://${SERVER_HOST}:${SERVER_PORT}/api`);
             
             // Inicializar verificación automática de licencias vencidas
             initializeAutomaticLicenseVerification();
@@ -283,11 +292,9 @@ const startServer = async () => {
     app.use("/api", indexRoutes);
     app.use("/api/users", userRoutes);
 
-    // Iniciar el servidor
-    app.listen(PORT, HOST, () => {
-      console.log("✅ Servidor iniciado correctamente");
+    server = app.listen(SERVER_PORT, SERVER_HOST, () => {
       console.log("✅ API started successfully.");
-      console.log(`✅ Servidor iniciado en http://${HOST}:${PORT}/api`);
+      console.log(`✅ Servidor iniciado en http://${SERVER_HOST}:${SERVER_PORT}/api`);
       
       // Inicializar verificación automática de licencias vencidas
       initializeAutomaticLicenseVerification();

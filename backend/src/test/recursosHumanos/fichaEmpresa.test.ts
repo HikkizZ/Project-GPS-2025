@@ -9,13 +9,13 @@ import { Trabajador } from '../../entity/recursosHumanos/trabajador.entity.js';
 import { EstadoLaboral } from '../../entity/recursosHumanos/fichaEmpresa.entity.js';
 
 describe('📋 Ficha Empresa API', () => {
-    let adminToken: string;
-    let rrhToken: string;
-    let usuarioToken: string;
+    let adminToken: string = '';
+    let rrhToken: string = '';
+    let usuarioToken: string = '';
     let fichaId: number;
     let trabajadorId: number;
     let userId: number;
-    let token: string;
+    let token: string = '';
 
     before(async () => {
         try {

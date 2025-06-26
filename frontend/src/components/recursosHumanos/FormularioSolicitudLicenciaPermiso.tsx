@@ -8,7 +8,7 @@ import {
 import { Toast, useToast } from '@/components/common/Toast';
 
 interface FormularioSolicitudLicenciaPermisoProps {
-  onSuccess: (message: string) => void;
+  onSuccess: () => void;
   onCancel?: () => void;
 }
 
@@ -16,7 +16,8 @@ export const FormularioSolicitudLicenciaPermiso: React.FC<FormularioSolicitudLic
   onSuccess,
   onCancel
 }) => {
-  const { crearSolicitud, isCreating, error, validationErrors, limpiarErrores } = useLicenciasPermisos();
+  const { crearSolicitud, isCreating, error, validationErrors: hookValidationErrors, limpiarErrores } = useLicenciasPermisos();
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   
   // Toast notifications
   const { toasts, removeToast, showSuccess, showError, showWarning } = useToast();
@@ -110,7 +111,7 @@ export const FormularioSolicitudLicenciaPermiso: React.FC<FormularioSolicitudLic
 
     // Validar fechas
     const fechaHoyString = new Date().toISOString().split('T')[0];
-    if (formData.fechaInicio < fechaHoyString && formData.tipo === 'Permiso') {
+    if (formData.fechaInicio < fechaHoyString && formData.tipo === TipoSolicitud.PERMISO) {
       setValidationErrors(prev => ({
         ...prev,
         fechaInicio: 'La fecha de inicio no puede ser anterior a hoy para permisos'
@@ -132,9 +133,9 @@ export const FormularioSolicitudLicenciaPermiso: React.FC<FormularioSolicitudLic
     try {
       const result = await crearSolicitud(formData);
       if (result.success) {
-        if (onSuccess) onSuccess();
+        onSuccess();
         showSuccess('¡Solicitud creada!', 'Tu solicitud ha sido enviada exitosamente');
-        handleReset();
+        resetForm();
       } else {
         setLocalErrors({ submit: result.error || 'Error al crear la solicitud' });
       }
@@ -142,6 +143,19 @@ export const FormularioSolicitudLicenciaPermiso: React.FC<FormularioSolicitudLic
       console.error('Error inesperado:', error);
       setLocalErrors({ submit: 'Error inesperado al procesar la solicitud' });
     }
+  };
+
+  const resetForm = () => {
+    setFormData({
+      tipo: TipoSolicitud.PERMISO,
+      fechaInicio: '',
+      fechaFin: '',
+      motivoSolicitud: '',
+      archivo: undefined
+    });
+    setArchivoInfo('');
+    setLocalErrors({});
+    setValidationErrors({});
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
