@@ -571,31 +571,48 @@ export const ListaGestionSolicitudes: React.FC = () => {
                     </Card.Header>
                     <Card.Body>
                       <div className="mb-3">
-                        <strong className="text-info">Tipo de Solicitud:</strong>
-                        <div className="mt-2">
-                          <Badge bg={getTipoColor(solicitudSeleccionada.tipo)} className="badge-enhanced">
-                            <i className={`bi ${getTipoIcon(solicitudSeleccionada.tipo)} me-1`}></i>
-                            {solicitudSeleccionada.tipo}
-                          </Badge>
+                        <div className="text-secondary mb-1">Tipo de Solicitud:</div>
+                        <Badge bg={getTipoColor(solicitudSeleccionada.tipo)} className="fs-6">
+                          <i className={`bi ${getTipoIcon(solicitudSeleccionada.tipo)} me-2`}></i>
+                          {solicitudSeleccionada.tipo}
+                        </Badge>
+                      </div>
+                      <div className="mb-3">
+                        <div className="text-secondary mb-1">Duración:</div>
+                        <div>
+                          {calcularDias(solicitudSeleccionada.fechaInicio, solicitudSeleccionada.fechaFin)} días
                         </div>
                       </div>
                       <div className="mb-3">
-                        <strong className="text-info">Duración:</strong>
-                        <div className="mt-1 fs-5 fw-bold text-primary">
-                          {calcularDias(solicitudSeleccionada.fechaInicio, solicitudSeleccionada.fechaFin)} día{calcularDias(solicitudSeleccionada.fechaInicio, solicitudSeleccionada.fechaFin) !== 1 ? 's' : ''}
-                        </div>
-                      </div>
-                      <div className="mb-3">
-                        <strong className="text-info">Fecha de Solicitud:</strong>
-                        <div className="mt-1">{formatearFechaHora(solicitudSeleccionada.fechaSolicitud)}</div>
+                        <div className="text-secondary mb-1">Fecha de Solicitud:</div>
+                        <div>{formatearFechaHora(solicitudSeleccionada.fechaSolicitud)}</div>
                       </div>
                       {solicitudSeleccionada.archivoAdjuntoURL && (
                         <div>
-                          <strong className="text-info">Archivo Adjunto:</strong>
-                          <div className="mt-2">
-                            <i className="bi bi-paperclip text-success me-1"></i>
-                            <span className="text-success small">Disponible para descarga</span>
+                          <div className="text-secondary mb-1">Archivo Adjunto:</div>
+                          <div className="d-flex align-items-center">
+                            <i className="bi bi-paperclip text-primary me-2"></i>
+                            <span className="text-success">Disponible para descarga</span>
                           </div>
+                          <Button 
+                            variant="outline-primary"
+                            size="sm"
+                            className="mt-2"
+                            onClick={() => handleDescargarArchivo(solicitudSeleccionada)}
+                            disabled={descargandoId === solicitudSeleccionada.id}
+                          >
+                            {descargandoId === solicitudSeleccionada.id ? (
+                              <>
+                                <Spinner size="sm" className="me-2" />
+                                Descargando...
+                              </>
+                            ) : (
+                              <>
+                                <i className="bi bi-download me-2"></i>
+                                Descargar Archivo
+                              </>
+                            )}
+                          </Button>
                         </div>
                       )}
                     </Card.Body>
@@ -669,24 +686,6 @@ export const ListaGestionSolicitudes: React.FC = () => {
         </Modal.Body>
         <Modal.Footer className="d-flex justify-content-between">
           <div className="d-flex gap-2">
-            {/* Botón de descarga */}
-            {solicitudSeleccionada?.archivoAdjuntoURL && (
-              <Button 
-                variant="outline-info"
-                onClick={() => {
-                  if (solicitudSeleccionada) {
-                    handleDescargarArchivo(solicitudSeleccionada);
-                  }
-                }}
-                disabled={descargandoId === solicitudSeleccionada?.id}
-              >
-                <i className="bi bi-download me-2"></i>
-                {descargandoId === solicitudSeleccionada?.id ? 'Descargando...' : 'Descargar Archivo'}
-              </Button>
-            )}
-          </div>
-          
-          <div className="d-flex gap-2">
             {/* Botones de acción para solicitudes pendientes */}
             {solicitudSeleccionada?.estado === 'Pendiente' && puedeGestionarSolicitud(solicitudSeleccionada) && (
               <>
@@ -726,13 +725,13 @@ export const ListaGestionSolicitudes: React.FC = () => {
                 <small>No puede gestionar su propia solicitud. Esta acción debe ser realizada por otro usuario con permisos adecuados.</small>
               </Alert>
             )}
-            
-            {/* Botón cerrar */}
-            <Button variant="secondary" onClick={() => setShowDetalleModal(false)}>
-              <i className="bi bi-x-circle me-2"></i>
-              Cerrar
-            </Button>
           </div>
+          
+          {/* Botón cerrar */}
+          <Button variant="secondary" onClick={() => setShowDetalleModal(false)}>
+            <i className="bi bi-x-circle me-2"></i>
+            Cerrar
+          </Button>
         </Modal.Footer>
       </Modal>
 
