@@ -3,7 +3,7 @@ import { expect } from 'chai';
 // @ts-ignore
 import request from 'supertest';
 import { Application } from 'express';
-import { app, server } from '../setup.js';
+import { app, server, SUPER_ADMIN_CREDENTIALS, RRHH_CREDENTIALS } from '../setup.js';
 import { AppDataSource } from '../../config/configDB.js';
 import { User } from '../../entity/user.entity.js';
 import { Trabajador } from '../../entity/recursosHumanos/trabajador.entity.js';
@@ -17,23 +17,17 @@ describe('🔒 Auth API - Registro y Login', () => {
         try {
             console.log("✅ Servidor de pruebas iniciado");
 
-            // Obtener token de admin
+            // Obtener token de SuperAdmin
             const adminLogin = await request(app)
                 .post('/api/auth/login')
-                .send({
-                    email: "admin.principal@gmail.com",
-                    password: "204dm1n8"
-                });
+                .send(SUPER_ADMIN_CREDENTIALS);
 
             adminToken = adminLogin.body.data.token;
 
             // Obtener token de RRHH
             const rrhhLogin = await request(app)
                 .post('/api/auth/login')
-                .send({
-                    email: "recursoshumanos@gmail.com",
-                    password: "RRHH2024"
-                });
+                .send(RRHH_CREDENTIALS);
 
             rrhhToken = rrhhLogin.body.data.token;
 
@@ -493,8 +487,8 @@ describe('🔒 Auth API - Registro y Login', () => {
             const res = await request(app)
                 .post('/api/auth/login')
                 .send({
-                    email: "patricia.gonzalez@gmail.com",
-                    password: "204dm1n8"
+                    email: "super.administrador@lamas.com",
+                    password: "204_M1n8"
                 });
 
             expect(res.status).to.equal(200);
@@ -508,8 +502,8 @@ describe('🔒 Auth API - Registro y Login', () => {
             const res = await request(app)
                 .post('/api/auth/login')
                 .send({
-                    email: "patricia.gonzalez@gmail.com",
-                    password: "204dm1n8"
+                    email: "super.administrador@lamas.com",
+                    password: "204_M1n8"
                 });
 
             const token = res.body.data.token;
@@ -517,17 +511,17 @@ describe('🔒 Auth API - Registro y Login', () => {
             expect(payload).to.have.property('role').to.equal('SuperAdministrador');
         });
 
-        it('debe tener el RUT correcto', async () => {
+        it('no debe tener RUT asignado', async () => {
             const res = await request(app)
                 .post('/api/auth/login')
                 .send({
-                    email: "patricia.gonzalez@gmail.com",
-                    password: "204dm1n8"
+                    email: "super.administrador@lamas.com",
+                    password: "204_M1n8"
                 });
 
             const token = res.body.data.token;
             const payload: any = jwt.decode(token);
-            expect(payload).to.have.property('rut').to.equal('20.882.865-7');
+            expect(payload).to.have.property('rut').to.be.null;
         });
     });
 

@@ -2,7 +2,7 @@
 import { expect } from 'chai';
 // @ts-ignore
 import request from 'supertest';
-import { app, server } from '../setup.js';
+import { app, server, SUPER_ADMIN_CREDENTIALS, RRHH_CREDENTIALS } from '../setup.js';
 import { AppDataSource } from '../../config/configDB.js';
 import { Trabajador } from '../../entity/recursosHumanos/trabajador.entity.js';
 import { FichaEmpresa } from '../../entity/recursosHumanos/fichaEmpresa.entity.js';
@@ -19,23 +19,17 @@ describe('👥 Trabajadores API', () => {
         try {
             console.log("✅ Iniciando pruebas de Trabajadores");
 
-            // Obtener token de admin
+            // Obtener token de SuperAdmin
             const adminLogin = await request(app)
                 .post('/api/auth/login')
-                .send({
-                    email: "admin.principal@gmail.com",
-                    password: "204dm1n8"
-                });
+                .send(SUPER_ADMIN_CREDENTIALS);
 
             adminToken = adminLogin.body.data.token;
 
             // Login como RRHH
             const rrhLogin = await request(app)
                 .post('/api/auth/login')
-                .send({
-                    email: 'recursoshumanos@gmail.com',
-                    password: 'RRHH2024'
-                });
+                .send(RRHH_CREDENTIALS);
 
             if (rrhLogin.status !== 200 || !rrhLogin.body.data?.token) {
                 console.error('Error en login RRHH:', rrhLogin.body);

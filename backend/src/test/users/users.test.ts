@@ -2,7 +2,7 @@
 import { expect } from 'chai';
 // @ts-ignore
 import request from 'supertest';
-import { app, server } from "../setup.js";
+import { app, server, SUPER_ADMIN_CREDENTIALS } from "../setup.js";
 import { AppDataSource } from "../../config/configDB.js";
 import { User } from "../../entity/user.entity.js";
 import { Trabajador } from "../../entity/recursosHumanos/trabajador.entity.js";
@@ -16,13 +16,10 @@ describe("👥 Users API", () => {
         try {
             console.log("✅ Iniciando pruebas de Users");
 
-            // Obtener token de admin
+            // Obtener token de SuperAdmin
             const adminLogin = await request(app)
                 .post('/api/auth/login')
-                .send({
-                    email: "admin.principal@gmail.com",
-                    password: "204dm1n8"
-                });
+                .send(SUPER_ADMIN_CREDENTIALS);
 
             adminToken = adminLogin.body.data.token;
 
@@ -78,22 +75,17 @@ describe("👥 Users API", () => {
 
     beforeEach(async () => {
         try {
-            // Limpiar usuarios excepto el admin
+            // Limpiar usuarios excepto el SuperAdmin
             await AppDataSource.getRepository(User)
                 .createQueryBuilder()
                 .delete()
-                .where("rut NOT IN (:...ruts)", { 
-                    ruts: [] 
-                })
+                .where("role != :role", { role: "SuperAdministrador" })
                 .execute();
 
-            // Limpiar trabajadores excepto el admin
+            // Limpiar trabajadores (el SuperAdmin no es trabajador)
             await AppDataSource.getRepository(Trabajador)
                 .createQueryBuilder()
                 .delete()
-                .where("rut NOT IN (:...ruts)", { 
-                    ruts: [] 
-                })
                 .execute();
 
             // Crear trabajador de prueba
@@ -259,16 +251,20 @@ describe("👥 Users API", () => {
             expect(response.body.message).to.equal("Usuario no encontrado");
         });
 
-        it("no debe permitir actualizar usuarios protegidos", async () => {
+        it("no debe permitir actualizar el SuperAdministrador", async () => {
+            const superAdmin = await AppDataSource.getRepository(User).findOne({
+                where: { role: "SuperAdministrador" }
+            });
+
             const response = await request(app)
                 .put("/api/user/update/")
-                .query({ rut: "11.111.111-1" })
+                .query({ email: superAdmin?.email })
                 .send({ role: "Usuario" })
                 .set("Authorization", `Bearer ${adminToken}`);
 
             expect(response.status).to.equal(403);
             expect(response.body.status).to.equal("error");
-            expect(response.body.message).to.equal("No se puede modificar el rol del administrador principal");
+            expect(response.body.message).to.equal("No se puede modificar el SuperAdministrador.");
         });
     });
 });
