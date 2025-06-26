@@ -806,44 +806,37 @@ export const ListaGestionSolicitudes: React.FC = () => {
       <Modal 
         show={showRevisorModal} 
         onHide={() => setShowRevisorModal(false)} 
-        className="modal-enhanced"
         centered
-        style={{ 
-          position: 'fixed',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          width: '300px'
-        }}
+        dialogClassName="modal-revisor"
       >
-        <Modal.Header closeButton className="bg-primary text-white py-2">
+        <Modal.Header closeButton className="bg-gradient-primary text-white border-0">
           <Modal.Title className="d-flex align-items-center">
             <i className="bi bi-person-badge me-2"></i>
             Información del Revisor
           </Modal.Title>
         </Modal.Header>
-        <Modal.Body className="p-3">
+        <Modal.Body className="p-4">
           {revisorSeleccionado && (
             <div>
               <div className="mb-3">
-                <div className="text-primary mb-1"><strong>Nombre completo</strong></div>
+                <div className="text-secondary mb-1">Nombre completo</div>
                 <div className="d-flex align-items-center">
                   <i className="bi bi-person-circle text-primary me-2"></i>
-                  <span>{revisorSeleccionado.name}</span>
+                  {revisorSeleccionado.name}
                 </div>
               </div>
               <div className="mb-3">
-                <div className="text-primary mb-1"><strong>RUT</strong></div>
+                <div className="text-secondary mb-1">RUT</div>
                 <div className="d-flex align-items-center">
                   <i className="bi bi-person-vcard text-primary me-2"></i>
-                  <span>{revisorSeleccionado.rut}</span>
+                  {revisorSeleccionado.rut}
                 </div>
               </div>
               <div>
-                <div className="text-primary mb-1"><strong>Correo electrónico</strong></div>
+                <div className="text-secondary mb-1">Correo electrónico</div>
                 <div className="d-flex align-items-center">
                   <i className="bi bi-envelope text-primary me-2"></i>
-                  <a href={`mailto:${revisorSeleccionado.email}`} className="text-decoration-none">
+                  <a href={`mailto:${revisorSeleccionado.email}`} className="text-decoration-none text-primary">
                     {revisorSeleccionado.email}
                   </a>
                 </div>
@@ -852,6 +845,24 @@ export const ListaGestionSolicitudes: React.FC = () => {
           )}
         </Modal.Body>
       </Modal>
+
+      <style jsx global>{`
+        .modal-revisor {
+          max-width: 400px;
+        }
+        .modal-revisor .modal-content {
+          border: none;
+          border-radius: 12px;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .bg-gradient-primary {
+          background: linear-gradient(45deg, #0d6efd, #0a58ca);
+        }
+        .modal-revisor .modal-header .btn-close {
+          color: white;
+          opacity: 1;
+        }
+      `}</style>
 
       {/* Sistema de notificaciones */}
       <Toast toasts={toasts} removeToast={removeToast} />
