@@ -3,7 +3,7 @@ import { User } from "../entity/user.entity.js";
 import { AppDataSource } from "../config/configDB.js";
 import { comparePassword, encryptPassword } from "../utils/encrypt.js";
 import { ACCESS_TOKEN_SECRET } from "../config/configEnv.js";
-import { UserResponse, UserData, userRole } from "../../types.d.js";
+import { UserResponse, UserData, userRole, LoginResponse } from "../../types.d.js";
 import { formatRut } from "../helpers/rut.helper.js";
 import { Trabajador } from "../entity/recursosHumanos/trabajador.entity.js";
 import bcrypt from "bcrypt";
@@ -27,7 +27,7 @@ interface JWTPayload {
   name: string;
   email: string;
   role: userRole;
-  rut: string;
+  rut: string | null;
 }
 
 /* Interface for error messages */
@@ -37,7 +37,18 @@ interface authError {
 }
 
 /* Definición de roles permitidos */
-const allowedRoles: userRole[] = ["SuperAdministrador", "Administrador", "Usuario", "RecursosHumanos", "Gerencia", "Ventas", "Arriendo", "Finanzas", "Mecánico", "Mantenciones de Maquinaria"];
+const allowedRoles: userRole[] = [
+    "SuperAdministrador",
+    "Administrador",
+    "Usuario",
+    "RecursosHumanos",
+    "Gerencia",
+    "Ventas",
+    "Arriendo",
+    "Finanzas",
+    "Mecánico",
+    "Mantenciones de Maquinaria"
+];
 
 /* Auxiliar function for creating error messages */
 const createErrorMessage = (dataInfo: Partial<LoginData | RegisterData>, message: string): authError => ({ dataInfo, message });
@@ -232,7 +243,7 @@ export async function registerService(user: RegisterData, userRole: userRole): P
             email,
             password: hashedPassword,
             role,
-            rut: role === "SuperAdministrador" ? null : rut,
+            rut: (role as userRole) === "SuperAdministrador" ? null : rut,
             estadoCuenta: "Activa",
             createAt: new Date(),
             updateAt: new Date()

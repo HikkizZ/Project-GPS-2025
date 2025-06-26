@@ -18,17 +18,17 @@ export class User {
     password: string;
 
     @Column({ type: "enum", enum: [
-        'SuperAdministrador',
-        'Administrador',
-        'Usuario',
-        'RecursosHumanos',
-        'Gerencia',
-        'Ventas',
-        'Arriendo',
-        'Finanzas',
-        'Mecánico',
-        'Mantenciones de Maquinaria'
-    ], default: 'Usuario' })
+        "SuperAdministrador",
+        "Administrador",
+        "Usuario",
+        "RecursosHumanos",
+        "Gerencia",
+        "Ventas",
+        "Arriendo",
+        "Finanzas",
+        "Mecánico",
+        "Mantenciones de Maquinaria"
+    ] as userRole[], default: "Usuario" })
     role: userRole;
 
     @Column({ 
