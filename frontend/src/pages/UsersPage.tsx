@@ -448,7 +448,22 @@ export const UsersPage: React.FC = () => {
                     {users.length === 0 && !isLoading && (
                       <div className="text-center py-5">
                         <i className="bi bi-person-x display-1 text-muted"></i>
-                        <h5 className="mt-3">No hay resultados que coincidan con tu búsqueda</h5>
+                        <h5 className="mt-3">
+                          {Object.keys(searchParams).length === 0 || (Object.keys(searchParams).length === 1 && !searchParams.soloInactivos && !searchParams.incluirInactivos) ? 
+                            'No hay usuarios registrados en el sistema' : 
+                            'No hay resultados que coincidan con tu búsqueda'}
+                        </h5>
+                        <p className="text-muted">
+                          {Object.keys(searchParams).length === 0 || (Object.keys(searchParams).length === 1 && !searchParams.soloInactivos && !searchParams.incluirInactivos) ? 
+                            'Los usuarios se crean automáticamente al registrar un nuevo trabajador' : 
+                            'Intenta ajustar los filtros para obtener más resultados'}
+                        </p>
+                        {(Object.keys(searchParams).length > 1 || searchParams.soloInactivos || searchParams.incluirInactivos) && (
+                          <Button variant="outline-primary" onClick={handleResetSearch}>
+                            <i className="bi bi-arrow-clockwise me-2"></i>
+                            Mostrar Todos
+                          </Button>
+                        )}
                       </div>
                     )}
                     <Table hover responsive className="align-middle">

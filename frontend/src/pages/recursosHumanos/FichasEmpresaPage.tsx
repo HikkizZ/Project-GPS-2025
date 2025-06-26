@@ -737,23 +737,37 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                     </div>
                     <p className="mt-2 text-muted">Cargando fichas...</p>
                   </div>
-                ) : fichasFiltradas.length === 0 ? (
+                ) : fichas.length === 0 ? (
                   <div className="text-center py-5">
                     <i className="bi bi-clipboard-x display-1 text-muted"></i>
-                    <h5 className="mt-3">No hay resultados que coincidan con tu búsqueda</h5>
-                    <p className="text-muted">Intenta ajustar los filtros para obtener más resultados</p>
+                    <h5 className="mt-3">
+                      {Object.keys(searchQuery).length === 1 && searchQuery.estado === EstadoLaboral.ACTIVO ? 
+                        'No hay fichas de empresa en el sistema' : 
+                        'No hay resultados que coincidan con tu búsqueda'}
+                    </h5>
+                    <p className="text-muted">
+                      {Object.keys(searchQuery).length === 1 && searchQuery.estado === EstadoLaboral.ACTIVO ? 
+                        'Las fichas de empresa se crean automáticamente al registrar un nuevo trabajador' : 
+                        'Intenta ajustar los filtros para obtener más resultados'}
+                    </p>
+                    {Object.keys(searchQuery).length > 1 || searchQuery.estado !== EstadoLaboral.ACTIVO ? (
+                      <Button variant="outline-primary" onClick={handleReset}>
+                        <i className="bi bi-arrow-clockwise me-2"></i>
+                        Mostrar Todas
+                      </Button>
+                    ) : null}
                   </div>
                 ) : (
                   <>
                     <div className="d-flex justify-content-between align-items-center mb-3">
                       <h6 className="mb-0">
                         <i className="bi bi-list-ul me-2"></i>
-                        Fichas de Empresa ({fichasFiltradas.length})
+                        Fichas de Empresa ({fichas.length})
                         <small className="text-muted ms-2">
-                          (Activos: {fichasFiltradas.filter(f => f.estado === EstadoLaboral.ACTIVO).length} • 
-                          Licencias: {fichasFiltradas.filter(f => f.estado === EstadoLaboral.LICENCIA).length} • 
-                          Permisos: {fichasFiltradas.filter(f => f.estado === EstadoLaboral.PERMISO).length} • 
-                          Desvinculados: {fichasFiltradas.filter(f => f.estado === EstadoLaboral.DESVINCULADO).length})
+                          (Activos: {fichas.filter(f => f.estado === EstadoLaboral.ACTIVO).length} • 
+                          Licencias: {fichas.filter(f => f.estado === EstadoLaboral.LICENCIA).length} • 
+                          Permisos: {fichas.filter(f => f.estado === EstadoLaboral.PERMISO).length} • 
+                          Desvinculados: {fichas.filter(f => f.estado === EstadoLaboral.DESVINCULADO).length})
                         </small>
                       </h6>
                     </div>
@@ -774,7 +788,7 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                         </tr>
                       </thead>
                       <tbody>
-                        {fichasFiltradas.map((ficha) => (
+                        {fichas.map((ficha) => (
                           <tr key={ficha.id}>
                             <td>
                               <div>
