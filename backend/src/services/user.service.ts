@@ -43,6 +43,7 @@ export async function searchUsersService(query: QueryParams): Promise<ServiceRes
             const cleanRut = query.rut.replace(/\./g, '').replace(/-/g, '');
             const users = await userRepository.createQueryBuilder("user")
                 .where("REPLACE(REPLACE(user.rut, '.', ''), '-', '') = :cleanRut", { cleanRut })
+                .andWhere("user.role != :superAdminRole", { superAdminRole: "SuperAdministrador" })
                 .getMany();
             if (!users.length) {
                 return [[], null];
@@ -52,7 +53,9 @@ export async function searchUsersService(query: QueryParams): Promise<ServiceRes
         }
 
         // Resto de filtros (nombre, email, rol, etc.)
-        const whereClause: FindOptionsWhere<User> = {};
+        const whereClause: FindOptionsWhere<User> = {
+            role: Not("SuperAdministrador") // Excluir SuperAdmin de todas las búsquedas
+        };
         if (query.id) {
             whereClause.id = query.id;
         }
@@ -60,7 +63,7 @@ export async function searchUsersService(query: QueryParams): Promise<ServiceRes
             whereClause.email = ILike(`%${query.email}%`);
         }
         if (query.role) {
-            if (!isValidRole(query.role)) {
+            if (!isValidRole(query.role) || query.role === "SuperAdministrador") {
                 return [null, "Rol inválido"];
             }
             whereClause.role = query.role as any;
@@ -87,13 +90,18 @@ export async function searchUsersService(query: QueryParams): Promise<ServiceRes
 export const getUserService = async (query: { id?: number; role?: string }) => {
     try {
         const userRepo = AppDataSource.getRepository(User);
-        const whereClause: any = {};
+        const whereClause: any = {
+            role: Not("SuperAdministrador") // Excluir SuperAdmin
+        };
 
         if (query.id) {
             whereClause.id = query.id;
         }
 
         if (query.role) {
+            if (query.role === "SuperAdministrador") {
+                return null;
+            }
             whereClause.role = query.role;
         }
 
@@ -109,8 +117,11 @@ export const getUserService = async (query: { id?: number; role?: string }) => {
 export async function getUsersService(): Promise<User[]> {
     try {
         const userRepository = AppDataSource.getRepository(User);
-        const users = await userRepository.find();
-        // Devolver array vacío en lugar de null cuando no hay usuarios
+        const users = await userRepository.find({
+            where: {
+                role: Not("SuperAdministrador") // Excluir SuperAdmin
+            }
+        });
         return users || [];
     } catch (error) {
         console.error('Error en getUsersService:', error);
