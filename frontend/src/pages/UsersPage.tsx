@@ -155,9 +155,22 @@ export const UsersPage: React.FC = () => {
       return;
     }
     
-    setNewRole(selectedUser.role);
+    // Asegurarnos de que el rol sea un FilterableUserRole
+    const userRole = selectedUser.role as UserRole;
+    if (userRole !== 'SuperAdministrador') {
+      setNewRole(userRole as FilterableUserRole);
+    }
     setNewPassword('');
     setSelectedUser(selectedUser);
+    setShowUpdateModal(true);
+  };
+
+  const handleShowModal = (user: SafeUser) => {
+    setSelectedUser(user);
+    const userRole = user.role as UserRole;
+    if (userRole !== 'SuperAdministrador') {
+      setNewRole(userRole as FilterableUserRole);
+    }
     setShowUpdateModal(true);
   };
 
@@ -472,7 +485,7 @@ export const UsersPage: React.FC = () => {
                                   <Button
                                     variant="outline-primary"
                                     size="sm"
-                                    onClick={() => handleUpdateClick(user)}
+                                    onClick={() => handleShowModal(user)}
                                     title="Editar rol"
                                     disabled={user.estadoCuenta === 'Inactiva'}
                                   >
@@ -496,7 +509,7 @@ export const UsersPage: React.FC = () => {
             setShowUpdateModal(false);
             setNewPassword('');
             setPasswordError(null);
-            if (selectedUser) setNewRole(selectedUser.role);
+            if (selectedUser) setNewRole(selectedUser.role as FilterableUserRole);
           }}>
             <Modal.Header closeButton>
               <Modal.Title>
@@ -573,7 +586,7 @@ export const UsersPage: React.FC = () => {
                 setShowUpdateModal(false);
                 setNewPassword('');
                 setPasswordError(null);
-                if (selectedUser) setNewRole(selectedUser.role);
+                if (selectedUser) setNewRole(selectedUser.role as FilterableUserRole);
               }}>
                 <i className="bi bi-x-circle me-2"></i>
                 Cancelar
