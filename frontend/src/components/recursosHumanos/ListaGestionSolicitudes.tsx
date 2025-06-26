@@ -826,6 +826,13 @@ export const ListaGestionSolicitudes: React.FC = () => {
                 </div>
               </div>
               <div className="mb-3">
+                <div className="text-secondary mb-1">Rol</div>
+                <div className="d-flex align-items-center">
+                  <i className="bi bi-person-badge text-primary me-2"></i>
+                  {revisorSeleccionado.role === 'RRHH' ? 'Recursos Humanos' : revisorSeleccionado.role}
+                </div>
+              </div>
+              <div className="mb-3">
                 <div className="text-secondary mb-1">RUT</div>
                 <div className="d-flex align-items-center">
                   <i className="bi bi-person-vcard text-primary me-2"></i>
