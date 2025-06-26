@@ -7,7 +7,7 @@ import { AppDataSource } from '../../config/configDB.js';
 import { Trabajador } from '../../entity/recursosHumanos/trabajador.entity.js';
 import { FichaEmpresa } from '../../entity/recursosHumanos/fichaEmpresa.entity.js';
 
-describe('👥 Trabajadores API', () => {
+describe('👥 Pruebas de Trabajadores', () => {
     let adminToken: string;
     let rrhToken: string;
     const uniqueTimestamp = Date.now();
@@ -36,6 +36,17 @@ describe('👥 Trabajadores API', () => {
                 throw new Error('No se pudo obtener el token de RRHH');
             }
             rrhToken = rrhLogin.body.data.token;
+
+            // Limpiar datos de prueba previos
+            const trabajadorPrevio = await request(app)
+                .get('/api/trabajadores/rut/12.345.678-9')
+                .set('Authorization', `Bearer ${adminToken}`);
+
+            if (trabajadorPrevio.body.data) {
+                await request(app)
+                    .delete(`/api/trabajadores/${trabajadorPrevio.body.data.id}`)
+                    .set('Authorization', `Bearer ${adminToken}`);
+            }
 
         } catch (error) {
             console.error("Error en la configuración de pruebas:", error);
@@ -290,6 +301,9 @@ describe('👥 Trabajadores API', () => {
     after(async () => {
         try {
             console.log("✅ Pruebas de Trabajadores completadas");
+            await request(app)
+                .delete(`/api/trabajadores/${trabajadorId}`)
+                .set('Authorization', `Bearer ${adminToken}`);
         } catch (error) {
             console.error("Error en la limpieza de pruebas:", error);
         }

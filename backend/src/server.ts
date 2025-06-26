@@ -39,12 +39,18 @@ const isProduction = process.env.NODE_ENV === "production";
 const isTest = process.env.NODE_ENV === "test";
 const isDevelopment = !isProduction && !isTest;
 
+// Valores por defecto para PORT y HOST
+const DEFAULT_PORT = 3000;
+const DEFAULT_HOST = 'localhost';
+
+// Asegurar que PORT y HOST tengan valores válidos
+const SERVER_PORT = Number(PORT) || DEFAULT_PORT;
+const SERVER_HOST = HOST || DEFAULT_HOST;
+
 // Función para inicializar la verificación automática de licencias vencidas
 function initializeAutomaticLicenseVerification(): void {
     // Programar la tarea para que se ejecute todos los días a las 00:01
     cron.schedule("1 0 * * *", async () => {
-        console.log("🔍 Iniciando verificación automática de licencias vencidas...");
-        
         try {
             const [actualizaciones, error] = await verificarLicenciasVencidasService();
             
@@ -53,17 +59,16 @@ function initializeAutomaticLicenseVerification(): void {
                 return;
             }
 
-            console.log(`✅ Verificación completada. ${actualizaciones} estados actualizados a Activo`);
+            if (actualizaciones && actualizaciones > 0) {
+                console.log(`✅ Verificación completada. ${actualizaciones} estados actualizados a Activo`);
+            }
         } catch (error) {
             console.error("❌ Error inesperado durante la verificación de licencias:", error);
         }
     });
-
-    console.log("✅ Sistema de verificación automática de licencias vencidas iniciado (00:01 diario)");
     
     // En desarrollo, también ejecutar inmediatamente para verificar que funciona
     if (isDevelopment) {
-        console.log("🔧 Ejecutando verificación inicial de licencias (modo desarrollo)...");
         setTimeout(async () => {
             try {
                 const [actualizaciones, error] = await verificarLicenciasVencidasService();
@@ -73,7 +78,9 @@ function initializeAutomaticLicenseVerification(): void {
                     return;
                 }
 
-                console.log(`✅ Verificación inicial completada. ${actualizaciones} estados actualizados`);
+                if (actualizaciones && actualizaciones > 0) {
+                    console.log(`✅ Verificación inicial completada. ${actualizaciones} estados actualizados`);
+                }
             } catch (error) {
                 console.error("❌ Error en verificación inicial:", error);
             }
@@ -144,8 +151,9 @@ async function setupServer(): Promise<void> {
         app.use("/api", indexRoutes);
         app.use("/api/users", userRoutes);
 
-        server = app.listen(PORT, () => {
-            console.log(`✅ Servidor iniciado en http://${HOST}:${PORT}/api`);
+        server = app.listen(SERVER_PORT, SERVER_HOST, () => {
+            console.log("✅ API started successfully.");
+            console.log(`✅ Servidor iniciado en http://${SERVER_HOST}:${SERVER_PORT}/api`);
             
             // Inicializar verificación automática de licencias vencidas
             initializeAutomaticLicenseVerification();
@@ -155,7 +163,7 @@ async function setupServer(): Promise<void> {
     }
 }
 
-export async function setupTestServer(): Promise<{ app: Application; server: any }> {
+async function setupTestServer(): Promise<{ app: Application; server: any }> {
     try {
         app.disable("x-powered-by");
 
@@ -191,9 +199,7 @@ export async function setupTestServer(): Promise<{ app: Application; server: any
         }));
 
         app.use(passport.initialize());
-
         app.use(passport.session());
-
         passportJWTSetup();
 
         // Configurar todas las rutas bajo /api
@@ -213,46 +219,96 @@ export async function setupTestServer(): Promise<{ app: Application; server: any
     }
 }
 
-async function setupAPI(): Promise<void> {
-    try {
-        console.log("\n🚀 Iniciando GPS 2025 API...\n");
+// Inicialización del servidor
+const startServer = async () => {
+  try {
+    console.log("\n🚀 Iniciando GPS 2025 API...\n");
+    
+    // Conectar a la base de datos
+    await initializeDatabase();
 
-        // Primero conectar a la base de datos
-        await initializeDatabase();
+    // Configuración inicial
+    await initialSetup();
 
-        // Luego ejecutar la configuración inicial
-        await initialSetup();
+    // Configurar el servidor
+    app.disable("x-powered-by");
 
-        // Finalmente iniciar el servidor
-        await setupServer();
+    app.use(cors({
+      origin: ['http://localhost:5173', 'http://127.0.0.1:5173', 'https://hoppscotch.io'],
+      credentials: true,
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+      allowedHeaders: ['Content-Type', 'Authorization', 'Accept']
+    }));
+    
+    app.use(urlencoded({
+      extended: true,
+      limit: "1mb"
+    }));
 
-        console.log("✅ Servidor iniciado correctamente");
-        console.log("✅ API started successfully.");
-    } catch (error) {
-        console.error("\n❌ Error crítico al iniciar la API:", error);
-        process.exit(1);
+    app.use(json({
+      limit: "1mb"
+    }));
+
+    app.use(cookieParser());
+
+    // Solo usar morgan en desarrollo
+    if (isDevelopment) {
+      app.use(morgan("dev"));
     }
-}
 
-// Solo iniciar el servidor si no estamos en modo de prueba
-if (process.env.NODE_ENV !== 'test') {
-    // Protección adicional: verificar que no se esté ejecutando desde un comando de test
-    const isTestCommand = process.argv.some(arg => 
-        arg.includes('mocha') || 
-        arg.includes('test') || 
-        arg.includes('.test.') ||
-        process.env.npm_lifecycle_event?.includes('test')
-    );
+    app.use(session({
+      secret: cookieKey as string,
+      resave: false,
+      saveUninitialized: false,
+      cookie: {
+        secure: false,
+        httpOnly: true,
+        sameSite: "strict",
+      }
+    }));
 
-    if (isTestCommand) {
-        console.log("⚠️ Detectado comando de test. El servidor NO se iniciará.");
-        process.exit(0);
-    }
+    app.use(passport.initialize());
+    passportJWTSetup();
 
-    setupAPI().catch((error) => {
-        console.error("❌ Error al iniciar la API:", error);
-        process.exit(1);
+    // Middleware global para encoding UTF-8 en todas las respuestas JSON
+    app.use((req, res, next) => {
+      // No sobreescribir el Content-Type para descargas de archivos
+      if (!res.getHeader('Content-Disposition')) {
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      }
+      next();
     });
+
+    // Inicializar directorios de archivos
+    FileManagementService.ensureUploadDirectories();
+    FileUploadService.initialize();
+    if (isDevelopment) console.log("✅ Directorios de archivos inicializados");
+    
+    // --- SERVIR ARCHIVOS ESTÁTICOS ---
+    // Servir la carpeta 'uploads' que está en el directorio raíz del backend
+    app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
+
+    // Configurar todas las rutas bajo /api
+    app.use("/api", indexRoutes);
+    app.use("/api/users", userRoutes);
+
+    server = app.listen(SERVER_PORT, SERVER_HOST, () => {
+      console.log("✅ API started successfully.");
+      console.log(`✅ Servidor iniciado en http://${SERVER_HOST}:${SERVER_PORT}/api`);
+      
+      // Inicializar verificación automática de licencias vencidas
+      initializeAutomaticLicenseVerification();
+    });
+
+  } catch (error) {
+    console.error("❌ Error al iniciar el servidor:", error);
+    process.exit(1);
+  }
+};
+
+// Iniciar el servidor si no estamos en modo test
+if (!isTest) {
+  startServer();
 } else {
-    if (isDevelopment) console.log("🧪 Modo TEST detectado");
+  console.log("⚠️ Detectado comando de test. El servidor NO se iniciará.");
 }

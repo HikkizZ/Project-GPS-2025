@@ -34,12 +34,10 @@ export const TrabajadorList: React.FC = () => {
 
   const handleEdit = (trabajador: Trabajador) => {
     // TODO: Implementar modal de edición
-    console.log('Editar trabajador:', trabajador);
   };
 
   const handleViewDetails = (trabajador: Trabajador) => {
     // TODO: Implementar modal de detalles
-    console.log('Ver detalles:', trabajador);
   };
 
   return (

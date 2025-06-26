@@ -7,9 +7,7 @@ class AuthService {
 
   async login(credentials: LoginData): Promise<{ user?: User; error?: string }> {
     try {
-      console.log('Enviando solicitud de login...');
       const data = await apiClient.post<AuthResponse>('/auth/login', credentials);
-      console.log('Respuesta del servidor:', data);
 
       if (data.status === 'success' && data.data?.token) {
         const token = data.data.token;
@@ -25,7 +23,6 @@ class AuthService {
             rut: payload.rut || 'N/A'
           };
 
-          console.log('Usuario decodificado:', user);
           return { user };
         } catch (decodeError) {
           console.error('Error decodificando token:', decodeError);
@@ -36,15 +33,15 @@ class AuthService {
       }
     } catch (error: any) {
       console.error('Error en login:', error);
-      return { error: error.message || 'Error de conexión' };
+      return {
+        error: error.response?.data?.message || error.message || 'Error en el servidor'
+      };
     }
   }
 
   async register(userData: RegisterData): Promise<{ user?: User; error?: string }> {
     try {
-      console.log('Enviando solicitud de registro...');
       const data = await apiClient.post<AuthResponse>('/auth/register', userData);
-      console.log('Respuesta del servidor:', data);
 
       if (data.status === 'success') {
         return {
@@ -57,7 +54,9 @@ class AuthService {
       }
     } catch (error: any) {
       console.error('Error en registro:', error);
-      return { error: error.message || 'Error de conexión' };
+      return {
+        error: error.response?.data?.message || error.message || 'Error en el servidor'
+      };
     }
   }
 
