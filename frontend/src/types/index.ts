@@ -52,7 +52,7 @@ export interface SafeUser {
   name: string;
   email: string;
   role: UserRole;
-  rut: string;
+  rut: string | null;
   estadoCuenta: string;
   createAt: Date;
   updateAt: Date;

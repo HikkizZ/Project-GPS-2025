@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth, useUI } from '@/context';
 import { SafeUser } from '@/types';
-import { UserRole } from '@/types/auth.types';
+import { UserRole, FilterableUserRole } from '@/types/auth.types';
 import { useRut } from '@/hooks/useRut';
 import { userService } from '@/services/user.service';
 import { Table, Button, Form, Spinner, Modal, Container, Row, Col, Card } from 'react-bootstrap';
@@ -14,7 +14,7 @@ interface UserSearchParams {
   name?: string;
   rut?: string;
   email?: string;
-  role?: UserRole;
+  role?: FilterableUserRole;
   incluirInactivos: boolean;
   soloInactivos: boolean;
 }
@@ -29,7 +29,7 @@ export const UsersPage: React.FC = () => {
   const [isUpdating, setIsUpdating] = useState(false);
   const [users, setUsers] = useState<SafeUser[]>([]);
   const [showUpdateModal, setShowUpdateModal] = useState(false);
-  const [newRole, setNewRole] = useState<string>('');
+  const [newRole, setNewRole] = useState<FilterableUserRole>();
   const [newPassword, setNewPassword] = useState<string>('');
   const [searchParams, setSearchParams] = useState<UserSearchParams>({
     incluirInactivos: false,
@@ -39,7 +39,7 @@ export const UsersPage: React.FC = () => {
   const [rutError, setRutError] = useState<string | null>(null);
   const [passwordError, setPasswordError] = useState<string | null>(null);
 
-  const availableRoles: UserRole[] = ['Usuario', 'RecursosHumanos', 'Gerencia', 'Ventas', 'Arriendo', 'Finanzas', 'Mecánico', 'Mantenciones de Maquinaria'];
+  const availableRoles: FilterableUserRole[] = ['Usuario', 'RecursosHumanos', 'Gerencia', 'Ventas', 'Arriendo', 'Finanzas', 'Mecánico', 'Mantenciones de Maquinaria'];
   
   // Admin, SuperAdmin y RecursosHumanos pueden asignar rol de Administrador
   if (user?.role === 'Administrador' || user?.role === 'SuperAdministrador' || user?.role === 'RecursosHumanos') {
@@ -98,6 +98,9 @@ export const UsersPage: React.FC = () => {
         const allUsers = await userService.getAllUsers();
         filteredUsers = allUsers || [];
       }
+
+      // Filtrar SuperAdmin de la lista
+      filteredUsers = filteredUsers.filter(u => u.role !== "SuperAdministrador");
       
       // Aplicar filtros de estado de cuenta
       if (params.soloInactivos) {
@@ -107,7 +110,6 @@ export const UsersPage: React.FC = () => {
         // Solo mostrar usuarios activos (comportamiento por defecto)
         filteredUsers = filteredUsers.filter(u => u.estadoCuenta === 'Activa');
       }
-      // Si incluirInactivos es true, no aplicar ningún filtro de estado (mostrar todos)
       
       setUsers(filteredUsers);
       setError('');
@@ -153,9 +155,22 @@ export const UsersPage: React.FC = () => {
       return;
     }
     
-    setNewRole(selectedUser.role);
+    // Asegurarnos de que el rol sea un FilterableUserRole
+    const userRole = selectedUser.role as UserRole;
+    if (userRole !== 'SuperAdministrador') {
+      setNewRole(userRole as FilterableUserRole);
+    }
     setNewPassword('');
     setSelectedUser(selectedUser);
+    setShowUpdateModal(true);
+  };
+
+  const handleShowModal = (user: SafeUser) => {
+    setSelectedUser(user);
+    const userRole = user.role as UserRole;
+    if (userRole !== 'SuperAdministrador') {
+      setNewRole(userRole as FilterableUserRole);
+    }
     setShowUpdateModal(true);
   };
 
@@ -189,7 +204,7 @@ export const UsersPage: React.FC = () => {
         }
         
         // Crear objeto con las actualizaciones
-        const updates: { role?: string, password?: string } = {};
+        const updates: { role?: FilterableUserRole, password?: string } = {};
         if (newRole && newRole !== selectedUser.role) updates.role = newRole;
         if (newPassword && newPassword.length >= 8 && newPassword.length <= 16) updates.password = newPassword;
 
@@ -334,7 +349,7 @@ export const UsersPage: React.FC = () => {
                           const { value } = e.target;
                           setSearchParams(prev => ({
                             ...prev,
-                            role: value as UserRole
+                            role: value as FilterableUserRole
                           }));
                         }}
                       >
@@ -470,7 +485,7 @@ export const UsersPage: React.FC = () => {
                                   <Button
                                     variant="outline-primary"
                                     size="sm"
-                                    onClick={() => handleUpdateClick(user)}
+                                    onClick={() => handleShowModal(user)}
                                     title="Editar rol"
                                     disabled={user.estadoCuenta === 'Inactiva'}
                                   >
@@ -494,7 +509,7 @@ export const UsersPage: React.FC = () => {
             setShowUpdateModal(false);
             setNewPassword('');
             setPasswordError(null);
-            if (selectedUser) setNewRole(selectedUser.role);
+            if (selectedUser) setNewRole(selectedUser.role as FilterableUserRole);
           }}>
             <Modal.Header closeButton>
               <Modal.Title>
@@ -528,7 +543,7 @@ export const UsersPage: React.FC = () => {
                     </Form.Label>
                     <Form.Select
                       value={newRole}
-                      onChange={(e) => setNewRole(e.target.value)}
+                      onChange={(e) => setNewRole(e.target.value as FilterableUserRole)}
                     >
                       {availableRoles.map(role => (
                         <option key={role} value={role}>{role}</option>
@@ -571,7 +586,7 @@ export const UsersPage: React.FC = () => {
                 setShowUpdateModal(false);
                 setNewPassword('');
                 setPasswordError(null);
-                if (selectedUser) setNewRole(selectedUser.role);
+                if (selectedUser) setNewRole(selectedUser.role as FilterableUserRole);
               }}>
                 <i className="bi bi-x-circle me-2"></i>
                 Cancelar
