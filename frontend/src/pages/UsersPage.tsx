@@ -426,31 +426,45 @@ export const UsersPage: React.FC = () => {
           {/* Tabla de Usuarios */}
           <Card className="shadow-sm">
             <Card.Body>
-              <div className="table-responsive">
-                {isLoading ? (
-                  <div className="text-center py-4">
-                    <Spinner animation="border" variant="primary" role="status">
-                      <span className="visually-hidden">Cargando...</span>
-                    </Spinner>
+              {isLoading ? (
+                <div className="text-center py-5">
+                  <Spinner animation="border" variant="primary" role="status">
+                    <span className="visually-hidden">Cargando...</span>
+                  </Spinner>
+                </div>
+              ) : users.length === 0 ? (
+                <div className="text-center py-5">
+                  <i className="bi bi-person-x display-1 text-muted"></i>
+                  <h5 className="mt-3">
+                    {(!searchParams.name && !searchParams.rut && !searchParams.email && !searchParams.role && !searchParams.soloInactivos && !searchParams.incluirInactivos) ? 
+                      'No hay usuarios registrados en el sistema' : 
+                      'No hay resultados que coincidan con tu búsqueda'}
+                  </h5>
+                  <p className="text-muted">
+                    {(!searchParams.name && !searchParams.rut && !searchParams.email && !searchParams.role && !searchParams.soloInactivos && !searchParams.incluirInactivos) ? 
+                      'Los usuarios se crean automáticamente al registrar un nuevo trabajador' : 
+                      'Intenta ajustar los filtros para obtener más resultados'}
+                  </p>
+                  {(searchParams.name || searchParams.rut || searchParams.email || searchParams.role || searchParams.soloInactivos || searchParams.incluirInactivos) && (
+                    <Button variant="outline-primary" onClick={handleResetSearch}>
+                      <i className="bi bi-arrow-clockwise me-2"></i>
+                      Mostrar Todos
+                    </Button>
+                  )}
+                </div>
+              ) : (
+                <>
+                  <div className="d-flex justify-content-between align-items-center mb-3">
+                    <h6 className="mb-0">
+                      <i className="bi bi-list-ul me-2"></i>
+                      Usuarios Registrados ({users.length})
+                      <small className="text-muted ms-2">
+                        (Activos: {users.filter(u => u.estadoCuenta === 'Activa').length} • 
+                        Inactivos: {users.filter(u => u.estadoCuenta === 'Inactiva').length})
+                      </small>
+                    </h6>
                   </div>
-                ) : (
-                  <>
-                    <div className="d-flex justify-content-between align-items-center mb-3">
-                      <h6 className="mb-0">
-                        <i className="bi bi-list-ul me-2"></i>
-                        Usuarios Registrados ({users.length})
-                        <small className="text-muted ms-2">
-                          (Activos: {users.filter(u => u.estadoCuenta === 'Activa').length} • 
-                          Inactivos: {users.filter(u => u.estadoCuenta === 'Inactiva').length})
-                        </small>
-                      </h6>
-                    </div>
-                    {users.length === 0 && !isLoading && (
-                      <div className="text-center py-5">
-                        <i className="bi bi-person-x display-1 text-muted"></i>
-                        <h5 className="mt-3">No hay resultados que coincidan con tu búsqueda</h5>
-                      </div>
-                    )}
+                  <div className="table-responsive">
                     <Table hover responsive className="align-middle">
                       <thead>
                         <tr>
@@ -498,9 +512,9 @@ export const UsersPage: React.FC = () => {
                         ))}
                       </tbody>
                     </Table>
-                  </>
-                )}
-              </div>
+                  </div>
+                </>
+              )}
             </Card.Body>
           </Card>
 
