@@ -7,17 +7,16 @@
 
 /* Estilos específicos para la página de Fichas de Empresa */
 
-.fichas-empresa-page .container {
+.fichas-empresa-page {
+  background: #fff;
+}
+
+.fichas-empresa-page .container-fluid {
   padding-top: 1.5rem !important;
 }
 
 .fichas-empresa-page h2 {
   margin-top: 0 !important;
-}
-
-.fichas-empresa-page {
-  background: #fff;
-  min-height: 100vh;
 }
 
 .fichas-empresa-page .form-label {
