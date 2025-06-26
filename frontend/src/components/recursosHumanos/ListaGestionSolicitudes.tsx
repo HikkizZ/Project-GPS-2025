@@ -55,6 +55,10 @@ export const ListaGestionSolicitudes: React.FC = () => {
   const [accionRespuesta, setAccionRespuesta] = useState<'aprobar' | 'rechazar' | null>(null);
   const [respuestaTexto, setRespuestaTexto] = useState('');
 
+  // Estados para el modal del revisor
+  const [showRevisorModal, setShowRevisorModal] = useState(false);
+  const [revisorSeleccionado, setRevisorSeleccionado] = useState<LicenciaPermiso['revisadoPor'] | null>(null);
+
   // Estadísticas eliminadas - funcionalidad no requerida
 
   // Cargar datos al montar el componente - Sin dependencias problemáticas  
@@ -216,7 +220,13 @@ export const ListaGestionSolicitudes: React.FC = () => {
     }
   };
 
-
+  // Mostrar información del revisor
+  const mostrarInfoRevisor = (revisor: LicenciaPermiso['revisadoPor']) => {
+    if (revisor) {
+      setRevisorSeleccionado(revisor);
+      setShowRevisorModal(true);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -435,6 +445,17 @@ export const ListaGestionSolicitudes: React.FC = () => {
                         {solicitud.revisadoPor && (
                           <div className="small text-muted mt-1">
                             Por: {solicitud.revisadoPor.name}
+                            <Button
+                              variant="link"
+                              size="sm"
+                              className="p-0 ms-1"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                mostrarInfoRevisor(solicitud.revisadoPor);
+                              }}
+                            >
+                              <i className="bi bi-info-circle text-primary"></i>
+                            </Button>
                           </div>
                         )}
                       </td>
@@ -780,6 +801,77 @@ export const ListaGestionSolicitudes: React.FC = () => {
           </Button>
         </Modal.Footer>
       </Modal>
+
+      {/* Modal de información del revisor */}
+      <Modal 
+        show={showRevisorModal} 
+        onHide={() => setShowRevisorModal(false)} 
+        centered
+        dialogClassName="modal-revisor"
+      >
+        <Modal.Header closeButton className="bg-gradient-primary text-white border-0">
+          <Modal.Title className="d-flex align-items-center">
+            <i className="bi bi-person-badge me-2"></i>
+            Información del Revisor
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body className="p-4">
+          {revisorSeleccionado && (
+            <div>
+              <div className="mb-3">
+                <div className="text-secondary mb-1">Nombre completo</div>
+                <div className="d-flex align-items-center">
+                  <i className="bi bi-person-circle text-primary me-2"></i>
+                  {revisorSeleccionado.name}
+                </div>
+              </div>
+              <div className="mb-3">
+                <div className="text-secondary mb-1">Rol</div>
+                <div className="d-flex align-items-center">
+                  <i className="bi bi-person-badge text-primary me-2"></i>
+                  {revisorSeleccionado.role === 'RRHH' ? 'Recursos Humanos' : revisorSeleccionado.role}
+                </div>
+              </div>
+              <div className="mb-3">
+                <div className="text-secondary mb-1">RUT</div>
+                <div className="d-flex align-items-center">
+                  <i className="bi bi-person-vcard text-primary me-2"></i>
+                  {revisorSeleccionado.rut}
+                </div>
+              </div>
+              <div>
+                <div className="text-secondary mb-1">Correo electrónico</div>
+                <div className="d-flex align-items-center">
+                  <i className="bi bi-envelope text-primary me-2"></i>
+                  <a href={`mailto:${revisorSeleccionado.email}`} className="text-decoration-none text-primary">
+                    {revisorSeleccionado.email}
+                  </a>
+                </div>
+              </div>
+            </div>
+          )}
+        </Modal.Body>
+      </Modal>
+
+      <style>
+        {`
+        .modal-revisor {
+          max-width: 400px;
+        }
+        .modal-revisor .modal-content {
+          border: none;
+          border-radius: 12px;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .bg-gradient-primary {
+          background: linear-gradient(45deg, #0d6efd, #0a58ca);
+        }
+        .modal-revisor .modal-header .btn-close {
+          color: white;
+          opacity: 1;
+        }
+        `}
+      </style>
 
       {/* Sistema de notificaciones */}
       <Toast toasts={toasts} removeToast={removeToast} />

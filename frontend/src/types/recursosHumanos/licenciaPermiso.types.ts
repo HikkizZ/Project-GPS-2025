@@ -38,6 +38,8 @@ export interface LicenciaPermiso {
     id: number;
     name: string;
     email: string;
+    role: string;
+    rut: string;
   };
   archivoAdjuntoURL?: string;
   fechaSolicitud: string; // timestamp ISO

@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useRut } from '@/hooks/useRut';
 import { GlobalMessages } from './GlobalMessages';
 import { Toast, useToast } from './Toast';
@@ -12,8 +12,11 @@ interface MainLayoutProps {
 
 const MainLayout: React.FC<MainLayoutProps> = ({ user, onLogout, children }) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { formatRUT } = useRut();
   const { toasts, removeToast } = useToast();
+
+  const isInDashboard = location.pathname === '/dashboard';
 
   return (
     <div className="min-vh-100 d-flex flex-column">
@@ -33,6 +36,18 @@ const MainLayout: React.FC<MainLayoutProps> = ({ user, onLogout, children }) => 
               <i className="bi bi-house me-2"></i>
               Inicio
             </button>
+            
+            {!isInDashboard && (
+              <button 
+                className="btn btn-outline-light me-3 px-3 py-2 fw-semibold"
+                onClick={() => navigate(-1)}
+                style={{ borderRadius: '25px', transition: 'all 0.3s ease' }}
+              >
+                <i className="bi bi-arrow-left me-2"></i>
+                Volver
+              </button>
+            )}
+
             <div className="nav-item dropdown">
               <button 
                 className="btn btn-outline-light dropdown-toggle px-3 py-2 fw-semibold" 
