@@ -2,7 +2,10 @@ import { useState } from 'react';
 
 // Hook para manejar RUT
 export const useRut = () => {
-  const formatRUT = (rut: string): string => {
+  const formatRUT = (rut: string | null | undefined): string => {
+    // Si el RUT es null o undefined, retornar string vacío
+    if (!rut) return '';
+    
     // Eliminar todo lo que no sea número, 'k' o 'K'
     rut = rut.replace(/[^0-9kK]/g, '');
     

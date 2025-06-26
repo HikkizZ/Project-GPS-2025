@@ -451,7 +451,7 @@ export const UsersPage: React.FC = () => {
                         {users.map(user => (
                           <tr key={user.id}>
                             <td>{user.name}</td>
-                            <td>{formatRUT(user.rut)}</td>
+                            <td>{user.rut ? formatRUT(user.rut) : <span className="text-muted">No aplica</span>}</td>
                             <td>{user.email}</td>
                             <td>
                               <span className={`badge bg-${getRoleBadgeColor(user.role)}`}>

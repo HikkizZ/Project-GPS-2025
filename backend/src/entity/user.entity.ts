@@ -35,6 +35,7 @@ export class User {
         type: "varchar", 
         length: 20, 
         unique: true,
+        nullable: true,
         transformer: {
             to: (value: string | null): string | null => {
                 if (!value) return null;
@@ -46,7 +47,7 @@ export class User {
             }
         }
     })
-    rut: string;
+    rut: string | null;
 
     @Column({ type: "varchar", length: 50, default: "Activa" })
     estadoCuenta: string;
@@ -57,7 +58,14 @@ export class User {
     @UpdateDateColumn()
     updateAt: Date;
 
-    @OneToOne(() => Trabajador, { nullable: true })
-    @JoinColumn({ name: "rut", referencedColumnName: "rut" })
+    @OneToOne(() => Trabajador, trabajador => trabajador.usuario, { 
+        nullable: true,
+        onDelete: 'SET NULL'
+    })
+    @JoinColumn({ 
+        name: "rut", 
+        referencedColumnName: "rut",
+        foreignKeyConstraintName: "FK_user_trabajador_rut"
+    })
     trabajador?: Trabajador;
 }

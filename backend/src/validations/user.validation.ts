@@ -97,17 +97,21 @@ export const userBodyValidation: ObjectSchema = Joi.object({
             "string.max": "El email debe tener menos de 50 caracteres.",
             "any.required": "El email es requerido."
         }),
-    rut: Joi.string()
-        .min(8)
-        .max(12)
-        .custom(rutValidator, "rut validation")
-        .messages({
-            "string.base": "El RUT debe ser de tipo texto.",
-            "string.empty": "El campo del RUT no puede estar vacío.",
-            "string.min": "El RUT debe tener al menos 8 caracteres.",
-            "string.max": "El RUT debe tener menos de 12 caracteres.",
-            "any.required": "El RUT es requerido."
-        }),
+    rut: Joi.alternatives().conditional('role', {
+        is: 'SuperAdministrador',
+        then: Joi.string().optional().allow(null),
+        otherwise: Joi.string()
+            .min(8)
+            .max(12)
+            .custom(rutValidator, "rut validation")
+            .messages({
+                "string.base": "El RUT debe ser de tipo texto.",
+                "string.empty": "El campo del RUT no puede estar vacío.",
+                "string.min": "El RUT debe tener al menos 8 caracteres.",
+                "string.max": "El RUT debe tener menos de 12 caracteres.",
+                "any.required": "El RUT es requerido."
+            })
+    }),
     password: Joi.string()
         .min(8)
         .max(16)
