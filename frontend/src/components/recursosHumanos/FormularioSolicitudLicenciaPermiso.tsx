@@ -65,17 +65,6 @@ export const FormularioSolicitudLicenciaPermiso: React.FC<FormularioSolicitudLic
     const hoy = new Date();
     const fechaHoyString = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
 
-    // Debug temporal
-    console.log('=== DEBUG FECHAS ===');
-    console.log('formData.fechaInicio:', formData.fechaInicio);
-    console.log('fechaHoyString:', fechaHoyString);
-    console.log('formData.tipo:', formData.tipo);
-    console.log('comparación (inicio < hoy):', formData.fechaInicio < fechaHoyString);
-    console.log('error del hook:', error);
-    console.log('localErrors:', localErrors);
-    console.log('validationErrors:', validationErrors);
-    console.log('==================');
-
     // Validar fechas
     if (!formData.fechaInicio) {
       errores.fechaInicio = 'La fecha de inicio es requerida';
@@ -115,31 +104,43 @@ export const FormularioSolicitudLicenciaPermiso: React.FC<FormularioSolicitudLic
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    limpiarErrores();
+    setValidationErrors({});
     setLocalErrors({});
+    let hasErrors = false;
 
-    if (!validarFormulario()) {
-      return;
+    // Validar fechas
+    const fechaHoyString = new Date().toISOString().split('T')[0];
+    if (formData.fechaInicio < fechaHoyString && formData.tipo === 'Permiso') {
+      setValidationErrors(prev => ({
+        ...prev,
+        fechaInicio: 'La fecha de inicio no puede ser anterior a hoy para permisos'
+      }));
+      hasErrors = true;
     }
+
+    if (formData.fechaFin && formData.fechaInicio > formData.fechaFin) {
+      setValidationErrors(prev => ({
+        ...prev,
+        fechaFin: 'La fecha de fin no puede ser anterior a la fecha de inicio'
+      }));
+      hasErrors = true;
+    }
+
+    // Si hay errores, no continuar
+    if (hasErrors) return;
 
     try {
       const result = await crearSolicitud(formData);
       if (result.success) {
-        // Limpiar formulario
-        setFormData({
-          tipo: TipoSolicitud.PERMISO,
-          fechaInicio: '',
-          fechaFin: '',
-          motivoSolicitud: '',
-          archivo: undefined
-        });
-        setArchivoInfo('');
-        
-        showSuccess('¡Solicitud enviada!', result.message || 'Tu solicitud ha sido enviada exitosamente y está pendiente de aprobación');
-        onSuccess(result.message || 'Solicitud creada exitosamente');
+        if (onSuccess) onSuccess();
+        showSuccess('¡Solicitud creada!', 'Tu solicitud ha sido enviada exitosamente');
+        handleReset();
+      } else {
+        setLocalErrors({ submit: result.error || 'Error al crear la solicitud' });
       }
     } catch (error) {
       console.error('Error inesperado:', error);
+      setLocalErrors({ submit: 'Error inesperado al procesar la solicitud' });
     }
   };
 

@@ -41,50 +41,34 @@ export const useLicenciasPermisos = (options: UseLicenciasPermisosOptions = {}) 
   // ===============================
 
   const cargarMisSolicitudes = async () => {
-    console.log('🔄 Hook: Cargando MIS solicitudes...');
     setIsLoading(true);
     setError('');
     try {
       const result = await licenciaPermisoService.obtenerMisSolicitudes();
-      console.log('📥 Hook: Resultado mis solicitudes:', result);
       if (result.success) {
-        // result.data puede ser un array vacío, que es un resultado válido
         setSolicitudes(result.data || []);
-        console.log('✅ Hook: Mis solicitudes cargadas:', (result.data || []).length);
       } else {
         setError(result.error || 'Error al cargar solicitudes');
-        setSolicitudes([]);
-        console.log('❌ Hook: Error real en mis solicitudes:', result.error);
       }
-    } catch (error) {
-      setError('Error de conexión al cargar solicitudes');
-      setSolicitudes([]);
-      console.log('💥 Hook: Excepción en mis solicitudes:', error);
+    } catch (error: any) {
+      setError(error.message || 'Error inesperado al cargar solicitudes');
     } finally {
       setIsLoading(false);
     }
   };
 
   const cargarTodasLasSolicitudes = async () => {
-    console.log('🔄 Hook: Cargando TODAS las solicitudes...');
     setIsLoading(true);
     setError('');
     try {
       const result = await licenciaPermisoService.obtenerTodasLasSolicitudes();
-      console.log('📥 Hook: Resultado todas solicitudes:', result);
       if (result.success) {
-        // result.data puede ser un array vacío, que es un resultado válido
         setSolicitudes(result.data || []);
-        console.log('✅ Hook: Todas solicitudes cargadas:', (result.data || []).length);
       } else {
         setError(result.error || 'Error al cargar solicitudes');
-        setSolicitudes([]);
-        console.log('❌ Hook: Error real en todas solicitudes:', result.error);
       }
-    } catch (error) {
-      setError('Error de conexión al cargar solicitudes');
-      setSolicitudes([]);
-      console.log('💥 Hook: Excepción en todas solicitudes:', error);
+    } catch (error: any) {
+      setError(error.message || 'Error inesperado al cargar solicitudes');
     } finally {
       setIsLoading(false);
     }
