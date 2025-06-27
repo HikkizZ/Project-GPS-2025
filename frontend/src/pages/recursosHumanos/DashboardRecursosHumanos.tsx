@@ -243,7 +243,7 @@ const DashboardRecursosHumanos: React.FC = () => {
                 <>
                   {/* Tarjeta de Mi Ficha de Empresa */}
                   <Col md={3}>
-                    <Link to="/fichas-empresa" style={{ textDecoration: 'none' }}>
+                    <Link to="/ficha-empresa/mi-ficha" style={{ textDecoration: 'none' }}>
                       <Card 
                         className="h-100 border-0 shadow-lg" 
                         style={{ 
