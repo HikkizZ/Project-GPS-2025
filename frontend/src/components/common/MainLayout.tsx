@@ -50,7 +50,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ user, onLogout, children }) => 
               </button>
             )}
 
-            <div className="nav-item dropdown">
+            <div className="navbar-user-dropdown" style={{ position: 'relative' }}>
               <button 
                 className="btn btn-outline-light dropdown-toggle px-3 py-2 fw-semibold" 
                 type="button" 
