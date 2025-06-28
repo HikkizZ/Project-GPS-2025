@@ -3,38 +3,46 @@
   Estilos para modales y diálogos
 */
 
+/* Estilos base para modales */
+.modal {
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
 .modal-backdrop {
-  background-color: rgba(0, 0, 0, 0.6) !important;
+  background-color: rgba(0, 0, 0, 0.5) !important;
   backdrop-filter: blur(4px);
 }
 
-.confirm-delete-backdrop {
-  background-color: rgba(0, 0, 0, 0.6) !important;
-  backdrop-filter: blur(4px);
+.modal-dialog {
+  margin: 1.75rem auto;
 }
 
 .modal-content {
-  box-shadow: var(--shadow-lg);
-  border-radius: var(--border-radius-md);
-  background: var(--background);
-  border: 1px solid var(--border-color);
+  border: none;
+  border-radius: 1rem;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+  background: white;
 }
 
 .modal-header {
-  border-bottom: 1px solid var(--border-color);
-  padding: var(--spacing-md) var(--spacing-lg);
+  background: white;
+  border-bottom: 1px solid #e9ecef;
+  padding: 1.5rem;
+  border-top-left-radius: 1rem;
+  border-top-right-radius: 1rem;
 }
 
 .modal-body {
-  padding: var(--spacing-lg);
+  padding: 1.5rem;
+  background: white;
 }
 
 .modal-footer {
-  border-top: 1px solid var(--border-color);
-  padding: var(--spacing-md) var(--spacing-lg);
-  display: flex;
-  justify-content: flex-end;
-  gap: var(--spacing-sm);
+  background: white;
+  border-top: 1px solid #e9ecef;
+  padding: 1.5rem;
+  border-bottom-left-radius: 1rem;
+  border-bottom-right-radius: 1rem;
 }
 
 /* Animaciones del modal */
@@ -44,4 +52,51 @@
 
 .modal.fade.show .modal-dialog {
   transform: none;
+}
+
+/* Estilos para modal de confirmación de eliminación */
+.confirm-delete-backdrop {
+  background-color: rgba(0, 0, 0, 0.5) !important;
+  backdrop-filter: blur(4px);
+}
+
+/* Modal mejorado */
+.modal-enhanced .modal-dialog {
+  max-width: 900px;
+}
+
+.modal-enhanced .modal-content {
+  border: none;
+  border-radius: 1rem;
+  box-shadow: 0 1rem 2rem rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+}
+
+.modal-enhanced .modal-header {
+  background: linear-gradient(135deg, #0d6efd 0%, #6f42c1 100%);
+  color: white;
+  border: none;
+  padding: 1.5rem 2rem;
+}
+
+.modal-enhanced .modal-body {
+  padding: 2rem;
+  background: #f8f9fa;
+}
+
+.modal-enhanced .modal-footer {
+  border: none;
+  padding: 1.5rem 2rem;
+  background: white;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .modal-dialog {
+    margin: 1rem;
+  }
+  
+  .modal-enhanced .modal-body {
+    padding: 1rem;
+  }
 }
