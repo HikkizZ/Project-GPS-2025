@@ -462,7 +462,7 @@ export const FormularioSolicitudLicenciaPermiso: React.FC<FormularioSolicitudLic
                 <Button 
                   variant="primary" 
                   type="submit" 
-                  disabled={isCreating || tieneErrores}
+                  disabled={isCreating}
                 >
                   {isCreating ? (
                     <>

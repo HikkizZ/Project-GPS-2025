@@ -9,14 +9,19 @@
   transition: all 0.2s ease-in-out;
 }
 
-.btn-primary {
-  background: var(--primary);
-  border-color: var(--primary);
+.btn-primary,
+.btn-primary:active,
+.btn-primary:focus,
+.btn-primary:visited {
+  background-color: var(--bs-primary) !important;
+  border-color: var(--bs-primary) !important;
+  color: #fff !important;
 }
 
 .btn-primary:hover {
-  background: var(--primary-hover);
-  border-color: var(--primary-hover);
+  background-color: var(--primary-hover) !important;
+  border-color: var(--primary-hover) !important;
+  color: #fff !important;
 }
 
 .btn-outline-light {

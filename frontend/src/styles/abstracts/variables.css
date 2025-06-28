@@ -73,6 +73,9 @@
   --container-padding: 2rem;
   --max-width: 1200px;
   --content-margin: auto;
+  
+  /* Bootstrap primary color */
+  --bs-primary: #0061FF;
 }
 
 /* Variables para modo oscuro (preparado para futura implementación) */
