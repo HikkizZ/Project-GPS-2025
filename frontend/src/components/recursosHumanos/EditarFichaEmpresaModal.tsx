@@ -496,22 +496,52 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
         onHide={() => setShowDeleteConfirm(false)}
         centered
         size="sm"
+        style={{ 
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        }}
+        backdropClassName="confirm-delete-backdrop"
       >
-        <Modal.Header closeButton style={{ border: 'none', paddingBottom: '0.5rem' }}>
-          <Modal.Title as="h6">
+        <Modal.Header 
+          closeButton 
+          style={{ 
+            border: 'none', 
+            paddingBottom: '0.5rem',
+            background: 'white',
+            borderTopLeftRadius: '8px',
+            borderTopRightRadius: '8px'
+          }}
+        >
+          <Modal.Title as="h6" className="d-flex align-items-center">
             <i className="bi bi-exclamation-triangle-fill text-warning me-2"></i>
             Confirmar eliminación
           </Modal.Title>
         </Modal.Header>
-        <Modal.Body style={{ paddingTop: '0.5rem', paddingBottom: '1.5rem' }}>
+        <Modal.Body 
+          style={{ 
+            paddingTop: '0.5rem', 
+            paddingBottom: '1.5rem',
+            background: 'white'
+          }}
+        >
           ¿Está seguro que desea eliminar el contrato?
         </Modal.Body>
-        <Modal.Footer style={{ border: 'none', paddingTop: '0' }}>
+        <Modal.Footer 
+          style={{ 
+            border: 'none', 
+            paddingTop: '0',
+            background: 'white',
+            borderBottomLeftRadius: '8px',
+            borderBottomRightRadius: '8px'
+          }}
+        >
           <Button 
             variant="outline-secondary" 
             size="sm"
             onClick={() => setShowDeleteConfirm(false)}
-            style={{ borderRadius: '6px' }}
+            style={{ 
+              borderRadius: '6px',
+              padding: '0.375rem 1rem'
+            }}
           >
             Cancelar
           </Button>
@@ -519,7 +549,10 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
             variant="danger" 
             size="sm"
             onClick={handleDeleteFile}
-            style={{ borderRadius: '6px' }}
+            style={{ 
+              borderRadius: '6px',
+              padding: '0.375rem 1rem'
+            }}
           >
             Aceptar
           </Button>

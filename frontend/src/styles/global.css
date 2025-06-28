@@ -25,4 +25,14 @@ body {
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
+}
+
+/* Estilos para el modal de confirmación */
+.confirm-delete-backdrop {
+  background-color: rgba(0, 0, 0, 0.6) !important;
+  backdrop-filter: blur(4px);
+}
+
+.modal-content {
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
 } 
