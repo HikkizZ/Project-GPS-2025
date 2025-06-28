@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useRut } from '@/hooks/useRut';
 import { GlobalMessages } from './GlobalMessages';
@@ -17,8 +17,46 @@ const MainLayout: React.FC<MainLayoutProps> = ({ user, onLogout, children }) => 
   const location = useLocation();
   const { formatRUT } = useRut();
   const { toasts, removeToast } = useToast();
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLUListElement>(null);
 
   const isInDashboard = location.pathname === '/dashboard';
+
+  useEffect(() => {
+    const btn = buttonRef.current;
+    const menu = menuRef.current;
+    if (!btn || !menu) return;
+
+    // Función para ajustar el ancho
+    const adjustMenuWidth = () => {
+      menu.style.width = btn.offsetWidth + 'px';
+    };
+
+    // Observer para detectar la clase 'show' en el menú
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (
+          mutation.type === 'attributes' &&
+          mutation.attributeName === 'class' &&
+          menu.classList.contains('show')
+        ) {
+          adjustMenuWidth();
+        }
+      });
+    });
+
+    observer.observe(menu, { attributes: true });
+
+    // Ajuste inicial por si ya está abierto
+    if (menu.classList.contains('show')) {
+      adjustMenuWidth();
+    }
+
+    // Limpieza
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
 
   return (
     <div className="min-vh-100 d-flex flex-column">
@@ -51,9 +89,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({ user, onLogout, children }) => 
             )}
 
             <div className="navbar-user-dropdown" style={{ position: 'relative' }}>
-              <button 
-                className="btn btn-outline-light dropdown-toggle px-3 py-2 fw-semibold" 
-                type="button" 
+              <button
+                ref={buttonRef}
+                className="btn btn-outline-light dropdown-toggle px-3 py-2 fw-semibold"
+                type="button"
                 data-bs-toggle="dropdown"
                 aria-expanded="false"
                 style={{ borderRadius: '25px', transition: 'all 0.3s ease' }}
@@ -61,7 +100,11 @@ const MainLayout: React.FC<MainLayoutProps> = ({ user, onLogout, children }) => 
                 <i className="bi bi-person-circle me-2"></i>
                 {user.name}
               </button>
-              <ul className="dropdown-menu dropdown-menu-end shadow-lg border-0" style={{ borderRadius: '12px', minWidth: '280px' }}>
+              <ul
+                ref={menuRef}
+                className="dropdown-menu dropdown-menu-end shadow-lg border-0"
+                style={{ borderRadius: '12px' }}
+              >
                 <li>
                   <div className="dropdown-item-text px-3 py-3 bg-light" style={{ borderRadius: '12px 12px 0 0' }}>
                     <div className="d-flex align-items-center mb-2">

@@ -97,18 +97,23 @@
   margin-right: 0;
 }
 
+.navbar-user-dropdown {
+  display: inline-block;
+  width: fit-content;
+}
+
 .navbar-user-dropdown .dropdown-menu {
-  position: absolute;
-  right: 0;
-  top: 100%;
-  min-width: 270px;
-  max-width: 320px;
+  width: 100%;
+  min-width: unset;
+  max-width: unset;
   border-radius: 0.75rem !important;
   box-shadow: 0 4px 16px rgba(0,0,0,0.12);
   border: 1px solid var(--border-color);
   padding: 1rem 1.25rem;
   background: #fff;
   z-index: 1051;
+  right: 0;
+  top: 100%;
 }
 
 .navbar-user-dropdown .dropdown-item-text {
