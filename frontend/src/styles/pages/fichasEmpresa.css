@@ -155,40 +155,55 @@
 /* Estilos para las secciones de información */
 .info-section {
   background: white;
-  border: 1px solid #e9ecef;
-  border-radius: 1rem;
-  padding: 1.5rem;
-  margin-bottom: 2rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-}
-
-.info-section:last-child {
-  margin-bottom: 0;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 0.75rem;
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .info-section h2 {
-  color: #495057;
-  font-size: 1.25rem;
+  color: #2c3e50;
+  font-size: 1.1rem;
   font-weight: 600;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.25rem;
   padding-bottom: 0.75rem;
   border-bottom: 2px solid #e9ecef;
+  position: relative;
+  display: flex;
+  align-items: center;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.info-section h2::before {
+  content: '';
+  width: 4px;
+  height: 16px;
+  background: #4a6cf7;
+  margin-right: 0.75rem;
+  border-radius: 2px;
 }
 
 /* Grid para la información */
 .info-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 1.5rem;
+  gap: 1rem;
 }
 
 /* Campos individuales */
 .info-field {
   margin-bottom: 1rem;
+  background: #f8f9fa;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
 }
 
-.info-field:last-child {
-  margin-bottom: 0;
+.info-field:hover {
+  background: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .info-field label {
@@ -196,36 +211,65 @@
   font-weight: 500;
   color: #6c757d;
   margin-bottom: 0.25rem;
-  font-size: 0.875rem;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .info-field .value {
-  color: #212529;
+  color: #2c3e50;
   font-weight: 500;
+  font-size: 0.9rem;
+  line-height: 1.4;
 }
 
 .info-field .pending {
   color: #6c757d;
   font-style: italic;
+  opacity: 0.8;
+  font-size: 0.85rem;
 }
 
 /* Estado del trabajador */
 .status-badge {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
   padding: 0.35rem 0.75rem;
-  border-radius: 2rem;
-  font-size: 0.875rem;
-  font-weight: 500;
+  border-radius: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-.status-badge.active {
-  background-color: #d1e7dd;
-  color: #0f5132;
+.status-badge.activo {
+  background-color: rgba(25, 135, 84, 0.1);
+  color: #198754;
 }
 
-.status-badge.inactive {
-  background-color: #f8d7da;
-  color: #842029;
+.status-badge.inactivo {
+  background-color: rgba(220, 53, 69, 0.1);
+  color: #dc3545;
+}
+
+.status-badge.licencia {
+  background-color: rgba(255, 193, 7, 0.1);
+  color: #997404;
+}
+
+.status-badge.permiso {
+  background-color: rgba(13, 202, 240, 0.1);
+  color: #0dcaf0;
+}
+
+/* Estilos especiales para valores importantes */
+.info-field .value.text-success {
+  color: #198754;
+  font-weight: 600;
+}
+
+.info-field .value.text-danger {
+  color: #dc3545;
 }
 
 /* Responsive */
@@ -236,5 +280,9 @@
   
   .info-section {
     padding: 1rem;
+  }
+  
+  .info-field {
+    padding: 0.5rem;
   }
 } 
