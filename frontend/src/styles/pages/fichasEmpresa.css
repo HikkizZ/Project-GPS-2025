@@ -150,4 +150,91 @@
 
 .ficha-card:hover {
   transform: translateY(-2px);
+}
+
+/* Estilos para las secciones de información */
+.info-section {
+  background: white;
+  border: 1px solid #e9ecef;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.info-section:last-child {
+  margin-bottom: 0;
+}
+
+.info-section h2 {
+  color: #495057;
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid #e9ecef;
+}
+
+/* Grid para la información */
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+}
+
+/* Campos individuales */
+.info-field {
+  margin-bottom: 1rem;
+}
+
+.info-field:last-child {
+  margin-bottom: 0;
+}
+
+.info-field label {
+  display: block;
+  font-weight: 500;
+  color: #6c757d;
+  margin-bottom: 0.25rem;
+  font-size: 0.875rem;
+}
+
+.info-field .value {
+  color: #212529;
+  font-weight: 500;
+}
+
+.info-field .pending {
+  color: #6c757d;
+  font-style: italic;
+}
+
+/* Estado del trabajador */
+.status-badge {
+  display: inline-block;
+  padding: 0.35rem 0.75rem;
+  border-radius: 2rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.status-badge.active {
+  background-color: #d1e7dd;
+  color: #0f5132;
+}
+
+.status-badge.inactive {
+  background-color: #f8d7da;
+  color: #842029;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .info-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .info-section {
+    padding: 1rem;
+  }
 } 

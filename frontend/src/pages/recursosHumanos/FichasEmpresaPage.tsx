@@ -326,130 +326,116 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                 ) : miFicha ? (
                   <div className="row">
                     <div className="col-lg-8">
-                      <div className="ficha-info-section">
-                        <h6 className="text-muted mb-3">Información Laboral</h6>
-                        
-                        <div className="info-row">
-                          <div className="row g-3">
-                            <div className="col-md-4">
-                              <div className="info-field">
-                                <label className="form-label">Cargo:</label>
-                                <p className={`field-value ${getFieldClass(miFicha.cargo)}`}>
-                                  {miFicha.cargo === 'Por Definir' ? 
-                                    <span className="field-undefined">Por Definir</span> : 
-                                    miFicha.cargo
-                                  }
-                                </p>
-                              </div>
-                            </div>
-                            <div className="col-md-4">
-                              <div className="info-field">
-                                <label className="form-label">Área:</label>
-                                <p className={`field-value ${getFieldClass(miFicha.area)}`}>
-                                  {miFicha.area === 'Por Definir' ? 
-                                    <span className="field-undefined">Por Definir</span> : 
-                                    miFicha.area
-                                  }
-                                </p>
-                              </div>
-                            </div>
-                            <div className="col-md-4">
-                              <div className="info-field">
-                                <label className="form-label">Estado:</label>
-                                <span className={`badge ${getEstadoBadgeClass(miFicha.estado)}`}>
-                                  {miFicha.estado}
-                                </span>
-                              </div>
+                      <div className="info-section">
+                        <h2>Información Laboral</h2>
+                        <div className="info-grid">
+                          <div className="info-field">
+                            <label>Cargo:</label>
+                            <div className={`value ${getFieldClass(miFicha.cargo)}`}>
+                              {miFicha.cargo === 'Por Definir' ? 
+                                <span className="pending">Por Definir</span> : 
+                                miFicha.cargo
+                              }
                             </div>
                           </div>
-                        </div>
 
-                        <div className="info-row">
-                          <div className="row g-3">
-                            <div className="col-md-6">
-                              <div className="info-field">
-                                <label className="form-label">Tipo de Contrato:</label>
-                                <p className={`field-value ${getTipoContratoColor(miFicha.tipoContrato)}`}>
-                                  {miFicha.tipoContrato === 'Por Definir' ? 
-                                    <span className="field-undefined">Por Definir</span> : 
-                                    miFicha.tipoContrato
-                                  }
-                                </p>
-                              </div>
-                            </div>
-                            <div className="col-md-6">
-                              <div className="info-field">
-                                <label className="form-label">Jornada:</label>
-                                <p className={`field-value ${getFieldClass(miFicha.jornadaLaboral)}`}>
-                                  {miFicha.jornadaLaboral === 'Por Definir' ? 
-                                    <span className="field-undefined">Por Definir</span> : 
-                                    miFicha.jornadaLaboral
-                                  }
-                                </p>
-                              </div>
+                          <div className="info-field">
+                            <label>Área:</label>
+                            <div className={`value ${getFieldClass(miFicha.area)}`}>
+                              {miFicha.area === 'Por Definir' ? 
+                                <span className="pending">Por Definir</span> : 
+                                miFicha.area
+                              }
                             </div>
                           </div>
-                        </div>
 
-                        <div className="info-row">
-                          <div className="row g-3">
-                            <div className="col-md-6">
-                              <div className="info-field">
-                                <label className="form-label">Fecha Inicio:</label>
-                                <p className="field-value">{formatFecha(miFicha.fechaInicioContrato)}</p>
-                              </div>
+                          <div className="info-field">
+                            <label>Tipo de Contrato:</label>
+                            <div className={`value ${getTipoContratoColor(miFicha.tipoContrato)}`}>
+                              {miFicha.tipoContrato === 'Por Definir' ? 
+                                <span className="pending">Por Definir</span> : 
+                                miFicha.tipoContrato
+                              }
                             </div>
-                            {miFicha.fechaFinContrato && (
-                              <div className="col-md-6">
-                                <div className="info-field">
-                                  <label className="form-label">Fecha Fin:</label>
-                                  <p className="field-value">{formatFecha(miFicha.fechaFinContrato)}</p>
-                                </div>
-                              </div>
-                            )}
-                            <div className="col-md-6">
-                              <div className="info-field">
-                                <label className="form-label">Sueldo Base:</label>
-                                <p className="field-value text-success fw-bold">{formatSueldo(miFicha.sueldoBase)}</p>
-                              </div>
+                          </div>
+
+                          <div className="info-field">
+                            <label>Jornada:</label>
+                            <div className={`value ${getFieldClass(miFicha.jornadaLaboral)}`}>
+                              {miFicha.jornadaLaboral === 'Por Definir' ? 
+                                <span className="pending">Por Definir</span> : 
+                                miFicha.jornadaLaboral
+                              }
+                            </div>
+                          </div>
+
+                          <div className="info-field">
+                            <label>Fecha Inicio:</label>
+                            <div className="value">{formatFecha(miFicha.fechaInicioContrato)}</div>
+                          </div>
+
+                          {miFicha.fechaFinContrato && (
+                            <div className="info-field">
+                              <label>Fecha Fin:</label>
+                              <div className="value">{formatFecha(miFicha.fechaFinContrato)}</div>
+                            </div>
+                          )}
+
+                          <div className="info-field">
+                            <label>Sueldo Base:</label>
+                            <div className="value text-success fw-bold">{formatSueldo(miFicha.sueldoBase)}</div>
+                          </div>
+
+                          <div className="info-field">
+                            <label>Estado:</label>
+                            <div className="value">
+                              <span className={`status-badge ${miFicha.estado.toLowerCase()}`}>
+                                {miFicha.estado}
+                              </span>
                             </div>
                           </div>
                         </div>
                       </div>
                     </div>
+
                     <div className="col-lg-4">
-                      <div className="card trabajador-info-card">
-                        <div className="card-body">
-                          <h6 className="card-title">Información del Trabajador</h6>
-                          <div className="trabajador-detail">
-                            <strong>Nombre:</strong>
-                            <p>{miFicha.trabajador.nombres} {miFicha.trabajador.apellidoPaterno} {miFicha.trabajador.apellidoMaterno}</p>
+                      <div className="info-section">
+                        <h2>Información del Trabajador</h2>
+                        <div className="info-field">
+                          <label>Nombre:</label>
+                          <div className="value">
+                            {miFicha.trabajador.nombres} {miFicha.trabajador.apellidoPaterno} {miFicha.trabajador.apellidoMaterno}
                           </div>
-                          <div className="trabajador-detail">
-                            <strong>RUT:</strong>
-                            <p>{formatRUT(miFicha.trabajador.rut)}</p>
-                          </div>
-                          {miFicha.trabajador.usuario?.email && (
-                            <div className="trabajador-detail">
-                              <strong>Correo Corporativo:</strong>
-                              <p>{miFicha.trabajador.usuario.email}</p>
-                            </div>
-                          )}
-                          <div className="trabajador-detail">
-                            <strong>Teléfono:</strong>
-                            <p>{formatTelefono(miFicha.trabajador.telefono)}</p>
-                          </div>
-                          <div className="trabajador-detail">
-                            <strong>Fecha Ingreso:</strong>
-                            <p>{formatFecha(miFicha.trabajador.fechaIngreso)}</p>
-                          </div>
-                          {miFicha.trabajador.fechaNacimiento && (
-                            <div className="trabajador-detail">
-                              <strong>Edad:</strong>
-                              <p>{calcularEdad(miFicha.trabajador.fechaNacimiento)} años</p>
-                            </div>
-                          )}
                         </div>
+
+                        <div className="info-field">
+                          <label>RUT:</label>
+                          <div className="value">{formatRUT(miFicha.trabajador.rut)}</div>
+                        </div>
+
+                        {miFicha.trabajador.usuario?.email && (
+                          <div className="info-field">
+                            <label>Correo Corporativo:</label>
+                            <div className="value">{miFicha.trabajador.usuario.email}</div>
+                          </div>
+                        )}
+
+                        <div className="info-field">
+                          <label>Teléfono:</label>
+                          <div className="value">{formatTelefono(miFicha.trabajador.telefono)}</div>
+                        </div>
+
+                        <div className="info-field">
+                          <label>Fecha Ingreso:</label>
+                          <div className="value">{formatFecha(miFicha.trabajador.fechaIngreso)}</div>
+                        </div>
+
+                        {miFicha.trabajador.fechaNacimiento && (
+                          <div className="info-field">
+                            <label>Edad:</label>
+                            <div className="value">{calcularEdad(miFicha.trabajador.fechaNacimiento)} años</div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
