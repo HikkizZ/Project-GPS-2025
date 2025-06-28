@@ -3,6 +3,8 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useRut } from '@/hooks/useRut';
 import { GlobalMessages } from './GlobalMessages';
 import { Toast, useToast } from './Toast';
+import '@/styles/layout/navbar.css';
+import '@/styles/layout/footer.css';
 
 interface MainLayoutProps {
   user: { name: string; role: string; rut: string };
@@ -21,9 +23,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({ user, onLogout, children }) => 
   return (
     <div className="min-vh-100 d-flex flex-column">
       {/* Navbar */}
-      <nav className="navbar navbar-expand-lg navbar-dark bg-gradient-primary shadow-sm">
+      <nav className="navbar navbar-expand-lg navbar-dark bg-gradient-primary">
         <div className="container-fluid" style={{ paddingLeft: '36px', paddingRight: '36px' }}>
-          <span className="navbar-brand mb-0 h1 fw-bold" style={{ cursor: 'pointer' }} onClick={() => navigate('/dashboard')}>
+          <span className="navbar-brand mb-0 h1 fw-bold" onClick={() => navigate('/dashboard')}>
             <i className="bi bi-truck me-2"></i>
             S.G. Lamas
           </span>
@@ -53,6 +55,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ user, onLogout, children }) => 
                 className="btn btn-outline-light dropdown-toggle px-3 py-2 fw-semibold" 
                 type="button" 
                 data-bs-toggle="dropdown"
+                aria-expanded="false"
                 style={{ borderRadius: '25px', transition: 'all 0.3s ease' }}
               >
                 <i className="bi bi-person-circle me-2"></i>
@@ -69,7 +72,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ user, onLogout, children }) => 
                       </div>
                     </div>
                     {user.role !== "SuperAdministrador" && (
-                      <small className="text-muted">
+                      <small className="text-muted d-flex align-items-center">
                         <i className="bi bi-card-text me-1"></i>
                         RUT: {formatRUT(user.rut)}
                       </small>
@@ -88,6 +91,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ user, onLogout, children }) => 
           </div>
         </div>
       </nav>
+
       {/* Contenido */}
       <main className="flex-grow-1 bg-light">
         <div className="container-fluid">
@@ -95,9 +99,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({ user, onLogout, children }) => 
           {children}
         </div>
       </main>
+
       {/* Footer */}
-      <footer className="bg-dark text-light py-2">
-        <div className="container text-center">
+      <footer className="app-footer">
+        <div className="container">
           <small>&copy; 2025 Sistema GPS - Gestión de Procesos Empresariales</small>
         </div>
       </footer>
