@@ -17,11 +17,11 @@ const DashboardRecursosHumanos: React.FC = () => {
   const puedeAccederModulosPersonales = user && user.role !== 'SuperAdministrador';
 
   return (
-    <Container fluid className="py-2">
+    <Container fluid className="py-2" style={{ paddingBottom: '2.3rem' }}>
       <Row>
         <Col>
           {/* Header Elegante */}
-          <div className="card shadow-lg border-0 mb-4" style={{ borderRadius: '12px', overflow: 'hidden' }}>
+          <div className="card shadow-lg border-0 mb-4 main-card-spacing" style={{ borderRadius: '12px', overflow: 'hidden' }}>
           <div className="card-header bg-gradient-primary text-white border-0" style={{ padding: '0.75rem 1.25rem' }}>
             <div className="d-flex align-items-center">
               <i className="bi bi-people-fill fs-5 me-2"></i>
