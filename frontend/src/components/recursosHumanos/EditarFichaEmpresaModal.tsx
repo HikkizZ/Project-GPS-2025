@@ -564,8 +564,13 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
         style={{ 
           position: 'fixed', 
           top: '20px', 
-          right: '20px', 
-          zIndex: 10000 
+          left: '50%',
+          transform: 'translateX(-50%)',
+          zIndex: 10000,
+          width: 'auto',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center'
         }}
       >
         {toasts.map((toast) => (
