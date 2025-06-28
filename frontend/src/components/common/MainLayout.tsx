@@ -102,9 +102,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ user, onLogout, children }) => 
 
       {/* Footer */}
       <footer className="app-footer">
-        <div className="container">
-          <small>&copy; 2025 Sistema GPS - Gestión de Procesos Empresariales</small>
-        </div>
+        © 2025 Sistema GPS - Gestión de Procesos Empresariales
       </footer>
       
       {/* Sistema de notificaciones globales */}
