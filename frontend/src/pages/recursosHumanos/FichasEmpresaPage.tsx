@@ -31,7 +31,7 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
   onTrabajadorModalClosed 
 }) => {
   const { user, isLoading: isAuthLoading } = useAuth();
-  const { setSuccess, setError: setUIError } = useUI();
+  const { setSuccess, setUIError } = useUI();
   const { formatRUT } = useRut();
   const [localError, setLocalError] = useState<string | null>(null);
   
@@ -69,9 +69,11 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
   // Ya no necesitamos filtrar aquí porque todo se maneja en el backend
   const fichasFiltradas = fichas;
 
-  // Definir roles privilegiados que pueden gestionar todas las fichas
-  const rolesPrivilegiados: string[] = ['SuperAdministrador', 'Administrador', 'RecursosHumanos'];
-  const tienePermisosCompletos = user && rolesPrivilegiados.includes(user.role);
+  // Definir roles y permisos
+  const esSuperAdministrador = user?.role === 'SuperAdministrador';
+  const esAdminORecursosHumanos = user?.role === 'Administrador' || user?.role === 'RecursosHumanos';
+  const puedeGestionarFichas = esSuperAdministrador || esAdminORecursosHumanos;
+  const puedeVerFichaPersonal = user && user.role !== 'SuperAdministrador';
 
   // Cargar datos iniciales
   useEffect(() => {
@@ -85,17 +87,33 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
       return;
     }
 
-    if (!tienePermisosCompletos) {
-      loadMiFicha();
-    } else {
+    // Para SuperAdministrador: solo gestión
+    if (esSuperAdministrador) {
       setIncluirDesvinculados(false);
       setIncluirLicencias(false);
       setIncluirPermisos(false);
       setIncluirSinFechaFin(false);
       setSearchQuery({ estado: EstadoLaboral.ACTIVO });
       searchFichas({ estado: EstadoLaboral.ACTIVO });
+    } 
+    // Para Administrador y RecursosHumanos: cargar tanto gestión como su ficha
+    else if (esAdminORecursosHumanos) {
+      if (window.location.pathname === '/ficha-empresa/mi-ficha') {
+        loadMiFicha(); // Cargar su ficha personal en la vista personal
+      } else {
+        setIncluirDesvinculados(false);
+        setIncluirLicencias(false);
+        setIncluirPermisos(false);
+        setIncluirSinFechaFin(false);
+        setSearchQuery({ estado: EstadoLaboral.ACTIVO });
+        searchFichas({ estado: EstadoLaboral.ACTIVO });
+      }
     }
-  }, [user, isAuthLoading, loadMiFicha, tienePermisosCompletos]);
+    // Para todos los demás roles: solo su ficha
+    else {
+      loadMiFicha();
+    }
+  }, [user, isAuthLoading, loadMiFicha, esSuperAdministrador, esAdminORecursosHumanos]);
 
   // Detectar trabajador recién registrado y abrir modal automáticamente
   useEffect(() => {
@@ -170,7 +188,7 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
     setIncluirLicencias(false);
     setIncluirPermisos(false);
     setIncluirSinFechaFin(false);
-    if (tienePermisosCompletos) {
+    if (puedeGestionarFichas) {
       searchFichas({ estado: EstadoLaboral.ACTIVO });
     }
   };
@@ -275,8 +293,8 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
     return telefono;
   };
 
-  // Si es usuario sin permisos administrativos, mostrar solo su ficha
-  if (user && !tienePermisosCompletos) {
+  // Si es usuario sin permisos administrativos o está en la ruta de ficha personal
+  if ((user && !puedeGestionarFichas) || (puedeVerFichaPersonal && window.location.pathname === '/ficha-empresa/mi-ficha')) {
     return (
       <Container fluid className="py-2">
         <Row>
