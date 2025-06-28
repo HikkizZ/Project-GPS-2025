@@ -650,4 +650,10 @@
   }
 }
 
-/* Eliminado el modo oscuro - mantenemos todo en colores claros y profesionales */ 
+/* Eliminado el modo oscuro - mantenemos todo en colores claros y profesionales */
+
+/* Padding extra para evitar que el botón quede cortado en la esquina inferior derecha */
+.card .card-body {
+  padding-bottom: 2.5rem;
+  padding-right: 2.5rem;
+} 
