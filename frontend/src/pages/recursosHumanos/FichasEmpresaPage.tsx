@@ -31,7 +31,7 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
   onTrabajadorModalClosed 
 }) => {
   const { user, isLoading: isAuthLoading } = useAuth();
-  const { setSuccess, setUIError } = useUI();
+  const { setSuccess, setError } = useUI();
   const { formatRUT } = useRut();
   const [localError, setLocalError] = useState<string | null>(null);
   
@@ -133,11 +133,11 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
             setShowEditModal(true);
           } else {
             console.error('No se pudo encontrar la ficha del trabajador recién registrado');
-            setUIError('No se pudo encontrar la ficha del trabajador. Por favor, intente más tarde.');
+            setError('No se pudo encontrar la ficha del trabajador. Por favor, intente más tarde.');
           }
         } catch (error) {
           console.error('Error al buscar la ficha:', error);
-          setUIError('Error al buscar la ficha del trabajador. Por favor, intente más tarde.');
+          setError('Error al buscar la ficha del trabajador. Por favor, intente más tarde.');
         } finally {
           // Limpiar el trabajador recién registrado
           if (onTrabajadorModalClosed) {
@@ -148,7 +148,7 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
       
       buscarYAbrirModal();
     }
-  }, [trabajadorRecienRegistrado, searchByRUT, onTrabajadorModalClosed]);
+  }, [trabajadorRecienRegistrado, searchByRUT, onTrabajadorModalClosed, setError]);
 
   const handleSearch = async () => {
     // Crear un objeto de búsqueda que incluya todos los filtros
@@ -194,6 +194,7 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
   };
 
   const handleEditFicha = (ficha: FichaEmpresa) => {
+    console.log('handleEditFicha llamado con ficha:', ficha);
     setSelectedFicha(ficha);
     setShowEditModal(true);
   };
@@ -877,6 +878,16 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
           </Card>
         </Col>
       </Row>
+
+      {/* Modal de edición */}
+      {selectedFicha && (
+        <EditarFichaEmpresaModal
+          show={showEditModal}
+          onHide={handleCloseEditModal}
+          ficha={selectedFicha}
+          onUpdate={handleUpdateSuccess}
+        />
+      )}
     </Container>
   );
 }; 
