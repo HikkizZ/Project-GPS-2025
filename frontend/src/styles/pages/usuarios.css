@@ -103,4 +103,18 @@
   .users-page .users-info {
     grid-template-columns: 1fr;
   }
+}
+
+/* Mantener exactamente los mismos estilos que había antes */
+.usuarios-container {
+  padding: var(--spacing-lg);
+}
+
+.user-card {
+  margin-bottom: var(--spacing-md);
+  transition: box-shadow 0.2s ease;
+}
+
+.user-card:hover {
+  box-shadow: var(--shadow-md);
 } 

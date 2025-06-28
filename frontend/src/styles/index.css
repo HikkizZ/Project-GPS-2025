@@ -1,11 +1,27 @@
 /* 
   index.css
-  Punto de entrada de estilos globales.
-  Solo importa los archivos temáticos de estilos globales y de layout.
-  NO agregar reglas CSS aquí.
+  Punto de entrada de estilos.
+  Solo importa los archivos base y módulos principales.
 */
-@import './reset.css';
-@import './layout.css';
-@import './global.css';
-@import './dashboard.css';
-@import './licenciasPermisos.css';
+
+/* Base */
+@import './base/reset.css';
+@import './base/typography.css';
+@import './base/animations.css';
+
+/* Layout */
+@import './layout/grid.css';
+@import './layout/navbar.css';
+@import './layout/footer.css';
+
+/* Components */
+@import './components/buttons.css';
+@import './components/cards.css';
+@import './components/forms.css';
+@import './components/modals.css';
+
+/* Pages */
+@import './pages/dashboard.css';
+@import './pages/licenciasPermisos.css';
+@import './pages/trabajadores.css';
+@import './pages/fichasEmpresa.css';

@@ -136,4 +136,18 @@
 
 /* Agrega aquí más reglas específicas según crezca la página */
 
-/* (Agrega aquí los estilos específicos de fichas de empresa cuando los identifiques en el futuro) */ 
+/* (Agrega aquí los estilos específicos de fichas de empresa cuando los identifiques en el futuro) */
+
+/* Mantener exactamente los mismos estilos que había antes */
+.fichas-empresa-container {
+  padding: var(--spacing-lg);
+}
+
+.ficha-card {
+  margin-bottom: var(--spacing-md);
+  transition: transform 0.2s ease;
+}
+
+.ficha-card:hover {
+  transform: translateY(-2px);
+} 

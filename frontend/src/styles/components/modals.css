@@ -1,0 +1,47 @@
+/*
+  modals.css
+  Estilos para modales y diálogos
+*/
+
+.modal-backdrop {
+  background-color: rgba(0, 0, 0, 0.6) !important;
+  backdrop-filter: blur(4px);
+}
+
+.confirm-delete-backdrop {
+  background-color: rgba(0, 0, 0, 0.6) !important;
+  backdrop-filter: blur(4px);
+}
+
+.modal-content {
+  box-shadow: var(--shadow-lg);
+  border-radius: var(--border-radius-md);
+  background: var(--background);
+  border: 1px solid var(--border-color);
+}
+
+.modal-header {
+  border-bottom: 1px solid var(--border-color);
+  padding: var(--spacing-md) var(--spacing-lg);
+}
+
+.modal-body {
+  padding: var(--spacing-lg);
+}
+
+.modal-footer {
+  border-top: 1px solid var(--border-color);
+  padding: var(--spacing-md) var(--spacing-lg);
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-sm);
+}
+
+/* Animaciones del modal */
+.modal.fade .modal-dialog {
+  transition: transform 0.3s ease-out;
+}
+
+.modal.fade.show .modal-dialog {
+  transform: none;
+}

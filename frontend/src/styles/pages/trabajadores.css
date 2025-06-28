@@ -209,4 +209,18 @@
     align-items: stretch;
     gap: 1rem;
   }
+}
+
+/* Mantener exactamente los mismos estilos que había antes */
+.trabajadores-container {
+  padding: var(--spacing-lg);
+}
+
+.trabajador-card {
+  margin-bottom: var(--spacing-md);
+  transition: transform 0.2s ease;
+}
+
+.trabajador-card:hover {
+  transform: translateY(-2px);
 } 

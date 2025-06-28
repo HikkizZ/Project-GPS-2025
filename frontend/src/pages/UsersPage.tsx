@@ -5,7 +5,7 @@ import { UserRole, FilterableUserRole } from '@/types/auth.types';
 import { useRut } from '@/hooks/useRut';
 import { userService } from '@/services/user.service';
 import { Table, Button, Form, Spinner, Modal, Container, Row, Col, Card } from 'react-bootstrap';
-import '../styles/usuarios.css';
+import '../styles/pages/usuarios.css';
 import { FiltrosBusquedaHeader } from '@/components/common/FiltrosBusquedaHeader';
 import { useToast, Toast } from '@/components/common/Toast';
 

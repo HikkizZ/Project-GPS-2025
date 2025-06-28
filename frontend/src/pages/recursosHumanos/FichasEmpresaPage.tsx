@@ -9,7 +9,7 @@ import {
 } from '@/types/recursosHumanos/fichaEmpresa.types';
 import { Trabajador } from '@/types/recursosHumanos/trabajador.types';
 import { EditarFichaEmpresaModal } from '@/components/recursosHumanos/EditarFichaEmpresaModal';
-import '../../styles/fichasEmpresa.css';
+import '../../styles/pages/fichasEmpresa.css';
 import { FiltrosBusquedaHeader } from '@/components/common/FiltrosBusquedaHeader';
 import { Container, Row, Col, Card, Button, Alert, Table, Form } from 'react-bootstrap';
 import { Toast, useToast } from '@/components/common/Toast';

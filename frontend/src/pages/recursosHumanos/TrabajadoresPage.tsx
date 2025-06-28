@@ -8,7 +8,7 @@ import { RegisterTrabajadorForm } from '@/components/trabajador/RegisterTrabajad
 import { EditarTrabajadorModal } from '@/components/trabajador/EditarTrabajadorModal';
 import { FiltrosBusquedaHeader } from '@/components/common/FiltrosBusquedaHeader';
 import { useToast, Toast } from '@/components/common/Toast';
-import '../../styles/trabajadores.css';
+import '../../styles/pages/trabajadores.css';
 
 export const TrabajadoresPage: React.FC = () => {
   const { trabajadores, isLoading, error, loadTrabajadores, searchTrabajadores, desvincularTrabajador } = useTrabajadores();
