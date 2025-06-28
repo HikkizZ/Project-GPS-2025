@@ -4,7 +4,8 @@
 */
 
 .card {
-  border-radius: var(--border-radius-lg);
+  border-radius: 0.5rem !important;
+  overflow: hidden;
   border: 1px solid var(--border-color);
   transition: all 0.3s ease;
 }
