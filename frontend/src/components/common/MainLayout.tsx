@@ -24,7 +24,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ user, onLogout, children }) => 
     <div className="min-vh-100 d-flex flex-column">
       {/* Navbar */}
       <nav className="navbar navbar-expand-lg navbar-dark bg-gradient-primary">
-        <div className="container-fluid" style={{ paddingLeft: '36px', paddingRight: '36px' }}>
+        <div className="container-fluid">
           <span className="navbar-brand mb-0 h1 fw-bold" onClick={() => navigate('/dashboard')}>
             <i className="bi bi-truck me-2"></i>
             S.G. Lamas
@@ -94,10 +94,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ user, onLogout, children }) => 
 
       {/* Contenido */}
       <main className="flex-grow-1 bg-light">
-        <div className="container-fluid">
-          <GlobalMessages />
-          {children}
-        </div>
+        <GlobalMessages />
+        {children}
       </main>
 
       {/* Footer */}

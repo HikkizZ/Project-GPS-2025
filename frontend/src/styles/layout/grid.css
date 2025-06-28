@@ -4,18 +4,11 @@
 */
 
 /* Contenedor principal */
-.container {
-  width: 100%;
-  max-width: var(--container-max-width, 1200px);
-  margin: 0 auto;
-  padding-left: var(--spacing-md);
-  padding-right: var(--spacing-md);
-}
-
 .container-fluid {
   width: 100%;
-  padding-left: var(--spacing-md);
-  padding-right: var(--spacing-md);
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 0 2rem;
 }
 
 /* Sistema de grid */

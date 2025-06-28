@@ -352,10 +352,9 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
         return <TrabajadoresPage />;
       default:
         return (
-          <div className="container-fluid py-2" style={{ paddingLeft: '0.75rem', paddingRight: '0.75rem' }}>
-            <div className="row">
-              <div className="col">
-                {successMessage && (
+          <div className="container-fluid">
+            <div className="dashboard-content">
+              {successMessage && (
                   <div className="alert alert-success alert-dismissible fade show">
                     <i className="bi bi-check-circle me-2"></i>
                     {successMessage}

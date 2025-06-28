@@ -16,8 +16,13 @@
 }
 
 .navbar .container-fluid {
-  padding-left: var(--container-padding);
-  padding-right: var(--container-padding);
+  width: 100%;
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 0 2rem;
+  height: 100%;
+  display: flex;
+  align-items: center;
 }
 
 /* Estilos del logo/marca */
@@ -54,7 +59,19 @@
 
 /* Dropdown */
 .navbar .dropdown-menu {
+  position: absolute;
+  right: var(--container-padding);
   margin-top: 0.5rem;
+  min-width: 200px;
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--box-shadow-lg);
+  border: 1px solid var(--border-color);
+}
+
+.navbar .dropdown-item {
+  padding: 0.5rem 1rem;
+  font-size: var(--font-size-sm);
+  color: var(--text-dark);
 }
 
 .navbar .dropdown-item:hover {
@@ -68,4 +85,10 @@
 .navbar .dropdown-divider {
   opacity: 0.1;
   margin: 0.25rem 0;
+}
+
+/* Ajuste del dropdown button */
+.navbar .dropdown {
+  position: relative;
+  margin-right: 0;
 } 

@@ -11,6 +11,18 @@
   /* Agrega aquí los estilos exclusivos del dashboard de RRHH */
 }
 
+/* Contenedor principal del dashboard */
+.container-fluid {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+.dashboard-content {
+  padding-top: 1.5rem;
+  padding-bottom: 1.5rem;
+}
+
 .hover-card:hover {
   transform: translateY(-5px);
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1) !important;
