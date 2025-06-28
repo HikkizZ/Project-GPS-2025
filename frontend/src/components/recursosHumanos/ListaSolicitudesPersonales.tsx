@@ -269,22 +269,38 @@ export const ListaSolicitudesPersonales: React.FC<ListaSolicitudesPersonalesProp
       </Card>
 
       {/* Modal de detalles */}
-      <Modal show={showDetalleModal} onHide={() => setShowDetalleModal(false)} size="lg">
+      <Modal show={showDetalleModal} onHide={() => setShowDetalleModal(false)} size="lg" className="modal-enhanced">
         <Modal.Header closeButton>
-          <Modal.Title>
-            <i className="bi bi-info-circle me-2"></i>
-            Detalles de Solicitud
+          <Modal.Title className="d-flex align-items-center">
+            <i className={`bi ${getTipoIcon(solicitudSeleccionada?.tipo || TipoSolicitud.PERMISO)} me-3 fs-4`}></i>
+            <div>
+              <span>Detalles de Solicitud</span>
+              <small className="d-block text-white-50 mt-1">
+                {solicitudSeleccionada?.tipo}
+              </small>
+            </div>
           </Modal.Title>
         </Modal.Header>
         <Modal.Body>
           {solicitudSeleccionada && (
             <div>
+              {/* Estado actual */}
+              <div className="mb-4 text-center">
+                <Badge 
+                  bg={getEstadoColor(solicitudSeleccionada.estado)} 
+                  className="badge-enhanced fs-6 px-4 py-2"
+                >
+                  <i className={`bi ${solicitudSeleccionada.estado === 'Pendiente' ? 'bi-clock' : solicitudSeleccionada.estado === 'Aprobada' ? 'bi-check-circle' : 'bi-x-circle'} me-2`}></i>
+                  {solicitudSeleccionada.estado}
+                </Badge>
+              </div>
+
               {/* Información principal */}
-              <Row className="mb-3">
+              <Row className="mb-4">
                 <Col md={6}>
-                  <Card className="h-100 border-primary">
+                  <Card className="info-card border-primary h-100">
                     <Card.Header className="bg-primary text-white">
-                      <h6 className="mb-0">Información General</h6>
+                      Información General
                     </Card.Header>
                     <Card.Body>
                       <div className="mb-2">
@@ -309,9 +325,9 @@ export const ListaSolicitudesPersonales: React.FC<ListaSolicitudesPersonalesProp
                   </Card>
                 </Col>
                 <Col md={6}>
-                  <Card className="h-100 border-info">
+                  <Card className="info-card border-info h-100">
                     <Card.Header className="bg-info text-white">
-                      <h6 className="mb-0">Fechas</h6>
+                      Fechas
                     </Card.Header>
                     <Card.Body>
                       <div className="mb-2">
@@ -327,46 +343,55 @@ export const ListaSolicitudesPersonales: React.FC<ListaSolicitudesPersonalesProp
                 </Col>
               </Row>
 
-              {/* Motivo */}
-              <Card className="mb-3">
-                <Card.Header>
-                  <h6 className="mb-0">Motivo de la Solicitud</h6>
+              {/* Motivo de la solicitud */}
+              <Card className="info-card border-warning mb-4">
+                <Card.Header className="bg-warning text-dark">
+                  Motivo de la Solicitud
                 </Card.Header>
                 <Card.Body>
-                  <p className="mb-0">{solicitudSeleccionada.motivoSolicitud}</p>
+                  <div className="p-3 bg-light rounded">
+                    <p className="mb-0 fst-italic">"{solicitudSeleccionada.motivoSolicitud}"</p>
+                  </div>
                 </Card.Body>
               </Card>
 
               {/* Respuesta del encargado */}
               {solicitudSeleccionada.respuestaEncargado && (
-                <Card className="mb-3">
+                <Card className={`info-card border-${getEstadoColor(solicitudSeleccionada.estado)} mb-4`}>
                   <Card.Header className={`bg-${getEstadoColor(solicitudSeleccionada.estado)} text-white`}>
-                    <h6 className="mb-0">Respuesta de Recursos Humanos</h6>
+                    <i className="bi bi-chat-square-text me-2"></i>
+                    Respuesta de Recursos Humanos
                   </Card.Header>
                   <Card.Body>
-                    <p className="mb-2">{solicitudSeleccionada.respuestaEncargado}</p>
-                    {solicitudSeleccionada.revisadoPor && (
-                      <small className="text-muted">
-                        Revisado por: <strong>{solicitudSeleccionada.revisadoPor.name}</strong>
-                      </small>
-                    )}
+                    <div className="p-3 bg-light rounded">
+                      <p className="mb-3 fst-italic">"{solicitudSeleccionada.respuestaEncargado}"</p>
+                      {solicitudSeleccionada.revisadoPor && (
+                        <div className="text-end">
+                          <small className="text-muted">
+                            <i className="bi bi-person-check me-1"></i>
+                            Revisado por: <strong>{solicitudSeleccionada.revisadoPor.name}</strong>
+                          </small>
+                        </div>
+                      )}
+                    </div>
                   </Card.Body>
                 </Card>
               )}
 
               {/* Archivo adjunto */}
               {solicitudSeleccionada.archivoAdjuntoURL && (
-                <Card>
-                  <Card.Header>
-                    <h6 className="mb-0">
-                      <i className="bi bi-paperclip me-2"></i>
-                      Archivo Adjunto
-                    </h6>
+                <Card className="info-card border-secondary">
+                  <Card.Header className="bg-secondary text-white">
+                    <i className="bi bi-file-earmark-arrow-down me-2"></i>
+                    Archivo Adjunto
                   </Card.Header>
-                  <Card.Body className="text-center">
-                    <i className="bi bi-file-earmark-pdf fs-1 text-danger mb-2 d-block"></i>
+                  <Card.Body className="text-center py-4">
+                    <i className="bi bi-file-earmark-pdf fs-1 text-danger mb-3 d-block"></i>
+                    <h6 className="mb-3">Documento de respaldo</h6>
                     <Button
                       variant="success"
+                      size="lg"
+                      className="btn-enhanced"
                       onClick={() => handleDescargarArchivo(solicitudSeleccionada)}
                       disabled={descargandoId === solicitudSeleccionada.id}
                     >
@@ -388,8 +413,8 @@ export const ListaSolicitudesPersonales: React.FC<ListaSolicitudesPersonalesProp
             </div>
           )}
         </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowDetalleModal(false)}>
+        <Modal.Footer className="justify-content-end">
+          <Button variant="secondary" className="btn-enhanced" onClick={() => setShowDetalleModal(false)}>
             <i className="bi bi-x-circle me-2"></i>
             Cerrar
           </Button>
