@@ -208,7 +208,7 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
     // Recargar las fichas
     handleSearch();
     // Mostrar toast de éxito
-    showSuccess('¡Ficha actualizada!', 'La ficha de empresa se ha actualizado exitosamente', 4000);
+    showSuccess('¡Usuario actualizado!', 'La ficha de empresa se ha actualizado exitosamente', 4000);
   };
 
   const handleDownloadContrato = async (fichaId: number) => {
@@ -888,6 +888,9 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
           onUpdate={handleUpdateSuccess}
         />
       )}
+
+      {/* Sistema de notificaciones */}
+      <Toast toasts={toasts} removeToast={removeToast} />
     </Container>
   );
 }; 
