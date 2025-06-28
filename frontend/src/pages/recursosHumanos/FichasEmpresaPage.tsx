@@ -330,7 +330,8 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                         <h2>Información Laboral</h2>
                         <div className="info-grid">
                           <div className="info-field">
-                            <label>Cargo:</label>
+                            <i className="bi bi-person-badge"></i>
+                            <label>Cargo</label>
                             <div className={`value ${getFieldClass(miFicha.cargo)}`}>
                               {miFicha.cargo === 'Por Definir' ? 
                                 <span className="pending">Por Definir</span> : 
@@ -340,7 +341,8 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                           </div>
 
                           <div className="info-field">
-                            <label>Área:</label>
+                            <i className="bi bi-diagram-3"></i>
+                            <label>Área</label>
                             <div className={`value ${getFieldClass(miFicha.area)}`}>
                               {miFicha.area === 'Por Definir' ? 
                                 <span className="pending">Por Definir</span> : 
@@ -350,7 +352,8 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                           </div>
 
                           <div className="info-field">
-                            <label>Tipo de Contrato:</label>
+                            <i className="bi bi-file-text"></i>
+                            <label>Tipo de Contrato</label>
                             <div className={`value ${getTipoContratoColor(miFicha.tipoContrato)}`}>
                               {miFicha.tipoContrato === 'Por Definir' ? 
                                 <span className="pending">Por Definir</span> : 
@@ -360,7 +363,8 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                           </div>
 
                           <div className="info-field">
-                            <label>Jornada:</label>
+                            <i className="bi bi-clock"></i>
+                            <label>Jornada</label>
                             <div className={`value ${getFieldClass(miFicha.jornadaLaboral)}`}>
                               {miFicha.jornadaLaboral === 'Por Definir' ? 
                                 <span className="pending">Por Definir</span> : 
@@ -370,24 +374,28 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                           </div>
 
                           <div className="info-field">
-                            <label>Fecha Inicio:</label>
+                            <i className="bi bi-calendar-event"></i>
+                            <label>Fecha Inicio</label>
                             <div className="value">{formatFecha(miFicha.fechaInicioContrato)}</div>
                           </div>
 
                           {miFicha.fechaFinContrato && (
                             <div className="info-field">
-                              <label>Fecha Fin:</label>
+                              <i className="bi bi-calendar-x"></i>
+                              <label>Fecha Fin</label>
                               <div className="value">{formatFecha(miFicha.fechaFinContrato)}</div>
                             </div>
                           )}
 
                           <div className="info-field">
-                            <label>Sueldo Base:</label>
-                            <div className="value text-success fw-bold">{formatSueldo(miFicha.sueldoBase)}</div>
+                            <i className="bi bi-cash"></i>
+                            <label>Sueldo Base</label>
+                            <div className="value text-success">{formatSueldo(miFicha.sueldoBase)}</div>
                           </div>
 
                           <div className="info-field">
-                            <label>Estado:</label>
+                            <i className="bi bi-person-check"></i>
+                            <label>Estado</label>
                             <div className="value">
                               <span className={`status-badge ${miFicha.estado.toLowerCase()}`}>
                                 {miFicha.estado}
@@ -402,37 +410,43 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                       <div className="info-section">
                         <h2>Información del Trabajador</h2>
                         <div className="info-field">
-                          <label>Nombre:</label>
+                          <i className="bi bi-person"></i>
+                          <label>Nombre</label>
                           <div className="value">
                             {miFicha.trabajador.nombres} {miFicha.trabajador.apellidoPaterno} {miFicha.trabajador.apellidoMaterno}
                           </div>
                         </div>
 
                         <div className="info-field">
-                          <label>RUT:</label>
+                          <i className="bi bi-person-vcard"></i>
+                          <label>RUT</label>
                           <div className="value">{formatRUT(miFicha.trabajador.rut)}</div>
                         </div>
 
                         {miFicha.trabajador.usuario?.email && (
                           <div className="info-field">
-                            <label>Correo Corporativo:</label>
+                            <i className="bi bi-envelope"></i>
+                            <label>Correo Corporativo</label>
                             <div className="value">{miFicha.trabajador.usuario.email}</div>
                           </div>
                         )}
 
                         <div className="info-field">
-                          <label>Teléfono:</label>
+                          <i className="bi bi-telephone"></i>
+                          <label>Teléfono</label>
                           <div className="value">{formatTelefono(miFicha.trabajador.telefono)}</div>
                         </div>
 
                         <div className="info-field">
-                          <label>Fecha Ingreso:</label>
+                          <i className="bi bi-calendar-check"></i>
+                          <label>Fecha Ingreso</label>
                           <div className="value">{formatFecha(miFicha.trabajador.fechaIngreso)}</div>
                         </div>
 
                         {miFicha.trabajador.fechaNacimiento && (
                           <div className="info-field">
-                            <label>Edad:</label>
+                            <i className="bi bi-calendar-heart"></i>
+                            <label>Edad</label>
                             <div className="value">{calcularEdad(miFicha.trabajador.fechaNacimiento)} años</div>
                           </div>
                         )}
