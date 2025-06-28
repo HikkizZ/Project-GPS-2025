@@ -54,6 +54,17 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [hasContrato, setHasContrato] = useState(!!ficha.contratoURL);
+  const [hasChanges, setHasChanges] = useState(false);
+  const [contratoEliminado, setContratoEliminado] = useState(false);
+  const [initialFormData, setInitialFormData] = useState<UpdateFichaEmpresaData & { sueldoBase: string }>({
+    cargo: '',
+    area: '',
+    tipoContrato: '',
+    jornadaLaboral: '',
+    sueldoBase: '',
+    fechaInicioContrato: '',
+    fechaFinContrato: ''
+  });
 
   // Toast notifications
   const { toasts, removeToast, showSuccess, showError } = useToast();
@@ -70,9 +81,7 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
 
   useEffect(() => {
     if (show) {
-      setSelectedFile(null);
-      setValidated(false);
-      setFormData({
+      const newFormData = {
         cargo: (ficha.cargo && ficha.cargo !== 'Por Definir') ? ficha.cargo : '',
         area: (ficha.area && ficha.area !== 'Por Definir') ? ficha.area : '',
         tipoContrato: (ficha.tipoContrato && ficha.tipoContrato !== 'Por Definir') ? ficha.tipoContrato : '',
@@ -80,19 +89,43 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
         sueldoBase: ficha.sueldoBase ? formatMiles(ficha.sueldoBase) : '',
         fechaInicioContrato: ficha.fechaInicioContrato ? new Date(ficha.fechaInicioContrato).toISOString().split('T')[0] : '',
         fechaFinContrato: ficha.fechaFinContrato ? new Date(ficha.fechaFinContrato).toISOString().split('T')[0] : ''
-      });
+      };
+      setFormData(newFormData);
+      setInitialFormData(newFormData);
+      setHasChanges(false);
+      setSelectedFile(null);
+      setValidated(false);
+      setContratoEliminado(false);
+      setHasContrato(!!ficha.contratoURL);
     }
   }, [show, ficha]);
 
   const handleInputChange = (e: any) => {
     const { name, value } = e.target;
+    let newFormData;
+    
     if (name === 'sueldoBase') {
       const numericValue = cleanNumber(value).replace(/[^0-9]/g, '');
       const formatted = numericValue ? formatMiles(numericValue) : '';
-      setFormData(prev => ({ ...prev, [name]: formatted }));
+      newFormData = { ...formData, [name]: formatted };
     } else {
-      setFormData(prev => ({ ...prev, [name]: value }));
+      newFormData = { ...formData, [name]: value };
     }
+    
+    setFormData(newFormData);
+    
+    // Verificar si hay cambios comparando con los valores iniciales
+    const hasAnyChange = Object.keys(newFormData).some(key => {
+      // Si es sueldoBase, comparar los valores numéricos
+      if (key === 'sueldoBase') {
+        const initialValue = cleanNumber(initialFormData[key]);
+        const currentValue = cleanNumber(newFormData[key]);
+        return initialValue !== currentValue;
+      }
+      return newFormData[key] !== initialFormData[key];
+    });
+    
+    setHasChanges(hasAnyChange || !!selectedFile);
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -109,6 +142,7 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
         return;
       }
       setSelectedFile(file);
+      setHasChanges(true);
     }
   };
 
@@ -117,6 +151,16 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
+    // Verificar si hay otros cambios además del archivo
+    const hasOtherChanges = Object.keys(formData).some(key => {
+      if (key === 'sueldoBase') {
+        const initialValue = cleanNumber(initialFormData[key]);
+        const currentValue = cleanNumber(formData[key]);
+        return initialValue !== currentValue;
+      }
+      return formData[key] !== initialFormData[key];
+    });
+    setHasChanges(hasOtherChanges);
   };
 
   const handleDownloadFile = async () => {
@@ -134,7 +178,9 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
       const response = await deleteContrato(ficha.id);
       if (response.success) {
         setHasContrato(false);
-        showSuccess('Contrato eliminado', 'El contrato se ha eliminado exitosamente', 4000);
+        setHasChanges(true);
+        setContratoEliminado(true);
+        showSuccess('Contrato eliminado', 'El contrato se ha eliminado exitosamente. Debe guardar los cambios para finalizar.', 6000);
       } else {
         showError('Error al eliminar', response.message || 'Error al eliminar el contrato', 6000);
       }
@@ -208,9 +254,16 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
 
   return (
     <>
-      <Modal show={show} onHide={onHide} size="lg" centered>
+      <Modal 
+        show={show} 
+        onHide={onHide} 
+        size="lg" 
+        centered
+        backdrop={contratoEliminado ? 'static' : true}
+        keyboard={!contratoEliminado}
+      >
         <Modal.Header 
-          closeButton 
+          closeButton={!contratoEliminado}
           style={{
             background: 'linear-gradient(135deg, #17a2b8 0%, #138496 100%)',
             border: 'none',
@@ -461,19 +514,26 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
           </Form>
         </Modal.Body>
 
-        <Modal.Footer style={{ borderTop: '1px solid #e9ecef', padding: '1rem 1.25rem' }}>
-          <Button 
-            variant="outline-secondary" 
-            onClick={onHide}
-            style={{ borderRadius: '20px', fontWeight: '500' }}
-          >
-            Cancelar
-          </Button>
+        <Modal.Footer style={{ padding: '1rem 1.25rem', borderTop: '1px solid #e9ecef' }}>
+          {!contratoEliminado && (
+            <Button 
+              variant="outline-secondary" 
+              onClick={onHide}
+              style={{ borderRadius: '20px', fontWeight: '500' }}
+            >
+              Cancelar
+            </Button>
+          )}
           <Button 
             variant="primary" 
             onClick={handleSubmit}
-            disabled={loading}
-            style={{ borderRadius: '20px', fontWeight: '500', minWidth: '120px' }}
+            disabled={loading || !hasChanges}
+            style={{ 
+              borderRadius: '20px', 
+              fontWeight: '500', 
+              minWidth: '120px',
+              marginLeft: contratoEliminado ? 'auto' : '0' // Centra el botón cuando está solo
+            }}
           >
             {loading ? (
               <>
