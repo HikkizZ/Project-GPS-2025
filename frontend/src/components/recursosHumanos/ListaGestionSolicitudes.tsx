@@ -359,7 +359,7 @@ export const ListaGestionSolicitudes: React.FC = () => {
       )}
 
       {/* Lista de solicitudes */}
-      <Card className="shadow-sm">
+      <Card className="shadow-sm main-card-spacing">
         <Card.Body>
           {solicitudesFiltradas.length === 0 ? (
             <div className="text-center py-5">

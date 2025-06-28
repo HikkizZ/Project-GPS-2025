@@ -167,7 +167,7 @@ export const ListaSolicitudesPersonales: React.FC<ListaSolicitudesPersonalesProp
       </div>
 
       {/* Lista de solicitudes */}
-      <Card className="shadow-sm">
+      <Card className="shadow-sm main-card-spacing">
         <Card.Body>
           {solicitudes.length === 0 ? (
             <div className="text-center py-5">
