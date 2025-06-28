@@ -300,7 +300,7 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
       <Container fluid className="py-2">
         <Row>
           <Col>
-            <Card className="shadow-sm">
+            <Card className="shadow-sm main-card-spacing">
               <Card.Header className="bg-gradient-primary text-white">
                 <div className="d-flex align-items-center">
                   <i className="bi bi-person-badge fs-4 me-3"></i>
