@@ -352,9 +352,10 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
         return <TrabajadoresPage />;
       default:
         return (
-          <div className="container-fluid">
-            <div className="dashboard-content">
-              {successMessage && (
+          <>
+            <div className="container-fluid">
+              <div className="dashboard-content">
+                {successMessage && (
                   <div className="alert alert-success alert-dismissible fade show">
                     <i className="bi bi-check-circle me-2"></i>
                     {successMessage}
@@ -579,7 +580,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
                 </div>
               </div>
             </div>
-          </div>
+          </>
         );
     }
   };
@@ -596,6 +597,7 @@ function PublicRoute({ children }: { children: JSX.Element }) {
 function App() {
   const { isAuthenticated, user, logout, isLoading } = useAuth();
   const location = useLocation();
+  const safeUser = user ?? { name: 'Usuario', role: 'Invitado', rut: 'N/A' };
 
   if (isLoading) {
     return (
@@ -610,15 +612,16 @@ function App() {
     );
   }
 
-  const safeUser = user ?? { name: 'Usuario', role: 'Invitado', rut: 'N/A' };
-
   return (
     <Routes>
-      <Route path="/login" element={
-        <PublicRoute>
-          <LoginPage />
-        </PublicRoute>
-      } />
+      <Route 
+        path="/login" 
+        element={
+          <PublicRoute>
+            <LoginPage />
+          </PublicRoute>
+        } 
+      />
       <Route
         path="/*"
         element={
@@ -638,7 +641,7 @@ function App() {
               </Routes>
             </MainLayout>
           ) : (
-            location.pathname === '/login' ? null : <Navigate to="/login" state={{ from: location }} replace />
+            <Navigate to="/login" state={{ from: location }} replace />
           )
         }
       />
