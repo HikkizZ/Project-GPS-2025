@@ -97,7 +97,7 @@ const GestionPersonalPage: React.FC = () => {
 
               {/* Tarjeta de Fichas de Empresa - Visible para todos los usuarios */}
               <Col md={tienePermisosCompletos ? 4 : 12}>
-                <Link to="/fichas-empresa" style={{ textDecoration: 'none' }}>
+                <Link to={tienePermisosCompletos ? "/ficha-empresa" : "/ficha-empresa/mi-ficha"} style={{ textDecoration: 'none' }}>
                   <Card 
                     className="h-100 border-0 shadow-lg" 
                     style={{ 

@@ -319,7 +319,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
   const handleTrabajadorCreated = (trabajador: Trabajador) => {
     setSuccessMessage(`Trabajador ${trabajador.nombres} ${trabajador.apellidoPaterno} registrado exitosamente. Completa ahora su información laboral.`);
     setRecienRegistrado(trabajador);
-    setCurrentPage('fichas-empresa');
+    setCurrentPage('ficha-empresa');
     setTimeout(() => setSuccessMessage(''), 5000);
   };
 
@@ -334,7 +334,14 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
             onCancel={() => setCurrentPage('home')}
           />
         );
-      case 'fichas-empresa':
+      case 'ficha-empresa':
+        return (
+          <FichasEmpresaPage 
+            trabajadorRecienRegistrado={recienRegistrado}
+            onTrabajadorModalClosed={() => setRecienRegistrado(null)}
+          />
+        );
+      case 'ficha-empresa/mi-ficha':
         return (
           <FichasEmpresaPage 
             trabajadorRecienRegistrado={recienRegistrado}
@@ -622,7 +629,8 @@ function App() {
                 <Route path="dashboard" element={<Dashboard user={safeUser} />} />
                 <Route path="recursos-humanos" element={<DashboardRecursosHumanos />} />
                 <Route path="trabajadores" element={<TrabajadoresPage />} />
-                <Route path="fichas-empresa" element={<FichasEmpresaPage />} />
+                <Route path="ficha-empresa" element={<FichasEmpresaPage />} />
+                <Route path="ficha-empresa/mi-ficha" element={<FichasEmpresaPage />} />
                 <Route path="usuarios" element={<UsersPage />} />
                 <Route path="gestion-personal" element={<GestionPersonalPage />} />
                 <Route path="gestion-licencias-permisos" element={<GestionLicenciasPermisosPage />} />

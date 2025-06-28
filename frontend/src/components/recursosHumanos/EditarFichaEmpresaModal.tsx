@@ -52,6 +52,19 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [validated, setValidated] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [hasContrato, setHasContrato] = useState(!!ficha.contratoURL);
+  const [hasChanges, setHasChanges] = useState(false);
+  const [contratoEliminado, setContratoEliminado] = useState(false);
+  const [initialFormData, setInitialFormData] = useState<UpdateFichaEmpresaData & { sueldoBase: string }>({
+    cargo: '',
+    area: '',
+    tipoContrato: '',
+    jornadaLaboral: '',
+    sueldoBase: '',
+    fechaInicioContrato: '',
+    fechaFinContrato: ''
+  });
 
   // Toast notifications
   const { toasts, removeToast, showSuccess, showError } = useToast();
@@ -68,9 +81,7 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
 
   useEffect(() => {
     if (show) {
-      setSelectedFile(null);
-      setValidated(false);
-      setFormData({
+      const newFormData = {
         cargo: (ficha.cargo && ficha.cargo !== 'Por Definir') ? ficha.cargo : '',
         area: (ficha.area && ficha.area !== 'Por Definir') ? ficha.area : '',
         tipoContrato: (ficha.tipoContrato && ficha.tipoContrato !== 'Por Definir') ? ficha.tipoContrato : '',
@@ -78,19 +89,43 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
         sueldoBase: ficha.sueldoBase ? formatMiles(ficha.sueldoBase) : '',
         fechaInicioContrato: ficha.fechaInicioContrato ? new Date(ficha.fechaInicioContrato).toISOString().split('T')[0] : '',
         fechaFinContrato: ficha.fechaFinContrato ? new Date(ficha.fechaFinContrato).toISOString().split('T')[0] : ''
-      });
+      };
+      setFormData(newFormData);
+      setInitialFormData(newFormData);
+      setHasChanges(false);
+      setSelectedFile(null);
+      setValidated(false);
+      setContratoEliminado(false);
+      setHasContrato(!!ficha.contratoURL);
     }
   }, [show, ficha]);
 
   const handleInputChange = (e: any) => {
     const { name, value } = e.target;
+    let newFormData;
+    
     if (name === 'sueldoBase') {
       const numericValue = cleanNumber(value).replace(/[^0-9]/g, '');
       const formatted = numericValue ? formatMiles(numericValue) : '';
-      setFormData(prev => ({ ...prev, [name]: formatted }));
+      newFormData = { ...formData, [name]: formatted };
     } else {
-      setFormData(prev => ({ ...prev, [name]: value }));
+      newFormData = { ...formData, [name]: value };
     }
+    
+    setFormData(newFormData);
+    
+    // Verificar si hay cambios comparando con los valores iniciales
+    const hasAnyChange = Object.keys(newFormData).some(key => {
+      // Si es sueldoBase, comparar los valores numéricos
+      if (key === 'sueldoBase') {
+        const initialValue = cleanNumber(initialFormData[key]);
+        const currentValue = cleanNumber(newFormData[key]);
+        return initialValue !== currentValue;
+      }
+      return newFormData[key] !== initialFormData[key];
+    });
+    
+    setHasChanges(hasAnyChange || !!selectedFile);
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -107,6 +142,7 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
         return;
       }
       setSelectedFile(file);
+      setHasChanges(true);
     }
   };
 
@@ -115,6 +151,16 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
+    // Verificar si hay otros cambios además del archivo
+    const hasOtherChanges = Object.keys(formData).some(key => {
+      if (key === 'sueldoBase') {
+        const initialValue = cleanNumber(initialFormData[key]);
+        const currentValue = cleanNumber(formData[key]);
+        return initialValue !== currentValue;
+      }
+      return formData[key] !== initialFormData[key];
+    });
+    setHasChanges(hasOtherChanges);
   };
 
   const handleDownloadFile = async () => {
@@ -127,14 +173,14 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
   };
 
   const handleDeleteFile = async () => {
-    if (!confirm('¿Está seguro de que desea eliminar el contrato?')) {
-      return;
-    }
+    setShowDeleteConfirm(false);
     try {
       const response = await deleteContrato(ficha.id);
       if (response.success) {
-        if (onUpdate) onUpdate();
-        showSuccess('Contrato eliminado', 'El contrato se ha eliminado exitosamente', 4000);
+        setHasContrato(false);
+        setHasChanges(true);
+        setContratoEliminado(true);
+        showSuccess('Contrato eliminado', 'El contrato se ha eliminado exitosamente. Debe guardar los cambios para finalizar.', 6000);
       } else {
         showError('Error al eliminar', response.message || 'Error al eliminar el contrato', 6000);
       }
@@ -207,274 +253,384 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
   };
 
   return (
-    <Modal show={show} onHide={onHide} size="lg" centered>
-      <Modal.Header 
-        closeButton 
-        style={{
-          background: 'linear-gradient(135deg, #17a2b8 0%, #138496 100%)',
-          border: 'none',
-          padding: '1rem 1.25rem'
-        }}
-        className="text-white"
+    <>
+      <Modal 
+        show={show} 
+        onHide={onHide} 
+        size="lg" 
+        centered
+        backdrop={contratoEliminado ? 'static' : true}
+        keyboard={!contratoEliminado}
       >
-        <Modal.Title className="fw-semibold">
-          <i className="bi bi-clipboard-data me-2"></i>
-          Editar Ficha de Empresa
-        </Modal.Title>
-      </Modal.Header>
+        <Modal.Header 
+          closeButton={!contratoEliminado}
+          style={{
+            background: 'linear-gradient(135deg, #17a2b8 0%, #138496 100%)',
+            border: 'none',
+            padding: '1rem 1.25rem'
+          }}
+          className="text-white"
+        >
+          <Modal.Title className="fw-semibold">
+            <i className="bi bi-clipboard-data me-2"></i>
+            Editar Ficha de Empresa
+          </Modal.Title>
+        </Modal.Header>
 
-      <Modal.Body style={{ padding: '1.25rem' }}>
-        {/* Información del Trabajador - Tamaño balanceado */}
-        <div 
-          className="mb-3 p-2" 
+        <Modal.Body style={{ padding: '1.25rem' }}>
+          {/* Información del Trabajador - Tamaño balanceado */}
+          <div 
+            className="mb-3 p-2" 
+            style={{ 
+              backgroundColor: '#f8f9fa', 
+              borderRadius: '8px',
+              border: '1px solid #e9ecef'
+            }}
+          >
+            <div className="row">
+              <div className="col-md-8">
+                <span className="text-muted">Trabajador:</span>
+                <strong className="ms-1">{ficha.trabajador.nombres} {ficha.trabajador.apellidoPaterno} {ficha.trabajador.apellidoMaterno}</strong>
+              </div>
+              <div className="col-md-4">
+                <span className="text-muted">RUT:</span>
+                <strong className="ms-1">{formatearRut(ficha.trabajador.rut)}</strong>
+              </div>
+            </div>
+          </div>
+
+          <Form onSubmit={handleSubmit} noValidate>
+            <Row className="g-3 mb-3">
+              {/* Cargo y Área */}
+              <Col md={6}>
+                <Form.Group>
+                  <Form.Label className="fw-semibold">Cargo <span className="text-danger">*</span></Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="cargo"
+                    value={formData.cargo}
+                    onChange={handleInputChange}
+                    required
+                    style={{ borderRadius: '8px' }}
+                    placeholder="Ej: Desarrollador Senior"
+                    isInvalid={validated && (!formData.cargo.trim() || formData.cargo.trim() === 'Por Definir')}
+                  />
+                  <Form.Control.Feedback type="invalid">
+                    Completa este campo
+                  </Form.Control.Feedback>
+                </Form.Group>
+              </Col>
+              <Col md={6}>
+                <Form.Group>
+                  <Form.Label className="fw-semibold">Área <span className="text-danger">*</span></Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="area"
+                    value={formData.area}
+                    onChange={handleInputChange}
+                    required
+                    style={{ borderRadius: '8px' }}
+                    placeholder="Ej: Tecnología"
+                    isInvalid={validated && (!formData.area.trim() || formData.area.trim() === 'Por Definir')}
+                  />
+                  <Form.Control.Feedback type="invalid">
+                    Completa este campo
+                  </Form.Control.Feedback>
+                </Form.Group>
+              </Col>
+            </Row>
+
+            <Row className="g-3 mb-3">
+              {/* Tipo de Contrato y Jornada */}
+              <Col md={6}>
+                <Form.Group>
+                  <Form.Label className="fw-semibold">Tipo de Contrato <span className="text-danger">*</span></Form.Label>
+                  <Form.Select
+                    name="tipoContrato"
+                    value={formData.tipoContrato}
+                    onChange={handleInputChange}
+                    required
+                    style={{ borderRadius: '8px' }}
+                    isInvalid={validated && (!formData.tipoContrato || formData.tipoContrato === 'Por Definir')}
+                  >
+                    <option value="">Seleccione...</option>
+                    <option value="Indefinido">Indefinido</option>
+                    <option value="Plazo Fijo">Plazo Fijo</option>
+                    <option value="Por Obra">Por Obra</option>
+                    <option value="Part-Time">Part-Time</option>
+                  </Form.Select>
+                  <Form.Control.Feedback type="invalid">
+                    Completa este campo
+                  </Form.Control.Feedback>
+                </Form.Group>
+              </Col>
+              <Col md={6}>
+                <Form.Group>
+                  <Form.Label className="fw-semibold">Jornada Laboral <span className="text-danger">*</span></Form.Label>
+                  <Form.Select
+                    name="jornadaLaboral"
+                    value={formData.jornadaLaboral}
+                    onChange={handleInputChange}
+                    required
+                    style={{ borderRadius: '8px' }}
+                    isInvalid={validated && (!formData.jornadaLaboral || formData.jornadaLaboral === 'Por Definir')}
+                  >
+                    <option value="">Seleccione...</option>
+                    <option value="Completa">Completa</option>
+                    <option value="Media">Media</option>
+                    <option value="Part-Time">Part-Time</option>
+                  </Form.Select>
+                  <Form.Control.Feedback type="invalid">
+                    Completa este campo
+                  </Form.Control.Feedback>
+                </Form.Group>
+              </Col>
+            </Row>
+
+            <Row className="g-3 mb-3">
+              {/* Sueldo Base */}
+              <Col md={4}>
+                <Form.Group>
+                  <Form.Label className="fw-semibold">Sueldo Base <span className="text-danger">*</span></Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="sueldoBase"
+                    value={formData.sueldoBase}
+                    onChange={handleInputChange}
+                    required
+                    style={{ borderRadius: '8px' }}
+                    placeholder="1.000.000"
+                    isInvalid={validated && (!formData.sueldoBase || parseInt(cleanNumber(formData.sueldoBase)) <= 0)}
+                  />
+                  <Form.Control.Feedback type="invalid">
+                    {!formData.sueldoBase ? 'Completa este campo' : 'El sueldo debe ser mayor a 0'}
+                  </Form.Control.Feedback>
+                </Form.Group>
+              </Col>
+              {/* Fecha Inicio Contrato */}
+              <Col md={4}>
+                <Form.Group>
+                  <Form.Label className="fw-semibold">Fecha Inicio <span className="text-danger">*</span></Form.Label>
+                  <Form.Control
+                    type="date"
+                    name="fechaInicioContrato"
+                    value={formData.fechaInicioContrato}
+                    onChange={handleInputChange}
+                    required
+                    style={{ borderRadius: '8px' }}
+                    isInvalid={validated && !formData.fechaInicioContrato}
+                  />
+                  <Form.Control.Feedback type="invalid">
+                    Completa este campo
+                  </Form.Control.Feedback>
+                </Form.Group>
+              </Col>
+              {/* Fecha Fin Contrato */}
+              <Col md={4}>
+                <Form.Group>
+                  <Form.Label className="fw-semibold">Fecha Fin</Form.Label>
+                  <Form.Control
+                    type="date"
+                    name="fechaFinContrato"
+                    value={formData.fechaFinContrato}
+                    onChange={handleInputChange}
+                    style={{ borderRadius: '8px' }}
+                  />
+                  <Form.Text className="text-muted small">
+                    <i className="bi bi-info-circle me-1"></i>
+                    Opcional para contratos indefinidos
+                  </Form.Text>
+                </Form.Group>
+              </Col>
+            </Row>
+
+            {/* Sección de Contrato */}
+            <div style={{ borderTop: '1px solid #e9ecef', paddingTop: '1rem', marginTop: '1rem' }}>
+              <h6 className="text-primary mb-3 fw-semibold">Contrato</h6>
+              
+              {/* Mostrar botones de descargar y eliminar si hay contrato */}
+              {hasContrato ? (
+                <>
+                  <div className="d-flex align-items-center text-success mb-3">
+                    <i className="bi bi-file-earmark-pdf me-2"></i>
+                    <small>Contrato actual disponible</small>
+                  </div>
+                  <div className="d-flex gap-2 mb-3">
+                    <Button 
+                      variant="outline-primary" 
+                      size="sm"
+                      onClick={handleDownloadFile}
+                      style={{ borderRadius: '6px' }}
+                    >
+                      <i className="bi bi-download me-1"></i>
+                      Descargar Contrato
+                    </Button>
+                    <Button 
+                      variant="outline-danger" 
+                      size="sm"
+                      onClick={() => setShowDeleteConfirm(true)}
+                      style={{ borderRadius: '6px' }}
+                    >
+                      <i className="bi bi-trash me-1"></i>
+                      Eliminar Contrato
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                /* Mostrar input para subir nuevo contrato si no hay contrato */
+                <Form.Group>
+                  <Form.Label className="fw-semibold">Subir nuevo contrato</Form.Label>
+                  <Form.Control
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".pdf"
+                    onChange={handleFileSelect}
+                    style={{ borderRadius: '8px' }}
+                  />
+                  <Form.Text className="text-muted small">
+                    <i className="bi bi-info-circle me-1"></i>
+                    Solo archivos PDF, máximo 10MB
+                  </Form.Text>
+                  {selectedFile && (
+                    <div className="mt-2 p-2 bg-light rounded d-flex align-items-center justify-content-between">
+                      <div>
+                        <i className="bi bi-file-pdf text-danger me-2"></i>
+                        <strong>{selectedFile.name}</strong>
+                      </div>
+                      <Button 
+                        variant="outline-danger" 
+                        size="sm" 
+                        onClick={handleRemoveFile}
+                        style={{ borderRadius: '6px' }}
+                      >
+                        <i className="bi bi-x me-1"></i>
+                        Quitar archivo
+                      </Button>
+                    </div>
+                  )}
+                </Form.Group>
+              )}
+            </div>
+          </Form>
+        </Modal.Body>
+
+        <Modal.Footer style={{ padding: '1rem 1.25rem', borderTop: '1px solid #e9ecef' }}>
+          {!contratoEliminado && (
+            <Button 
+              variant="outline-secondary" 
+              onClick={onHide}
+              style={{ borderRadius: '20px', fontWeight: '500' }}
+            >
+              Cancelar
+            </Button>
+          )}
+          <Button 
+            variant="primary" 
+            onClick={handleSubmit}
+            disabled={loading || !hasChanges}
+            style={{ 
+              borderRadius: '20px', 
+              fontWeight: '500', 
+              minWidth: '120px',
+              marginLeft: contratoEliminado ? 'auto' : '0' // Centra el botón cuando está solo
+            }}
+          >
+            {loading ? (
+              <>
+                <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                Guardando...
+              </>
+            ) : (
+              <>
+                <i className="bi bi-check-lg me-2"></i>
+                Guardar Cambios
+              </>
+            )}
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* Modal de confirmación para eliminar contrato */}
+      <Modal 
+        show={showDeleteConfirm} 
+        onHide={() => setShowDeleteConfirm(false)}
+        centered
+        size="sm"
+        style={{ 
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        }}
+        backdropClassName="confirm-delete-backdrop"
+      >
+        <Modal.Header 
+          closeButton 
           style={{ 
-            backgroundColor: '#f8f9fa', 
-            borderRadius: '8px',
-            border: '1px solid #e9ecef'
+            border: 'none', 
+            paddingBottom: '0.5rem',
+            background: 'white',
+            borderTopLeftRadius: '8px',
+            borderTopRightRadius: '8px'
           }}
         >
-          <div className="row">
-            <div className="col-md-8">
-              <span className="text-muted">Trabajador:</span>
-              <strong className="ms-1">{ficha.trabajador.nombres} {ficha.trabajador.apellidoPaterno} {ficha.trabajador.apellidoMaterno}</strong>
-            </div>
-            <div className="col-md-4">
-              <span className="text-muted">RUT:</span>
-              <strong className="ms-1">{formatearRut(ficha.trabajador.rut)}</strong>
-            </div>
-          </div>
-        </div>
-
-        <Form onSubmit={handleSubmit} noValidate>
-          <Row className="g-3 mb-3">
-            {/* Cargo y Área */}
-            <Col md={6}>
-              <Form.Group>
-                <Form.Label className="fw-semibold">Cargo <span className="text-danger">*</span></Form.Label>
-                <Form.Control
-                  type="text"
-                  name="cargo"
-                  value={formData.cargo}
-                  onChange={handleInputChange}
-                  required
-                  style={{ borderRadius: '8px' }}
-                  placeholder="Ej: Desarrollador Senior"
-                  isInvalid={validated && (!formData.cargo.trim() || formData.cargo.trim() === 'Por Definir')}
-                />
-                <Form.Control.Feedback type="invalid">
-                  Completa este campo
-                </Form.Control.Feedback>
-              </Form.Group>
-            </Col>
-            <Col md={6}>
-              <Form.Group>
-                <Form.Label className="fw-semibold">Área <span className="text-danger">*</span></Form.Label>
-                <Form.Control
-                  type="text"
-                  name="area"
-                  value={formData.area}
-                  onChange={handleInputChange}
-                  required
-                  style={{ borderRadius: '8px' }}
-                  placeholder="Ej: Tecnología"
-                  isInvalid={validated && (!formData.area.trim() || formData.area.trim() === 'Por Definir')}
-                />
-                <Form.Control.Feedback type="invalid">
-                  Completa este campo
-                </Form.Control.Feedback>
-              </Form.Group>
-            </Col>
-          </Row>
-
-          <Row className="g-3 mb-3">
-            {/* Tipo de Contrato y Jornada */}
-            <Col md={6}>
-              <Form.Group>
-                <Form.Label className="fw-semibold">Tipo de Contrato <span className="text-danger">*</span></Form.Label>
-                <Form.Select
-                  name="tipoContrato"
-                  value={formData.tipoContrato}
-                  onChange={handleInputChange}
-                  required
-                  style={{ borderRadius: '8px' }}
-                  isInvalid={validated && (!formData.tipoContrato || formData.tipoContrato === 'Por Definir')}
-                >
-                  <option value="">Seleccione...</option>
-                  <option value="Indefinido">Indefinido</option>
-                  <option value="Plazo Fijo">Plazo Fijo</option>
-                  <option value="Por Obra">Por Obra</option>
-                  <option value="Part-Time">Part-Time</option>
-                </Form.Select>
-                <Form.Control.Feedback type="invalid">
-                  Completa este campo
-                </Form.Control.Feedback>
-              </Form.Group>
-            </Col>
-            <Col md={6}>
-              <Form.Group>
-                <Form.Label className="fw-semibold">Jornada Laboral <span className="text-danger">*</span></Form.Label>
-                <Form.Select
-                  name="jornadaLaboral"
-                  value={formData.jornadaLaboral}
-                  onChange={handleInputChange}
-                  required
-                  style={{ borderRadius: '8px' }}
-                  isInvalid={validated && (!formData.jornadaLaboral || formData.jornadaLaboral === 'Por Definir')}
-                >
-                  <option value="">Seleccione...</option>
-                  <option value="Completa">Completa</option>
-                  <option value="Media">Media</option>
-                  <option value="Part-Time">Part-Time</option>
-                </Form.Select>
-                <Form.Control.Feedback type="invalid">
-                  Completa este campo
-                </Form.Control.Feedback>
-              </Form.Group>
-            </Col>
-          </Row>
-
-          <Row className="g-3 mb-3">
-            {/* Sueldo Base */}
-            <Col md={4}>
-              <Form.Group>
-                <Form.Label className="fw-semibold">Sueldo Base <span className="text-danger">*</span></Form.Label>
-                <Form.Control
-                  type="text"
-                  name="sueldoBase"
-                  value={formData.sueldoBase}
-                  onChange={handleInputChange}
-                  required
-                  style={{ borderRadius: '8px' }}
-                  placeholder="1.000.000"
-                  isInvalid={validated && (!formData.sueldoBase || parseInt(cleanNumber(formData.sueldoBase)) <= 0)}
-                />
-                <Form.Control.Feedback type="invalid">
-                  {!formData.sueldoBase ? 'Completa este campo' : 'El sueldo debe ser mayor a 0'}
-                </Form.Control.Feedback>
-              </Form.Group>
-            </Col>
-            {/* Fecha Inicio Contrato */}
-            <Col md={4}>
-              <Form.Group>
-                <Form.Label className="fw-semibold">Fecha Inicio <span className="text-danger">*</span></Form.Label>
-                <Form.Control
-                  type="date"
-                  name="fechaInicioContrato"
-                  value={formData.fechaInicioContrato}
-                  onChange={handleInputChange}
-                  required
-                  style={{ borderRadius: '8px' }}
-                  isInvalid={validated && !formData.fechaInicioContrato}
-                />
-                <Form.Control.Feedback type="invalid">
-                  Completa este campo
-                </Form.Control.Feedback>
-              </Form.Group>
-            </Col>
-            {/* Fecha Fin Contrato */}
-            <Col md={4}>
-              <Form.Group>
-                <Form.Label className="fw-semibold">Fecha Fin</Form.Label>
-                <Form.Control
-                  type="date"
-                  name="fechaFinContrato"
-                  value={formData.fechaFinContrato}
-                  onChange={handleInputChange}
-                  style={{ borderRadius: '8px' }}
-                />
-                <Form.Text className="text-muted small">
-                  <i className="bi bi-info-circle me-1"></i>
-                  Opcional para contratos indefinidos
-                </Form.Text>
-              </Form.Group>
-            </Col>
-          </Row>
-
-          {/* Sección de Contrato */}
-          <div style={{ borderTop: '1px solid #e9ecef', paddingTop: '1rem', marginTop: '1rem' }}>
-            <h6 className="text-primary mb-3 fw-semibold">Contrato</h6>
-            
-            {/* Estado actual del contrato */}
-            {ficha.contratoURL && (
-              <div className="d-flex align-items-center text-success mb-2">
-                <i className="bi bi-file-earmark-pdf me-2"></i>
-                <small>Contrato actual disponible</small>
-              </div>
-            )}
-
-            {/* Subir nuevo contrato */}
-            <Form.Group>
-              <Form.Label className="fw-semibold">
-                {ficha.contratoURL ? 'Reemplazar contrato' : 'Subir nuevo contrato'}
-              </Form.Label>
-              <Form.Control
-                ref={fileInputRef}
-                type="file"
-                accept=".pdf"
-                onChange={handleFileSelect}
-                style={{ borderRadius: '8px' }}
-              />
-              <Form.Text className="text-muted small">
-                <i className="bi bi-info-circle me-1"></i>
-                Solo archivos PDF, máximo 10MB
-              </Form.Text>
-              {selectedFile && (
-                <div className="mt-2 p-2 bg-light rounded d-flex align-items-center justify-content-between">
-                  <div>
-                    <i className="bi bi-file-pdf text-danger me-2"></i>
-                    <strong>{selectedFile.name}</strong>
-                  </div>
-                  <Button 
-                    variant="outline-danger" 
-                    size="sm" 
-                    onClick={handleRemoveFile}
-                    style={{ borderRadius: '6px' }}
-                  >
-                    <i className="bi bi-x me-1"></i>
-                    Quitar archivo
-                  </Button>
-                </div>
-              )}
-            </Form.Group>
-          </div>
-        </Form>
-      </Modal.Body>
-
-      <Modal.Footer style={{ borderTop: '1px solid #e9ecef', padding: '1rem 1.25rem' }}>
-        <Button 
-          variant="outline-secondary" 
-          onClick={onHide}
-          style={{ borderRadius: '20px', fontWeight: '500' }}
+          <Modal.Title as="h6" className="d-flex align-items-center">
+            <i className="bi bi-exclamation-triangle-fill text-warning me-2"></i>
+            Confirmar eliminación
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body 
+          style={{ 
+            paddingTop: '0.5rem', 
+            paddingBottom: '1.5rem',
+            background: 'white'
+          }}
         >
-          Cancelar
-        </Button>
-        <Button 
-          variant="primary" 
-          onClick={handleSubmit}
-          disabled={loading}
-          style={{ borderRadius: '20px', fontWeight: '500', minWidth: '120px' }}
+          ¿Está seguro que desea eliminar el contrato?
+        </Modal.Body>
+        <Modal.Footer 
+          style={{ 
+            border: 'none', 
+            paddingTop: '0',
+            background: 'white',
+            borderBottomLeftRadius: '8px',
+            borderBottomRightRadius: '8px'
+          }}
         >
-          {loading ? (
-            <>
-              <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-              Guardando...
-            </>
-          ) : (
-            <>
-              <i className="bi bi-check-lg me-2"></i>
-              Guardar Cambios
-            </>
-          )}
-        </Button>
-      </Modal.Footer>
+          <Button 
+            variant="outline-secondary" 
+            size="sm"
+            onClick={() => setShowDeleteConfirm(false)}
+            style={{ 
+              borderRadius: '6px',
+              padding: '0.375rem 1rem'
+            }}
+          >
+            Cancelar
+          </Button>
+          <Button 
+            variant="danger" 
+            size="sm"
+            onClick={handleDeleteFile}
+            style={{ 
+              borderRadius: '6px',
+              padding: '0.375rem 1rem'
+            }}
+          >
+            Aceptar
+          </Button>
+        </Modal.Footer>
+      </Modal>
 
       {/* Sistema de notificaciones */}
       <div 
         style={{ 
           position: 'fixed', 
           top: '20px', 
-          right: '20px', 
-          zIndex: 10000 
+          left: '50%',
+          transform: 'translateX(-50%)',
+          zIndex: 10000,
+          width: 'auto',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center'
         }}
       >
         {toasts.map((toast) => (
@@ -498,6 +654,6 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
           </BootstrapToast>
         ))}
       </div>
-    </Modal>
+    </>
   );
 }; 
