@@ -69,6 +69,10 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
   // Ya no necesitamos filtrar aquí porque todo se maneja en el backend
   const fichasFiltradas = fichas;
 
+  // Definir roles privilegiados que pueden gestionar todas las fichas
+  const rolesPrivilegiados: string[] = ['SuperAdministrador', 'Administrador', 'RecursosHumanos'];
+  const tienePermisosCompletos = user && rolesPrivilegiados.includes(user.role);
+
   // Cargar datos iniciales
   useEffect(() => {
     // No ejecutar si aún está cargando la autenticación
@@ -81,7 +85,7 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
       return;
     }
 
-    if (user.role === 'Usuario') {
+    if (!tienePermisosCompletos) {
       loadMiFicha();
     } else {
       setIncluirDesvinculados(false);
@@ -91,7 +95,7 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
       setSearchQuery({ estado: EstadoLaboral.ACTIVO });
       searchFichas({ estado: EstadoLaboral.ACTIVO });
     }
-  }, [user, isAuthLoading, loadMiFicha]);
+  }, [user, isAuthLoading, loadMiFicha, tienePermisosCompletos]);
 
   // Detectar trabajador recién registrado y abrir modal automáticamente
   useEffect(() => {
@@ -166,7 +170,7 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
     setIncluirLicencias(false);
     setIncluirPermisos(false);
     setIncluirSinFechaFin(false);
-    if (user?.role !== 'Usuario') {
+    if (tienePermisosCompletos) {
       searchFichas({ estado: EstadoLaboral.ACTIVO });
     }
   };
@@ -271,8 +275,8 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
     return telefono;
   };
 
-  // Si es usuario normal, mostrar solo su ficha
-  if (user?.role === 'Usuario') {
+  // Si es usuario sin permisos administrativos, mostrar solo su ficha
+  if (user && !tienePermisosCompletos) {
     return (
       <Container fluid className="py-2">
         <Row>
