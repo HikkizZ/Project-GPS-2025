@@ -656,4 +656,9 @@
 .card .card-body {
   padding-bottom: 2.5rem;
   padding-right: 2.5rem;
-} 
+}
+
+/* Separación profesional entre la tarjeta principal y el footer */
+.solicitud-card-main {
+  margin-bottom: 2.3rem;
+}

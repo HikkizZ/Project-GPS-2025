@@ -258,7 +258,7 @@ export const FormularioSolicitudLicenciaPermiso: React.FC<FormularioSolicitudLic
   const diasCalculados = calcularDias();
 
   return (
-    <Card className="shadow-sm">
+    <Card className="shadow-sm solicitud-card-main">
       <Card.Header className="bg-primary text-white">
         <h5 className="mb-0">
           <i className="bi bi-plus-circle me-2"></i>
