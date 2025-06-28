@@ -661,4 +661,6 @@
 /* Separación profesional entre la tarjeta principal y el footer */
 .solicitud-card-main {
   margin-bottom: 2.3rem;
+  border-radius: 1.25rem !important;
+  overflow: hidden;
 }
