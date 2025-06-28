@@ -73,7 +73,7 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
   const esSuperAdministrador = user?.role === 'SuperAdministrador';
   const esAdminORecursosHumanos = user?.role === 'Administrador' || user?.role === 'RecursosHumanos';
   const puedeGestionarFichas = esSuperAdministrador || esAdminORecursosHumanos;
-  const puedeVerFichaPersonal = user && user.role !== 'SuperAdministrador';
+  const puedeAccederModulosPersonales = user && user.role !== 'SuperAdministrador';
 
   // Cargar datos iniciales
   useEffect(() => {
@@ -294,7 +294,7 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
   };
 
   // Si es usuario sin permisos administrativos o está en la ruta de ficha personal
-  if ((user && !puedeGestionarFichas) || (puedeVerFichaPersonal && window.location.pathname === '/ficha-empresa/mi-ficha')) {
+  if ((user && !puedeGestionarFichas) || (puedeAccederModulosPersonales && window.location.pathname === '/ficha-empresa/mi-ficha')) {
     return (
       <Container fluid className="py-2">
         <Row>
