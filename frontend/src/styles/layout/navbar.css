@@ -100,6 +100,7 @@
 .navbar-user-dropdown {
   display: inline-block;
   width: fit-content;
+  margin-right: 15px;
 }
 
 .navbar-user-dropdown .dropdown-menu {
