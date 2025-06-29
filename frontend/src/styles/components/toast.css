@@ -11,22 +11,22 @@
 }
 
 .toast-header-success {
-  background: #19c37d !important;
+  background: #21916b !important; /* Verde profesional */
   color: #fff !important;
   border-bottom: none;
 }
 .toast-header-error {
-  background: #e53935 !important;
+  background: #c0392b !important; /* Rojo sobrio */
   color: #fff !important;
   border-bottom: none;
 }
 .toast-header-warning {
-  background: #fbc02d !important;
+  background: #e1b000 !important; /* Amarillo profesional */
   color: #fff !important;
   border-bottom: none;
 }
 .toast-header-info {
-  background: #1976d2 !important;
+  background: #2563eb !important; /* Azul elegante */
   color: #fff !important;
   border-bottom: none;
 }
