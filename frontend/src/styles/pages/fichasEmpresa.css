@@ -154,29 +154,17 @@
 
 /* Estilos para las secciones de información */
 .info-section {
-  background: white;
+  background: #fff;
   border-radius: 12px;
-  padding: 1.25rem;
+  padding: 1.5rem;
   margin-bottom: 1.5rem;
-  box-shadow: 0 2px 8px rgba(99, 99, 99, 0.1);
-  position: relative;
-  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e9ecef;
 }
 
-.info-section::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 3px;
-  background: linear-gradient(90deg, #4a6cf7, #6c8aff);
-}
-
-/* Títulos de sección */
 .info-section h2 {
   color: #1a1f36;
-  font-size: 0.85rem;
+  font-size: 1.1rem;
   font-weight: 700;
   margin-bottom: 1.5rem;
   text-transform: uppercase;
@@ -186,19 +174,16 @@
   gap: 0.5rem;
 }
 
-.info-section h2::before {
-  content: '';
-  width: 3px;
-  height: 18px;
-  background: #4a6cf7;
-  border-radius: 3px;
-}
-
-/* Grid para la información */
 .info-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 1.25rem;
+}
+
+@media (max-width: 992px) {
+  .info-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* Campos individuales */
@@ -236,16 +221,21 @@
   margin-bottom: 0.35rem;
 }
 
-.info-field .value {
+.value {
   color: #1e293b;
   font-weight: 500;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
 }
 
-.info-field .pending {
-  color: #94a3b8;
+.por-definir {
+  color: #adb5bd;
   font-style: italic;
-  font-size: 0.85rem;
+}
+
+.pending {
+  color: #adb5bd;
+  font-style: italic;
+  font-size: 0.95rem;
 }
 
 /* Estado del trabajador */
@@ -321,22 +311,8 @@
 
 /* Responsive */
 @media (max-width: 768px) {
-  .info-grid {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-  }
-  
   .info-section {
     padding: 1rem;
-  }
-  
-  .info-field {
-    padding: 0.625rem 0.625rem 0.625rem 2.25rem;
-  }
-  
-  .info-field i {
-    left: 0.625rem;
-    font-size: 1rem;
   }
 }
 
