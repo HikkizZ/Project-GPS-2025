@@ -134,7 +134,6 @@ export const FormularioSolicitudLicenciaPermiso: React.FC<FormularioSolicitudLic
       const result = await crearSolicitud(formData);
       if (result.success) {
         onSuccess();
-        showSuccess('¡Solicitud creada!', 'Tu solicitud ha sido enviada exitosamente');
         resetForm();
       } else {
         setLocalErrors({ submit: result.error || 'Error al crear la solicitud' });

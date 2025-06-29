@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import { Container, Row, Col, Tab, Tabs, Card } from 'react-bootstrap';
 import { FormularioSolicitudLicenciaPermiso } from '@/components/recursosHumanos/FormularioSolicitudLicenciaPermiso';
 import { ListaSolicitudesPersonales } from '@/components/recursosHumanos/ListaSolicitudesPersonales';
+import { Toast, useToast } from '@/components/common/Toast';
 
 export const MisLicenciasPermisosPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>('lista');
   const [refreshKey, setRefreshKey] = useState<number>(0);
+  const { toasts, removeToast, showSuccess } = useToast();
 
   // Función para cambiar a la pestaña de nueva solicitud
   const irANuevaSolicitud = () => {
@@ -17,6 +19,12 @@ export const MisLicenciasPermisosPage: React.FC = () => {
     setActiveTab('lista');
     // Forzar recarga del componente ListaSolicitudesPersonales
     setRefreshKey(prev => prev + 1);
+  };
+
+  // Nueva función: manejar éxito de creación de solicitud
+  const handleSolicitudCreada = () => {
+    showSuccess('¡Solicitud creada!', 'Tu solicitud ha sido enviada exitosamente y será revisada por Recursos Humanos.');
+    volverAListaYActualizar();
   };
 
   return (
@@ -71,9 +79,11 @@ export const MisLicenciasPermisosPage: React.FC = () => {
                 </span>
               }
             >
-              <FormularioSolicitudLicenciaPermiso onSuccess={volverAListaYActualizar} />
+              <FormularioSolicitudLicenciaPermiso onSuccess={handleSolicitudCreada} />
             </Tab>
           </Tabs>
+          {/* Sistema de notificaciones global para la página */}
+          <Toast toasts={toasts} removeToast={removeToast} />
         </Col>
       </Row>
     </Container>
