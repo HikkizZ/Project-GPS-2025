@@ -152,7 +152,10 @@
   transform: translateY(-2px);
 }
 
-/* Estilos para las secciones de información */
+/* ============================================
+   SECCIONES Y GRIDS DE INFORMACIÓN
+   ============================================ */
+
 .info-section {
   background: #fff;
   border-radius: 12px;
@@ -186,7 +189,10 @@
   }
 }
 
-/* Campos individuales */
+/* ============================================
+   CAMPOS DE INFORMACIÓN
+   ============================================ */
+
 .info-field {
   position: relative;
   padding: 0.75rem 0.75rem 0.75rem 2.5rem;
@@ -200,7 +206,6 @@
   transform: translateY(-1px);
 }
 
-/* Iconos para los campos */
 .info-field i {
   position: absolute;
   left: 0.75rem;
@@ -236,6 +241,12 @@
   color: #adb5bd;
   font-style: italic;
   font-size: 0.95rem;
+}
+
+@media (max-width: 768px) {
+  .info-section {
+    padding: 1rem;
+  }
 }
 
 /* Estado del trabajador */
@@ -307,13 +318,6 @@
   content: '$';
   font-size: 0.75rem;
   opacity: 0.8;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .info-section {
-    padding: 1rem;
-  }
 }
 
 /* Estilos para grupos de información (usados en múltiples componentes) */
