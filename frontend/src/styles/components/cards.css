@@ -127,3 +127,11 @@
     font-size: var(--font-size-lg);
   }
 }
+
+/* Mejorar la legibilidad del subtítulo en headers de tarjetas con fondo primario */
+.card-header.bg-gradient-primary small,
+.card-header.bg-primary small,
+.header-text-white small {
+  color: rgba(255,255,255,0.92) !important;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.10);
+}
