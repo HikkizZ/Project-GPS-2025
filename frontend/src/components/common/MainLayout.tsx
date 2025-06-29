@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useRut } from '@/hooks/useRut';
 import { GlobalMessages } from './GlobalMessages';
 import { Toast, useToast } from './Toast';
+import '@/styles/layout/navbar.css';
+import '@/styles/layout/footer.css';
 
 interface MainLayoutProps {
   user: { name: string; role: string; rut: string };
@@ -15,15 +17,53 @@ const MainLayout: React.FC<MainLayoutProps> = ({ user, onLogout, children }) => 
   const location = useLocation();
   const { formatRUT } = useRut();
   const { toasts, removeToast } = useToast();
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLUListElement>(null);
 
   const isInDashboard = location.pathname === '/dashboard';
+
+  useEffect(() => {
+    const btn = buttonRef.current;
+    const menu = menuRef.current;
+    if (!btn || !menu) return;
+
+    // Función para ajustar el ancho
+    const adjustMenuWidth = () => {
+      menu.style.width = btn.offsetWidth + 'px';
+    };
+
+    // Observer para detectar la clase 'show' en el menú
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (
+          mutation.type === 'attributes' &&
+          mutation.attributeName === 'class' &&
+          menu.classList.contains('show')
+        ) {
+          adjustMenuWidth();
+        }
+      });
+    });
+
+    observer.observe(menu, { attributes: true });
+
+    // Ajuste inicial por si ya está abierto
+    if (menu.classList.contains('show')) {
+      adjustMenuWidth();
+    }
+
+    // Limpieza
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
 
   return (
     <div className="min-vh-100 d-flex flex-column">
       {/* Navbar */}
-      <nav className="navbar navbar-expand-lg navbar-dark bg-gradient-primary shadow-sm">
-        <div className="container-fluid" style={{ paddingLeft: '36px', paddingRight: '36px' }}>
-          <span className="navbar-brand mb-0 h1 fw-bold" style={{ cursor: 'pointer' }} onClick={() => navigate('/dashboard')}>
+      <nav className="navbar navbar-expand-lg navbar-dark bg-gradient-primary">
+        <div className="container-fluid">
+          <span className="navbar-brand mb-0 h1 fw-bold" onClick={() => navigate('/dashboard')}>
             <i className="bi bi-truck me-2"></i>
             S.G. Lamas
           </span>
@@ -48,17 +88,23 @@ const MainLayout: React.FC<MainLayoutProps> = ({ user, onLogout, children }) => 
               </button>
             )}
 
-            <div className="nav-item dropdown">
-              <button 
-                className="btn btn-outline-light dropdown-toggle px-3 py-2 fw-semibold" 
-                type="button" 
+            <div className="navbar-user-dropdown" style={{ position: 'relative' }}>
+              <button
+                ref={buttonRef}
+                className="btn btn-outline-light dropdown-toggle px-3 py-2 fw-semibold"
+                type="button"
                 data-bs-toggle="dropdown"
+                aria-expanded="false"
                 style={{ borderRadius: '25px', transition: 'all 0.3s ease' }}
               >
                 <i className="bi bi-person-circle me-2"></i>
                 {user.name}
               </button>
-              <ul className="dropdown-menu dropdown-menu-end shadow-lg border-0" style={{ borderRadius: '12px', minWidth: '280px' }}>
+              <ul
+                ref={menuRef}
+                className="dropdown-menu dropdown-menu-end shadow-lg border-0"
+                style={{ borderRadius: '12px' }}
+              >
                 <li>
                   <div className="dropdown-item-text px-3 py-3 bg-light" style={{ borderRadius: '12px 12px 0 0' }}>
                     <div className="d-flex align-items-center mb-2">
@@ -69,7 +115,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ user, onLogout, children }) => 
                       </div>
                     </div>
                     {user.role !== "SuperAdministrador" && (
-                      <small className="text-muted">
+                      <small className="text-muted d-flex align-items-center">
                         <i className="bi bi-card-text me-1"></i>
                         RUT: {formatRUT(user.rut)}
                       </small>
@@ -88,18 +134,16 @@ const MainLayout: React.FC<MainLayoutProps> = ({ user, onLogout, children }) => 
           </div>
         </div>
       </nav>
+
       {/* Contenido */}
       <main className="flex-grow-1 bg-light">
-        <div className="container-fluid">
-          <GlobalMessages />
-          {children}
-        </div>
+        <GlobalMessages />
+        {children}
       </main>
+
       {/* Footer */}
-      <footer className="bg-dark text-light py-2">
-        <div className="container text-center">
-          <small>&copy; 2025 Sistema GPS - Gestión de Procesos Empresariales</small>
-        </div>
+      <footer className="app-footer">
+        © 2025 Sistema GPS - Gestión de Procesos Empresariales
       </footer>
       
       {/* Sistema de notificaciones globales */}

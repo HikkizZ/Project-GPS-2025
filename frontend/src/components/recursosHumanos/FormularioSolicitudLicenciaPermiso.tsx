@@ -48,6 +48,10 @@ export const FormularioSolicitudLicenciaPermiso: React.FC<FormularioSolicitudLic
   // Obtener fecha mínima para los campos (hoy en formato YYYY-MM-DD)
   const getFechaMinima = () => {
     const hoy = new Date();
+    if (formData.tipo === TipoSolicitud.PERMISO) {
+      // Sumar un día para que hoy quede deshabilitado
+      hoy.setDate(hoy.getDate() + 1);
+    }
     return `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
   };
 
@@ -134,7 +138,6 @@ export const FormularioSolicitudLicenciaPermiso: React.FC<FormularioSolicitudLic
       const result = await crearSolicitud(formData);
       if (result.success) {
         onSuccess();
-        showSuccess('¡Solicitud creada!', 'Tu solicitud ha sido enviada exitosamente');
         resetForm();
       } else {
         setLocalErrors({ submit: result.error || 'Error al crear la solicitud' });
@@ -258,7 +261,7 @@ export const FormularioSolicitudLicenciaPermiso: React.FC<FormularioSolicitudLic
   const diasCalculados = calcularDias();
 
   return (
-    <Card className="shadow-sm">
+    <Card className="shadow-sm solicitud-card-main">
       <Card.Header className="bg-primary text-white">
         <h5 className="mb-0">
           <i className="bi bi-plus-circle me-2"></i>
@@ -462,7 +465,7 @@ export const FormularioSolicitudLicenciaPermiso: React.FC<FormularioSolicitudLic
                 <Button 
                   variant="primary" 
                   type="submit" 
-                  disabled={isCreating || tieneErrores}
+                  disabled={isCreating}
                 >
                   {isCreating ? (
                     <>

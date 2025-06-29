@@ -111,7 +111,7 @@ const RegistrarTrabajadorPage: React.FC<{
       <div className="row justify-content-center">
         <div className="col-lg-8">
           <div className="card shadow">
-            <div className="card-header bg-primary text-white">
+            <div className="card-header bg-primary text-white header-text-white">
               <h4 className="mb-0">
                 <i className="bi bi-person-plus me-2"></i>
                 Registrar Nuevo Trabajador
@@ -352,9 +352,9 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
         return <TrabajadoresPage />;
       default:
         return (
-          <div className="container-fluid py-2" style={{ paddingLeft: '0.75rem', paddingRight: '0.75rem' }}>
-            <div className="row">
-              <div className="col">
+          <>
+            <div className="container-fluid">
+              <div className="dashboard-content">
                 {successMessage && (
                   <div className="alert alert-success alert-dismissible fade show">
                     <i className="bi bi-check-circle me-2"></i>
@@ -367,7 +367,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
                   </div>
                 )}
                 <div className="card shadow-lg border-0" style={{ borderRadius: '12px', overflow: 'hidden' }}>
-                  <div className="card-header bg-gradient-primary text-white border-0" style={{ padding: '0.75rem 1.25rem' }}>
+                  <div className="card-header bg-gradient-primary text-white border-0 header-text-white" style={{ padding: '0.75rem 1.25rem' }}>
                     <div className="d-flex align-items-center">
                       <i className="bi bi-house fs-5 me-2"></i>
                       <div>
@@ -580,7 +580,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
                 </div>
               </div>
             </div>
-          </div>
+          </>
         );
     }
   };
@@ -597,6 +597,7 @@ function PublicRoute({ children }: { children: JSX.Element }) {
 function App() {
   const { isAuthenticated, user, logout, isLoading } = useAuth();
   const location = useLocation();
+  const safeUser = user ?? { name: 'Usuario', role: 'Invitado', rut: 'N/A' };
 
   if (isLoading) {
     return (
@@ -611,15 +612,16 @@ function App() {
     );
   }
 
-  const safeUser = user ?? { name: 'Usuario', role: 'Invitado', rut: 'N/A' };
-
   return (
     <Routes>
-      <Route path="/login" element={
-        <PublicRoute>
-          <LoginPage />
-        </PublicRoute>
-      } />
+      <Route 
+        path="/login" 
+        element={
+          <PublicRoute>
+            <LoginPage />
+          </PublicRoute>
+        } 
+      />
       <Route
         path="/*"
         element={
@@ -639,7 +641,7 @@ function App() {
               </Routes>
             </MainLayout>
           ) : (
-            location.pathname === '/login' ? null : <Navigate to="/login" state={{ from: location }} replace />
+            <Navigate to="/login" state={{ from: location }} replace />
           )
         }
       />

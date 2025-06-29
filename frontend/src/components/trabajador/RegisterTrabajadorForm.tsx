@@ -80,18 +80,16 @@ export const RegisterTrabajadorForm: React.FC<RegisterTrabajadorFormProps> = ({
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    
-    // Limpiar errores cuando el usuario empiece a escribir
+    // Limpiar errores solo del campo editado si el formulario ya fue validado
     if (validated) {
+      // Si el campo editado ya no está vacío, no mostrar error para ese campo
       setValidated(false);
     }
-    
     if (name === 'rut') {
       setFormData({ ...formData, [name]: formatRUT(value) });
     } else if (name === 'telefono' || name === 'numeroEmergencia') {
       setFormData({ ...formData, [name]: formatPhone(value) });
     } else if (name === 'fechaNacimiento') {
-      // Mantener la fecha exactamente como viene del input type="date"
       setFormData({ ...formData, [name]: value });
     } else {
       setFormData({ ...formData, [name]: value });
@@ -139,7 +137,7 @@ export const RegisterTrabajadorForm: React.FC<RegisterTrabajadorFormProps> = ({
                 isInvalid={validated && !validateRUT(formData.rut)}
               />
               <Form.Control.Feedback type="invalid">
-                {!formData.rut.trim() ? 'Completa este campo' : 'RUT inválido'}
+                {validated && !validateRUT(formData.rut) && 'RUT inválido'}
               </Form.Control.Feedback>
             </Form.Group>
           </div>
@@ -165,6 +163,7 @@ export const RegisterTrabajadorForm: React.FC<RegisterTrabajadorFormProps> = ({
               <Form.Label className="fw-semibold">Fecha de Nacimiento: <span className="text-danger">*</span></Form.Label>
               <Form.Control
                 type="date"
+                id="register-trabajador-fecha-nacimiento"
                 name="fechaNacimiento"
                 value={formData.fechaNacimiento}
                 onChange={handleInputChange}
@@ -173,7 +172,7 @@ export const RegisterTrabajadorForm: React.FC<RegisterTrabajadorFormProps> = ({
                 isInvalid={validated && !formData.fechaNacimiento.trim()}
               />
               <Form.Control.Feedback type="invalid">
-                Completa este campo
+                {validated && !formData.fechaNacimiento.trim() && 'Completa este campo'}
               </Form.Control.Feedback>
             </Form.Group>
           </div>
@@ -193,7 +192,7 @@ export const RegisterTrabajadorForm: React.FC<RegisterTrabajadorFormProps> = ({
                 isInvalid={validated && !formData.nombres.trim()}
               />
               <Form.Control.Feedback type="invalid">
-                Completa este campo
+                {validated && !formData.nombres.trim() && 'Completa este campo'}
               </Form.Control.Feedback>
             </Form.Group>
           </div>
@@ -211,7 +210,7 @@ export const RegisterTrabajadorForm: React.FC<RegisterTrabajadorFormProps> = ({
                 isInvalid={validated && !formData.apellidoPaterno.trim()}
               />
               <Form.Control.Feedback type="invalid">
-                Completa este campo
+                {validated && !formData.apellidoPaterno.trim() && 'Completa este campo'}
               </Form.Control.Feedback>
             </Form.Group>
           </div>
@@ -229,7 +228,7 @@ export const RegisterTrabajadorForm: React.FC<RegisterTrabajadorFormProps> = ({
                 isInvalid={validated && !formData.apellidoMaterno.trim()}
               />
               <Form.Control.Feedback type="invalid">
-                Completa este campo
+                {validated && !formData.apellidoMaterno.trim() && 'Completa este campo'}
               </Form.Control.Feedback>
             </Form.Group>
           </div>
@@ -249,7 +248,7 @@ export const RegisterTrabajadorForm: React.FC<RegisterTrabajadorFormProps> = ({
                 isInvalid={validated && !formData.correoPersonal.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)}
               />
               <Form.Control.Feedback type="invalid">
-                {!formData.correoPersonal.trim() ? 'Completa este campo' : 'Correo personal inválido'}
+                {validated && !formData.correoPersonal.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/) && 'Correo personal inválido'}
               </Form.Control.Feedback>
             </Form.Group>
           </div>
@@ -267,7 +266,7 @@ export const RegisterTrabajadorForm: React.FC<RegisterTrabajadorFormProps> = ({
                 isInvalid={validated && !formData.telefono.trim()}
               />
               <Form.Control.Feedback type="invalid">
-                Completa este campo
+                {validated && !formData.telefono.trim() && 'Completa este campo'}
               </Form.Control.Feedback>
             </Form.Group>
           </div>
@@ -300,7 +299,7 @@ export const RegisterTrabajadorForm: React.FC<RegisterTrabajadorFormProps> = ({
                 isInvalid={validated && !formData.direccion.trim()}
               />
               <Form.Control.Feedback type="invalid">
-                Completa este campo
+                {validated && !formData.direccion.trim() && 'Completa este campo'}
               </Form.Control.Feedback>
             </Form.Group>
           </div>

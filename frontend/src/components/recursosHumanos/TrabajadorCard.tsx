@@ -30,7 +30,7 @@ export const TrabajadorCard: React.FC<TrabajadorCardProps> = ({
   };
 
   return (
-    <div className="trabajador-card">
+    <div className="trabajador-card main-card-spacing">
       <div className="card-header">
         <h3 className="trabajador-nombre">{nombreCompleto}</h3>
         <div className={`status-badge ${trabajador.enSistema ? 'active' : 'inactive'}`}>

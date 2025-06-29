@@ -30,17 +30,15 @@ export const Toast: React.FC<ToastProps> = ({ toasts, removeToast }) => {
       {toasts.map((toast) => (
         <BootstrapToast
           key={toast.id}
-          onClose={() => removeToast(toast.id)}
           show={true}
-          delay={toast.duration || 5000}
+          delay={toast.duration}
           autohide
           className="toast-custom"
+          onClose={() => removeToast(toast.id)}
         >
-          <BootstrapToast.Header className={`toast-header-${toast.type}`}>
-            <div className="d-flex align-items-center">
-              <i className={`bi ${getIconForType(toast.type)} me-2`}></i>
-              <strong className="me-auto">{toast.title}</strong>
-            </div>
+          <BootstrapToast.Header className={`toast-header-${toast.type}`}> 
+            <i className={`bi ${getIconForType(toast.type)} toast-icon`}></i>
+            <strong className="me-auto">{toast.title}</strong>
           </BootstrapToast.Header>
           <BootstrapToast.Body className="toast-body">
             {toast.message}
@@ -76,19 +74,19 @@ export const useToast = () => {
   };
 
   const showSuccess = (title: string, message: string, duration?: number) => {
-    addToast({ type: 'success', title, message, duration });
+    addToast({ type: 'success', title, message, duration: 3000 });
   };
 
   const showError = (title: string, message: string, duration?: number) => {
-    addToast({ type: 'error', title, message, duration });
+    addToast({ type: 'error', title, message, duration: 3000 });
   };
 
   const showWarning = (title: string, message: string, duration?: number) => {
-    addToast({ type: 'warning', title, message, duration });
+    addToast({ type: 'warning', title, message, duration: 3000 });
   };
 
   const showInfo = (title: string, message: string, duration?: number) => {
-    addToast({ type: 'info', title, message, duration });
+    addToast({ type: 'info', title, message, duration: 3000 });
   };
 
   const clearAllToasts = () => {

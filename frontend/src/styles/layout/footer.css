@@ -1,0 +1,27 @@
+/*
+  footer.css
+  Estilos específicos para el footer de la aplicación.
+  Utiliza las variables CSS definidas en variables.css
+*/
+
+.app-footer {
+  background-color: #1F1F1F;
+  color: #FFFFFF;
+  padding: 0.5rem 0;
+  text-align: center;
+  width: 100%;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  font-size: 0.875rem;
+}
+
+.app-footer .container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.app-footer small {
+  opacity: 0.8;
+} 

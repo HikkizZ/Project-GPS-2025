@@ -3,19 +3,20 @@ import { Table, Button, Form, Alert, Spinner, Modal, Container, Row, Col, Card }
 import { useTrabajadores } from '@/hooks/recursosHumanos/useTrabajadores';
 import { Trabajador, TrabajadorSearchQuery } from '@/types/recursosHumanos/trabajador.types';
 import { useRut, usePhone } from '@/hooks/useRut';
-import { useUI } from '@/context';
+import { useUI, useAuth } from '@/context';
 import { RegisterTrabajadorForm } from '@/components/trabajador/RegisterTrabajadorForm';
 import { EditarTrabajadorModal } from '@/components/trabajador/EditarTrabajadorModal';
 import { FiltrosBusquedaHeader } from '@/components/common/FiltrosBusquedaHeader';
 import { useToast, Toast } from '@/components/common/Toast';
-import '../../styles/trabajadores.css';
+import '../../styles/pages/trabajadores.css';
 
 export const TrabajadoresPage: React.FC = () => {
   const { trabajadores, isLoading, error, loadTrabajadores, searchTrabajadores, desvincularTrabajador } = useTrabajadores();
   const { formatRUT } = useRut();
   const { formatPhone } = usePhone();
-  const { setError: setUIError } = useUI();
+  const { setError: setUIError, setLoading } = useUI();
   const { toasts, removeToast, showSuccess, showError } = useToast();
+  const { user } = useAuth();
   
   // Estados para los modales y filtros
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -92,6 +93,11 @@ export const TrabajadoresPage: React.FC = () => {
     } finally {
       setIsDesvinculando(false);
     }
+  };
+
+  // Función para verificar si el trabajador es el usuario actual
+  const esTrabajadorActual = (trabajador: Trabajador) => {
+    return user && trabajador.rut && user.rut && trabajador.rut.replace(/\.|-/g, '') === user.rut.replace(/\.|-/g, '');
   };
 
   return (
@@ -326,15 +332,26 @@ export const TrabajadoresPage: React.FC = () => {
             <Card className="shadow-sm">
               <Card.Body>
                 {trabajadores.length === 0 ? (
-                  <div className="text-center py-5">
-                    <i className="bi bi-people fs-1 text-muted mb-3 d-block"></i>
-                    <h5 className="text-muted">No hay trabajadores registrados</h5>
-                    <p className="text-muted">Los trabajadores aparecerán aquí cuando sean registrados</p>
-                    <Button variant="primary" onClick={() => setShowCreateModal(true)}>
-                      <i className="bi bi-person-plus me-2"></i>
-                      Registrar Primer Trabajador
-                    </Button>
-                  </div>
+                  Object.values(searchParams).some(v => v) ? (
+                    <div className="text-center py-5">
+                      <i className="bi bi-person-x fs-1 text-muted mb-3 d-block"></i>
+                      <h5 className="text-muted">No hay resultados que coincidan con tu búsqueda</h5>
+                      <p className="text-muted">Intenta ajustar los filtros para obtener más resultados</p>
+                      <Button variant="outline-primary" onClick={clearFilters}>
+                        <i className="bi bi-arrow-clockwise me-2"></i> Mostrar Todos
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="text-center py-5">
+                      <i className="bi bi-people fs-1 text-muted mb-3 d-block"></i>
+                      <h5 className="text-muted">No hay trabajadores registrados</h5>
+                      <p className="text-muted">Los trabajadores aparecerán aquí cuando sean registrados</p>
+                      <Button variant="primary" onClick={() => setShowCreateModal(true)}>
+                        <i className="bi bi-person-plus me-2"></i>
+                        Registrar Primer Trabajador
+                      </Button>
+                    </div>
+                  )
                 ) : (
                   <>
                     <div className="d-flex justify-content-between align-items-center mb-3">
@@ -386,12 +403,11 @@ export const TrabajadoresPage: React.FC = () => {
                             <td>{trabajador.direccion}</td>
                             <td>{new Date(trabajador.fechaIngreso).toLocaleDateString()}</td>
                             <td className="text-center">
-                              {/* Ocultar acciones si es el admin principal */}
-                              {(trabajador.correoPersonal !== 'admin.principal@gmail.com') && (
+                              {/* Ocultar acciones si es el admin principal o si es el usuario actual */}
+                              {(trabajador.correoPersonal !== 'admin.principal@gmail.com' && !esTrabajadorActual(trabajador)) && (
                                 <div className="btn-group">
                                   <Button 
                                     variant="outline-primary" 
-                                    size="sm" 
                                     className="me-2"
                                     onClick={() => handleEditClick(trabajador)}
                                     title="Editar trabajador"
@@ -401,7 +417,6 @@ export const TrabajadoresPage: React.FC = () => {
                                   </Button>
                                   <Button 
                                     variant="outline-danger" 
-                                    size="sm"
                                     onClick={() => handleDesvincularClick(trabajador)}
                                     title="Desvincular trabajador"
                                     disabled={!trabajador.enSistema}

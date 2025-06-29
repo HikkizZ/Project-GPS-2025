@@ -5,7 +5,6 @@ import { UserRole, FilterableUserRole } from '@/types/auth.types';
 import { useRut } from '@/hooks/useRut';
 import { userService } from '@/services/user.service';
 import { Table, Button, Form, Spinner, Modal, Container, Row, Col, Card } from 'react-bootstrap';
-import '../styles/usuarios.css';
 import { FiltrosBusquedaHeader } from '@/components/common/FiltrosBusquedaHeader';
 import { useToast, Toast } from '@/components/common/Toast';
 
@@ -229,6 +228,11 @@ export const UsersPage: React.FC = () => {
   const handleRutChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const formattedRut = formatRUT(e.target.value);
     setSearchParams({ ...searchParams, rut: formattedRut });
+  };
+
+  // Función para verificar si el usuario es el usuario actual
+  const esUsuarioActual = (userItem: SafeUser) => {
+    return user && userItem.rut && user.rut && userItem.rut.replace(/\.|-/g, '') === user.rut.replace(/\.|-/g, '');
   };
 
   // Verificar permisos
@@ -477,31 +481,30 @@ export const UsersPage: React.FC = () => {
                         </tr>
                       </thead>
                       <tbody>
-                        {users.map(user => (
-                          <tr key={user.id}>
-                            <td>{user.name}</td>
-                            <td>{user.rut ? formatRUT(user.rut) : <span className="text-muted">No aplica</span>}</td>
-                            <td>{user.email}</td>
+                        {users.map(userItem => (
+                          <tr key={userItem.id}>
+                            <td>{userItem.name}</td>
+                            <td>{userItem.rut ? formatRUT(userItem.rut) : <span className="text-muted">No aplica</span>}</td>
+                            <td>{userItem.email}</td>
                             <td>
-                              <span className={`badge bg-${getRoleBadgeColor(user.role)}`}>
-                                {user.role}
+                              <span className={`badge bg-${getRoleBadgeColor(userItem.role)}`}>
+                                {userItem.role}
                               </span>
                             </td>
                             <td>
-                              <span className={`badge bg-${user.estadoCuenta === 'Activa' ? 'success' : 'danger'}`}>
-                                {user.estadoCuenta}
+                              <span className={`badge bg-${userItem.estadoCuenta === 'Activa' ? 'success' : 'danger'}`}>
+                                {userItem.estadoCuenta}
                               </span>
                             </td>
                             <td className="text-center">
-                              {/* Ocultar acciones si es el admin principal o SuperAdministrador */}
-                              {(user.email !== 'admin.principal@gmail.com' && user.role !== 'SuperAdministrador') && (
+                              {/* Ocultar acciones si es el admin principal, SuperAdministrador o si es el usuario actual */}
+                              {(userItem.email !== 'admin.principal@gmail.com' && userItem.role !== 'SuperAdministrador' && !esUsuarioActual(userItem)) && (
                                 <div className="btn-group">
                                   <Button
                                     variant="outline-primary"
-                                    size="sm"
-                                    onClick={() => handleShowModal(user)}
+                                    onClick={() => handleShowModal(userItem)}
                                     title="Editar rol"
-                                    disabled={user.estadoCuenta === 'Inactiva'}
+                                    disabled={userItem.estadoCuenta === 'Inactiva'}
                                   >
                                     <i className="bi bi-pencil-square"></i>
                                   </Button>

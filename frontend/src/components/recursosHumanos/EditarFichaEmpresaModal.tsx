@@ -103,7 +103,6 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
   const handleInputChange = (e: any) => {
     const { name, value } = e.target;
     let newFormData;
-    
     if (name === 'sueldoBase') {
       const numericValue = cleanNumber(value).replace(/[^0-9]/g, '');
       const formatted = numericValue ? formatMiles(numericValue) : '';
@@ -111,12 +110,13 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
     } else {
       newFormData = { ...formData, [name]: value };
     }
-    
     setFormData(newFormData);
-    
+    // Si el formulario ya fue validado, revalidar solo el campo editado
+    if (validated) {
+      setValidated(false);
+    }
     // Verificar si hay cambios comparando con los valores iniciales
     const hasAnyChange = Object.keys(newFormData).some(key => {
-      // Si es sueldoBase, comparar los valores numéricos
       if (key === 'sueldoBase') {
         const initialValue = cleanNumber(initialFormData[key]);
         const currentValue = cleanNumber(newFormData[key]);
@@ -124,7 +124,6 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
       }
       return newFormData[key] !== initialFormData[key];
     });
-    
     setHasChanges(hasAnyChange || !!selectedFile);
   };
 
@@ -316,7 +315,7 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
                     isInvalid={validated && (!formData.cargo.trim() || formData.cargo.trim() === 'Por Definir')}
                   />
                   <Form.Control.Feedback type="invalid">
-                    Completa este campo
+                    {validated && (!formData.cargo.trim() || formData.cargo.trim() === 'Por Definir') && 'Completa este campo'}
                   </Form.Control.Feedback>
                 </Form.Group>
               </Col>
@@ -334,7 +333,7 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
                     isInvalid={validated && (!formData.area.trim() || formData.area.trim() === 'Por Definir')}
                   />
                   <Form.Control.Feedback type="invalid">
-                    Completa este campo
+                    {validated && (!formData.area.trim() || formData.area.trim() === 'Por Definir') && 'Completa este campo'}
                   </Form.Control.Feedback>
                 </Form.Group>
               </Col>
@@ -360,7 +359,7 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
                     <option value="Part-Time">Part-Time</option>
                   </Form.Select>
                   <Form.Control.Feedback type="invalid">
-                    Completa este campo
+                    {validated && (!formData.tipoContrato || formData.tipoContrato === 'Por Definir') && 'Completa este campo'}
                   </Form.Control.Feedback>
                 </Form.Group>
               </Col>
@@ -381,7 +380,7 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
                     <option value="Part-Time">Part-Time</option>
                   </Form.Select>
                   <Form.Control.Feedback type="invalid">
-                    Completa este campo
+                    {validated && (!formData.jornadaLaboral || formData.jornadaLaboral === 'Por Definir') && 'Completa este campo'}
                   </Form.Control.Feedback>
                 </Form.Group>
               </Col>
@@ -403,7 +402,7 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
                     isInvalid={validated && (!formData.sueldoBase || parseInt(cleanNumber(formData.sueldoBase)) <= 0)}
                   />
                   <Form.Control.Feedback type="invalid">
-                    {!formData.sueldoBase ? 'Completa este campo' : 'El sueldo debe ser mayor a 0'}
+                    {validated && (!formData.sueldoBase || parseInt(cleanNumber(formData.sueldoBase)) <= 0) && 'El sueldo debe ser mayor a 0'}
                   </Form.Control.Feedback>
                 </Form.Group>
               </Col>
@@ -421,7 +420,7 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
                     isInvalid={validated && !formData.fechaInicioContrato}
                   />
                   <Form.Control.Feedback type="invalid">
-                    Completa este campo
+                    {validated && !formData.fechaInicioContrato && 'Completa este campo'}
                   </Form.Control.Feedback>
                 </Form.Group>
               </Col>
