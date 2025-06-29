@@ -856,7 +856,6 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                               {!esFichaActual(ficha) && (
                                 <Button 
                                   variant="outline-primary" 
-                                  size="sm" 
                                   onClick={() => handleEditFicha(ficha)}
                                   title="Editar ficha"
                                 >
@@ -866,7 +865,6 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                               {ficha.contratoURL && (
                                 <Button 
                                   variant="outline-success" 
-                                  size="sm"
                                   onClick={() => handleDownloadContrato(ficha.id)}
                                   title="Descargar contrato"
                                 >

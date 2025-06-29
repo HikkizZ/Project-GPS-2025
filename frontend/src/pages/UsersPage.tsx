@@ -502,7 +502,6 @@ export const UsersPage: React.FC = () => {
                                 <div className="btn-group">
                                   <Button
                                     variant="outline-primary"
-                                    size="sm"
                                     onClick={() => handleShowModal(userItem)}
                                     title="Editar rol"
                                     disabled={userItem.estadoCuenta === 'Inactiva'}

@@ -408,7 +408,6 @@ export const TrabajadoresPage: React.FC = () => {
                                 <div className="btn-group">
                                   <Button 
                                     variant="outline-primary" 
-                                    size="sm" 
                                     className="me-2"
                                     onClick={() => handleEditClick(trabajador)}
                                     title="Editar trabajador"
@@ -418,7 +417,6 @@ export const TrabajadoresPage: React.FC = () => {
                                   </Button>
                                   <Button 
                                     variant="outline-danger" 
-                                    size="sm"
                                     onClick={() => handleDesvincularClick(trabajador)}
                                     title="Desvincular trabajador"
                                     disabled={!trabajador.enSistema}

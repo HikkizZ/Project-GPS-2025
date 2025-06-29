@@ -253,7 +253,6 @@ export const ListaSolicitudesPersonales: React.FC<ListaSolicitudesPersonalesProp
                       <td>
                         <Button
                           variant="outline-info"
-                          size="sm"
                           onClick={() => mostrarDetalles(solicitud)}
                         >
                           <i className="bi bi-eye"></i>

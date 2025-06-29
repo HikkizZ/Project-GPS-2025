@@ -516,11 +516,10 @@ export const ListaGestionSolicitudes: React.FC = () => {
                       <td>
                         <Button
                           variant="outline-primary"
-                          size="sm"
                           onClick={() => mostrarDetalles(solicitud)}
                           title="Ver detalles y gestionar solicitud"
                         >
-                                                      <i className="bi bi-eye"></i>
+                          <i className="bi bi-eye"></i>
                         </Button>
                       </td>
                     </tr>
