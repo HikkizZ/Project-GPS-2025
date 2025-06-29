@@ -20,6 +20,7 @@
 @import './base/animations.css';
 
 /* Abstracts (utilidades globales, helpers, variables) */
+@import './abstracts/variables.css';
 @import './abstracts/utilities.css';
 
 /* Layout (estructura general, navbar, footer, grid) */
