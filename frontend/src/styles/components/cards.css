@@ -48,3 +48,7 @@
 .card-header.bg-primary.text-white, .card-header.bg-primary.text-white h4, .card-header.bg-primary.text-white h3, .card-header.bg-primary.text-white h2, .card-header.bg-primary.text-white h1 {
   color: #fff !important;
 }
+
+.card-header.bg-gradient-primary.text-white, .card-header.bg-gradient-primary.text-white h5, .card-header.bg-gradient-primary.text-white h4, .card-header.bg-gradient-primary.text-white h3, .card-header.bg-gradient-primary.text-white h2, .card-header.bg-gradient-primary.text-white h1 {
+  color: #fff !important;
+}
