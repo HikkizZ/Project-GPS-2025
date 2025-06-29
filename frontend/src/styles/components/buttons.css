@@ -18,9 +18,12 @@
   color: #fff !important;
 }
 
-.btn-primary:hover {
-  background-color: var(--primary-hover) !important;
-  border-color: var(--primary-hover) !important;
+button.btn.btn-primary:hover,
+.btn-primary:hover,
+.btn-primary:focus,
+.btn-primary:active {
+  background-color: #0056E4 !important;
+  border-color: #0056E4 !important;
   color: #fff !important;
 }
 
