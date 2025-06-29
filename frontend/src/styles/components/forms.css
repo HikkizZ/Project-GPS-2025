@@ -50,12 +50,13 @@ input[type="date"],
 input[type="number"],
 input[type="password"] {
   border: 1.5px solid #d1d5db;
-  border-radius: 0.7rem;
+  border-radius: 0.35rem;
   background: #fff;
-  padding: 0.7rem 1rem;
-  font-size: 1rem;
+  padding: 0.45rem 0.7rem;
+  font-size: 0.97rem;
   transition: border-color 0.2s, box-shadow 0.2s;
   box-shadow: none;
+  height: 2.1rem;
 }
 
 input[type="text"]:focus,
