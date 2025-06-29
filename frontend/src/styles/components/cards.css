@@ -1,38 +1,62 @@
 /*
   cards.css
   Estilos específicos para tarjetas
+  Usa variables CSS para consistencia y mantenibilidad
 */
 
+/* Tarjeta base */
 .card {
-  border-radius: 0.5rem !important;
+  border-radius: var(--border-radius-lg) !important;
   overflow: hidden;
   border: 1px solid var(--border-color);
-  transition: all 0.3s ease;
+  transition: var(--transition);
+  background-color: var(--background-white);
+  box-shadow: var(--box-shadow);
 }
 
+.card:hover {
+  box-shadow: var(--box-shadow-lg);
+}
+
+/* Encabezado de tarjeta */
 .card-header {
   background: transparent;
   border-bottom: 1px solid var(--border-color);
-  padding: 1rem 1.25rem;
+  padding: var(--spacing-md) var(--spacing-lg);
+  font-weight: var(--font-weight-medium);
 }
 
+.card-header.bg-primary,
+.card-header.bg-gradient-primary {
+  background: var(--gradient-primary) !important;
+  color: var(--text-light) !important;
+  border-bottom: none;
+}
+
+/* Cuerpo de tarjeta */
 .card-body {
-  padding: 1.25rem;
+  padding: var(--spacing-lg);
 }
 
+/* Título de tarjeta */
 .card-title {
   color: var(--text-dark);
-  font-weight: 600;
-  margin-bottom: 0.75rem;
+  font-weight: var(--font-weight-semibold);
+  margin-bottom: var(--spacing-md);
+  font-size: var(--font-size-xl);
 }
 
+/* Texto de tarjeta */
 .card-text {
   color: var(--text-muted);
+  line-height: var(--line-height-body);
+  margin-bottom: var(--spacing-sm);
 }
 
-/* Hover effects */
+/* Efectos hover */
 .hover-card {
   transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer;
 }
 
 .hover-card:hover {
@@ -40,19 +64,66 @@
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
-/* Separación profesional entre la tarjeta principal y el footer en todas las páginas */
+/* Separación profesional entre tarjetas */
 .main-card-spacing {
   margin-bottom: 2.3rem;
 }
 
+/* Utilidades de texto para headers */
 .header-text-white {
-  color: #fff !important;
+  color: var(--text-light) !important;
 }
 
-.card-header.bg-primary.text-white, .card-header.bg-primary.text-white h4, .card-header.bg-primary.text-white h3, .card-header.bg-primary.text-white h2, .card-header.bg-primary.text-white h1 {
-  color: #fff !important;
+/* Aplicar color blanco a todos los elementos de texto en headers con fondo primario */
+.card-header.bg-primary.text-white h1,
+.card-header.bg-primary.text-white h2,
+.card-header.bg-primary.text-white h3,
+.card-header.bg-primary.text-white h4,
+.card-header.bg-primary.text-white h5,
+.card-header.bg-primary.text-white h6,
+.card-header.bg-gradient-primary.text-white h1,
+.card-header.bg-gradient-primary.text-white h2,
+.card-header.bg-gradient-primary.text-white h3,
+.card-header.bg-gradient-primary.text-white h4,
+.card-header.bg-gradient-primary.text-white h5,
+.card-header.bg-gradient-primary.text-white h6 {
+  color: var(--text-light) !important;
 }
 
-.card-header.bg-gradient-primary.text-white, .card-header.bg-gradient-primary.text-white h5, .card-header.bg-gradient-primary.text-white h4, .card-header.bg-gradient-primary.text-white h3, .card-header.bg-gradient-primary.text-white h2, .card-header.bg-gradient-primary.text-white h1 {
-  color: #fff !important;
+/* Footer de tarjeta */
+.card-footer {
+  background-color: var(--background-light);
+  border-top: 1px solid var(--border-color);
+  padding: var(--spacing-md) var(--spacing-lg);
+}
+
+/* Tarjetas con diferentes variantes */
+.card.card-outlined {
+  border: 2px solid var(--border-color);
+  box-shadow: none;
+}
+
+.card.card-elevated {
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.card.card-flat {
+  border: none;
+  box-shadow: none;
+  background-color: var(--background-light);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .card-body {
+    padding: var(--spacing-md);
+  }
+  
+  .card-header {
+    padding: var(--spacing-sm) var(--spacing-md);
+  }
+  
+  .card-title {
+    font-size: var(--font-size-lg);
+  }
 }

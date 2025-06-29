@@ -1,12 +1,25 @@
 /* 
   index.css
   Punto de entrada de estilos personalizados del proyecto.
+  
+  ARQUITECTURA CSS (ITCSS/7-1 Pattern):
+  =====================================
+  Esta aplicación sigue una arquitectura CSS escalable y mantenible:
+  
+  1. BASE: Estilos base (reset, tipografía, animaciones)
+  2. ABSTRACTS: Variables, utilidades y helpers globales
+  3. LAYOUT: Estructura general (grid, navbar, footer)
+  4. COMPONENTS: Componentes reutilizables (botones, cards, forms, modals)
+  5. PAGES: Estilos específicos de páginas/módulos
+  
   IMPORTANTE para el equipo:
   - Aquí se centralizan TODOS los estilos personalizados del frontend.
   - Los estilos globales (base, abstracts, layout, components) se aplican a toda la app.
   - Los estilos de páginas solo afectan a módulos/páginas específicas.
   - Si agregas un nuevo módulo/página, importa su CSS aquí en la sección correspondiente.
   - NO importes CSS personalizado directamente en main.tsx, solo index.css.
+  - Usa variables CSS definidas en abstracts/variables.css para consistencia.
+  - Mantén la especificidad CSS baja para evitar conflictos.
 */
 
 /* =====================
@@ -43,3 +56,33 @@
 @import './pages/trabajadores.css';
 @import './pages/fichasEmpresa.css';
 /* ... agrega aquí los CSS de nuevas páginas o módulos */
+
+/* =====================
+   NOTAS DE MANTENIMIENTO
+   ===================== */
+/*
+  Para agregar nuevos estilos:
+  
+  1. COMPONENTES GLOBALES: Si es un componente reutilizable (botón, card, etc.)
+     → Crear archivo en /components/
+     → Importar aquí en la sección "Components"
+  
+  2. PÁGINAS/MÓDULOS: Si es específico de una página
+     → Crear archivo en /pages/
+     → Importar aquí en la sección "Pages"
+  
+  3. UTILIDADES: Si es una utilidad global (helper, animación, etc.)
+     → Agregar a /abstracts/utilities.css
+     → NO crear archivos separados para utilidades
+  
+  4. VARIABLES: Si necesitas nuevas variables CSS
+     → Agregar a /abstracts/variables.css
+     → Usar nombres semánticos y descriptivos
+  
+  CONVENCIONES:
+  - Usar kebab-case para nombres de clases
+  - Usar variables CSS para colores, espaciados, etc.
+  - Mantener especificidad CSS baja
+  - Documentar clases complejas con comentarios
+  - Agrupar estilos relacionados en secciones
+*/
