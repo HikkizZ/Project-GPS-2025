@@ -344,8 +344,8 @@ export const ListaGestionSolicitudes: React.FC = () => {
                   onChange={(e) => setTmpTipo(e.target.value as TipoSolicitud | '')}
                 >
                   <option value="">Todos los tipos</option>
-                  <option value="Licencia">Licencia</option>
-                  <option value="Permiso">Permiso</option>
+                  <option value="Licencia">Licencia Médica</option>
+                  <option value="Permiso">Permiso Administrativo</option>
                 </Form.Select>
               </Form.Group>
             </Col>
