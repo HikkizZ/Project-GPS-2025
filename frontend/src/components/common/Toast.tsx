@@ -31,7 +31,7 @@ export const Toast: React.FC<ToastProps> = ({ toasts, removeToast }) => {
         <BootstrapToast
           key={toast.id}
           show={true}
-          delay={toast.duration || 1000}
+          delay={toast.duration}
           autohide
           className="toast-custom"
           onClose={() => removeToast(toast.id)}
@@ -74,19 +74,19 @@ export const useToast = () => {
   };
 
   const showSuccess = (title: string, message: string, duration?: number) => {
-    addToast({ type: 'success', title, message, duration });
+    addToast({ type: 'success', title, message, duration: 3000 });
   };
 
   const showError = (title: string, message: string, duration?: number) => {
-    addToast({ type: 'error', title, message, duration });
+    addToast({ type: 'error', title, message, duration: 3000 });
   };
 
   const showWarning = (title: string, message: string, duration?: number) => {
-    addToast({ type: 'warning', title, message, duration });
+    addToast({ type: 'warning', title, message, duration: 3000 });
   };
 
   const showInfo = (title: string, message: string, duration?: number) => {
-    addToast({ type: 'info', title, message, duration });
+    addToast({ type: 'info', title, message, duration: 3000 });
   };
 
   const clearAllToasts = () => {
