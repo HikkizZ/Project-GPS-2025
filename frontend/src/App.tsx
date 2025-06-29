@@ -111,7 +111,7 @@ const RegistrarTrabajadorPage: React.FC<{
       <div className="row justify-content-center">
         <div className="col-lg-8">
           <div className="card shadow">
-            <div className="card-header bg-primary text-white">
+            <div className="card-header bg-primary text-white header-text-white">
               <h4 className="mb-0">
                 <i className="bi bi-person-plus me-2"></i>
                 Registrar Nuevo Trabajador
@@ -367,7 +367,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
                   </div>
                 )}
                 <div className="card shadow-lg border-0" style={{ borderRadius: '12px', overflow: 'hidden' }}>
-                  <div className="card-header bg-gradient-primary text-white border-0" style={{ padding: '0.75rem 1.25rem' }}>
+                  <div className="card-header bg-gradient-primary text-white border-0 header-text-white" style={{ padding: '0.75rem 1.25rem' }}>
                     <div className="d-flex align-items-center">
                       <i className="bi bi-house fs-5 me-2"></i>
                       <div>

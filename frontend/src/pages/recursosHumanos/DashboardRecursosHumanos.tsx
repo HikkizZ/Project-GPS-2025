@@ -22,7 +22,7 @@ const DashboardRecursosHumanos: React.FC = () => {
         <Col>
           {/* Header Elegante */}
           <div className="card shadow-lg border-0 mb-4 main-card-spacing" style={{ borderRadius: '12px', overflow: 'hidden' }}>
-          <div className="card-header bg-gradient-primary text-white border-0" style={{ padding: '0.75rem 1.25rem' }}>
+          <div className="card-header bg-gradient-primary text-white border-0 header-text-white" style={{ padding: '0.75rem 1.25rem' }}>
             <div className="d-flex align-items-center">
               <i className="bi bi-people-fill fs-5 me-2"></i>
               <div>

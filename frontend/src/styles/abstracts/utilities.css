@@ -270,4 +270,15 @@
   .info-group .value {
     text-align: left;
   }
+}
+
+/* Utilidad global para headers claros */
+.header-text-white,
+.header-text-white h1,
+.header-text-white h2,
+.header-text-white h3,
+.header-text-white h4,
+.header-text-white h5,
+.header-text-white h6 {
+  color: #fff !important;
 } 
