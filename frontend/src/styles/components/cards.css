@@ -128,7 +128,10 @@
   }
 }
 
-/* Mejorar la legibilidad del subtítulo en headers de tarjetas con fondo primario */
+/* Mejorar la legibilidad de subtítulos en headers de tarjetas con fondo primario (p, small) */
+.card-header.bg-gradient-primary p,
+.card-header.bg-primary p,
+.header-text-white p,
 .card-header.bg-gradient-primary small,
 .card-header.bg-primary small,
 .header-text-white small {
