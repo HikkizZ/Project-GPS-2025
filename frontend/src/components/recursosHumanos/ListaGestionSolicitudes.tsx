@@ -44,12 +44,19 @@ export const ListaGestionSolicitudes: React.FC = () => {
   // Estado para mostrar/ocultar filtros
   const [showFilters, setShowFilters] = useState(false);
   
-  // Estados para filtros locales
+  // Estados para filtros locales (ahora serán los valores aplicados)
   const [filtroEstado, setFiltroEstado] = useState<EstadoSolicitud | ''>('');
   const [filtroTipo, setFiltroTipo] = useState<TipoSolicitud | ''>('');
   const [filtroTrabajador, setFiltroTrabajador] = useState('');
   const [filtroFechaDesde, setFiltroFechaDesde] = useState('');
   const [filtroFechaHasta, setFiltroFechaHasta] = useState('');
+
+  // Estados temporales para los inputs
+  const [tmpEstado, setTmpEstado] = useState<EstadoSolicitud | ''>('');
+  const [tmpTipo, setTmpTipo] = useState<TipoSolicitud | ''>('');
+  const [tmpTrabajador, setTmpTrabajador] = useState('');
+  const [tmpFechaDesde, setTmpFechaDesde] = useState('');
+  const [tmpFechaHasta, setTmpFechaHasta] = useState('');
 
   // Estados para respuesta
   const [accionRespuesta, setAccionRespuesta] = useState<'aprobar' | 'rechazar' | null>(null);
@@ -65,6 +72,41 @@ export const ListaGestionSolicitudes: React.FC = () => {
   useEffect(() => {
     recargarSolicitudes();
   }, []);
+
+  // Al abrir filtros, sincronizar temporales con aplicados
+  useEffect(() => {
+    if (showFilters) {
+      setTmpEstado(filtroEstado);
+      setTmpTipo(filtroTipo);
+      setTmpTrabajador(filtroTrabajador);
+      setTmpFechaDesde(filtroFechaDesde);
+      setTmpFechaHasta(filtroFechaHasta);
+    }
+    // eslint-disable-next-line
+  }, [showFilters]);
+
+  // Handler para aplicar filtros
+  const handleAplicarFiltros = () => {
+    setFiltroEstado(tmpEstado);
+    setFiltroTipo(tmpTipo);
+    setFiltroTrabajador(tmpTrabajador);
+    setFiltroFechaDesde(tmpFechaDesde);
+    setFiltroFechaHasta(tmpFechaHasta);
+  };
+
+  // Limpiar filtros (aplicados y temporales)
+  const handleLimpiarFiltros = () => {
+    setFiltroEstado('');
+    setFiltroTipo('');
+    setFiltroTrabajador('');
+    setFiltroFechaDesde('');
+    setFiltroFechaHasta('');
+    setTmpEstado('');
+    setTmpTipo('');
+    setTmpTrabajador('');
+    setTmpFechaDesde('');
+    setTmpFechaHasta('');
+  };
 
   // Formatear fecha
   const formatearFecha = (fecha: string) => {
@@ -137,15 +179,6 @@ export const ListaGestionSolicitudes: React.FC = () => {
     
     return matchEstado && matchTipo && matchTrabajador && matchFechaDesde && matchFechaHasta;
   });
-
-  // Limpiar filtros
-  const handleLimpiarFiltros = () => {
-    setFiltroEstado('');
-    setFiltroTipo('');
-    setFiltroTrabajador('');
-    setFiltroFechaDesde('');
-    setFiltroFechaHasta('');
-  };
 
   // Manejar descarga de archivo
   const handleDescargarArchivo = async (solicitud: LicenciaPermiso) => {
@@ -293,8 +326,8 @@ export const ListaGestionSolicitudes: React.FC = () => {
               <Form.Group className="mb-3">
                 <Form.Label>Estado</Form.Label>
                 <Form.Select 
-                  value={filtroEstado} 
-                  onChange={(e) => setFiltroEstado(e.target.value as EstadoSolicitud | '')}
+                  value={tmpEstado} 
+                  onChange={(e) => setTmpEstado(e.target.value as EstadoSolicitud | '')}
                 >
                   <option value="">Todos los estados</option>
                   <option value="Pendiente">Pendiente</option>
@@ -307,8 +340,8 @@ export const ListaGestionSolicitudes: React.FC = () => {
               <Form.Group className="mb-3">
                 <Form.Label>Tipo</Form.Label>
                 <Form.Select 
-                  value={filtroTipo} 
-                  onChange={(e) => setFiltroTipo(e.target.value as TipoSolicitud | '')}
+                  value={tmpTipo} 
+                  onChange={(e) => setTmpTipo(e.target.value as TipoSolicitud | '')}
                 >
                   <option value="">Todos los tipos</option>
                   <option value="Licencia">Licencia</option>
@@ -322,8 +355,8 @@ export const ListaGestionSolicitudes: React.FC = () => {
                 <Form.Control
                   type="text"
                   placeholder="Buscar por nombre o RUT..."
-                  value={filtroTrabajador}
-                  onChange={(e) => setFiltroTrabajador(e.target.value)}
+                  value={tmpTrabajador}
+                  onChange={(e) => setTmpTrabajador(e.target.value)}
                 />
               </Form.Group>
             </Col>
@@ -332,8 +365,8 @@ export const ListaGestionSolicitudes: React.FC = () => {
                 <Form.Label>Desde</Form.Label>
                 <Form.Control
                   type="date"
-                  value={filtroFechaDesde}
-                  onChange={(e) => setFiltroFechaDesde(e.target.value)}
+                  value={tmpFechaDesde}
+                  onChange={(e) => setTmpFechaDesde(e.target.value)}
                 />
               </Form.Group>
             </Col>
@@ -342,13 +375,25 @@ export const ListaGestionSolicitudes: React.FC = () => {
                 <Form.Label>Hasta</Form.Label>
                 <Form.Control
                   type="date"
-                  value={filtroFechaHasta}
-                  onChange={(e) => setFiltroFechaHasta(e.target.value)}
+                  value={tmpFechaHasta}
+                  onChange={(e) => setTmpFechaHasta(e.target.value)}
                 />
               </Form.Group>
             </Col>
-            <Col md={1} className="d-flex align-items-end">
-              <Button variant="outline-secondary" onClick={handleLimpiarFiltros} className="mb-3 btn-enhanced">
+            <Col md={2} className="d-flex align-items-end gap-2">
+              <Button 
+                variant="primary" 
+                className="mb-3 btn-enhanced"
+                onClick={handleAplicarFiltros}
+              >
+                <i className="bi bi-search me-1"></i>
+                Buscar
+              </Button>
+              <Button 
+                variant="outline-secondary" 
+                onClick={handleLimpiarFiltros} 
+                className="mb-3 btn-enhanced"
+              >
                 <i className="bi bi-x-circle me-1"></i>
                 Limpiar
               </Button>
