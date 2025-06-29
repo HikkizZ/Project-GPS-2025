@@ -48,6 +48,10 @@ export const FormularioSolicitudLicenciaPermiso: React.FC<FormularioSolicitudLic
   // Obtener fecha mínima para los campos (hoy en formato YYYY-MM-DD)
   const getFechaMinima = () => {
     const hoy = new Date();
+    if (formData.tipo === TipoSolicitud.PERMISO) {
+      // Sumar un día para que hoy quede deshabilitado
+      hoy.setDate(hoy.getDate() + 1);
+    }
     return `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
   };
 
