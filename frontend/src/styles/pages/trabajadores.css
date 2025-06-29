@@ -223,4 +223,37 @@
 
 .trabajador-card:hover {
   transform: translateY(-2px);
+}
+
+.trabajadores-page .search-fields input[type="text"],
+.trabajadores-page .search-fields input[type="email"],
+.trabajadores-page .search-fields input[type="date"],
+.trabajadores-page .search-fields input[type="number"],
+.trabajadores-page .search-fields input[type="password"] {
+  border: 1.5px solid #d1d5db;
+  border-radius: 0.7rem;
+  background: #fff;
+  padding: 0.7rem 1rem;
+  font-size: 1rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  box-shadow: none;
+}
+
+.trabajadores-page .search-fields input[type="text"]:focus,
+.trabajadores-page .search-fields input[type="email"]:focus,
+.trabajadores-page .search-fields input[type="date"]:focus,
+.trabajadores-page .search-fields input[type="number"]:focus,
+.trabajadores-page .search-fields input[type="password"]:focus {
+  border-color: #0061FF;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(0,97,255,0.08);
+}
+
+.trabajadores-page .search-fields input[type="text"]::placeholder,
+.trabajadores-page .search-fields input[type="email"]::placeholder,
+.trabajadores-page .search-fields input[type="date"]::placeholder,
+.trabajadores-page .search-fields input[type="number"]::placeholder,
+.trabajadores-page .search-fields input[type="password"]::placeholder {
+  color: #b0b6be;
+  opacity: 1;
 } 
