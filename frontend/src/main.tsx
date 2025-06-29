@@ -5,11 +5,10 @@ import { AuthProvider } from './context'
 import { BrowserRouter } from 'react-router-dom'
 import { UIProvider } from './context/UIContext'
 
-// Importar Bootstrap completo
+// Importar Bootstrap y estilos globales
 import 'bootstrap/dist/css/bootstrap.min.css'
 import 'bootstrap-icons/font/bootstrap-icons.css'
 import './styles/index.css'
-import './styles/abstracts/utilities.css'
 
 const rootElement = document.getElementById('root');
 

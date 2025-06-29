@@ -9,6 +9,9 @@
 @import './base/typography.css';
 @import './base/animations.css';
 
+/* Abstracts (utilidades globales) */
+@import './abstracts/utilities.css';
+
 /* Layout */
 @import './layout/grid.css';
 @import './layout/navbar.css';
