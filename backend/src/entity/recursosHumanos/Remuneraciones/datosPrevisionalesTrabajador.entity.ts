@@ -18,11 +18,11 @@ export class DatosPrevisionalesTrabajador {
     @JoinColumn({ name: "datosPrevisionales" })
     trabajador!: Trabajador;
 
-    @OneToOne(() => PrevisionAFP, previsionAFP => previsionAFP.id, { nullable: false })
+    @OneToOne(() => PrevisionAFP, previsionAFP => previsionAFP.id, { nullable: true })
     @JoinColumn({ name: "idAFP" })
     idAFP!: string;
 
-    @OneToOne(() => PrevisionSalud, previsionSalud => previsionSalud.id, { nullable: false })
+    @OneToOne(() => PrevisionSalud, previsionSalud => previsionSalud.id, { nullable: true })
     @JoinColumn({ name: "idSalud" })
     idSalud!: string;
 
