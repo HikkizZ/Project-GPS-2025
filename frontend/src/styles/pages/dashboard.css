@@ -12,37 +12,38 @@
 }
 
 /* Contenedor principal del dashboard */
-.container-fluid {
+.dashboard-rh-page .container-fluid {
   max-width: var(--max-width);
   margin: 0 auto;
   padding: 0 2rem;
   margin-bottom: 1rem;
 }
 
-.dashboard-content {
+.dashboard-rh-page .dashboard-content {
   padding-top: 0.5rem;
   padding-bottom: 1.5rem;
 }
 
-.hover-card:hover {
+/* Efectos hover para tarjetas del dashboard */
+.dashboard-rh-page .hover-card:hover {
   transform: translateY(-5px);
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1) !important;
 }
 
-.hover-card {
+.dashboard-rh-page .hover-card {
   border: 1px solid rgba(0, 0, 0, 0.1);
   border-radius: 8px;
 }
 
-.hover-card .card-body {
+.dashboard-rh-page .hover-card .card-body {
   border-radius: 0 0 8px 8px;
 }
 
-.hover-card .bi {
+.dashboard-rh-page .hover-card .bi {
   transition: transform 0.2s ease-in-out;
 }
 
-.hover-card:hover .bi {
+.dashboard-rh-page .hover-card:hover .bi {
   transform: scale(1.1);
 }
 

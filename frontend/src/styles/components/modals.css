@@ -47,6 +47,17 @@
   padding: 1.5rem;
 }
 
+/* Header personalizado para modales */
+.modal-header-custom {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-bottom: none;
+}
+
+.modal-header-custom .btn-close {
+  filter: invert(1);
+}
+
 /* Secciones dentro del modal */
 .modal-section {
   padding: 1.25rem;
@@ -202,48 +213,46 @@
 
 /* Modal mejorado */
 .modal-enhanced .modal-dialog {
-  max-width: 900px;
+  max-width: 800px;
 }
 
 .modal-enhanced .modal-header {
-  background: linear-gradient(135deg, #0d6efd 0%, #6f42c1 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
-  border: none;
-  padding: 1.5rem 2rem;
+  border-bottom: none;
 }
 
 .modal-enhanced .modal-body {
   padding: 2rem;
-  background: #f8f9fa;
 }
 
 .modal-enhanced .modal-footer {
-  border: none;
+  border-top: 1px solid #e9ecef;
   padding: 1.5rem 2rem;
-  background: white;
 }
 
 /* Alertas y mensajes dentro del modal */
 .modal .alert {
-  margin: 1rem 0;
   border-radius: 0.5rem;
   border: none;
+  margin-bottom: 1rem;
 }
 
 .modal .alert-info {
-  background-color: #cff4fc;
-  color: #055160;
+  background-color: #d1ecf1;
+  color: #0c5460;
 }
 
 .modal .alert-warning {
   background-color: #fff3cd;
-  color: #664d03;
+  color: #856404;
+  border: 1px solid #ffeaa7;
 }
 
 /* Responsive */
 @media (max-width: 768px) {
   .modal-dialog {
-    margin: 1rem;
+    margin: 0.5rem;
   }
   
   .modal-enhanced .modal-body {
@@ -252,6 +261,5 @@
   
   .modal .info-grid {
     grid-template-columns: 1fr;
-    gap: 1rem;
   }
 }

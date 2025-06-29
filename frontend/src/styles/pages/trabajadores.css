@@ -37,6 +37,43 @@
   margin-bottom: 2rem;
 }
 
+/* Estilos para tarjetas de trabajadores */
+.trabajador-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  margin-bottom: 1rem;
+}
+
+.trabajador-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.trabajador-card .card-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 1rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.trabajador-card .card-body {
+  padding: 1.5rem;
+}
+
+.trabajador-card .card-actions {
+  padding: 1rem 1.5rem;
+  background-color: #f8f9fa;
+  border-top: 1px solid #e9ecef;
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
 .trabajadores-page .trabajador-card {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -64,6 +101,26 @@
   color: var(--text-primary);
 }
 
+/* Estilos para badges de estado */
+.status-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-badge.active {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.status-badge.inactive {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
 .trabajadores-page .status-badge {
   padding: 0.25rem 0.5rem;
   border-radius: 12px;
@@ -85,6 +142,31 @@
   margin-bottom: 1rem;
 }
 
+/* Estilos para grupos de información */
+.info-group {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #f1f3f4;
+}
+
+.info-group:last-child {
+  border-bottom: none;
+}
+
+.info-group .label {
+  font-weight: 600;
+  color: #495057;
+  min-width: 120px;
+}
+
+.info-group .value {
+  color: #212529;
+  text-align: right;
+  flex: 1;
+}
+
 .trabajadores-page .info-group {
   display: flex;
   justify-content: space-between;
@@ -100,6 +182,22 @@
 
 .trabajadores-page .info-group .value {
   color: var(--text-primary);
+}
+
+/* Estilos para estados */
+.status-activo {
+  color: #28a745;
+  font-weight: 600;
+}
+
+.status-inactivo {
+  color: #dc3545;
+  font-weight: 600;
+}
+
+.status-licencia {
+  color: #ffc107;
+  font-weight: 600;
 }
 
 .trabajadores-page .status-activo {
@@ -198,20 +296,17 @@
   .trabajadores-page .trabajadores-grid {
     grid-template-columns: 1fr;
   }
-  .trabajadores-page .search-fields {
-    grid-template-columns: 1fr;
-  }
+  
   .trabajadores-page .form-row {
     grid-template-columns: 1fr;
   }
+  
   .trabajadores-page .page-header {
     flex-direction: column;
-    align-items: stretch;
     gap: 1rem;
   }
 }
 
-/* Mantener exactamente los mismos estilos que había antes */
 .trabajadores-container {
   padding: var(--spacing-lg);
 }
@@ -227,23 +322,19 @@
 
 .trabajadores-page .search-fields input[type="text"],
 .trabajadores-page .search-fields input[type="email"],
-.trabajadores-page .search-fields input[type="date"],
-.trabajadores-page .search-fields input[type="number"],
-.trabajadores-page .search-fields input[type="password"] {
-  border: 1.5px solid #d1d5db;
-  border-radius: 0.7rem;
-  background: #fff;
-  padding: 0.7rem 1rem;
-  font-size: 1rem;
+.trabajadores-page .search-fields input[type="tel"],
+.trabajadores-page .search-fields select {
+  border: 1px solid #d1d5db;
+  border-radius: 0.35rem;
+  padding: 0.45rem 0.7rem;
+  font-size: 0.97rem;
   transition: border-color 0.2s, box-shadow 0.2s;
-  box-shadow: none;
 }
 
 .trabajadores-page .search-fields input[type="text"]:focus,
 .trabajadores-page .search-fields input[type="email"]:focus,
-.trabajadores-page .search-fields input[type="date"]:focus,
-.trabajadores-page .search-fields input[type="number"]:focus,
-.trabajadores-page .search-fields input[type="password"]:focus {
+.trabajadores-page .search-fields input[type="tel"]:focus,
+.trabajadores-page .search-fields select:focus {
   border-color: #0061FF;
   outline: none;
   box-shadow: 0 0 0 2px rgba(0,97,255,0.08);
@@ -251,9 +342,7 @@
 
 .trabajadores-page .search-fields input[type="text"]::placeholder,
 .trabajadores-page .search-fields input[type="email"]::placeholder,
-.trabajadores-page .search-fields input[type="date"]::placeholder,
-.trabajadores-page .search-fields input[type="number"]::placeholder,
-.trabajadores-page .search-fields input[type="password"]::placeholder {
+.trabajadores-page .search-fields input[type="tel"]::placeholder {
   color: #b0b6be;
   opacity: 1;
 } 

@@ -2,11 +2,6 @@
    ESTILOS PARA LICENCIAS Y PERMISOS
    ============================================ */
 
-/* Gradiente para header */
-.bg-gradient-primary {
-  background: linear-gradient(135deg, #0d6efd 0%, #6f42c1 100%) !important;
-}
-
 /* ============================================
    SISTEMA DE NOTIFICACIONES TOAST
    ============================================ */
