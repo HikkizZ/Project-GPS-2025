@@ -443,7 +443,7 @@ export const ListaGestionSolicitudes: React.FC = () => {
                       <td>
                         <div>
                           <div className="fw-bold">
-                            {solicitud.trabajador.nombres} {solicitud.trabajador.apellidoPaterno}
+                            {solicitud.trabajador.nombres} {solicitud.trabajador.apellidoPaterno} {solicitud.trabajador.apellidoMaterno}
                           </div>
                           <small className="text-muted">{solicitud.trabajador.rut}</small>
                         </div>
