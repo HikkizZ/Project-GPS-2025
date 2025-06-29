@@ -326,15 +326,26 @@ export const TrabajadoresPage: React.FC = () => {
             <Card className="shadow-sm">
               <Card.Body>
                 {trabajadores.length === 0 ? (
-                  <div className="text-center py-5">
-                    <i className="bi bi-people fs-1 text-muted mb-3 d-block"></i>
-                    <h5 className="text-muted">No hay trabajadores registrados</h5>
-                    <p className="text-muted">Los trabajadores aparecerán aquí cuando sean registrados</p>
-                    <Button variant="primary" onClick={() => setShowCreateModal(true)}>
-                      <i className="bi bi-person-plus me-2"></i>
-                      Registrar Primer Trabajador
-                    </Button>
-                  </div>
+                  Object.values(searchParams).some(v => v) ? (
+                    <div className="text-center py-5">
+                      <i className="bi bi-person-x fs-1 text-muted mb-3 d-block"></i>
+                      <h5 className="text-muted">No hay resultados que coincidan con tu búsqueda</h5>
+                      <p className="text-muted">Intenta ajustar los filtros para obtener más resultados</p>
+                      <Button variant="outline-primary" onClick={clearFilters}>
+                        <i className="bi bi-arrow-clockwise me-2"></i> Mostrar Todos
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="text-center py-5">
+                      <i className="bi bi-people fs-1 text-muted mb-3 d-block"></i>
+                      <h5 className="text-muted">No hay trabajadores registrados</h5>
+                      <p className="text-muted">Los trabajadores aparecerán aquí cuando sean registrados</p>
+                      <Button variant="primary" onClick={() => setShowCreateModal(true)}>
+                        <i className="bi bi-person-plus me-2"></i>
+                        Registrar Primer Trabajador
+                      </Button>
+                    </div>
+                  )
                 ) : (
                   <>
                     <div className="d-flex justify-content-between align-items-center mb-3">
