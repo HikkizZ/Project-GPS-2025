@@ -1,0 +1,77 @@
+/* Toast bonito y profesional para todos los tipos */
+.toast-custom {
+  min-width: 260px;
+  max-width: 340px;
+  border-radius: 12px !important;
+  box-shadow: 0 4px 18px 0 rgba(0,0,0,0.13), 0 1.5px 6px 0 rgba(0,0,0,0.08);
+  border: none;
+  padding: 0;
+  overflow: hidden;
+  font-family: inherit;
+}
+
+.toast-header-success {
+  background: #19c37d !important;
+  color: #fff !important;
+  border-bottom: none;
+}
+.toast-header-error {
+  background: #e53935 !important;
+  color: #fff !important;
+  border-bottom: none;
+}
+.toast-header-warning {
+  background: #fbc02d !important;
+  color: #fff !important;
+  border-bottom: none;
+}
+.toast-header-info {
+  background: #1976d2 !important;
+  color: #fff !important;
+  border-bottom: none;
+}
+
+.toast-custom .toast-header {
+  display: flex;
+  align-items: center;
+  padding: 0.7rem 1rem 0.5rem 1rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 12px 12px 0 0;
+  border: none;
+  background: none;
+}
+.toast-custom .toast-icon {
+  font-size: 1.35rem;
+  margin-right: 0.6rem;
+  vertical-align: middle;
+  flex-shrink: 0;
+  opacity: 0.95;
+}
+.toast-custom .btn-close {
+  filter: invert(1);
+  opacity: 0.9;
+  margin-left: 0.5rem;
+  margin-right: -0.2rem;
+  font-size: 1.1rem;
+  box-shadow: none;
+}
+.toast-custom .toast-body {
+  padding: 0.55rem 1rem 0.8rem 1rem;
+  font-size: 0.98rem;
+  color: #222;
+  background: #fff;
+  border-radius: 0 0 12px 12px;
+}
+
+/* Ajuste para icono y texto alineados */
+.toast-custom .d-flex.align-items-center {
+  align-items: flex-start !important;
+}
+
+@media (max-width: 480px) {
+  .toast-custom {
+    min-width: 90vw;
+    max-width: 98vw;
+  }
+} 
