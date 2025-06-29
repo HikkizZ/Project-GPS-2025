@@ -163,6 +163,7 @@ export const RegisterTrabajadorForm: React.FC<RegisterTrabajadorFormProps> = ({
               <Form.Label className="fw-semibold">Fecha de Nacimiento: <span className="text-danger">*</span></Form.Label>
               <Form.Control
                 type="date"
+                id="register-trabajador-fecha-nacimiento"
                 name="fechaNacimiento"
                 value={formData.fechaNacimiento}
                 onChange={handleInputChange}
