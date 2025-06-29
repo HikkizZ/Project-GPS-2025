@@ -240,6 +240,11 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
     return value === 'Por Definir' ? 'por-definir' : '';
   };
 
+  // Función para verificar si la ficha pertenece al usuario actual
+  const esFichaActual = (ficha: FichaEmpresa) => {
+    return user && ficha.trabajador.rut && user.rut && ficha.trabajador.rut.replace(/\.|-/g, '') === user.rut.replace(/\.|-/g, '');
+  };
+
   const getTipoContratoColor = (tipo: string) => {
     if (tipo === 'Por Definir') {
       return 'por-definir';
@@ -847,14 +852,17 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                           <td>{formatSueldo(ficha.sueldoBase)}</td>
                           <td>
                             <div className="btn-group">
-                              <Button 
-                                variant="outline-primary" 
-                                size="sm" 
-                                onClick={() => handleEditFicha(ficha)}
-                                title="Editar ficha"
-                              >
-                                <i className="bi bi-pencil"></i>
-                              </Button>
+                              {/* Ocultar botón de editar si es la ficha del usuario actual */}
+                              {!esFichaActual(ficha) && (
+                                <Button 
+                                  variant="outline-primary" 
+                                  size="sm" 
+                                  onClick={() => handleEditFicha(ficha)}
+                                  title="Editar ficha"
+                                >
+                                  <i className="bi bi-pencil"></i>
+                                </Button>
+                              )}
                               {ficha.contratoURL && (
                                 <Button 
                                   variant="outline-success" 

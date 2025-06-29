@@ -3,7 +3,7 @@ import { Table, Button, Form, Alert, Spinner, Modal, Container, Row, Col, Card }
 import { useTrabajadores } from '@/hooks/recursosHumanos/useTrabajadores';
 import { Trabajador, TrabajadorSearchQuery } from '@/types/recursosHumanos/trabajador.types';
 import { useRut, usePhone } from '@/hooks/useRut';
-import { useUI } from '@/context';
+import { useUI, useAuth } from '@/context';
 import { RegisterTrabajadorForm } from '@/components/trabajador/RegisterTrabajadorForm';
 import { EditarTrabajadorModal } from '@/components/trabajador/EditarTrabajadorModal';
 import { FiltrosBusquedaHeader } from '@/components/common/FiltrosBusquedaHeader';
@@ -14,8 +14,9 @@ export const TrabajadoresPage: React.FC = () => {
   const { trabajadores, isLoading, error, loadTrabajadores, searchTrabajadores, desvincularTrabajador } = useTrabajadores();
   const { formatRUT } = useRut();
   const { formatPhone } = usePhone();
-  const { setError: setUIError } = useUI();
+  const { setError: setUIError, setLoading } = useUI();
   const { toasts, removeToast, showSuccess, showError } = useToast();
+  const { user } = useAuth();
   
   // Estados para los modales y filtros
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -92,6 +93,11 @@ export const TrabajadoresPage: React.FC = () => {
     } finally {
       setIsDesvinculando(false);
     }
+  };
+
+  // Función para verificar si el trabajador es el usuario actual
+  const esTrabajadorActual = (trabajador: Trabajador) => {
+    return user && trabajador.rut && user.rut && trabajador.rut.replace(/\.|-/g, '') === user.rut.replace(/\.|-/g, '');
   };
 
   return (
@@ -397,8 +403,8 @@ export const TrabajadoresPage: React.FC = () => {
                             <td>{trabajador.direccion}</td>
                             <td>{new Date(trabajador.fechaIngreso).toLocaleDateString()}</td>
                             <td className="text-center">
-                              {/* Ocultar acciones si es el admin principal */}
-                              {(trabajador.correoPersonal !== 'admin.principal@gmail.com') && (
+                              {/* Ocultar acciones si es el admin principal o si es el usuario actual */}
+                              {(trabajador.correoPersonal !== 'admin.principal@gmail.com' && !esTrabajadorActual(trabajador)) && (
                                 <div className="btn-group">
                                   <Button 
                                     variant="outline-primary" 
