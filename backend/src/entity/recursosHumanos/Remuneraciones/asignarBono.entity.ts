@@ -1,10 +1,8 @@
-
 import {
     Entity,
     PrimaryGeneratedColumn,
     Column,
-    ManyToOne,
-    JoinColumn
+    ManyToOne
 } from "typeorm";
 import { Trabajador } from "../trabajador.entity.js";
 import { Bono } from "./Bono.entity.js";
