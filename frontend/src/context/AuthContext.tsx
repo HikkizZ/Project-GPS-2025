@@ -1,9 +1,8 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { authService } from '@/services/auth.service';
-import { LoginData, RegisterData, JWTPayload } from '@/types/auth.types';
+import { createContext } from 'react';
+import { LoginData, RegisterData, User } from '@/types';
 
-interface AuthContextType {
-  user: JWTPayload | null;
+export interface AuthContextType {
+  user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (credentials: LoginData) => Promise<{ success: boolean; error?: string }>;
@@ -11,93 +10,4 @@ interface AuthContextType {
   logout: () => void;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<JWTPayload | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const initAuth = () => {
-      try {
-        if (authService.isAuthenticated()) {
-          const currentUser = authService.getCurrentUser();
-          setUser(currentUser);
-        }
-      } catch (error) {
-        console.error('Error initializing auth:', error);
-        authService.logout();
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    initAuth();
-  }, []);
-
-  const login = async (credentials: LoginData) => {
-    try {
-      setIsLoading(true);
-      const response = await authService.login(credentials);
-      
-      if (response.token) {
-        const currentUser = authService.getCurrentUser();
-        setUser(currentUser);
-        return { success: true };
-      }
-      
-      return { success: false, error: response.error || 'Error desconocido' };
-    } catch (error) {
-      console.error('Error en login:', error);
-      return { success: false, error: 'Error de conexión' };
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const register = async (userData: RegisterData) => {
-    try {
-      setIsLoading(true);
-      const response = await authService.register(userData);
-      
-      if (response.success) {
-        return { success: true };
-      }
-      
-      return { success: false, error: response.error };
-    } catch (error) {
-      console.error('Error en registro:', error);
-      return { success: false, error: 'Error de conexión' };
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const logout = () => {
-    authService.logout();
-    setUser(null);
-  };
-
-  return (
-    <AuthContext.Provider
-      value={{
-        user,
-        isAuthenticated: !!user,
-        isLoading,
-        login,
-        register,
-        logout
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
-  );
-};
-
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth debe ser usado dentro de un AuthProvider');
-  }
-  return context;
-}; 
+export const AuthContext = createContext<AuthContextType | undefined>(undefined); 

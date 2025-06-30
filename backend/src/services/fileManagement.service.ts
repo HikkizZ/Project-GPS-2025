@@ -1,6 +1,21 @@
 import fs from 'fs';
 import path from 'path';
-import { ServiceResponse } from '../../types.js';
+import { ServiceResponse } from '../../types.d.js';
+import { fileURLToPath } from 'url';
+
+// --- Definición de Rutas Centralizada ---
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const BACKEND_ROOT = path.resolve(__dirname, '..', '..');
+const UPLOADS_DIR_ABSOLUTE = path.join(BACKEND_ROOT, 'uploads');
+
+// --- Directorios Específicos ---
+const DIRS_TO_ENSURE = [
+    path.join(UPLOADS_DIR_ABSOLUTE, 'contratos'),
+    path.join(UPLOADS_DIR_ABSOLUTE, 'licencias'),
+    path.join(UPLOADS_DIR_ABSOLUTE, 'historial'),
+    path.join(UPLOADS_DIR_ABSOLUTE, 'general'),
+];
 
 export interface FileInfo {
     filename: string;
@@ -21,7 +36,7 @@ export interface DownloadFileInfo {
  */
 export class FileManagementService {
     private static readonly BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
-    private static readonly UPLOADS_DIR = 'uploads';
+    private static readonly UPLOADS_DIR_RELATIVE = 'uploads';
 
     /**
      * Procesa la información del archivo subido
@@ -47,7 +62,7 @@ export class FileManagementService {
             }
 
             // Extraer la ruta del archivo desde la URL
-            let filePath: string;
+            let relativeFilePath: string;
             
             if (fileUrl.startsWith('http')) {
                 // URL completa
@@ -55,24 +70,24 @@ export class FileManagementService {
                 if (urlParts.length !== 2) {
                     return [null, "Formato de URL inválido"];
                 }
-                filePath = path.join(this.UPLOADS_DIR, urlParts[1]);
-            } else if (fileUrl.startsWith('uploads/')) {
+                relativeFilePath = path.join(this.UPLOADS_DIR_RELATIVE, urlParts[1]);
+            } else if (fileUrl.startsWith(this.UPLOADS_DIR_RELATIVE)) {
                 // Ruta relativa
-                filePath = fileUrl;
+                relativeFilePath = fileUrl;
             } else {
                 // Solo el nombre del archivo
-                filePath = path.join(this.UPLOADS_DIR, fileUrl);
+                relativeFilePath = path.join(this.UPLOADS_DIR_RELATIVE, fileUrl);
             }
 
-            // Normalizar la ruta
-            filePath = path.normalize(filePath);
+            // Normalizar la ruta y hacerla absoluta
+            const absoluteFilePath = path.resolve(BACKEND_ROOT, relativeFilePath);
 
             // Verificar que el archivo existe
-            const exists = fs.existsSync(filePath);
-            const filename = path.basename(filePath);
+            const exists = fs.existsSync(absoluteFilePath);
+            const filename = path.basename(absoluteFilePath);
 
             return [{
-                filePath,
+                filePath: absoluteFilePath,
                 filename,
                 exists
             }, null];
@@ -86,27 +101,17 @@ export class FileManagementService {
     /**
      * Elimina un archivo del sistema
      */
-    static deleteFile(fileUrl: string): ServiceResponse<boolean> {
+    static deleteFile(filePath: string): ServiceResponse<boolean> {
         try {
-            if (!fileUrl) {
-                return [false, "URL del archivo no proporcionada"];
+            if (!fs.existsSync(filePath)) {
+                return [false, "El archivo no existe"];
             }
 
-            const [fileInfo, error] = this.getFileForDownload(fileUrl);
-            if (error || !fileInfo) {
-                return [false, error || "Archivo no encontrado"];
-            }
-
-            if (fileInfo.exists) {
-                fs.unlinkSync(fileInfo.filePath);
-                return [true, null];
-            }
-
-            return [false, "El archivo no existe"];
-
+            fs.unlinkSync(filePath);
+            return [true, null];
         } catch (error) {
             console.error("Error al eliminar archivo:", error);
-            return [false, "Error interno al eliminar el archivo"];
+            return [false, "Error al eliminar el archivo"];
         }
     }
 
@@ -134,15 +139,7 @@ export class FileManagementService {
      * Crea los directorios necesarios para la subida de archivos
      */
     static ensureUploadDirectories(): void {
-        const directories = [
-            'uploads/licencias',
-            'uploads/contratos', 
-            'uploads/historial',
-            'uploads/certificados',
-            'uploads/general'
-        ];
-
-        directories.forEach(dir => {
+        DIRS_TO_ENSURE.forEach(dir => {
             if (!fs.existsSync(dir)) {
                 fs.mkdirSync(dir, { recursive: true });
             }
@@ -179,19 +176,15 @@ export class FileManagementService {
                     const stats = await fs.promises.stat(filePath);
                     
                     if (stats.isFile() && stats.mtime < cutoffDate) {
-                        // Aquí podrías agregar lógica adicional para verificar
-                        // si el archivo está referenciado en la base de datos
                         await fs.promises.unlink(filePath);
                         deletedCount++;
                     }
                 }
             };
 
-            await cleanDirectory('uploads/licencias');
-            await cleanDirectory('uploads/contratos');
-            await cleanDirectory('uploads/historial');
-            await cleanDirectory('uploads/certificados');
-            await cleanDirectory('uploads/general');
+            for (const dir of DIRS_TO_ENSURE) {
+                await cleanDirectory(dir);
+            }
 
             return [deletedCount, null];
 

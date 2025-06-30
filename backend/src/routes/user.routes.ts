@@ -1,6 +1,6 @@
 import { Router, Request, Response } from "express";
 import { authenticateJWT } from "../middlewares/authentication.middleware.js";
-import { checkRole } from "../middlewares/roles.middleware.js";
+import { verifyRole } from "../middlewares/authorization.middleware.js";
 import { searchUsers, getUser, getUsers, updateUser, updateUserByTrabajador } from "../controllers/user.controller.js";
 
 const router = Router();
@@ -22,7 +22,7 @@ router.put("/:id", authenticateJWT, async (req: Request, res: Response) => {
     await updateUser(req, res);
 });
 
-router.put("/trabajador/:id", authenticateJWT, checkRole(['RecursosHumanos', 'Administrador']), async (req: Request, res: Response) => {
+router.put("/trabajador/:id", authenticateJWT, verifyRole(['RecursosHumanos', 'Administrador']), async (req: Request, res: Response) => {
     await updateUserByTrabajador(req, res);
 });
 

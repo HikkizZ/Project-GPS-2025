@@ -1,100 +1,91 @@
-import { expect } from "chai";
-import { Application } from "express";
-import request from "supertest";
-import { setupTestApp, closeTestApp, cleanupAllTestData } from "../setup.js";
+// @ts-ignore
+import { expect } from 'chai';
+// @ts-ignore
+import request from 'supertest';
+import { app, server, SUPER_ADMIN_CREDENTIALS } from "../setup.js";
 import { AppDataSource } from "../../config/configDB.js";
 import { User } from "../../entity/user.entity.js";
 import { Trabajador } from "../../entity/recursosHumanos/trabajador.entity.js";
 
 describe("👥 Users API", () => {
-    let app: Application;
     let adminToken: string;
     let regularUserToken: string;
     let testTrabajador: Trabajador;
 
-    // Configuración inicial una sola vez para todas las pruebas
     before(async () => {
-        const setup = await setupTestApp();
-        app = setup.app;
+        try {
+            console.log("✅ Iniciando pruebas de Users");
 
-        // Obtener token de admin
-        const adminLogin = await request(app)
-            .post("/api/auth/login")
-            .send({
-                email: "admin.principal@gmail.com",
-                password: "204dm1n8"
-            });
+            // Obtener token de SuperAdmin
+            const adminLogin = await request(app)
+                .post('/api/auth/login')
+                .send(SUPER_ADMIN_CREDENTIALS);
 
-        adminToken = adminLogin.body.data.token;
+            adminToken = adminLogin.body.data.token;
 
-        // Crear trabajador y usuario de prueba
-        const trabajadorRepo = AppDataSource.getRepository(Trabajador);
-        testTrabajador = trabajadorRepo.create({
-            rut: "14.567.890-1",
-            nombres: "Usuario Test",
-            apellidoPaterno: "Users",
-            apellidoMaterno: "API",
-            fechaNacimiento: new Date("1990-01-01"),
-            telefono: "+56912345678",
-            correo: "usuario.test.users@gmail.com",
-            numeroEmergencia: "+56987654321",
-            direccion: "Calle Test Users 123",
-            fechaIngreso: new Date(),
-            enSistema: true
-        });
-
-        await trabajadorRepo.save(testTrabajador);
-
-        const regularUserResponse = await request(app)
-            .post("/api/auth/register")
-            .set("Authorization", `Bearer ${adminToken}`)
-            .send({
-                name: "Usuario Test Users",
+            // Crear trabajador y usuario de prueba
+            const trabajadorRepo = AppDataSource.getRepository(Trabajador);
+            testTrabajador = trabajadorRepo.create({
                 rut: "14.567.890-1",
-                email: "usuario.test.users@gmail.com",
-                password: "Usuario2024",
-                role: "Usuario"
+                nombres: "Usuario Test",
+                apellidoPaterno: "Users",
+                apellidoMaterno: "API",
+                fechaNacimiento: new Date("1990-01-01"),
+                telefono: "+56912345678",
+                correoPersonal: "usuario.test.users@gmail.com",
+                numeroEmergencia: "+56987654321",
+                direccion: "Calle Test Users 123",
+                fechaIngreso: new Date(),
+                enSistema: true
             });
 
-        const regularLogin = await request(app)
-            .post("/api/auth/login")
-            .send({
-                email: "usuario.test.users@gmail.com",
-                password: "Usuario2024"
-            });
-        regularUserToken = regularLogin.body.data.token;
+            await trabajadorRepo.save(testTrabajador);
+
+            const regularUserResponse = await request(app)
+                .post("/api/auth/register")
+                .set("Authorization", `Bearer ${adminToken}`)
+                .send({
+                    name: "Usuario Test Users",
+                    rut: "14.567.890-1",
+                    email: "usuario.test.users@gmail.com",
+                    password: "Usuario2024",
+                    role: "Usuario"
+                });
+
+            const regularLogin = await request(app)
+                .post("/api/auth/login")
+                .send({
+                    email: "usuario.test.users@gmail.com",
+                    password: "Usuario2024"
+                });
+            regularUserToken = regularLogin.body.data.token;
+        } catch (error) {
+            console.error("Error en la configuración de pruebas:", error);
+            throw error;
+        }
     });
 
     after(async () => {
-        // Limpiar TODOS los datos de prueba automáticamente
-        await cleanupAllTestData();
-        await closeTestApp();
-        
-        // Cerrar la conexión de base de datos
-        if (AppDataSource.isInitialized) {
-            await AppDataSource.destroy();
+        try {
+            console.log("✅ Pruebas de Users completadas");
+        } catch (error) {
+            console.error("Error en la limpieza de pruebas:", error);
         }
-        console.log("🔒 Tests finalizados. Base de datos limpiada y cerrada.");
     });
 
     beforeEach(async () => {
         try {
-            // Limpiar usuarios excepto el admin
+            // Limpiar usuarios excepto el SuperAdmin
             await AppDataSource.getRepository(User)
                 .createQueryBuilder()
                 .delete()
-                .where("rut NOT IN (:...ruts)", { 
-                    ruts: ['11.111.111-1'] 
-                })
+                .where("role != :role", { role: "SuperAdministrador" })
                 .execute();
 
-            // Limpiar trabajadores excepto el admin
+            // Limpiar trabajadores (el SuperAdmin no es trabajador)
             await AppDataSource.getRepository(Trabajador)
                 .createQueryBuilder()
                 .delete()
-                .where("rut NOT IN (:...ruts)", { 
-                    ruts: ['11.111.111-1'] 
-                })
                 .execute();
 
             // Crear trabajador de prueba
@@ -103,7 +94,7 @@ describe("👥 Users API", () => {
                 apellidoPaterno: "Prueba",
                 apellidoMaterno: "Test",
                 rut: "12.345.678-9",
-                correo: "usuario.prueba@gmail.com",
+                correoPersonal: "usuario.prueba@gmail.com",
                 telefono: "+56912345678",
                 direccion: "Calle Prueba 123",
                 fechaIngreso: new Date(),
@@ -260,16 +251,20 @@ describe("👥 Users API", () => {
             expect(response.body.message).to.equal("Usuario no encontrado");
         });
 
-        it("no debe permitir actualizar usuarios protegidos", async () => {
+        it("no debe permitir actualizar el SuperAdministrador", async () => {
+            const superAdmin = await AppDataSource.getRepository(User).findOne({
+                where: { role: "SuperAdministrador" }
+            });
+
             const response = await request(app)
                 .put("/api/user/update/")
-                .query({ rut: "11.111.111-1" })
+                .query({ email: superAdmin?.email })
                 .send({ role: "Usuario" })
                 .set("Authorization", `Bearer ${adminToken}`);
 
             expect(response.status).to.equal(403);
             expect(response.body.status).to.equal("error");
-            expect(response.body.message).to.equal("No se puede modificar el rol del administrador principal");
+            expect(response.body.message).to.equal("No se puede modificar el SuperAdministrador.");
         });
     });
 });

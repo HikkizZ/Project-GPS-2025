@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Modal, Form, Button, Alert } from 'react-bootstrap';
 import { Trabajador } from '@/types/recursosHumanos/trabajador.types';
 import { useTrabajadores } from '@/hooks/recursosHumanos/useTrabajadores';
-import { useRut } from '@/hooks/useRut';
+import { useRut, usePhone } from '@/hooks/useRut';
 
 interface EditarTrabajadorModalProps {
   show: boolean;
@@ -19,6 +19,7 @@ export const EditarTrabajadorModal: React.FC<EditarTrabajadorModalProps> = ({
 }) => {
   const { updateTrabajador } = useTrabajadores();
   const { formatRUT } = useRut();
+  const { formatPhone } = usePhone();
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -30,6 +31,7 @@ export const EditarTrabajadorModal: React.FC<EditarTrabajadorModalProps> = ({
     telefono: trabajador.telefono,
     numeroEmergencia: trabajador.numeroEmergencia || '',
     direccion: trabajador.direccion,
+    correoPersonal: trabajador.correoPersonal,
   });
 
   // Actualizar el estado del formulario cuando cambia el trabajador
@@ -41,6 +43,7 @@ export const EditarTrabajadorModal: React.FC<EditarTrabajadorModalProps> = ({
       telefono: trabajador.telefono,
       numeroEmergencia: trabajador.numeroEmergencia || '',
       direccion: trabajador.direccion,
+      correoPersonal: trabajador.correoPersonal,
     });
   }, [trabajador]);
 
@@ -67,23 +70,37 @@ export const EditarTrabajadorModal: React.FC<EditarTrabajadorModalProps> = ({
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    if (name === 'telefono' || name === 'numeroEmergencia') {
+      setFormData(prev => ({
+        ...prev,
+        [name]: formatPhone(value)
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
   };
 
   return (
     <Modal show={show} onHide={onHide} size="lg" centered>
-      <Modal.Header closeButton className="bg-warning text-dark">
-        <Modal.Title>
+      <Modal.Header 
+        closeButton 
+        style={{
+          background: 'linear-gradient(135deg, #ffc107 0%, #ff8f00 100%)',
+          border: 'none'
+        }}
+        className="text-white"
+      >
+        <Modal.Title className="fw-semibold">
           <i className="bi bi-pencil-square me-2"></i>
           Editar Trabajador
         </Modal.Title>
       </Modal.Header>
-      <Modal.Body>
+      <Modal.Body style={{ padding: '1.5rem' }}>
         {error && (
-          <Alert variant="danger" className="mb-3">
+          <Alert variant="danger" className="border-0 mb-3" style={{ borderRadius: '12px' }}>
             <i className="bi bi-exclamation-triangle me-2"></i>
             {error}
           </Alert>
@@ -94,11 +111,13 @@ export const EditarTrabajadorModal: React.FC<EditarTrabajadorModalProps> = ({
             {/* RUT (solo lectura) */}
             <div className="col-md-4">
               <Form.Group>
-                <Form.Label>RUT</Form.Label>
+                <Form.Label className="fw-semibold">RUT</Form.Label>
                 <Form.Control
                   type="text"
                   value={formatRUT(trabajador.rut)}
                   disabled
+                  className="bg-light"
+                  style={{ borderRadius: '8px' }}
                 />
               </Form.Group>
             </div>
@@ -106,13 +125,14 @@ export const EditarTrabajadorModal: React.FC<EditarTrabajadorModalProps> = ({
             {/* Nombres */}
             <div className="col-md-8">
               <Form.Group>
-                <Form.Label>Nombres</Form.Label>
+                <Form.Label className="fw-semibold">Nombres</Form.Label>
                 <Form.Control
                   type="text"
                   name="nombres"
                   value={formData.nombres}
                   onChange={handleInputChange}
                   required
+                  style={{ borderRadius: '8px' }}
                 />
               </Form.Group>
             </div>
@@ -120,25 +140,27 @@ export const EditarTrabajadorModal: React.FC<EditarTrabajadorModalProps> = ({
             {/* Apellidos */}
             <div className="col-md-6">
               <Form.Group>
-                <Form.Label>Apellido Paterno</Form.Label>
+                <Form.Label className="fw-semibold">Apellido Paterno</Form.Label>
                 <Form.Control
                   type="text"
                   name="apellidoPaterno"
                   value={formData.apellidoPaterno}
                   onChange={handleInputChange}
                   required
+                  style={{ borderRadius: '8px' }}
                 />
               </Form.Group>
             </div>
             <div className="col-md-6">
               <Form.Group>
-                <Form.Label>Apellido Materno</Form.Label>
+                <Form.Label className="fw-semibold">Apellido Materno</Form.Label>
                 <Form.Control
                   type="text"
                   name="apellidoMaterno"
                   value={formData.apellidoMaterno}
                   onChange={handleInputChange}
                   required
+                  style={{ borderRadius: '8px' }}
                 />
               </Form.Group>
             </div>
@@ -146,51 +168,74 @@ export const EditarTrabajadorModal: React.FC<EditarTrabajadorModalProps> = ({
             {/* Contacto */}
             <div className="col-md-4">
               <Form.Group>
-                <Form.Label>Correo</Form.Label>
+                <Form.Label className="fw-semibold">Correo de Usuario (Lamas)</Form.Label>
                 <Form.Control
                   type="email"
-                  value={trabajador.correo}
+                  value={trabajador.usuario?.email || ''}
                   disabled
+                  className="bg-light"
+                  style={{ borderRadius: '8px' }}
                 />
-                <Form.Text className="text-muted">
-                  El correo no se puede modificar por seguridad
+                <Form.Text className="text-muted small">
+                  <i className="bi bi-info-circle me-1"></i>
+                  Se genera automáticamente y se actualiza con cambios de nombre
                 </Form.Text>
               </Form.Group>
             </div>
             <div className="col-md-4">
               <Form.Group>
-                <Form.Label>Teléfono</Form.Label>
+                <Form.Label className="fw-semibold">Correo Personal (editable)</Form.Label>
+                <Form.Control
+                  type="email"
+                  name="correoPersonal"
+                  value={formData.correoPersonal}
+                  onChange={handleInputChange}
+                  required
+                  style={{ borderRadius: '8px' }}
+                />
+                <Form.Text className="text-muted small">
+                  <i className="bi bi-envelope me-1"></i>
+                  Solo se actualiza para futuras comunicaciones
+                </Form.Text>
+              </Form.Group>
+            </div>
+            <div className="col-md-4">
+              <Form.Group>
+                <Form.Label className="fw-semibold">Teléfono</Form.Label>
                 <Form.Control
                   type="text"
                   name="telefono"
                   value={formData.telefono}
                   onChange={handleInputChange}
                   required
+                  style={{ borderRadius: '8px' }}
                 />
               </Form.Group>
             </div>
             <div className="col-md-4">
               <Form.Group>
-                <Form.Label>Número de Emergencia</Form.Label>
+                <Form.Label className="fw-semibold">Número de Emergencia</Form.Label>
                 <Form.Control
                   type="text"
                   name="numeroEmergencia"
                   value={formData.numeroEmergencia}
                   onChange={handleInputChange}
+                  style={{ borderRadius: '8px' }}
                 />
               </Form.Group>
             </div>
 
             {/* Dirección */}
-            <div className="col-12">
+            <div className="col-8">
               <Form.Group>
-                <Form.Label>Dirección</Form.Label>
+                <Form.Label className="fw-semibold">Dirección</Form.Label>
                 <Form.Control
                   type="text"
                   name="direccion"
                   value={formData.direccion}
                   onChange={handleInputChange}
                   required
+                  style={{ borderRadius: '8px' }}
                 />
               </Form.Group>
             </div>
@@ -198,34 +243,44 @@ export const EditarTrabajadorModal: React.FC<EditarTrabajadorModalProps> = ({
             {/* Fechas */}
             <div className="col-md-6">
               <Form.Group>
-                <Form.Label>Fecha de Nacimiento</Form.Label>
+                <Form.Label className="fw-semibold">Fecha de Nacimiento</Form.Label>
                 <Form.Control
                   type="date"
                   value={new Date(trabajador.fechaNacimiento).toISOString().split('T')[0]}
                   disabled
+                  className="bg-light"
+                  style={{ borderRadius: '8px' }}
                 />
-                <Form.Text className="text-muted">
-                  La fecha de nacimiento no se puede modificar
+                <Form.Text className="text-muted small">
+                  <i className="bi bi-lock me-1"></i>
+                  No se puede modificar
                 </Form.Text>
               </Form.Group>
             </div>
             <div className="col-md-6">
               <Form.Group>
-                <Form.Label>Fecha de Ingreso</Form.Label>
+                <Form.Label className="fw-semibold">Fecha de Ingreso</Form.Label>
                 <Form.Control
                   type="date"
                   value={new Date(trabajador.fechaIngreso).toISOString().split('T')[0]}
                   disabled
+                  className="bg-light"
+                  style={{ borderRadius: '8px' }}
                 />
-                <Form.Text className="text-muted">
-                  La fecha de ingreso no se puede modificar
+                <Form.Text className="text-muted small">
+                  <i className="bi bi-lock me-1"></i>
+                  No se puede modificar
                 </Form.Text>
               </Form.Group>
             </div>
           </div>
 
-          <div className="d-flex justify-content-end gap-2 mt-4">
-            <Button variant="secondary" onClick={onHide}>
+          <div className="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+            <Button 
+              variant="outline-secondary" 
+              onClick={onHide}
+              style={{ borderRadius: '20px', fontWeight: '500' }}
+            >
               <i className="bi bi-x-circle me-2"></i>
               Cancelar
             </Button>
@@ -233,6 +288,7 @@ export const EditarTrabajadorModal: React.FC<EditarTrabajadorModalProps> = ({
               variant="warning" 
               type="submit"
               disabled={isLoading}
+              style={{ borderRadius: '20px', fontWeight: '500' }}
             >
               {isLoading ? (
                 <>
@@ -241,7 +297,7 @@ export const EditarTrabajadorModal: React.FC<EditarTrabajadorModalProps> = ({
                 </>
               ) : (
                 <>
-                  <i className="bi bi-check-circle me-2"></i>
+                  <i className="bi bi-save me-2"></i>
                   Guardar Cambios
                 </>
               )}

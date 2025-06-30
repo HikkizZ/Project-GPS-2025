@@ -1,11 +1,13 @@
+// @ts-ignore
 import { expect } from 'chai';
-import { Application } from 'express';
+// @ts-ignore
 import request from 'supertest';
-import { setupTestApp, closeTestApp } from '../setup.js';
+import { app, server, SUPER_ADMIN_CREDENTIALS, RRHH_CREDENTIALS } from '../setup.js';
+import { AppDataSource } from '../../config/configDB.js';
+import { Trabajador } from '../../entity/recursosHumanos/trabajador.entity.js';
+import { FichaEmpresa } from '../../entity/recursosHumanos/fichaEmpresa.entity.js';
 
-describe('👥 Trabajadores API', () => {
-    let app: Application;
-    let server: any;
+describe('👥 Pruebas de Trabajadores', () => {
     let adminToken: string;
     let rrhToken: string;
     const uniqueTimestamp = Date.now();
@@ -15,35 +17,19 @@ describe('👥 Trabajadores API', () => {
 
     before(async () => {
         try {
-            // Configurar el servidor y la base de datos
-            const setup = await setupTestApp();
-            app = setup.app;
-            server = setup.server;
+            console.log("✅ Iniciando pruebas de Trabajadores");
 
-            // Esperar un momento para asegurar que la configuración inicial se complete
-            await new Promise(resolve => setTimeout(resolve, 1000));
-
-            // Login como admin
+            // Obtener token de SuperAdmin
             const adminLogin = await request(app)
                 .post('/api/auth/login')
-                .send({
-                    email: 'admin.principal@gmail.com',
-                    password: '204dm1n8'
-                });
+                .send(SUPER_ADMIN_CREDENTIALS);
 
-            if (adminLogin.status !== 200 || !adminLogin.body.data?.token) {
-                console.error('Error en login admin:', adminLogin.body);
-                throw new Error('No se pudo obtener el token de admin');
-            }
             adminToken = adminLogin.body.data.token;
 
             // Login como RRHH
             const rrhLogin = await request(app)
                 .post('/api/auth/login')
-                .send({
-                    email: 'recursoshumanos@gmail.com',
-                    password: 'RRHH2024'
-                });
+                .send(RRHH_CREDENTIALS);
 
             if (rrhLogin.status !== 200 || !rrhLogin.body.data?.token) {
                 console.error('Error en login RRHH:', rrhLogin.body);
@@ -51,11 +37,19 @@ describe('👥 Trabajadores API', () => {
             }
             rrhToken = rrhLogin.body.data.token;
 
-        } catch (error) {
-            console.error('Error en la configuración de pruebas:', error);
-            if (server) {
-                await closeTestApp();
+            // Limpiar datos de prueba previos
+            const trabajadorPrevio = await request(app)
+                .get('/api/trabajadores/rut/12.345.678-9')
+                .set('Authorization', `Bearer ${adminToken}`);
+
+            if (trabajadorPrevio.body.data) {
+                await request(app)
+                    .delete(`/api/trabajadores/${trabajadorPrevio.body.data.id}`)
+                    .set('Authorization', `Bearer ${adminToken}`);
             }
+
+        } catch (error) {
+            console.error("Error en la configuración de pruebas:", error);
             throw error;
         }
     });
@@ -96,10 +90,10 @@ describe('👥 Trabajadores API', () => {
                     fichaEmpresa: {
                         cargo: "Desarrollador",
                         area: "TI",
-                        empresa: "GPS",
                         tipoContrato: "Indefinido",
                         jornadaLaboral: "Completa",
-                        sueldoBase: 1000000
+                        sueldoBase: 800000,
+                        fechaInicioContrato: "2025-01-01"
                     }
                 });
 
@@ -158,7 +152,6 @@ describe('👥 Trabajadores API', () => {
                     fichaEmpresa: {
                         cargo: "Analista",
                         area: "TI",
-                        empresa: "GPS",
                         tipoContrato: "Indefinido",
                         jornadaLaboral: "Completa",
                         sueldoBase: 900000
@@ -306,6 +299,13 @@ describe('👥 Trabajadores API', () => {
     });
 
     after(async () => {
-        await closeTestApp();
+        try {
+            console.log("✅ Pruebas de Trabajadores completadas");
+            await request(app)
+                .delete(`/api/trabajadores/${trabajadorId}`)
+                .set('Authorization', `Bearer ${adminToken}`);
+        } catch (error) {
+            console.error("Error en la limpieza de pruebas:", error);
+        }
     });
 }); 

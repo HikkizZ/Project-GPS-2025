@@ -82,7 +82,7 @@ export async function register(req: Request, res: Response): Promise<void> {
 
         // Verificar si el usuario tiene permisos para registrar
         const userRole = (req.user as any)?.role;
-        if (!userRole || (userRole !== "Administrador" && userRole !== "RecursosHumanos")) {
+        if (!userRole || (userRole !== "SuperAdministrador" && userRole !== "Administrador" && userRole !== "RecursosHumanos")) {
             res.status(403).json({
                 status: "error",
                 message: "No tienes permisos para realizar esta acción."

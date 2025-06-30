@@ -6,7 +6,6 @@ import { Trabajador } from "../entity/recursosHumanos/trabajador.entity.js";
 import { HistorialLaboral } from "../entity/recursosHumanos/historialLaboral.entity.js";
 import { FichaEmpresa } from "../entity/recursosHumanos/fichaEmpresa.entity.js";
 import { LicenciaPermiso } from "../entity/recursosHumanos/licenciaPermiso.entity.js";
-import { Capacitacion } from "../entity/recursosHumanos/capacitacion.entity.js";
 
 /* Import custom modules. */
 import { PORT, HOST, DATABASE, DB_USERNAME, DB_PASSWORD } from "./configEnv.js";
@@ -14,10 +13,11 @@ import { PORT, HOST, DATABASE, DB_USERNAME, DB_PASSWORD } from "./configEnv.js";
 /* Environment */
 const isProduction = process.env.NODE_ENV === "production";
 const isTest = process.env.NODE_ENV === "test";
+const isDevelopment = !isProduction && !isTest;
 
 /* Dynamic route for the entities according to the environment */
 const entitiesPath = isProduction
-    ? "build/entity/**/*.js" // For production
+    ? "dist/entity/**/*.js" // For production
     : "src/entity/**/*.ts"; // For development
 
 config();
@@ -71,7 +71,7 @@ export const initializeDatabase = async () => {
     try {
         if (!AppDataSource.isInitialized) {
             await AppDataSource.initialize();
-            console.log("✅ Database connection established");
+            console.log("✅ Base de datos conectada");
         }
     } catch (error) {
         console.error("❌ Error connecting to the database:", error);

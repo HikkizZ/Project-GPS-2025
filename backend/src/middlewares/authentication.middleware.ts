@@ -26,7 +26,10 @@ export const verifyToken = async (req: Request, res: Response, next: NextFunctio
 
         const decoded = jwt.verify(token, ACCESS_TOKEN_SECRET as string) as { rut: string; email: string };
         const userRepository = AppDataSource.getRepository(User);
-        const user = await userRepository.findOne({ where: { rut: decoded.rut, email: decoded.email } });
+        const user = await userRepository.findOne({ 
+            where: { rut: decoded.rut, email: decoded.email },
+            relations: ["trabajador"]
+        });
 
         if (!user) {
             res.status(401).json({

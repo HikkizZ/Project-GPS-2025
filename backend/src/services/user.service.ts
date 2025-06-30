@@ -1,13 +1,15 @@
 import { User } from "../entity/user.entity.js";
 import { AppDataSource } from "../config/configDB.js";
-import { comparePassword, encryptPassword } from "../helpers/bcrypt.helper.js";
-import { ServiceResponse, QueryParams, UpdateUserData, SafeUser } from '../../types.d.js';
+import { comparePassword, encryptPassword } from "../utils/encrypt.js";
+import { ServiceResponse, QueryParams, UpdateUserData, SafeUser, userRole } from '../../types.d.js';
 import { Not, ILike, FindOptionsWhere, FindOperator, Equal } from "typeorm";
-import { hashPassword } from '../utils/password.utils.js';
 
 /* Validar formato de RUT */
-function isValidRut(rut: string): boolean {
-    const rutRegex = /^[0-9]{1,2}\.[0-9]{3}\.[0-9]{3}-[0-9kK]$/;
+function isValidRut(rut: string | null): boolean {
+    // Si el RUT es null, es válido solo para SuperAdmin
+    if (rut === null) return true;
+    // Solo aceptar formato xx.xxx.xxx-x
+    const rutRegex = /^\d{2}\.\d{3}\.\d{3}-[0-9kK]$/;
     return rutRegex.test(rut);
 }
 
@@ -19,8 +21,8 @@ function isValidEmail(email: string): boolean {
 
 /* Validar rol de usuario */
 function isValidRole(role: string): boolean {
-    const validRoles = ["Administrador", "Usuario", "RecursosHumanos", "Gerencia", "Ventas", "Arriendo", "Finanzas"];
-    return validRoles.includes(role);
+    const validRoles: userRole[] = ["SuperAdministrador", "Administrador", "Usuario", "RecursosHumanos", "Gerencia", "Ventas", "Arriendo", "Finanzas", "Mecánico", "Mantenciones de Maquinaria"];
+    return validRoles.includes(role as userRole);
 }
 
 /* Buscar usuarios con filtros */
@@ -28,48 +30,54 @@ export async function searchUsersService(query: QueryParams): Promise<ServiceRes
     try {
         // Validar formato de RUT y email si están presentes
         if (query.rut && !isValidRut(query.rut)) {
-            return [null, "Formato de RUT inválido"];
+            return [null, "Debe ingresar el RUT en formato xx.xxx.xxx-x"];
         }
         if (query.email && !isValidEmail(query.email)) {
             return [null, "Formato de email inválido"];
         }
 
         const userRepository = AppDataSource.getRepository(User);
-        const whereClause: FindOptionsWhere<User> = {};
 
-        // Agregar cada campo de búsqueda si está presente en la query
+        // Búsqueda exacta por RUT (sin puntos ni guion)
+        if (query.rut) {
+            const cleanRut = query.rut.replace(/\./g, '').replace(/-/g, '');
+            const users = await userRepository.createQueryBuilder("user")
+                .where("REPLACE(REPLACE(user.rut, '.', ''), '-', '') = :cleanRut", { cleanRut })
+                .andWhere("user.role != :superAdminRole", { superAdminRole: "SuperAdministrador" })
+                .getMany();
+            if (!users.length) {
+                return [[], null];
+            }
+            const usersData = users.map(({ password, ...user }) => user);
+            return [usersData, null];
+        }
+
+        // Resto de filtros (nombre, email, rol, etc.)
+        const whereClause: FindOptionsWhere<User> = {
+            role: Not("SuperAdministrador") // Excluir SuperAdmin de todas las búsquedas
+        };
         if (query.id) {
             whereClause.id = query.id;
         }
-
-        if (query.rut) {
-            whereClause.rut = ILike(`%${query.rut}%`);
-        }
-
         if (query.email) {
             whereClause.email = ILike(`%${query.email}%`);
         }
-
         if (query.role) {
-            if (!isValidRole(query.role)) {
+            if (!isValidRole(query.role) || query.role === "SuperAdministrador") {
                 return [null, "Rol inválido"];
             }
             whereClause.role = query.role as any;
         }
-
         if (query.name) {
             whereClause.name = ILike(`%${query.name}%`);
         }
-
         const users = await userRepository.find({
             where: whereClause,
             order: { id: "ASC" }
         });
-
         if (!users || users.length === 0) {
-            return [[], null]; // Retornar array vacío en lugar de error
+            return [[], null];
         }
-
         const usersData = users.map(({ password, ...user }) => user);
         return [usersData, null];
     } catch (error) {
@@ -82,13 +90,18 @@ export async function searchUsersService(query: QueryParams): Promise<ServiceRes
 export const getUserService = async (query: { id?: number; role?: string }) => {
     try {
         const userRepo = AppDataSource.getRepository(User);
-        const whereClause: any = {};
+        const whereClause: any = {
+            role: Not("SuperAdministrador") // Excluir SuperAdmin
+        };
 
         if (query.id) {
             whereClause.id = query.id;
         }
 
         if (query.role) {
+            if (query.role === "SuperAdministrador") {
+                return null;
+            }
             whereClause.role = query.role;
         }
 
@@ -104,8 +117,12 @@ export const getUserService = async (query: { id?: number; role?: string }) => {
 export async function getUsersService(): Promise<User[]> {
     try {
         const userRepository = AppDataSource.getRepository(User);
-        const users = await userRepository.find();
-        return users;
+        const users = await userRepository.find({
+            where: {
+                role: Not("SuperAdministrador") // Excluir SuperAdmin
+            }
+        });
+        return users || [];
     } catch (error) {
         console.error('Error en getUsersService:', error);
         throw error;
@@ -124,6 +141,10 @@ export const updateUserService = async (id: number, body: UpdateUserData, reques
             return null;
         }
 
+        if (user.role === "SuperAdministrador") {
+            throw { status: 403, message: "No se puede modificar el SuperAdministrador." };
+        }
+
         const dataUserUpdate: any = {};
 
         if (body.name) {
@@ -133,9 +154,12 @@ export const updateUserService = async (id: number, body: UpdateUserData, reques
             dataUserUpdate.email = body.email;
         }
         if (body.password) {
-            dataUserUpdate.password = body.password;
+            dataUserUpdate.password = await encryptPassword(body.password);
         }
         if (body.role) {
+            if (body.role === "SuperAdministrador") {
+                throw { status: 403, message: "No se puede cambiar un usuario a SuperAdministrador." };
+            }
             dataUserUpdate.role = body.role as string;
         }
         if (body.rut) {
@@ -168,6 +192,10 @@ export const updateUserByTrabajadorService = async (id: number, body: UpdateUser
             return null;
         }
 
+        if (user.role === "SuperAdministrador") {
+            throw { status: 403, message: "No se puede modificar el SuperAdministrador." };
+        }
+
         const dataUserUpdate: any = {};
 
         if (body.name) {
@@ -177,7 +205,7 @@ export const updateUserByTrabajadorService = async (id: number, body: UpdateUser
             dataUserUpdate.email = body.email;
         }
         if (body.password) {
-            dataUserUpdate.password = body.password;
+            dataUserUpdate.password = await encryptPassword(body.password);
         }
         if (body.rut) {
             dataUserUpdate.rut = body.rut;

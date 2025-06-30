@@ -1,73 +1,149 @@
-import axios from 'axios';
-import { API_CONFIG } from '@/config/api.config';
+import { apiClient } from '@/config/api.config';
 import {
   Trabajador,
   CreateTrabajadorData,
   TrabajadorSearchQuery,
-  TrabajadorResponse
+  TrabajadorResponse,
+  UpdateTrabajadorData
 } from '@/types/recursosHumanos/trabajador.types';
 
-class TrabajadorService {
-  private baseURL = API_CONFIG.BASE_URL + '/trabajadores';
+export interface ApiResponse<T = any> {
+  success: boolean;
+  message: string;
+  data?: T;
+}
+
+// Exportar la clase
+export class TrabajadorService {
+  private baseURL = '/trabajadores';
 
   private getHeaders() {
-    const token = localStorage.getItem('authToken');
+    const token = localStorage.getItem('auth_token');
     return {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`
     };
   }
 
-  // Crear nuevo trabajador
-  async createTrabajador(trabajadorData: CreateTrabajadorData): Promise<{ trabajador?: Trabajador; error?: string }> {
+  // Obtener todos los trabajadores
+  async getAllTrabajadores(): Promise<ApiResponse<Trabajador[]>> {
     try {
-      const response = await axios.post<TrabajadorResponse>(
-        this.baseURL,
-        trabajadorData,
-        { headers: this.getHeaders() }
-      );
+      // Usar fetch directamente para obtener la respuesta completa
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}${this.baseURL}/all`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+        }
+      });
 
-      if (response.data.status === 'success' && response.data.data) {
-        // Asegurarnos de que data es un único trabajador y no un array
-        const trabajador = Array.isArray(response.data.data) ? response.data.data[0] : response.data.data;
-        return { trabajador };
+      // Verificar si la respuesta es JSON válida
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        const textResponse = await response.text();
+        console.error('Respuesta no JSON recibida:', textResponse);
+        return {
+          success: false,
+          message: `Error del servidor: ${response.status} ${response.statusText}`
+        };
       }
 
-      return { error: response.data.message || 'Error al crear trabajador' };
+      const responseData = await response.json();
+
+      if (response.ok && responseData.status === 'success') {
+        return {
+          success: true,
+          message: responseData.message || 'Trabajadores obtenidos exitosamente',
+          data: responseData.data || []
+        };
+      }
+
+      return {
+        success: false,
+        message: responseData.message || 'Error al obtener trabajadores'
+      };
     } catch (error: any) {
-      console.error('Error al crear trabajador:', error);
-      if (error.response?.data?.message) {
-        return { error: error.response.data.message };
-      }
-      return { error: 'Error de conexión con el servidor' };
+      console.error('Error al obtener trabajadores:', error);
+      return {
+        success: false,
+        message: error.message || 'Error al obtener trabajadores'
+      };
     }
   }
 
-  // Obtener todos los trabajadores
-  async getTrabajadores(): Promise<{ trabajadores?: Trabajador[]; error?: string }> {
+  // Obtener trabajador por ID
+  async getTrabajadorById(id: number): Promise<ApiResponse<Trabajador>> {
     try {
-      const response = await axios.get<TrabajadorResponse>(
-        `${this.baseURL}/all`,
-        { headers: this.getHeaders() }
-      );
-
-      if (response.data.status === 'success' && response.data.data) {
-        const trabajadores = Array.isArray(response.data.data) ? response.data.data : [response.data.data];
-        return { trabajadores };
-      }
-
-      return { error: response.data.message };
+      const data = await apiClient.get<{ data: Trabajador }>(`${this.baseURL}/${id}`);
+      return {
+        success: true,
+        message: 'Trabajador obtenido exitosamente',
+        data: data.data
+      };
     } catch (error: any) {
-      console.error('Error al obtener trabajadores:', error);
-      if (error.response?.data?.message) {
-        return { error: error.response.data.message };
-      }
-      return { error: 'Error de conexión con el servidor' };
+      console.error('Error al obtener trabajador:', error);
+      return {
+        success: false,
+        message: error.message || 'Error al obtener trabajador'
+      };
+    }
+  }
+
+  // Crear nuevo trabajador
+  async createTrabajador(trabajadorData: CreateTrabajadorData): Promise<any> {
+    try {
+      const response = await apiClient.post(`${this.baseURL}/`, trabajadorData);
+      return {
+        success: true,
+        trabajador: response.data,
+        advertencias: response.advertencias || []
+      };
+    } catch (error: any) {
+      console.error('Error al crear trabajador:', error);
+      return {
+        success: false,
+        error: error.message || 'Error al crear trabajador'
+      };
+    }
+  }
+
+  // Actualizar trabajador
+  async updateTrabajador(id: number, trabajadorData: UpdateTrabajadorData): Promise<ApiResponse<Trabajador>> {
+    try {
+      const data = await apiClient.put<{ data: Trabajador }>(`${this.baseURL}/${id}`, trabajadorData);
+      return {
+        success: true,
+        message: 'Trabajador actualizado exitosamente',
+        data: data.data
+      };
+    } catch (error: any) {
+      console.error('Error al actualizar trabajador:', error);
+      return {
+        success: false,
+        message: error.message || 'Error al actualizar trabajador'
+      };
+    }
+  }
+
+  // Eliminar trabajador
+  async deleteTrabajador(id: number): Promise<ApiResponse> {
+    try {
+      await apiClient.delete(`${this.baseURL}/${id}`);
+      return {
+        success: true,
+        message: 'Trabajador eliminado exitosamente'
+      };
+    } catch (error: any) {
+      console.error('Error al eliminar trabajador:', error);
+      return {
+        success: false,
+        message: error.message || 'Error al eliminar trabajador'
+      };
     }
   }
 
   // Buscar trabajadores
-  async searchTrabajadores(query: TrabajadorSearchQuery): Promise<{ trabajadores?: Trabajador[]; error?: string }> {
+  async searchTrabajadores(query: any): Promise<ApiResponse<Trabajador[]>> {
     try {
       const queryParams = new URLSearchParams();
       Object.entries(query).forEach(([key, value]) => {
@@ -76,112 +152,91 @@ class TrabajadorService {
         }
       });
 
-      const response = await axios.get<TrabajadorResponse>(
-        `${this.baseURL}/detail?${queryParams}`,
-        { headers: this.getHeaders() }
-      );
+      // Usar fetch directamente para obtener la respuesta completa
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}${this.baseURL}/detail/?${queryParams}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+        }
+      });
 
-      if (response.data.status === 'success' && response.data.data) {
-        const trabajadores = Array.isArray(response.data.data) ? response.data.data : [response.data.data];
-        return { trabajadores };
+      // Verificar si la respuesta es JSON válida
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        const textResponse = await response.text();
+        console.error('Respuesta no JSON recibida:', textResponse);
+        return {
+          success: false,
+          message: `Error del servidor: ${response.status} ${response.statusText}`
+        };
       }
 
-      return { error: response.data.message };
+      const responseData = await response.json();
+
+      if (response.ok && responseData.status === 'success') {
+        return {
+          success: true,
+          message: responseData.message || 'Búsqueda completada exitosamente',
+          data: responseData.data || []
+        };
+      }
+
+      return {
+        success: false,
+        message: responseData.message || 'Error al buscar trabajadores'
+      };
     } catch (error: any) {
       console.error('Error al buscar trabajadores:', error);
-      if (error.response?.data?.message) {
-        return { error: error.response.data.message };
-      }
-      return { error: 'Error de conexión con el servidor' };
-    }
-  }
-
-  // Actualizar trabajador
-  async updateTrabajador(id: number, trabajadorData: Partial<Trabajador>): Promise<{ trabajador?: Trabajador; error?: string }> {
-    try {
-      // Primero actualizamos el trabajador
-      const response = await axios.put<TrabajadorResponse>(
-        `${this.baseURL}/${id}`,
-        trabajadorData,
-        { headers: this.getHeaders() }
-      );
-
-      if (response.data.status === 'success' && response.data.data) {
-        // Si se actualizó el trabajador y hay cambios en el nombre, actualizamos el usuario
-        if (trabajadorData.nombres || trabajadorData.apellidoPaterno || trabajadorData.apellidoMaterno) {
-          try {
-            await axios.put(
-              `${API_CONFIG.BASE_URL}/users/actualizar-por-trabajador/${id}`,
-              {
-                nombres: trabajadorData.nombres,
-                apellidoPaterno: trabajadorData.apellidoPaterno,
-                apellidoMaterno: trabajadorData.apellidoMaterno
-              },
-              { headers: this.getHeaders() }
-            );
-          } catch (userError) {
-            console.error('Error al actualizar usuario:', userError);
-            // No fallamos la operación completa si falla la actualización del usuario
-          }
-        }
-
-        // Asegurarnos de que data es un único trabajador y no un array
-        const trabajador = Array.isArray(response.data.data) ? response.data.data[0] : response.data.data;
-        return { trabajador };
-      }
-
-      return { error: response.data.message || 'Error al actualizar trabajador' };
-    } catch (error: any) {
-      console.error('Error al actualizar trabajador:', error);
-      if (error.response?.data?.message) {
-        return { error: error.response.data.message };
-      }
-      return { error: 'Error de conexión con el servidor' };
-    }
-  }
-
-  // Eliminar trabajador
-  async deleteTrabajador(id: number): Promise<{ success?: boolean; error?: string }> {
-    try {
-      const response = await axios.delete<TrabajadorResponse>(
-        `${this.baseURL}/${id}`,
-        { headers: this.getHeaders() }
-      );
-
-      if (response.data.status === 'success') {
-        return { success: true };
-      }
-
-      return { error: response.data.message };
-    } catch (error: any) {
-      console.error('Error al eliminar trabajador:', error);
-      if (error.response?.data?.message) {
-        return { error: error.response.data.message };
-      }
-      return { error: 'Error de conexión con el servidor' };
+      return {
+        success: false,
+        message: error.message || 'Error al buscar trabajadores'
+      };
     }
   }
 
   // Desvincular trabajador
-  async desvincularTrabajador(id: number, motivo: string): Promise<{ success: boolean; error?: string }> {
+  async desvincularTrabajador(id: number, motivo: string): Promise<ApiResponse> {
     try {
-      const response = await axios.post(
-        `${this.baseURL}/${id}/desvincular`,
-        { motivo },
-        { headers: this.getHeaders() }
-      );
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}${this.baseURL}/${id}/desvincular`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+        },
+        body: JSON.stringify({ motivo })
+      });
 
-      if (response.data.status === 'success') {
-        return { success: true };
+      // Verificar si la respuesta es JSON válida
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        const textResponse = await response.text();
+        console.error('Respuesta no JSON recibida:', textResponse);
+        return {
+          success: false,
+          message: `Error del servidor: ${response.status} ${response.statusText}`
+        };
       }
 
-      return { success: false, error: response.data.message };
+      const responseData = await response.json();
+
+      if (response.ok && responseData.status === 'success') {
+        return { 
+          success: true, 
+          message: responseData.message || 'Trabajador desvinculado exitosamente' 
+        };
+      }
+
+      return { 
+        success: false, 
+        message: responseData.message || 'Error al desvincular trabajador' 
+      };
     } catch (error: any) {
       console.error('Error al desvincular trabajador:', error);
-      if (error.response?.data?.message) {
-        return { success: false, error: error.response.data.message };
-      }
-      return { success: false, error: 'Error de conexión con el servidor' };
+      return { 
+        success: false, 
+        message: 'Error de conexión con el servidor' 
+      };
     }
   }
 
@@ -252,4 +307,12 @@ class TrabajadorService {
 }
 
 // Instancia singleton del servicio
-export const trabajadorService = new TrabajadorService(); 
+export const trabajadorService = new TrabajadorService();
+
+// Funciones de conveniencia para uso directo
+export const getAllTrabajadores = () => trabajadorService.getAllTrabajadores();
+export const getTrabajadorById = (id: number) => trabajadorService.getTrabajadorById(id);
+export const createTrabajador = (data: CreateTrabajadorData) => trabajadorService.createTrabajador(data);
+export const updateTrabajador = (id: number, data: UpdateTrabajadorData) => trabajadorService.updateTrabajador(id, data);
+export const deleteTrabajador = (id: number) => trabajadorService.deleteTrabajador(id);
+export const searchTrabajadores = (query: any) => trabajadorService.searchTrabajadores(query); 

@@ -1,4 +1,5 @@
 import { FichaEmpresa } from './fichaEmpresa.types';
+import { LicenciaPermiso } from './licenciaPermiso.types';
 
 export enum EstadoTrabajador {
   ACTIVO = "ACTIVO",
@@ -20,23 +21,7 @@ export interface HistorialLaboral {
   fechaRegistro: string | Date;
 }
 
-export interface LicenciaPermiso {
-  id: number;
-  tipo: string;
-  fechaInicio: string | Date;
-  fechaFin: string | Date;
-  motivo: string;
-  estado: string;
-}
-
-export interface Capacitacion {
-  id: number;
-  nombre: string;
-  institucion: string;
-  fechaInicio: string | Date;
-  fechaFin?: string | Date;
-  certificadoURL?: string;
-}
+// LicenciaPermiso se define en licenciaPermiso.types.ts
 
 export interface Trabajador {
   id: number;
@@ -46,7 +31,8 @@ export interface Trabajador {
   apellidoMaterno: string;
   fechaNacimiento: string | Date;
   telefono: string;
-  correo: string;
+  correoPersonal: string;
+  correo?: string; // Alias para correoPersonal (para compatibilidad)
   numeroEmergencia?: string;
   direccion: string;
   fechaIngreso: string | Date;
@@ -55,7 +41,11 @@ export interface Trabajador {
   fichaEmpresa?: FichaEmpresa;
   historialLaboral?: HistorialLaboral[];
   licenciasPermisos?: LicenciaPermiso[];
-  capacitaciones?: Capacitacion[];
+  usuario?: {
+    id: number;
+    email: string;
+    role: string;
+  };
 }
 
 export interface CreateTrabajadorData {
@@ -65,13 +55,24 @@ export interface CreateTrabajadorData {
   apellidoMaterno: string;
   fechaNacimiento?: string;
   telefono: string;
-  correo: string;
+  correoPersonal: string;
   numeroEmergencia?: string;
   direccion: string;
   fechaIngreso: string;
 }
 
-export interface UpdateTrabajadorData extends Partial<CreateTrabajadorData> {}
+export interface UpdateTrabajadorData {
+  rut?: string;
+  nombres?: string;
+  apellidoPaterno?: string;
+  apellidoMaterno?: string;
+  fechaNacimiento?: string;
+  telefono?: string;
+  correoPersonal?: string;
+  numeroEmergencia?: string;
+  direccion?: string;
+  fechaIngreso?: string;
+}
 
 export interface TrabajadorSearchQuery {
   rut?: string;
@@ -80,7 +81,8 @@ export interface TrabajadorSearchQuery {
   apellidoMaterno?: string;
   fechaNacimiento?: string;
   telefono?: string;
-  correo?: string;
+  correoPersonal?: string;
+  correo?: string; // Agregado para compatibilidad
   numeroEmergencia?: string;
   direccion?: string;
   fechaIngreso?: string;
@@ -92,6 +94,7 @@ export interface TrabajadorResponse {
   status: 'success' | 'error';
   message?: string;
   data?: Trabajador | Trabajador[];
+  advertencias?: string[];
 }
 
 export interface PaginatedTrabajadores {

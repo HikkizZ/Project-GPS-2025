@@ -1,6 +1,6 @@
 export enum EstadoLaboral {
   ACTIVO = "Activo",
-  LICENCIA = "Licencia", 
+  LICENCIA = "Licencia médica",
   PERMISO = "Permiso administrativo",
   DESVINCULADO = "Desvinculado"
 }
@@ -13,16 +13,26 @@ export interface FichaEmpresa {
     apellidoPaterno: string;
     apellidoMaterno: string;
     rut: string;
+    telefono: string;
+    fechaIngreso: Date | string;
+    fechaNacimiento?: Date | string;
+    usuario?: {
+      id: number;
+      email: string;
+      role: string;
+    };
   };
   cargo: string;
   area: string;
-  empresa: string;
   tipoContrato: string;
   jornadaLaboral: string;
   sueldoBase: number;
   fechaInicioContrato: Date | string;
   fechaFinContrato?: Date | string | null;
   estado: EstadoLaboral;
+  fechaInicioLicencia?: Date | string | null;
+  fechaFinLicencia?: Date | string | null;
+  motivoLicencia?: string | null;
   contratoURL?: string | null;
 }
 
@@ -30,7 +40,6 @@ export interface CreateFichaEmpresaData {
   trabajadorId: number;
   cargo: string;
   area: string;
-  empresa: string;
   tipoContrato: string;
   jornadaLaboral: string;
   sueldoBase: number;
@@ -45,7 +54,6 @@ export interface FichaEmpresaSearchQuery {
   estado?: EstadoLaboral;
   cargo?: string;
   area?: string;
-  empresa?: string;
   tipoContrato?: string;
   jornadaLaboral?: string;
   sueldoBaseDesde?: number;
@@ -59,11 +67,11 @@ export interface FichaEmpresaSearchQuery {
 export interface UpdateFichaEmpresaData {
   cargo?: string;
   area?: string;
-  empresa?: string;
   tipoContrato?: string;
   jornadaLaboral?: string;
-  sueldoBase?: number;
-  fechaFinContrato?: Date | string;
+  sueldoBase?: number | string;
+  fechaInicioContrato?: string;
+  fechaFinContrato?: string;
   contratoURL?: string;
 }
 
@@ -81,9 +89,9 @@ export interface FichaEmpresaResponse {
 export interface FichaEmpresaSearchParams {
   rut?: string;
   estado?: EstadoLaboral;
+  estados?: EstadoLaboral[];
   cargo?: string;
   area?: string;
-  empresa?: string;
   tipoContrato?: string;
   sueldoBaseDesde?: number;
   sueldoBaseHasta?: number;
@@ -91,4 +99,5 @@ export interface FichaEmpresaSearchParams {
   fechaInicioHasta?: string;
   fechaFinDesde?: string;
   fechaFinHasta?: string;
+  incluirSinFechaFin?: boolean;
 } 

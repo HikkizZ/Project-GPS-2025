@@ -1,141 +1,110 @@
-import { API_CONFIG, getAuthHeaders } from '@/config/api.config';
-import { LoginData, RegisterData, AuthResponse, User } from '@/types.d';
+import { apiClient } from '@/config/api.config';
+import { LoginData, RegisterData, AuthResponse, User, CustomJwtPayload } from '@/types';
+import { jwtDecode } from "jwt-decode";
 
 class AuthService {
-  private baseURL = API_CONFIG.BASE_URL;
-  private tokenKey = 'authToken';
-  private userKey = 'userData';
+  private storageKey = 'auth_token';
 
-  // Login de usuario
-  async login(credentials: LoginData): Promise<any> {
+  async login(credentials: LoginData): Promise<{ user?: User; error?: string }> {
     try {
-      console.log('Intentando login con:', this.baseURL + '/auth/login');
-      const response = await fetch(`${this.baseURL}/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        credentials: 'include',
-        body: JSON.stringify(credentials)
-      });
+      const data = await apiClient.post<AuthResponse>('/auth/login', credentials);
 
-      if (!response.ok) {
-        if (response.status === 404) {
-          throw new Error('No se puede conectar con el servidor. Por favor, verifica que el servidor esté corriendo.');
-        }
-        const errorData = await response.json().catch(() => ({
-          message: 'Error de conexión con el servidor'
-        }));
-        throw new Error(errorData.message || 'Error al iniciar sesión');
-      }
-
-      const data = await response.json();
-      
       if (data.status === 'success' && data.data?.token) {
         const token = data.data.token;
-        localStorage.setItem(this.tokenKey, token);
-        
+        localStorage.setItem(this.storageKey, token);
+
         try {
-          const payload = JSON.parse(atob(token.split('.')[1]));
-          const userData = {
+          const payload = jwtDecode<CustomJwtPayload>(token);
+          const user: User = {
+            id: payload.id || 0,
             name: payload.name || 'Usuario',
             email: payload.email || credentials.email,
             role: payload.role || 'Usuario',
             rut: payload.rut || 'N/A'
           };
-          localStorage.setItem(this.userKey, JSON.stringify(userData));
-          return { token, ...data };
+
+          return { user };
         } catch (decodeError) {
           console.error('Error decodificando token:', decodeError);
-          this.logout();
-          throw new Error('Error al procesar la información del usuario');
+          return { error: 'Token inválido' };
         }
       } else {
-        throw new Error(data.message || 'Error al iniciar sesión');
+        return { error: data.message || 'Error al iniciar sesión' };
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error en login:', error);
-      this.logout();
-      throw error;
+      return {
+        error: error.response?.data?.message || error.message || 'Error en el servidor'
+      };
     }
   }
 
-  // Registro de usuario (requiere autenticación)
-  async register(registerData: RegisterData): Promise<{ success: boolean; user?: User; error?: string }> {
+  async register(userData: RegisterData): Promise<{ user?: User; error?: string }> {
     try {
-      const token = this.getToken();
-      if (!token) {
-        return { success: false, error: 'No hay token de autenticación' };
-      }
+      const data = await apiClient.post<AuthResponse>('/auth/register', userData);
 
-      const response = await fetch(`${this.baseURL}/auth/register`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(registerData)
-      });
-
-      const data = await response.json();
-
-      if (response.ok && data.status === 'success') {
-        return { 
-          success: true, 
-          user: data.data 
+      if (data.status === 'success') {
+        return {
+          user: data.data?.user
+        };
+      } else {
+        return {
+          error: data.message || 'Error desconocido'
         };
       }
-
-      return { 
-        success: false, 
-        error: data.message || 'Error desconocido' 
-      };
     } catch (error: any) {
       console.error('Error en registro:', error);
-      return { 
-        success: false, 
-        error: error.message || 'Error de conexión con el servidor' 
+      return {
+        error: error.response?.data?.message || error.message || 'Error en el servidor'
       };
     }
   }
 
-  // Logout
   logout(): void {
-    localStorage.removeItem(this.tokenKey);
-    localStorage.removeItem(this.userKey);
+    localStorage.removeItem(this.storageKey);
   }
 
-  // Obtener información del usuario
-  getCurrentUser(): any | null {
-    try {
-      const userData = localStorage.getItem(this.userKey);
-      return userData ? JSON.parse(userData) : null;
-    } catch {
-      return null;
-    }
+  getToken(): string | null {
+    return localStorage.getItem(this.storageKey);
   }
 
-  // Verificar si el usuario está autenticado
-  isAuthenticated(): boolean {
+  isTokenValid(): boolean {
     const token = this.getToken();
-    const userData = localStorage.getItem(this.userKey);
-    if (!token || !userData) return false;
+    if (!token) return false;
 
     try {
-      // Verificar si el token no está expirado
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      const currentTime = Date.now() / 1000;
+      const payload = jwtDecode<CustomJwtPayload>(token);
+      if (!payload.exp) return false;
+
+      const currentTime = Math.floor(Date.now() / 1000);
       return payload.exp > currentTime;
     } catch {
       return false;
     }
   }
 
-  // Obtener el token
-  getToken(): string | null {
-    return localStorage.getItem(this.tokenKey);
+  getCurrentUser(): User | null {
+    const token = this.getToken();
+    if (!token || !this.isTokenValid()) return null;
+
+    try {
+      const payload = jwtDecode<CustomJwtPayload>(token);
+      return {
+        id: payload.id || 0,
+        name: payload.name || 'Usuario',
+        email: payload.email || '',
+        role: payload.role || 'Usuario',
+        rut: payload.rut || 'N/A'
+      };
+    } catch {
+      return null;
+    }
+  }
+
+  isAuthenticated(): boolean {
+    return this.isTokenValid();
   }
 }
 
-export const authService = new AuthService(); 
+export const authService = new AuthService();
+export default authService; 

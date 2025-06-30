@@ -3,45 +3,31 @@ import { expect } from 'chai';
 // @ts-ignore
 import request from 'supertest';
 import { Application } from 'express';
-import { setupTestApp, closeTestApp } from '../setup.js';
+import { app, server, SUPER_ADMIN_CREDENTIALS, RRHH_CREDENTIALS } from '../setup.js';
 import { AppDataSource } from '../../config/configDB.js';
 import { User } from '../../entity/user.entity.js';
 import { Trabajador } from '../../entity/recursosHumanos/trabajador.entity.js';
 import jwt from 'jsonwebtoken';
 
 describe('🔒 Auth API - Registro y Login', () => {
-    let app: Application;
     let adminToken: string;
     let rrhhToken: string;
 
     before(async () => {
         try {
-            // Limpiar la base de datos anterior si existe
-            if (AppDataSource.isInitialized) {
-                await AppDataSource.destroy();
-            }
-
-            const result = await setupTestApp();
-            app = result.app;
             console.log("✅ Servidor de pruebas iniciado");
 
-            // Obtener token de admin
+            // Obtener token de SuperAdmin
             const adminLogin = await request(app)
                 .post('/api/auth/login')
-                .send({
-                    email: "admin.principal@gmail.com",
-                    password: "204dm1n8"
-                });
+                .send(SUPER_ADMIN_CREDENTIALS);
 
             adminToken = adminLogin.body.data.token;
 
             // Obtener token de RRHH
             const rrhhLogin = await request(app)
                 .post('/api/auth/login')
-                .send({
-                    email: "recursoshumanos@gmail.com",
-                    password: "RRHH2024"
-                });
+                .send(RRHH_CREDENTIALS);
 
             rrhhToken = rrhhLogin.body.data.token;
 
@@ -58,7 +44,7 @@ describe('🔒 Auth API - Registro y Login', () => {
                 .createQueryBuilder()
                 .delete()
                 .where("rut NOT IN (:...ruts)", { 
-                    ruts: ['11.111.111-1', '22.222.222-2'] 
+                    ruts: ['22.222.222-2'] 
                 })
                 .execute();
 
@@ -67,7 +53,7 @@ describe('🔒 Auth API - Registro y Login', () => {
                 .createQueryBuilder()
                 .delete()
                 .where("rut NOT IN (:...ruts)", { 
-                    ruts: ['11.111.111-1', '22.222.222-2'] 
+                    ruts: ['22.222.222-2'] 
                 })
                 .execute();
 
@@ -77,7 +63,7 @@ describe('🔒 Auth API - Registro y Login', () => {
                 apellidoPaterno: "Prueba",
                 apellidoMaterno: "Test",
                 rut: "12.345.678-9",
-                correo: "usuario.prueba@gmail.com",
+                correoPersonal: "usuario.prueba@gmail.com",
                 telefono: "+56912345678",
                 direccion: "Calle Prueba 123",
                 fechaIngreso: new Date(),
@@ -117,7 +103,6 @@ describe('🔒 Auth API - Registro y Login', () => {
 
     after(async () => {
         try {
-            await closeTestApp();
             // No cerramos la conexión aquí para permitir que otras pruebas la usen
             console.log("🔒 Fin de las pruebas de autenticación.");
         } catch (error) {
@@ -142,7 +127,7 @@ describe('🔒 Auth API - Registro y Login', () => {
                 apellidoPaterno: "Login",
                 apellidoMaterno: "User",
                 rut: "33.333.333-3",
-                correo: "test.login@gmail.com",
+                correoPersonal: "test.login@gmail.com",
                 telefono: "+56912345678",
                 direccion: "Calle Test 123",
                 fechaIngreso: new Date(),
@@ -502,8 +487,8 @@ describe('🔒 Auth API - Registro y Login', () => {
             const res = await request(app)
                 .post('/api/auth/login')
                 .send({
-                    email: "admin.principal@gmail.com",
-                    password: "204dm1n8"
+                    email: "super.administrador@lamas.com",
+                    password: "204_M1n8"
                 });
 
             expect(res.status).to.equal(200);
@@ -513,30 +498,30 @@ describe('🔒 Auth API - Registro y Login', () => {
             expect(res.body.data).to.have.property('token');
         });
 
-        it('debe tener el rol de Administrador', async () => {
+        it('debe tener el rol de SuperAdministrador', async () => {
             const res = await request(app)
                 .post('/api/auth/login')
                 .send({
-                    email: "admin.principal@gmail.com",
-                    password: "204dm1n8"
+                    email: "super.administrador@lamas.com",
+                    password: "204_M1n8"
                 });
 
             const token = res.body.data.token;
             const payload: any = jwt.decode(token);
-            expect(payload).to.have.property('role').to.equal('Administrador');
+            expect(payload).to.have.property('role').to.equal('SuperAdministrador');
         });
 
-        it('debe tener el RUT correcto', async () => {
+        it('no debe tener RUT asignado', async () => {
             const res = await request(app)
                 .post('/api/auth/login')
                 .send({
-                    email: "admin.principal@gmail.com",
-                    password: "204dm1n8"
+                    email: "super.administrador@lamas.com",
+                    password: "204_M1n8"
                 });
 
             const token = res.body.data.token;
             const payload: any = jwt.decode(token);
-            expect(payload).to.have.property('rut').to.equal('11.111.111-1');
+            expect(payload).to.have.property('rut').to.be.null;
         });
     });
 

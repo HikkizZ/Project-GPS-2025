@@ -1,25 +1,11 @@
-import { API_CONFIG } from '@/config/api.config';
-import { SafeUser, UpdateUserData } from '@/types.d';
+import { apiClient } from '@/config/api.config';
+import { SafeUser, UpdateUserData } from '@/types';
 
 class UserService {
-  private baseURL = API_CONFIG.BASE_URL;
-
   async getAllUsers(): Promise<SafeUser[]> {
     try {
-      const response = await fetch(`${this.baseURL}/users/`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error('Error al obtener usuarios');
-      }
-
-      const data = await response.json();
-      return data.data;
+      const data = await apiClient.get<{ data: SafeUser[] }>('/users/');
+      return data.data || [];
     } catch (error) {
       console.error('Error en getAllUsers:', error);
       throw error;
@@ -28,19 +14,7 @@ class UserService {
 
   async updateUser(id: number, rut: string, updates: { role?: string, password?: string }): Promise<void> {
     try {
-      const response = await fetch(`${this.baseURL}/users/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
-        },
-        body: JSON.stringify(updates)
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Error al actualizar usuario');
-      }
+      await apiClient.put(`/users/${id}`, updates);
     } catch (error) {
       console.error('Error en updateUser:', error);
       throw error;
@@ -49,21 +23,32 @@ class UserService {
 
   async deleteUser(userId: number, rut: string): Promise<void> {
     try {
-      const response = await fetch(`${this.baseURL}/users/delete?id=${userId}`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
-        }
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Error al eliminar usuario');
-      }
+      await apiClient.delete(`/users/delete?id=${userId}`);
     } catch (error) {
       console.error('Error en deleteUser:', error);
       throw error;
+    }
+  }
+
+  async searchUsers(query: any): Promise<{ users?: SafeUser[]; error?: string }> {
+    try {
+      const queryParams = new URLSearchParams();
+      Object.entries(query).forEach(([key, value]) => {
+        if (value !== undefined && value !== '') {
+          queryParams.append(key, value.toString());
+        }
+      });
+      
+      const data = await apiClient.get<{ status: string; data: SafeUser[]; message: string }>(
+        `/users/search?${queryParams}`
+      );
+      
+      if (data.status === 'success') {
+        return { users: data.data || [] };
+      }
+      return { error: data.message };
+    } catch (error: any) {
+      return { error: error.message || 'Error de conexión con el servidor' };
     }
   }
 }

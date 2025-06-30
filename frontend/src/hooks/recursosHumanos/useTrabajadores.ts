@@ -1,25 +1,29 @@
 import { useState, useEffect } from 'react';
 import { trabajadorService } from '@/services/recursosHumanos/trabajador.service';
-import { Trabajador, TrabajadorSearchQuery, CreateTrabajadorData } from '@/types/recursosHumanos/trabajador.types';
+import { Trabajador, TrabajadorSearchQuery, CreateTrabajadorData, UpdateTrabajadorData } from '@/types/recursosHumanos/trabajador.types';
 
 export const useTrabajadores = () => {
   const [trabajadores, setTrabajadores] = useState<Trabajador[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string>('');
+  const [totalTrabajadores, setTotalTrabajadores] = useState<number>(0);
 
   // Cargar todos los trabajadores
   const loadTrabajadores = async () => {
     setIsLoading(true);
     setError('');
     try {
-      const result = await trabajadorService.getTrabajadores();
-      if (result.trabajadores) {
-        setTrabajadores(result.trabajadores);
+      const result = await trabajadorService.getAllTrabajadores();
+      if (result.success) {
+        setTrabajadores(result.data || []);
+        setTotalTrabajadores((result.data || []).length);
       } else {
-        setError(result.error || 'Error al cargar trabajadores');
+        setError(result.message || 'Error al cargar trabajadores');
+        setTotalTrabajadores(0);
       }
     } catch (error) {
       setError('Error de conexión');
+      setTotalTrabajadores(0);
     } finally {
       setIsLoading(false);
     }
@@ -31,10 +35,10 @@ export const useTrabajadores = () => {
     setError('');
     try {
       const result = await trabajadorService.searchTrabajadores(query);
-      if (result.trabajadores) {
-        setTrabajadores(result.trabajadores);
+      if (result.success) {
+        setTrabajadores(result.data || []);
       } else {
-        setError(result.error || 'No se encontraron trabajadores');
+        setError(result.message || 'No se encontraron trabajadores');
         setTrabajadores([]);
       }
     } catch (error) {
@@ -51,15 +55,19 @@ export const useTrabajadores = () => {
     setError('');
     try {
       const result = await trabajadorService.createTrabajador(trabajadorData);
-      if (result.trabajador) {
-        await loadTrabajadores(); // Recargar la lista
-        return { success: true, trabajador: result.trabajador };
+      if (result.success) {
+        await loadTrabajadores(); // Recargar la lista después de crear
+        return { 
+          success: true, 
+          trabajador: result.trabajador,
+          advertencias: result.advertencias || []
+        };
       } else {
         setError(result.error || 'Error al crear trabajador');
         return { success: false, error: result.error };
       }
-    } catch (error) {
-      const errorMsg = 'Error al crear trabajador';
+    } catch (error: any) {
+      const errorMsg = error.message || 'Error al crear trabajador';
       setError(errorMsg);
       return { success: false, error: errorMsg };
     } finally {
@@ -68,16 +76,16 @@ export const useTrabajadores = () => {
   };
 
   // Actualizar trabajador
-  const updateTrabajador = async (id: number, trabajadorData: Partial<Trabajador>) => {
+  const updateTrabajador = async (id: number, trabajadorData: UpdateTrabajadorData) => {
     setIsLoading(true);
     setError('');
     try {
       const result = await trabajadorService.updateTrabajador(id, trabajadorData);
-      if (result.trabajador) {
+      if (result.success && result.data) {
         await loadTrabajadores(); // Recargar la lista
-        return { success: true, trabajador: result.trabajador };
+        return { success: true, trabajador: result.data };
       } else {
-        const errorMsg = result.error || 'Error al actualizar trabajador';
+        const errorMsg = result.message || 'Error al actualizar trabajador';
         setError(errorMsg);
         return { success: false, error: errorMsg };
       }
@@ -100,8 +108,8 @@ export const useTrabajadores = () => {
         await loadTrabajadores(); // Recargar la lista
         return { success: true };
       } else {
-        setError(result.error || 'Error al eliminar trabajador');
-        return { success: false, error: result.error };
+        setError(result.message || 'Error al eliminar trabajador');
+        return { success: false, error: result.message };
       }
     } catch (error) {
       const errorMsg = 'Error al eliminar trabajador';
@@ -118,12 +126,13 @@ export const useTrabajadores = () => {
     setError('');
     try {
       const result = await trabajadorService.desvincularTrabajador(id, motivo);
+      
       if (result.success) {
         await loadTrabajadores(); // Recargar la lista
         return { success: true };
       } else {
-        setError(result.error || 'Error al desvincular trabajador');
-        return { success: false, error: result.error };
+        setError(result.message || 'Error al desvincular trabajador');
+        return { success: false, error: result.message };
       }
     } catch (error) {
       const errorMsg = 'Error al desvincular trabajador';
@@ -149,6 +158,7 @@ export const useTrabajadores = () => {
     updateTrabajador,
     deleteTrabajador,
     desvincularTrabajador,
-    clearError: () => setError('')
+    clearError: () => setError(''),
+    totalTrabajadores
   };
 }; 

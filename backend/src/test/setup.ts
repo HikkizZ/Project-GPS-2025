@@ -15,158 +15,101 @@ import { Trabajador } from "../entity/recursosHumanos/trabajador.entity.js";
 import { FichaEmpresa } from "../entity/recursosHumanos/fichaEmpresa.entity.js";
 import { HistorialLaboral } from "../entity/recursosHumanos/historialLaboral.entity.js";
 import { LicenciaPermiso } from "../entity/recursosHumanos/licenciaPermiso.entity.js";
-import { Capacitacion } from "../entity/recursosHumanos/capacitacion.entity.js";
 
 let app: Application;
 let server: any;
 
-export async function setupTestApp(): Promise<{ app: Application; server: any }> {
-    if (!app) {
-        app = express();
+// Credenciales del SuperAdmin para tests
+export const SUPER_ADMIN_CREDENTIALS = {
+    email: "super.administrador@lamas.com",
+    password: "204_M1n8"
+};
 
-        app.disable("x-powered-by");
+// Credenciales de RRHH para tests
+export const RRHH_CREDENTIALS = {
+    email: "recursoshumanos@gmail.com",
+    password: "RRHH2024"
+};
 
-        app.use(cors({
-            origin: true,
-            credentials: true
-        }));
+// Configurar la aplicación para pruebas
+before(async function() {
+    this.timeout(10000);
+    
+    // Inicializar la base de datos
+    await initializeDatabase();
+    
+    // Configurar Express
+    app = express();
+    app.disable("x-powered-by");
+    
+    // Middlewares
+    app.use(cors({ origin: true, credentials: true }));
+    app.use(urlencoded({ extended: true, limit: "1mb" }));
+    app.use(json({ limit: "1mb" }));
+    app.use(cookieParser());
+    app.use(morgan("dev"));
+    
+    // Configurar sesión y autenticación
+    app.use(session({
+        secret: cookieKey as string,
+        resave: false,
+        saveUninitialized: false,
+        cookie: {
+            secure: false,
+            httpOnly: true,
+            sameSite: "strict",
+        }
+    }));
+    
+    app.use(passport.initialize());
+    app.use(passport.session());
+    passportJWTSetup();
+    
+    // Rutas
+    app.use("/api", indexRoutes);
+    
+    // Configuración inicial
+    await initialSetup();
+    
+    // Iniciar servidor
+    server = app.listen(0);
+});
 
-        app.use(urlencoded({
-            extended: true,
-            limit: "1mb"
-        }));
-
-        app.use(json({
-            limit: "1mb"
-        }));
-
-        app.use(cookieParser());
-
-        app.use(morgan("dev"));
-
-        app.use(session({
-            secret: cookieKey as string,
-            resave: false,
-            saveUninitialized: false,
-            cookie: {
-                secure: false,
-                httpOnly: true,
-                sameSite: "strict",
-            }
-        }));
-
-        app.use(passport.initialize());
-
-        app.use(passport.session());
-
-        passportJWTSetup();
-
-        app.use("/api", indexRoutes);
-
-        await initialSetup();
-
-        server = app.listen(0); // Usar puerto aleatorio para pruebas
-
-        console.log("✅ Test server running. DB connected, initial setup done.");
+// Limpiar después de las pruebas
+after(async function() {
+    this.timeout(10000);
+    
+    try {
+        // Limpiar datos de prueba
+        if (AppDataSource.isInitialized) {
+            await AppDataSource.getRepository(LicenciaPermiso).delete({});
+            await AppDataSource.getRepository(HistorialLaboral).delete({});
+            await AppDataSource.getRepository(FichaEmpresa).delete({});
+            
+            // Mantener solo el usuario admin
+            await AppDataSource.getRepository(User)
+                .createQueryBuilder()
+                .delete()
+                .where("rut NOT IN (:...ruts)", { ruts: [] })
+                .execute();
+                
+            await AppDataSource.getRepository(Trabajador)
+                .createQueryBuilder()
+                .delete()
+                .where("rut NOT IN (:...ruts)", { ruts: [] })
+                .execute();
+        }
+    } catch (error) {
+        console.error("Error limpiando datos de prueba:", error);
     }
-
-    return { app, server };
-}
-
-export async function closeTestApp(): Promise<void> {
+    
+    // Cerrar servidor y conexión a BD
     if (server) {
         await new Promise((resolve) => server.close(resolve));
     }
-}
-
-/**
- * Función para limpiar TODOS los datos de prueba de la base de datos
- * Mantiene solo al administrador (11.111.111-1)
- */
-export async function cleanupAllTestData(): Promise<void> {
-    try {
-        console.log("🧹 Limpiando datos de prueba...");
-
-        if (!AppDataSource.isInitialized) {
-            return;
-        }
-
-        // Limpiar en orden correcto (por dependencias)
-        await AppDataSource.getRepository(Capacitacion).delete({});
-        await AppDataSource.getRepository(LicenciaPermiso).delete({});
-        await AppDataSource.getRepository(HistorialLaboral).delete({});
-        await AppDataSource.getRepository(FichaEmpresa).delete({});
-
-        // Eliminar usuarios de prueba (excepto admin)
-        await AppDataSource.getRepository(User)
-            .createQueryBuilder()
-            .delete()
-            .where("rut NOT IN (:...ruts)", { 
-                ruts: ['11.111.111-1'] 
-            })
-            .execute();
-
-        // Eliminar trabajadores de prueba (excepto admin)
-        await AppDataSource.getRepository(Trabajador)
-            .createQueryBuilder()
-            .delete()
-            .where("rut NOT IN (:...ruts)", { 
-                ruts: ['11.111.111-1'] 
-            })
-            .execute();
-
-        console.log("✅ Datos de prueba limpiados exitosamente");
-
-    } catch (error) {
-        console.error("❌ Error limpiando datos de prueba:", error);
+    if (AppDataSource.isInitialized) {
+        await AppDataSource.destroy();
     }
-}
-
-// ==========================================
-// HOOKS GLOBALES DE MOCHA PARA LIMPIEZA AUTOMÁTICA
-// ==========================================
-
-// Contador global para saber cuándo es el último test
-let globalTestCount = 0;
-let completedTests = 0;
-
-// Hook que se ejecuta antes de TODOS los tests
-export function setupGlobalTestHooks() {
-    // Contar todos los tests antes de ejecutarlos
-    before(function() {
-        const stats = (this as any).parent.stats || {};
-        globalTestCount = stats.total || 0;
-        console.log(`🧪 Iniciando ${globalTestCount} tests...`);
-    });
-
-    // Hook que se ejecuta después de CADA test individual
-    afterEach(function() {
-        completedTests++;
-        console.log(`✅ Test ${completedTests}/${globalTestCount} completado`);
-    });
-
-    // Hook que se ejecuta AL FINAL de TODOS los tests
-    after(async function() {
-        console.log("🔄 Ejecutando limpieza global después de todos los tests...");
-        await cleanupAllTestData();
-        
-        if (AppDataSource.isInitialized) {
-            await AppDataSource.destroy();
-        }
-        
-        console.log("🎉 TODOS los tests completados. Base de datos limpiada automáticamente.");
-    });
-}
-
-// Auto-ejecutar los hooks si estamos en ambiente de test
-if (process.env.NODE_ENV === 'test') {
-    setupGlobalTestHooks();
-}
-
-before(async () => {
-    await initializeDatabase();
 });
 
-after(async () => {
-    await AppDataSource.destroy();
-}); 
+export { app, server }; 

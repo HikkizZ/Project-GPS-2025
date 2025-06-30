@@ -11,18 +11,22 @@ export const TrabajadorList: React.FC = () => {
     searchTrabajadores,
     loadTrabajadores,
     deleteTrabajador,
-    clearError
+    clearError,
+    totalTrabajadores
   } = useTrabajadores();
 
   const [searchQuery, setSearchQuery] = useState<TrabajadorSearchQuery>({});
+  const [hasSearched, setHasSearched] = useState(false);
 
   const handleSearch = async () => {
     await searchTrabajadores(searchQuery);
+    setHasSearched(true);
   };
 
   const handleReset = () => {
     setSearchQuery({});
     loadTrabajadores();
+    setHasSearched(false);
   };
 
   const handleDelete = async (id: number) => {
@@ -34,12 +38,10 @@ export const TrabajadorList: React.FC = () => {
 
   const handleEdit = (trabajador: Trabajador) => {
     // TODO: Implementar modal de edición
-    console.log('Editar trabajador:', trabajador);
   };
 
   const handleViewDetails = (trabajador: Trabajador) => {
     // TODO: Implementar modal de detalles
-    console.log('Ver detalles:', trabajador);
   };
 
   return (
@@ -177,9 +179,23 @@ export const TrabajadorList: React.FC = () => {
             </div>
 
             {trabajadores.length === 0 && !error && (
-              <div className="no-results">
-                No se encontraron trabajadores
-              </div>
+              totalTrabajadores === 0 && !hasSearched ? (
+                <div className="no-results">
+                  <i className="bi bi-people fs-1 mb-3"></i>
+                  <h5>No hay trabajadores registrados</h5>
+                  <p>Los trabajadores aparecerán aquí cuando sean registrados</p>
+                  <button className="btn btn-primary">Registrar Primer Trabajador</button>
+                </div>
+              ) : (
+                <div className="no-results">
+                  <i className="bi bi-person-x fs-1 mb-3"></i>
+                  <h5>No hay resultados que coincidan con tu búsqueda</h5>
+                  <p>Intenta ajustar los filtros para obtener más resultados</p>
+                  <button className="btn btn-outline-primary" onClick={handleReset}>
+                    <i className="bi bi-arrow-clockwise me-2"></i> Mostrar Todos
+                  </button>
+                </div>
+              )
             )}
           </>
         )}

@@ -1,58 +1,67 @@
 import { AppDataSource } from "../config/configDB.js";
+import { User } from "../entity/user.entity.js";
 import { Trabajador } from "../entity/recursosHumanos/trabajador.entity.js";
 import { FichaEmpresa } from "../entity/recursosHumanos/fichaEmpresa.entity.js";
-import { User } from "../entity/user.entity.js";
 import { HistorialLaboral } from "../entity/recursosHumanos/historialLaboral.entity.js";
 import { LicenciaPermiso } from "../entity/recursosHumanos/licenciaPermiso.entity.js";
-import { Capacitacion } from "../entity/recursosHumanos/capacitacion.entity.js";
 
 async function limpiarBaseDatos() {
-  try {
-    console.log("🧹 Iniciando limpieza de la base de datos...");
-    
-    // Inicializar conexión
-    await AppDataSource.initialize();
-    console.log("✅ Conexión a la base de datos establecida");
+    try {
+        await AppDataSource.initialize();
+        console.log("🔌 Conexión a la base de datos establecida");
 
-    // Limpiar en orden correcto (por dependencias)
-    console.log("🔄 Eliminando capacitaciones...");
-    await AppDataSource.getRepository(Capacitacion).delete({});
+        const userRepo = AppDataSource.getRepository(User);
+        const trabajadorRepo = AppDataSource.getRepository(Trabajador);
+        const fichaEmpresaRepo = AppDataSource.getRepository(FichaEmpresa);
+        const historialLaboralRepo = AppDataSource.getRepository(HistorialLaboral);
+        const licenciaPermisoRepo = AppDataSource.getRepository(LicenciaPermiso);
 
-    console.log("🔄 Eliminando licencias y permisos...");
-    await AppDataSource.getRepository(LicenciaPermiso).delete({});
+        // 1. Primero eliminar licencias y permisos (dependen de trabajador)
+        console.log("🔄 Eliminando licencias y permisos...");
+        const licencias = await licenciaPermisoRepo.find();
+        await licenciaPermisoRepo.remove(licencias);
+        console.log(`🗑️ ${licencias.length} licencias/permisos eliminados`);
 
-    console.log("🔄 Eliminando historial laboral...");
-    await AppDataSource.getRepository(HistorialLaboral).delete({});
+        // 2. Eliminar historial laboral (depende de trabajador)
+        console.log("🔄 Eliminando historial laboral...");
+        const historiales = await historialLaboralRepo.find();
+        await historialLaboralRepo.remove(historiales);
+        console.log(`🗑️ ${historiales.length} historiales eliminados`);
 
-    console.log("🔄 Eliminando fichas de empresa...");
-    await AppDataSource.getRepository(FichaEmpresa).delete({});
+        // 3. Eliminar fichas de empresa (dependen de trabajador)
+        console.log("🔄 Eliminando fichas de empresa...");
+        const fichas = await fichaEmpresaRepo.find();
+        await fichaEmpresaRepo.remove(fichas);
+        console.log(`🗑️ ${fichas.length} fichas eliminadas`);
 
-    // IMPORTANTE: Eliminar usuarios primero (userauth) antes que trabajadores
-    // porque User tiene una FK hacia Trabajador por RUT
-    console.log("🔄 Eliminando usuarios (excepto admin)...");
-    await AppDataSource.getRepository(User)
-      .createQueryBuilder()
-      .delete()
-      .where("rut NOT IN (:...ruts)", { 
-        ruts: ['11.111.111-1'] 
-      })
-      .execute();
+        // 4. Eliminar usuarios (excepto SuperAdministrador)
+        console.log("🔄 Eliminando usuarios (excepto SuperAdministrador)...");
+        const users = await userRepo
+            .createQueryBuilder("user")
+            .where("user.role != :role", { role: "SuperAdministrador" })
+            .getMany();
+        await userRepo.remove(users);
+        console.log(`🗑️ ${users.length} usuarios eliminados`);
 
-    console.log("🔄 Eliminando trabajadores (excepto admin)...");
-    await AppDataSource.getRepository(Trabajador)
-      .createQueryBuilder()
-      .delete()
-      .where("rut NOT IN (:...ruts)", { 
-        ruts: ['11.111.111-1'] 
-      })
-      .execute();
+        // 5. Finalmente eliminar trabajadores
+        console.log("🔄 Eliminando trabajadores...");
+        const trabajadores = await trabajadorRepo.find();
+        await trabajadorRepo.remove(trabajadores);
+        console.log(`🗑️ ${trabajadores.length} trabajadores eliminados`);
 
-    console.log("✅ Base de datos limpiada exitosamente");
-    process.exit(0);
-  } catch (error) {
-    console.error("❌ Error al limpiar la base de datos:", error);
-    process.exit(1);
-  }
+        // Verificar SuperAdmin preservado
+        const superAdmin = await userRepo.findOne({
+            where: { role: "SuperAdministrador" }
+        });
+        console.log(`📋 Usuario preservado: SuperAdministrador (${superAdmin?.email})`);
+
+        console.log("✅ Base de datos limpiada exitosamente");
+    } catch (error) {
+        console.error("❌ Error al limpiar la base de datos:", error);
+    } finally {
+        await AppDataSource.destroy();
+        console.log("🔌 Conexión a la base de datos cerrada");
+    }
 }
 
 limpiarBaseDatos(); 

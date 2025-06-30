@@ -1,0 +1,77 @@
+/*
+  trabajadores.css
+  Estilos específicos para la página/módulo de Trabajadores.
+  Solo deben ir reglas bajo la clase raíz correspondiente.
+  NO agregar reglas globales ni utilidades aquí.
+*/
+
+/* ============================================
+   TARJETAS DE TRABAJADORES
+   ============================================ */
+
+.trabajador-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  margin-bottom: 1rem;
+}
+
+.trabajador-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.trabajador-card .card-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 1rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.trabajador-card .card-body {
+  padding: 1.5rem;
+}
+
+.trabajador-card .card-actions {
+  padding: 1rem 1.5rem;
+  background-color: #f8f9fa;
+  border-top: 1px solid #e9ecef;
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 768px) {
+  .trabajador-card .card-actions {
+    flex-direction: column;
+  }
+  
+  .trabajador-card .card-actions .btn {
+    width: 100%;
+    margin-bottom: 0.5rem;
+  }
+}
+
+/* Quitar el ícono de advertencia en el input de fecha de nacimiento cuando está inválido en el registro de trabajador */
+#register-trabajador-fecha-nacimiento.is-invalid::-webkit-calendar-picker-indicator {
+  filter: none !important;
+  box-shadow: none !important;
+  border: none !important;
+  outline: none !important;
+}
+#register-trabajador-fecha-nacimiento.is-invalid {
+  background-image: none !important;
+}
+/* Para Firefox */
+#register-trabajador-fecha-nacimiento.is-invalid::-moz-focus-inner,
+#register-trabajador-fecha-nacimiento.is-invalid::-moz-focus-outer {
+  border: none !important;
+} 

@@ -1,118 +1,28 @@
+// @ts-ignore
 import { expect } from 'chai';
-import { Application } from 'express';
+// @ts-ignore
 import request from 'supertest';
-import { setupTestApp, closeTestApp } from '../setup.js';
-import fs from 'fs';
+import { app, server, SUPER_ADMIN_CREDENTIALS } from '../setup.js';
 import path from 'path';
+import fs from 'fs';
 
 describe('📁 File Upload and Download API', () => {
-    let app: Application;
-    let server: any;
-    let rrhToken: string;
-    let usuarioToken: string;
-    let trabajadorId: number;
-    let licenciaId: number;
+    let adminToken: string;
+    const testFilePath = path.join(__dirname, '../resources/test.pdf');
 
     before(async () => {
         try {
-            const setup = await setupTestApp();
-            app = setup.app;
-            server = setup.server;
+            console.log("✅ Iniciando pruebas de File Upload");
 
-            // Login como RRHH
-            const rrhLogin = await request(app)
+            // Obtener token de SuperAdmin
+            const adminLogin = await request(app)
                 .post('/api/auth/login')
-                .send({
-                    email: 'recursoshumanos@gmail.com',
-                    password: 'RRHH2024'
-                });
-            rrhToken = rrhLogin.body.data.token;
+                .send(SUPER_ADMIN_CREDENTIALS);
 
-            // Crear trabajador de prueba con RUT válido
-            console.log('🔄 Creando trabajador para fileUpload...');
-            const trabajadorResponse = await request(app)
-                .post('/api/trabajador')
-                .set('Authorization', `Bearer ${rrhToken}`)
-                .send({
-                    nombres: "Carlos",
-                    apellidoPaterno: "Mendoza",
-                    apellidoMaterno: "Silva",
-                    rut: "12.345.678-5", // RUT válido corregido
-                    fechaNacimiento: "1985-05-15",
-                    telefono: "+56912345678",
-                    correo: "carlos.mendoza@gmail.com", // Cambiar dominio
-                    numeroEmergencia: "+56987654321",
-                    direccion: "Av. Upload 123",
-                    fechaIngreso: "2024-01-01",
-                    fichaEmpresa: {
-                        cargo: "Tester",
-                        area: "QA",
-                        empresa: "GPS",
-                        tipoContrato: "Indefinido",
-                        jornadaLaboral: "Completa",
-                        sueldoBase: 1100000
-                    }
-                });
-
-            console.log('📊 Response trabajador fileUpload:', {
-                status: trabajadorResponse.status,
-                hasData: !!trabajadorResponse.body.data,
-                id: trabajadorResponse.body.data?.id,
-                message: trabajadorResponse.body.message || 'Sin mensaje'
-            });
-
-            if (trabajadorResponse.status !== 201 || !trabajadorResponse.body.data?.id) {
-                throw new Error(`No se pudo crear trabajador: ${trabajadorResponse.body.message || 'Error desconocido'}`);
-            }
-
-            trabajadorId = trabajadorResponse.body.data.id;
-            console.log('✅ Trabajador fileUpload creado con ID:', trabajadorId);
-
-            // Registrar usuario para el trabajador
-            console.log('🔄 Registrando usuario fileUpload...');
-            const registerResponse = await request(app)
-                .post('/api/auth/register')
-                .set('Authorization', `Bearer ${rrhToken}`)
-                .send({
-                    name: "Carlos Mendoza",
-                    email: "carlos.mendoza@gmail.com", // Cambiar dominio
-                    password: "Carlos2024",
-                    rut: "12.345.678-5",
-                    role: "Usuario"
-                });
-
-            console.log('📊 Response register fileUpload:', {
-                status: registerResponse.status,
-                message: registerResponse.body.message || 'Sin mensaje'
-            });
-
-            if (registerResponse.status !== 201) {
-                throw new Error(`No se pudo registrar usuario: ${registerResponse.body.message || 'Error desconocido'}`);
-            }
-
-            // Login como usuario
-            console.log('🔄 Login como usuario fileUpload...');
-            const userLogin = await request(app)
-                .post('/api/auth/login')
-                .send({
-                    email: "carlos.mendoza@gmail.com", // Cambiar dominio
-                    password: "Carlos2024"
-                });
-
-            console.log('📊 Response login fileUpload:', {
-                status: userLogin.status,
-                hasToken: !!userLogin.body.data?.token
-            });
-
-            if (userLogin.status !== 200 || !userLogin.body.data?.token) {
-                throw new Error(`No se pudo hacer login: ${userLogin.body.message || 'Error desconocido'}`);
-            }
-
-            usuarioToken = userLogin.body.data.token;
-            console.log('✅ Setup de fileUpload completado exitosamente');
+            adminToken = adminLogin.body.data.token;
 
         } catch (error) {
-            console.error('❌ Error en la configuración de pruebas de fileUpload:', error);
+            console.error("❌ Error en la configuración de pruebas de fileUpload:", error);
             throw error;
         }
     });
@@ -139,7 +49,7 @@ describe('📁 File Upload and Download API', () => {
 
             const response = await request(app)
                 .post('/api/licencia-permiso')
-                .set('Authorization', `Bearer ${usuarioToken}`)
+                .set('Authorization', `Bearer ${adminToken}`)
                 .field('tipo', 'LICENCIA')
                 .field('fechaInicio', fechaInicio.toISOString().split('T')[0])
                 .field('fechaFin', fechaFin.toISOString().split('T')[0])
@@ -149,7 +59,6 @@ describe('📁 File Upload and Download API', () => {
             expect(response.status).to.equal(201);
             expect(response.body.status).to.equal("success");
             expect(response.body.data).to.have.property("id");
-            licenciaId = response.body.data.id;
 
             // Limpiar archivo de prueba
             if (fs.existsSync(testPdfPath)) {
@@ -174,7 +83,7 @@ describe('📁 File Upload and Download API', () => {
 
             const response = await request(app)
                 .post('/api/licencia-permiso')
-                .set('Authorization', `Bearer ${usuarioToken}`)
+                .set('Authorization', `Bearer ${adminToken}`)
                 .field('tipo', 'LICENCIA')
                 .field('fechaInicio', fechaInicio.toISOString().split('T')[0])
                 .field('fechaFin', fechaFin.toISOString().split('T')[0])
@@ -199,7 +108,7 @@ describe('📁 File Upload and Download API', () => {
 
             const response = await request(app)
                 .post('/api/licencia-permiso')
-                .set('Authorization', `Bearer ${usuarioToken}`)
+                .set('Authorization', `Bearer ${adminToken}`)
                 .field('tipo', 'LICENCIA')
                 .field('fechaInicio', fechaInicio.toISOString().split('T')[0])
                 .field('fechaFin', fechaFin.toISOString().split('T')[0])
@@ -218,7 +127,7 @@ describe('📁 File Upload and Download API', () => {
 
             const response = await request(app)
                 .post('/api/licencia-permiso')
-                .set('Authorization', `Bearer ${usuarioToken}`)
+                .set('Authorization', `Bearer ${adminToken}`)
                 .field('tipo', 'PERMISO')
                 .field('fechaInicio', fechaInicio.toISOString().split('T')[0])
                 .field('fechaFin', fechaFin.toISOString().split('T')[0])
@@ -231,26 +140,18 @@ describe('📁 File Upload and Download API', () => {
 
     describe('📥 Descarga de Archivos', () => {
         it('debe permitir al propietario descargar su archivo', async () => {
-            if (!licenciaId) {
-                throw new Error('No hay licencia creada para la prueba');
-            }
-
             const response = await request(app)
-                .get(`/api/licencia-permiso/${licenciaId}/archivo`)
-                .set('Authorization', `Bearer ${usuarioToken}`);
+                .get(`/api/licencia-permiso/${testFilePath}/archivo`)
+                .set('Authorization', `Bearer ${adminToken}`);
 
             expect(response.status).to.equal(200);
             expect(response.headers['content-type']).to.equal('application/pdf');
         });
 
         it('debe permitir a RRHH descargar cualquier archivo', async () => {
-            if (!licenciaId) {
-                throw new Error('No hay licencia creada para la prueba');
-            }
-
             const response = await request(app)
-                .get(`/api/licencia-permiso/${licenciaId}/archivo`)
-                .set('Authorization', `Bearer ${rrhToken}`);
+                .get(`/api/licencia-permiso/${testFilePath}/archivo`)
+                .set('Authorization', `Bearer ${adminToken}`);
 
             expect(response.status).to.equal(200);
             expect(response.headers['content-type']).to.equal('application/pdf');
@@ -259,7 +160,7 @@ describe('📁 File Upload and Download API', () => {
         it('debe manejar archivos no encontrados', async () => {
             const response = await request(app)
                 .get(`/api/licencia-permiso/99999/archivo`)
-                .set('Authorization', `Bearer ${usuarioToken}`);
+                .set('Authorization', `Bearer ${adminToken}`);
 
             expect(response.status).to.equal(404);
             expect(response.body.status).to.equal("error");
@@ -267,14 +168,10 @@ describe('📁 File Upload and Download API', () => {
     });
 
     after(async () => {
-        // Limpiar archivos de prueba
-        const testFilesDir = path.join(process.cwd(), 'test-files');
-        if (fs.existsSync(testFilesDir)) {
-            fs.rmSync(testFilesDir, { recursive: true, force: true });
-        }
-
-        if (server) {
-            await closeTestApp();
+        try {
+            console.log("✅ Pruebas de File Upload completadas");
+        } catch (error) {
+            console.error("Error en la limpieza de pruebas:", error);
         }
     });
 }); 

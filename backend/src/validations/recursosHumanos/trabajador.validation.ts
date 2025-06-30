@@ -55,32 +55,32 @@ export const TrabajadorQueryValidation = Joi.object({
         }),
 
     telefono: Joi.string()
-        .pattern(/^\+?[\d]{9,12}$/)
+        .pattern(/^\+?[\d]{3,12}$/)
         .messages({
             "string.base": "El teléfono debe ser una cadena de texto.",
-            "string.pattern.base": "El teléfono debe tener entre 9 y 12 dígitos y puede incluir el símbolo +."
+            "string.pattern.base": "El teléfono debe tener entre 3 y 12 dígitos y puede incluir el símbolo +."
         }),
 
-    correo: Joi.string()
+    correoPersonal: Joi.string()
         .email()
         .messages({
-            "string.base": "El correo debe ser una cadena de texto.",
-            "string.email": "El correo debe tener un formato válido."
+            "string.base": "El correo personal debe ser una cadena de texto.",
+            "string.email": "El correo personal debe tener un formato válido."
         }),
 
     numeroEmergencia: Joi.string()
-        .pattern(/^\+?[\d]{9,12}$/)
+        .pattern(/^\+?[\d]{3,12}$/)
         .messages({
             "string.base": "El número de emergencia debe ser una cadena de texto.",
-            "string.pattern.base": "El número de emergencia debe tener entre 9 y 12 dígitos y puede incluir el símbolo +."
+            "string.pattern.base": "El número de emergencia debe tener entre 3 y 12 dígitos y puede incluir el símbolo +."
         }),
 
-    direccion: Joi.string()
-        .min(5)
+            direccion: Joi.string()
+        .min(2)
         .max(200)
         .messages({
             "string.base": "La dirección debe ser una cadena de texto.",
-            "string.min": "La dirección debe tener al menos 5 caracteres.",
+            "string.min": "La dirección debe tener al menos 2 caracteres.",
             "string.max": "La dirección no puede exceder los 200 caracteres."
         }),
 
@@ -158,13 +158,13 @@ export const TrabajadorBodyValidation = Joi.object({
             "any.invalid": "El RUT no es válido."
         }),
 
-    correo: Joi.string()
+    correoPersonal: Joi.string()
         .email()
         .required()
         .messages({
-            "string.base": "El correo debe ser una cadena de texto.",
-            "string.email": "El correo debe tener un formato válido.",
-            "any.required": "El correo es requerido."
+            "string.base": "El correo personal debe ser una cadena de texto.",
+            "string.email": "El correo personal debe tener un formato válido.",
+            "any.required": "El correo personal es requerido."
         }),
 
     telefono: Joi.string()
@@ -269,11 +269,11 @@ export const TrabajadorUpdateValidation = Joi.object({
         }),
 
     direccion: Joi.string()
-        .min(5)
+        .min(2)
         .max(200)
         .messages({
             "string.base": "La dirección debe ser una cadena de texto.",
-            "string.min": "La dirección debe tener al menos 5 caracteres.",
+            "string.min": "La dirección debe tener al menos 2 caracteres.",
             "string.max": "La dirección no puede exceder los 200 caracteres."
         }),
 
@@ -281,9 +281,12 @@ export const TrabajadorUpdateValidation = Joi.object({
         "any.unknown": "No se puede modificar el RUT"
     }),
 
-    correo: Joi.any().forbidden().messages({
-        "any.unknown": "No se puede modificar el correo"
-    }),
+    correoPersonal: Joi.string()
+        .email()
+        .messages({
+            "string.base": "El correo personal debe ser una cadena de texto.",
+            "string.email": "El correo personal debe tener un formato válido."
+        }),
 
     fechaIngreso: Joi.any().forbidden().messages({
         "any.unknown": "No se puede modificar la fecha de ingreso"

@@ -3,7 +3,8 @@ import {
     getUserService,
     getUsersService,
     updateUserService,
-    updateUserByTrabajadorService
+    updateUserByTrabajadorService,
+    searchUsersService
  } from '../services/user.service.js';
 
 import { handleSuccess, handleErrorClient, handleErrorServer } from '../handlers/responseHandlers.js';
@@ -17,10 +18,21 @@ import { AppDataSource } from '../config/configDB.js';
 /* Search users with filters */
 export const searchUsers = async (req: Request, res: Response) => {
     try {
-        const users = await getUserService(req.query);
-        return res.json(users);
+        const [users, error] = await searchUsersService(req.query);
+        if (error) {
+            return res.status(400).json({ status: 'error', message: error, details: {} });
+        }
+
+        // Si no hay usuarios, devolver array vacío con mensaje amigable
+        const usersData = users || [];
+        const mensaje = usersData.length === 0 
+            ? "No se encontraron usuarios que coincidan con los criterios de búsqueda" 
+            : "Usuarios encontrados exitosamente";
+
+        return res.json({ status: 'success', message: mensaje, data: usersData });
     } catch (error) {
-        return res.status(500).json({ message: "Error al buscar usuarios" });
+        console.error("Error al buscar usuarios:", error);
+        return res.status(500).json({ status: 'error', message: "Error interno del servidor", details: {} });
     }
 };
 
@@ -48,9 +60,16 @@ export const getUser = async (req: Request, res: Response) => {
 export const getUsers = async (req: Request, res: Response) => {
     try {
         const users = await getUsersService();
-        return res.json({ data: users });
+        // Si no hay usuarios, devolver array vacío con mensaje amigable
+        const usersData = users || [];
+        const mensaje = usersData.length === 0 
+            ? "No hay usuarios registrados en el sistema" 
+            : "Usuarios obtenidos exitosamente";
+        
+        handleSuccess(res, 200, mensaje, usersData);
     } catch (error) {
-        return res.status(500).json({ message: "Error al obtener usuarios" });
+        console.error("Error al obtener usuarios:", error);
+        handleErrorServer(res, 500, "Error interno del servidor");
     }
 };
 
@@ -63,7 +82,10 @@ export const updateUser = async (req: Request, res: Response) => {
             return res.status(404).json({ message: "Usuario no encontrado" });
         }
         return res.json(user);
-    } catch (error) {
+    } catch (error: any) {
+        if (error.status === 403 && error.message) {
+            return res.status(403).json({ message: error.message });
+        }
         return res.status(500).json({ message: "Error al actualizar usuario" });
     }
 };
@@ -76,7 +98,10 @@ export const updateUserByTrabajador = async (req: Request, res: Response) => {
             return res.status(404).json({ message: "Usuario no encontrado" });
         }
         return res.json(user);
-    } catch (error) {
+    } catch (error: any) {
+        if (error.status === 403 && error.message) {
+            return res.status(403).json({ message: error.message });
+        }
         return res.status(500).json({ message: "Error al actualizar usuario" });
     }
 };   

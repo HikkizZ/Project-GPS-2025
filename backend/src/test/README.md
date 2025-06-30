@@ -3,6 +3,7 @@
 ## ⚡ Ejecución de Tests
 
 ### Comandos Disponibles
+
 ```bash
 # Ejecutar TODOS los tests con limpieza automática
 npm test
@@ -20,16 +21,19 @@ npm run cleanup
 ## 🛡️ Protecciones Implementadas
 
 ### 1. **No Ejecución Automática**
+
 - Los tests **NUNCA** se ejecutan automáticamente al iniciar el servidor
 - Protección por `NODE_ENV !== 'test'` en `server.ts`
 - Detección de comandos de test para evitar inicio accidental del servidor
 
 ### 2. **Limpieza Automática**
+
 - **TODOS** los datos de prueba se eliminan automáticamente al finalizar los tests
 - Solo se mantienen usuarios esenciales: admin (11.111.111-1) y RRHH (22.222.222-2)
 - Limpieza en orden correcto respetando dependencias de base de datos
 
 ### 3. **Configuración Global**
+
 - Configuración centralizada en `.mocharc.json`
 - Hooks globales en `setup.ts` para limpieza automática
 - Timeouts adecuados y configuración optimizada
@@ -37,7 +41,7 @@ npm run cleanup
 ## 📋 Datos que se Limpian Automáticamente
 
 Al finalizar los tests se eliminan:
-- ✅ Capacitaciones de prueba
+
 - ✅ Licencias y permisos de prueba  
 - ✅ Historial laboral de prueba
 - ✅ Fichas de empresa de prueba
@@ -47,8 +51,9 @@ Al finalizar los tests se eliminan:
 ## 🔧 Datos que se Mantienen
 
 Usuarios esenciales que **NUNCA** se eliminan:
-- 👤 Admin Principal (RUT: 11.111.111-1, Email: admin.principal@gmail.com)
-- 👤 Recursos Humanos (RUT: 22.222.222-2, Email: recursoshumanos@gmail.com)
+
+- 👤 Admin Principal (RUT: 11.111.111-1, Email: <admin.principal@gmail.com>)
+- 👤 Recursos Humanos (RUT: 22.222.222-2, Email: <recursoshumanos@gmail.com>)
 
 ## ⚠️ Importante
 
@@ -85,4 +90,4 @@ describe("Mi Test", () => {
 5. **Sistema**: Cierra conexión de base de datos
 6. **Resultado**: Base de datos limpia, solo con usuarios esenciales
 
-¡Los tests ahora son completamente seguros y no contaminarán tu base de datos de desarrollo! 🎉 
+¡Los tests ahora son completamente seguros y no contaminarán tu base de datos de desarrollo! 🎉

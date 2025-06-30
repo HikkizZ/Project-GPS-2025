@@ -1,9 +1,12 @@
 import { Request, Response } from "express";
-import { handleSuccess, handleErrorClient, handleErrorServer } from "../../handlers/responseHandlers.js";
-import { FichaEmpresaQueryValidation, FichaEmpresaBodyValidation } from "../../validations/recursosHumanos/fichaEmpresa.validation.js";
 import { AppDataSource } from "../../config/configDB.js";
 import { FichaEmpresa, EstadoLaboral } from "../../entity/recursosHumanos/fichaEmpresa.entity.js";
-import { ServiceResponse } from "../../../types.js";
+import { Trabajador } from "../../entity/recursosHumanos/trabajador.entity.js";
+import { User } from "../../entity/user.entity.js";
+import { handleSuccess, handleErrorClient, handleErrorServer } from "../../handlers/responseHandlers.js";
+import { FichaEmpresaBodyValidation, FichaEmpresaUpdateValidation, EstadoFichaValidation } from "../../validations/recursosHumanos/fichaEmpresa.validation.js";
+import { FileManagementService } from "../../services/fileManagement.service.js";
+import { FileUploadService } from "../../services/fileUpload.service.js";
 import {
     searchFichasEmpresa,
     getFichaEmpresaById,
@@ -12,8 +15,6 @@ import {
     actualizarEstadoFichaService,
     descargarContratoService
 } from "../../services/recursosHumanos/fichaEmpresa.service.js";
-import { FichaEmpresaUpdateValidation, EstadoFichaValidation } from "../../validations/recursosHumanos/fichaEmpresa.validation.js";
-import { getContratoPath, deleteContratoFile } from "../../config/fileUpload.config.js";
 import path from 'path';
 import fs from 'fs';
 
@@ -23,11 +24,17 @@ export async function getFichasEmpresa(req: Request, res: Response) {
 
         if (error) {
             const errorMessage = typeof error === 'string' ? error : error.message;
-            handleErrorClient(res, 404, errorMessage);
+            handleErrorClient(res, 400, errorMessage);
             return;
         }
 
-        handleSuccess(res, 200, "Fichas de empresa recuperadas exitosamente", fichas!);
+        // Si no hay fichas, devolver array vacío con mensaje amigable
+        const fichasData = fichas || [];
+        const mensaje = fichasData.length === 0 
+            ? "No hay fichas de empresa que coincidan con los criterios de búsqueda" 
+            : "Fichas de empresa recuperadas exitosamente";
+
+        handleSuccess(res, 200, mensaje, fichasData);
     } catch (error) {
         console.error("Error al obtener fichas de empresa:", error);
         handleErrorServer(res, 500, "Error interno del servidor");
@@ -172,9 +179,10 @@ export async function actualizarEstadoFicha(req: Request, res: Response) {
     }
 }
 
-export async function descargarContrato(req: Request, res: Response) {
+export async function descargarContrato(req: Request, res: Response): Promise<void> {
     try {
         const id = parseInt(req.params.id);
+        
         if (isNaN(id)) {
             handleErrorClient(res, 400, "ID inválido");
             return;
@@ -185,54 +193,64 @@ export async function descargarContrato(req: Request, res: Response) {
             return;
         }
 
-        // Obtener ficha para verificar permisos y obtener ruta del archivo
-        const fichaRepository = AppDataSource.getRepository(FichaEmpresa);
-        const ficha = await fichaRepository.findOne({
-            where: { id },
-            relations: ['trabajador']
+        const [resultado, error] = await descargarContratoService(id, req.user.id);
+
+        if (error || !resultado) {
+            const errorMessage = typeof error === 'string' ? error : "Contrato no encontrado.";
+            handleErrorClient(res, 404, errorMessage);
+            return;
+        }
+
+        const { filePath, customFilename } = resultado;
+
+        // Verificar que el archivo existe antes de intentar enviarlo
+        if (!fs.existsSync(filePath)) {
+            handleErrorClient(res, 404, "El archivo del contrato no se encuentra en el servidor");
+            return;
+        }
+
+        // Validar nombre personalizado
+        if (!customFilename || customFilename.trim() === '') {
+            const fallbackName = `Contrato_${id}.pdf`;
+            
+            // Configurar headers para evitar cache y forzar descarga ANTES de res.download
+            res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+            res.setHeader('Pragma', 'no-cache');
+            res.setHeader('Expires', '0');
+            res.setHeader('Content-Type', 'application/pdf');
+            res.setHeader('Content-Disposition', `attachment; filename="${fallbackName}"`);
+            res.setHeader('Access-Control-Expose-Headers', 'Content-Disposition');
+            
+            res.download(filePath, fallbackName, (err) => {
+                if (err && !res.headersSent) {
+                    handleErrorServer(res, 500, "No se pudo descargar el archivo.");
+                }
+            });
+            return;
+        }
+
+        // Configurar headers para evitar cache y forzar descarga ANTES de res.download
+        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+        res.setHeader('Pragma', 'no-cache');
+        res.setHeader('Expires', '0');
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename="${customFilename}"`);
+        res.setHeader('Access-Control-Expose-Headers', 'Content-Disposition');
+
+        // Enviar archivo con nombre personalizado
+        res.download(filePath, customFilename, (err) => {
+            if (err && !res.headersSent) {
+                handleErrorServer(res, 500, "No se pudo descargar el archivo.");
+            }
         });
 
-        if (!ficha) {
-            handleErrorClient(res, 404, "Ficha no encontrada");
-            return;
-        }
-
-        // Verificar permisos (RRHH/Admin o el propio trabajador)
-        const isRRHH = req.user.role === 'RecursosHumanos' || req.user.role === 'Administrador';
-        const isOwnWorker = ficha.trabajador.id === req.user.id;
-
-        if (!isRRHH && !isOwnWorker) {
-            handleErrorClient(res, 403, "No tiene permisos para descargar este contrato");
-            return;
-        }
-
-        if (!ficha.contratoURL) {
-            handleErrorClient(res, 404, "No hay contrato disponible para esta ficha");
-            return;
-        }
-
-        const filePath = getContratoPath(ficha.contratoURL);
-
-        if (!fs.existsSync(filePath)) {
-            handleErrorClient(res, 404, "Archivo de contrato no encontrado");
-            return;
-        }
-
-        // Configurar headers para descarga
-        const fileName = `contrato_${ficha.trabajador.nombres}_${ficha.trabajador.apellidoPaterno}.pdf`;
-        res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
-        res.setHeader('Content-Type', 'application/pdf');
-
-        // Enviar archivo
-        res.sendFile(path.resolve(filePath));
-
     } catch (error) {
-        console.error("Error en descargarContrato:", error);
-        handleErrorServer(res, 500, "Error interno del servidor");
+        console.error("Error en el controlador descargarContrato:", error);
+        handleErrorServer(res, 500, "Error interno del servidor.");
     }
 }
 
-export async function uploadContrato(req: Request, res: Response) {
+export async function uploadContrato(req: Request, res: Response): Promise<void> {
     try {
         const id = parseInt(req.params.id);
         if (isNaN(id)) {
@@ -241,44 +259,39 @@ export async function uploadContrato(req: Request, res: Response) {
         }
 
         if (!req.file) {
-            handleErrorClient(res, 400, "No se ha subido ningún archivo");
+            handleErrorClient(res, 400, "No se ha subido ningún archivo.");
             return;
         }
 
-        // Obtener ficha
         const fichaRepository = AppDataSource.getRepository(FichaEmpresa);
-        const ficha = await fichaRepository.findOne({
-            where: { id },
-            relations: ['trabajador']
-        });
+        const ficha = await fichaRepository.findOneBy({ id });
 
         if (!ficha) {
-            handleErrorClient(res, 404, "Ficha no encontrada");
+            FileUploadService.deleteFile(req.file.path);
+            handleErrorClient(res, 404, "Ficha no encontrada.");
             return;
         }
 
-        // Eliminar archivo anterior si existe
+        const nuevoContratoFilename = req.file.filename;
+
         if (ficha.contratoURL) {
-            deleteContratoFile(ficha.contratoURL);
+            const oldFilePath = FileUploadService.getContratoPath(ficha.contratoURL);
+            FileUploadService.deleteFile(oldFilePath);
         }
 
-        // Actualizar ficha con nuevo archivo
-        ficha.contratoURL = req.file.filename;
+        ficha.contratoURL = nuevoContratoFilename;
         await fichaRepository.save(ficha);
 
-        handleSuccess(res, 200, "Contrato subido exitosamente", {
-            filename: req.file.filename,
-            originalName: req.file.originalname,
-            size: req.file.size
+        handleSuccess(res, 200, "Contrato subido y actualizado exitosamente", {
+            contratoUrl: nuevoContratoFilename
         });
 
     } catch (error) {
-        console.error("Error en uploadContrato:", error);
-        // Si hay error, eliminar archivo subido
+        console.error("Error al subir contrato:", error);
         if (req.file) {
-            deleteContratoFile(req.file.filename);
+            FileUploadService.deleteFile(req.file.path);
         }
-        handleErrorServer(res, 500, "Error interno del servidor");
+        handleErrorServer(res, 500, "Error interno al procesar la subida del archivo.");
     }
 }
 
@@ -308,7 +321,7 @@ export async function deleteContrato(req: Request, res: Response) {
         }
 
         // Eliminar archivo físico
-        const deleted = deleteContratoFile(ficha.contratoURL);
+        const deleted = FileUploadService.deleteContratoFile(ficha.contratoURL);
         
         // Actualizar ficha
         ficha.contratoURL = null;

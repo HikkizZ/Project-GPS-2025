@@ -1,14 +1,7 @@
 {
-  "require": ["tsx"],
+  "require": ["tsx/cjs"],
+  "extension": [".ts"],
   "spec": "src/test/**/*.test.ts",
   "timeout": 10000,
-  "exit": true,
-  "recursive": true,
-  "reporter": "spec",
-  "bail": false,
-  "color": true,
-  "grep": "",
-  "env": {
-    "NODE_ENV": "test"
-  }
+  "exit": true
 } 

@@ -5,6 +5,9 @@ import { FindOptionsWhere, ILike, LessThanOrEqual, MoreThanOrEqual, Between, In 
 import { Trabajador } from "../../entity/recursosHumanos/trabajador.entity.js";
 import { User } from "../../entity/user.entity.js";
 import { LicenciaPermiso, TipoSolicitud, EstadoSolicitud } from "../../entity/recursosHumanos/licenciaPermiso.entity.js";
+import { normalizeText } from "../../helpers/normalizeText.helper.js";
+import { FileUploadService } from "../../services/fileUpload.service.js";
+import path from 'path';
 
 // Interfaz para los parámetros de búsqueda
 interface SearchFichaParams {
@@ -14,11 +17,11 @@ interface SearchFichaParams {
 
     // Búsqueda por estado
     estado?: EstadoLaboral;
+    estados?: EstadoLaboral[];
 
     // Búsqueda por información laboral
     cargo?: string;
     area?: string;
-    empresa?: string;
     tipoContrato?: string;
     jornadaLaboral?: string;
 
@@ -31,13 +34,15 @@ interface SearchFichaParams {
     fechaInicioHasta?: Date;
     fechaFinDesde?: Date;
     fechaFinHasta?: Date;
+    incluirSinFechaFin?: boolean;
 }
 
 export async function searchFichasEmpresa(params: SearchFichaParams): Promise<ServiceResponse<FichaEmpresa[]>> {
     try {
         const fichaRepo = AppDataSource.getRepository(FichaEmpresa);
         const queryBuilder = fichaRepo.createQueryBuilder("ficha")
-            .leftJoinAndSelect("ficha.trabajador", "trabajador");
+            .leftJoinAndSelect("ficha.trabajador", "trabajador")
+            .leftJoinAndSelect("trabajador.usuario", "usuario");
 
         // Filtros por trabajador
         if (params.rut) {
@@ -58,17 +63,32 @@ export async function searchFichasEmpresa(params: SearchFichaParams): Promise<Se
         // Filtro por estado
         if (params.estado) {
             queryBuilder.andWhere("ficha.estado = :estado", { estado: params.estado });
+        } else if (params.estados && params.estados.length > 0) {
+            queryBuilder.andWhere("ficha.estado IN (:...estados)", { estados: params.estados });
         }
 
         // Filtros por información laboral (búsqueda parcial)
         if (params.cargo) {
-            queryBuilder.andWhere("ficha.cargo ILIKE :cargo", { cargo: `%${params.cargo}%` });
+            const cargoTrimmed = params.cargo.trim().toLowerCase();
+            // Manejar el caso especial de "sin cargo"/"sin cárgo"
+            if (cargoTrimmed === 'sin cargo' || cargoTrimmed === 'sin cárgo') {
+                queryBuilder.andWhere("LOWER(ficha.cargo) SIMILAR TO :cargoPattern", {
+                    cargoPattern: '%(sin cargo|sin cárgo)%'
+                });
+            } else {
+                queryBuilder.andWhere("LOWER(ficha.cargo) ILIKE LOWER(:cargo)", { cargo: `%${cargoTrimmed}%` });
+            }
         }
         if (params.area) {
-            queryBuilder.andWhere("ficha.area ILIKE :area", { area: `%${params.area}%` });
-        }
-        if (params.empresa) {
-            queryBuilder.andWhere("ficha.empresa ILIKE :empresa", { empresa: `%${params.empresa}%` });
+            const areaTrimmed = params.area.trim().toLowerCase();
+            // Manejar el caso especial de "sin area"/"sin área"
+            if (areaTrimmed === 'sin area' || areaTrimmed === 'sin área') {
+                queryBuilder.andWhere("LOWER(ficha.area) SIMILAR TO :areaPattern", { 
+                    areaPattern: '%(sin area|sin área)%' 
+                });
+            } else {
+                queryBuilder.andWhere("LOWER(ficha.area) ILIKE LOWER(:area)", { area: `%${areaTrimmed}%` });
+            }
         }
         if (params.tipoContrato) {
             queryBuilder.andWhere("ficha.tipoContrato = :tipoContrato", { tipoContrato: params.tipoContrato });
@@ -100,13 +120,34 @@ export async function searchFichasEmpresa(params: SearchFichaParams): Promise<Se
         }
 
         if (params.fechaFinDesde || params.fechaFinHasta) {
-            if (params.fechaFinDesde) {
-                queryBuilder.andWhere("ficha.fechaFinContrato >= :fechaFinDesde", 
-                    { fechaFinDesde: params.fechaFinDesde });
-            }
-            if (params.fechaFinHasta) {
-                queryBuilder.andWhere("ficha.fechaFinContrato <= :fechaFinHasta", 
-                    { fechaFinHasta: params.fechaFinHasta });
+            if (params.incluirSinFechaFin) {
+                // Si se incluyen fichas sin fecha fin, usar OR para incluir NULL
+                const fechaFinConditions = [];
+                const fechaFinParams: any = {};
+                
+                if (params.fechaFinDesde) {
+                    fechaFinConditions.push("ficha.fechaFinContrato >= :fechaFinDesde");
+                    fechaFinParams.fechaFinDesde = params.fechaFinDesde;
+                }
+                if (params.fechaFinHasta) {
+                    fechaFinConditions.push("ficha.fechaFinContrato <= :fechaFinHasta");
+                    fechaFinParams.fechaFinHasta = params.fechaFinHasta;
+                }
+                
+                if (fechaFinConditions.length > 0) {
+                    const condition = `(${fechaFinConditions.join(' AND ')} OR ficha.fechaFinContrato IS NULL)`;
+                    queryBuilder.andWhere(condition, fechaFinParams);
+                }
+            } else {
+                // Comportamiento original: solo fichas con fecha fin
+                if (params.fechaFinDesde) {
+                    queryBuilder.andWhere("ficha.fechaFinContrato >= :fechaFinDesde", 
+                        { fechaFinDesde: params.fechaFinDesde });
+                }
+                if (params.fechaFinHasta) {
+                    queryBuilder.andWhere("ficha.fechaFinContrato <= :fechaFinHasta", 
+                        { fechaFinHasta: params.fechaFinHasta });
+                }
             }
         }
 
@@ -115,10 +156,7 @@ export async function searchFichasEmpresa(params: SearchFichaParams): Promise<Se
 
         const fichas = await queryBuilder.getMany();
 
-        if (!fichas.length) {
-            return [null, { message: "No hay fichas de empresa que coincidan con los criterios de búsqueda" }];
-        }
-
+        // Devolver array vacío en lugar de error cuando no hay fichas
         return [fichas, null];
     } catch (error) {
         console.error("Error al buscar fichas de empresa:", error);
@@ -131,14 +169,12 @@ export async function getFichaEmpresaById(id: number): Promise<ServiceResponse<F
         const fichaRepo = AppDataSource.getRepository(FichaEmpresa);
         const ficha = await fichaRepo.findOne({
             where: { id },
-            relations: ["trabajador"]
+            relations: ["trabajador", "trabajador.usuario"]
         });
 
         if (!ficha) {
             return [null, { message: "Ficha no encontrada" }];
-        }
-
-        return [ficha, null];
+        }return [ficha, null];
     } catch (error) {
         console.error("Error en getFichaEmpresaById:", error);
         return [null, { message: "Error interno del servidor" }];
@@ -161,14 +197,12 @@ export async function getMiFichaService(userId: number): Promise<ServiceResponse
 
         const ficha = await fichaRepo.findOne({
             where: { trabajador: { id: user.trabajador.id } },
-            relations: ["trabajador"]
+            relations: ["trabajador", "trabajador.usuario"]
         });
 
         if (!ficha) {
             return [null, { message: "Ficha no encontrada" }];
-        }
-
-        return [ficha, null];
+        }return [ficha, null];
     } catch (error) {
         console.error("Error en getMiFichaService:", error);
         return [null, { message: "Error interno del servidor" }];
@@ -196,16 +230,14 @@ export async function actualizarEstadoFichaService(
         const fichaRepo = queryRunner.manager.getRepository(FichaEmpresa);
         const ficha = await fichaRepo.findOne({
             where: { id },
-            relations: ["trabajador"]
+            relations: ["trabajador", "trabajador.usuario"]
         });
 
         if (!ficha) {
             await queryRunner.rollbackTransaction();
             await queryRunner.release();
             return [null, { message: "Ficha no encontrada" }];
-        }
-
-        // Verificar permisos del usuario
+        }// Verificar permisos del usuario
         if (userId) {
             const userRepo = queryRunner.manager.getRepository(User);
             const user = await userRepo.findOne({ where: { id: userId } });
@@ -228,6 +260,26 @@ export async function actualizarEstadoFichaService(
         // Actualizar el estado y otros campos
         ficha.estado = estado;
 
+        // Para licencias y permisos, guardar las fechas
+        if (estado === EstadoLaboral.LICENCIA || estado === EstadoLaboral.PERMISO) {
+            if (fechaInicioDate) {
+                ficha.fechaInicioLicencia = fechaInicioDate;
+            }
+            if (fechaFinDate) {
+                ficha.fechaFinLicencia = fechaFinDate;
+            }
+            if (motivo) {
+                ficha.motivoLicencia = motivo;
+            }
+        }
+
+        // Si vuelve a estado ACTIVO, limpiar fechas de licencia
+        if (estado === EstadoLaboral.ACTIVO) {
+            ficha.fechaInicioLicencia = null;
+            ficha.fechaFinLicencia = null;
+            ficha.motivoLicencia = null;
+        }
+
         // Guardar los cambios
         const fichaActualizada = await fichaRepo.save(ficha);
 
@@ -247,7 +299,7 @@ export async function actualizarEstadoFichaService(
 
 // Definir los campos que no se pueden modificar según el estado
 const CAMPOS_PROTEGIDOS = ['id', 'trabajador'] as const;
-const CAMPOS_ESTADO_DESVINCULADO = ['cargo', 'area', 'empresa', 'tipoContrato', 'jornadaLaboral', 'sueldoBase'] as const;
+const CAMPOS_ESTADO_DESVINCULADO = ['cargo', 'area', 'tipoContrato', 'jornadaLaboral', 'sueldoBase'] as const;
 
 export async function updateFichaEmpresaService(
     id: number, 
@@ -263,14 +315,12 @@ export async function updateFichaEmpresaService(
         // 1. Obtener la ficha actual con sus relaciones
         const fichaActual = await fichaRepo.findOne({
             where: { id },
-            relations: ["trabajador"]
+            relations: ["trabajador", "trabajador.usuario"]
         });
 
         if (!fichaActual) {
             return [null, { message: "Ficha no encontrada" }];
-        }
-
-        // 2. Validar campos protegidos
+        }// 2. Validar campos protegidos
         const camposInvalidos = CAMPOS_PROTEGIDOS.filter(campo => campo in fichaData);
         if (camposInvalidos.length > 0) {
             return [null, { message: `No se pueden modificar los siguientes campos: ${camposInvalidos.join(', ')}` }];
@@ -329,7 +379,7 @@ export async function updateFichaEmpresaService(
     }
 }
 
-export async function descargarContratoService(id: number, userId: number): Promise<ServiceResponse<string>> {
+export async function descargarContratoService(id: number, userId: number): Promise<ServiceResponse<{filePath: string, customFilename: string}>> {
     try {
         const fichaRepo = AppDataSource.getRepository(FichaEmpresa);
         const userRepo = AppDataSource.getRepository(User);
@@ -341,9 +391,7 @@ export async function descargarContratoService(id: number, userId: number): Prom
 
         if (!ficha) {
             return [null, { message: "Ficha no encontrada" }];
-        }
-
-        const user = await userRepo.findOne({
+        }const user = await userRepo.findOne({
             where: { id: userId },
             relations: ["trabajador"]
         });
@@ -352,11 +400,15 @@ export async function descargarContratoService(id: number, userId: number): Prom
             return [null, { message: "Usuario no encontrado" }];
         }
 
-        // Permitir acceso a RRHH o al dueño de la ficha
+        // Permitir acceso a RRHH, Admin, Superadmin o al dueño de la ficha
         const esRRHH = user.role === "RecursosHumanos";
+        const esAdmin = user.role === "Administrador";
+        const esSuperAdmin = user.role === "SuperAdministrador";
         const esDueno = user.trabajador?.id === ficha.trabajador.id;
 
-        if (!esRRHH && !esDueno) {
+        const tienePrivilegios = esRRHH || esAdmin || esSuperAdmin || esDueno;
+
+        if (!tienePrivilegios) {
             return [null, { message: "No tiene permiso para descargar este contrato" }];
         }
 
@@ -364,7 +416,52 @@ export async function descargarContratoService(id: number, userId: number): Prom
             return [null, { message: "No hay contrato disponible para descargar" }];
         }
 
-        return [ficha.contratoURL, null];
+        // Usar el servicio de archivos para obtener la ruta absoluta y correcta
+        const filePath = FileUploadService.getContratoPath(ficha.contratoURL);
+
+        // Verificar si el archivo existe
+        if (!FileUploadService.fileExists(filePath)) {
+            return [null, { message: "El archivo del contrato no se encuentra en el servidor." }];
+        }
+
+        // Generar nombre personalizado
+        const trabajador = ficha.trabajador;
+
+        // Función para limpiar caracteres especiales y espacios
+        const limpiarNombre = (nombre: string): string => {
+            return nombre
+                .replace(/[áàäâ]/g, 'a')
+                .replace(/[éèëê]/g, 'e')
+                .replace(/[íìïî]/g, 'i')
+                .replace(/[óòöô]/g, 'o')
+                .replace(/[úùüû]/g, 'u')
+                .replace(/[ñ]/g, 'n')
+                .replace(/[ç]/g, 'c')
+                .replace(/[^a-zA-Z0-9]/g, '_')
+                .replace(/_+/g, '_')
+                .replace(/^_|_$/g, '');
+        };
+
+        const nombresLimpios = limpiarNombre(trabajador.nombres || '');
+        const apellidoPLimpio = limpiarNombre(trabajador.apellidoPaterno || '');
+        const apellidoMLimpio = limpiarNombre(trabajador.apellidoMaterno || '');
+
+        // Construir nombre personalizado
+        let customFilename = '';
+        if (nombresLimpios && apellidoPLimpio) {
+            customFilename = `${nombresLimpios}_${apellidoPLimpio}`;
+            if (apellidoMLimpio) {
+                customFilename += `_${apellidoMLimpio}`;
+            }
+            customFilename += '-Contrato.pdf';
+        }
+
+        // Validar que el nombre personalizado sea válido
+        if (!customFilename || customFilename.length < 5 || !customFilename.includes('-Contrato.pdf')) {
+            customFilename = `Contrato_${id}.pdf`;
+        }
+
+        return [{ filePath, customFilename }, null];
     } catch (error) {
         console.error("Error en descargarContratoService:", error);
         return [null, { message: "Error interno del servidor" }];

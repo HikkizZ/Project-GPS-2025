@@ -11,7 +11,7 @@ import {
     uploadContrato,
     deleteContrato
 } from "../../controllers/recursosHumanos/fichaEmpresa.controller.js";
-import { uploadContrato as uploadMiddleware } from "../../config/fileUpload.config.js";
+import { FileUploadService } from "../../services/fileUpload.service.js";
 
 const router: Router = Router();
 
@@ -21,8 +21,8 @@ router.use(authenticateJWT);
 // Ruta para obtener la ficha propia del usuario
 router.get("/mi-ficha", getMiFicha);
 
-// Rutas que requieren rol de RRHH o Admin
-router.use(verifyRole(["RecursosHumanos", "Administrador"]));
+// Rutas que requieren rol de RRHH, Admin o SuperAdministrador
+router.use(verifyRole(["RecursosHumanos", "Administrador", "SuperAdministrador"]));
 
 router
     .get("/search", getFichasEmpresa)
@@ -30,7 +30,7 @@ router
     .get("/:id/contrato", descargarContrato)
     .put("/:id", updateFichaEmpresa)
     .put("/:id/estado", actualizarEstadoFicha)
-    .post("/:id/upload-contrato", uploadMiddleware.single('contrato'), uploadContrato)
-    .delete("/:id/delete-contrato", deleteContrato);
+    .post("/:id/upload-contrato", FileUploadService.uploadSingle('contrato'), uploadContrato)
+    .delete("/:id/contrato", deleteContrato);
 
 export default router; 

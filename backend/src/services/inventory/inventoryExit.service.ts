@@ -2,8 +2,8 @@ import { AppDataSource } from "../../config/configDB.js";
 import { InventoryExit } from "../../entity/inventory/inventoryExit.entity.js";
 import { InventoryExitDetail } from "../../entity/inventory/inventoryExitDetail.entity.js";
 import { Product } from "../../entity/inventory/product.entity.js";
-import { Customer } from "../../entity/customer.entity.js";
-import { CreateInventoryExitDTO } from "../../types/index.js";
+import { Customer } from "../../entity/stakeholders/customer.entity.js";
+import { CreateInventoryExitDTO } from "../../types/inventory/inventory.dto.js";
 import { ServiceResponse } from "../../../types.js";
 import { decrementInventory } from "./inventory.service.js";
 
