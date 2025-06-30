@@ -2,7 +2,7 @@ import {
     Entity,
     PrimaryGeneratedColumn,
     Column,
-    OneToOne,
+    ManyToOne,
     JoinColumn
 } from "typeorm";
 import { Trabajador } from "../trabajador.entity.js";
@@ -14,19 +14,22 @@ export class DatosPrevisionalesTrabajador {
     @PrimaryGeneratedColumn()
     id!: number;
 
-    @OneToOne(() => Trabajador, trabajador => trabajador.datosPrevisionales, { nullable: false })
-    @JoinColumn({ name: "datosPrevisionales" })
+    @ManyToOne(() => Trabajador, trabajador => trabajador.datosPrevisionales, { nullable: false })
     trabajador!: Trabajador;
 
-    @OneToOne(() => PrevisionAFP, previsionAFP => previsionAFP.id, { nullable: true })
-    @JoinColumn({ name: "idAFP" })
-    idAFP!: string;
+    @ManyToOne(() => PrevisionAFP, afp => afp.asignacionesA, { nullable: false })
+    afp!: PrevisionAFP;
 
-    @OneToOne(() => PrevisionSalud, previsionSalud => previsionSalud.id, { nullable: true })
-    @JoinColumn({ name: "idSalud" })
-    idSalud!: string;
+    @ManyToOne(() => PrevisionSalud, salud => salud.asignacionesS, { nullable: false })
+    salud!: PrevisionSalud;
 
     @Column({ type: "varchar", length: 50, nullable: true })
     seguroCesantia!: string;
+
+    @Column({ type: 'date' })
+    fechaInicio: Date;
+
+    @Column({ type: 'date', nullable: true })
+    fechaFin: Date; // null = aún vigente
 
 }

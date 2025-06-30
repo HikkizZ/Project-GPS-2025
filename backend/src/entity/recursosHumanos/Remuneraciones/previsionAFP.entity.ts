@@ -2,8 +2,7 @@ import {
     Entity,
     PrimaryGeneratedColumn,
     Column,
-    OneToOne,
-    JoinColumn
+    OneToMany
 } from "typeorm";
 
 import { DatosPrevisionalesTrabajador } from "./datosPrevisionalesTrabajador.entity.js";
@@ -21,14 +20,14 @@ export class PrevisionAFP {
     @PrimaryGeneratedColumn()
     id!: number;
 
-    @OneToOne(() => DatosPrevisionalesTrabajador, datosPrevisionales => datosPrevisionales.idAFP, { nullable: false })
-    @JoinColumn({ name: "datosPrevisionalesId" })
+    @OneToMany(() => DatosPrevisionalesTrabajador, asignacion => asignacion.afp)
+        asignacionesA!: DatosPrevisionalesTrabajador;
 
     @Column({ type: "enum", enum: TipoFondoAFP, default: TipoFondoAFP.A })
     tipo!: TipoFondoAFP;
 
     @Column({ 
-    type: "integer", 
+    type: "integer",
     nullable: true,
     transformer: {
       to: (value: number | null): number => {
@@ -41,6 +40,6 @@ export class PrevisionAFP {
     },
     default: 0
     })
-    comision!: string;
+    comision!: number;
 
 }

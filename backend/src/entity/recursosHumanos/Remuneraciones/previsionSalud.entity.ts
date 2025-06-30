@@ -2,10 +2,11 @@ import {
     Entity,
     PrimaryGeneratedColumn,
     Column,
-    OneToOne,
-    JoinColumn
+    OneToMany
 } from "typeorm";
+
 import { DatosPrevisionalesTrabajador } from "./datosPrevisionalesTrabajador.entity.js";
+
 export enum TipoPrevisionSalud {
     ISAPRE = "ISAPRE",
     FONASA = "FONASA"
@@ -16,8 +17,8 @@ export class PrevisionSalud {
     @PrimaryGeneratedColumn()
     id!: number;
 
-    @OneToOne(() => DatosPrevisionalesTrabajador, datosPrevisionales => datosPrevisionales.idSalud, { nullable: false })
-    @JoinColumn({ name: "datosPrevisionalesId" })
+    @OneToMany(() => DatosPrevisionalesTrabajador, asignacion => asignacion.salud)
+        asignacionesS!: DatosPrevisionalesTrabajador;
 
     @Column({ type: "enum", enum: TipoPrevisionSalud, default: TipoPrevisionSalud.FONASA })
     tipo!: TipoPrevisionSalud;
@@ -36,6 +37,6 @@ export class PrevisionSalud {
     },
     default: 0
     })
-    comision!: string;
+    comision!: number;
 
 }
