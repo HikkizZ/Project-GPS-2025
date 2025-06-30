@@ -4,6 +4,8 @@ import { Trabajador } from "../entity/recursosHumanos/trabajador.entity.js";
 import { FichaEmpresa, EstadoLaboral } from "../entity/recursosHumanos/fichaEmpresa.entity.js";
 import { encryptPassword } from "../utils/encrypt.js";
 import { Bono, temporalidad, tipoBono } from "../entity/recursosHumanos/Remuneraciones/Bono.entity.js";
+import { PrevisionAFP, TipoFondoAFP } from "../entity/recursosHumanos/Remuneraciones/previsionAFP.entity.js";
+import { PrevisionSalud, TipoPrevisionSalud } from "../entity/recursosHumanos/Remuneraciones/previsionSalud.entity.js";
 
 export async function initialSetup(): Promise<void> {
     try {
@@ -13,6 +15,7 @@ export async function initialSetup(): Promise<void> {
         const trabajadorRepo = AppDataSource.getRepository(Trabajador);
         const fichaEmpresaRepo = AppDataSource.getRepository(FichaEmpresa);
         const bonosRepo = AppDataSource.getRepository(Bono);
+        const afpRepo = AppDataSource.getRepository(PrevisionAFP);
 
         await AppDataSource.transaction(async transactionalEntityManager => {
             console.log("=> Iniciando proceso de eliminación en transacción...");
@@ -177,7 +180,52 @@ export async function initialSetup(): Promise<void> {
         await bonosRepo.save([bono1, bono2, bono3, bono4, bono5, bono6, bono7, bono8]);
         console.log("✅ Bonos predefinidos creados exitosamente");
 
+         // 9. Creacion de Configuración AFP
+        console.log("=> Creando configuración AFP...");
+        
+        const AFP_A = afpRepo.create({
+            tipo: TipoFondoAFP.A,
+            comision: 0.01 // 1% de comisión
+        });
 
+        const AFP_B = afpRepo.create({
+            tipo: TipoFondoAFP.B,
+            comision: 0.015 // 1.5% de comisión
+        });
+
+        const AFP_C = afpRepo.create({
+            tipo: TipoFondoAFP.C,
+            comision: 0.02 // 2% de comisión
+        });
+        
+        const AFP_D = afpRepo.create({
+            tipo: TipoFondoAFP.D,
+            comision: 0.025 // 2.5% de comisión
+        });
+
+        const AFP_E = afpRepo.create({
+            tipo: TipoFondoAFP.E,
+            comision: 0.03 // 3% de comisión
+        });
+
+        await afpRepo.save([AFP_A, AFP_B, AFP_C, AFP_D, AFP_E]);
+        console.log("✅ Configuración AFP creada exitosamente");
+        
+         // 10. Creación de Configuración previsión salud
+
+        console.log("=> Creando configuración de previsión salud...");
+        const saludFONASA = AppDataSource.getRepository(PrevisionSalud).create({
+            tipo: TipoPrevisionSalud.FONASA,
+            comision: 0.07 // 7% de comisión
+        });
+
+        const saludISAPRE = AppDataSource.getRepository(PrevisionSalud).create({
+            tipo: TipoPrevisionSalud.ISAPRE,
+            comision: 0.08 // 8% de comisión
+        });
+
+        await AppDataSource.getRepository(PrevisionSalud).save([saludFONASA, saludISAPRE]);
+        console.log("✅ Configuración de previsión salud creada exitosamente");
 
         console.log("✅ Configuración inicial completada con éxito");
     } catch (error) {
