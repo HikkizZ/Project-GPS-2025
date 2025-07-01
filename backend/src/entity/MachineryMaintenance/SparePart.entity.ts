@@ -10,6 +10,7 @@ export class SparePart {
     @PrimaryGeneratedColumn()
     id!: number
 
+//?Nombre del respuesto
     @Column({
 
         type: "varchar",
@@ -18,7 +19,7 @@ export class SparePart {
     })
     name!: string
 
-
+//?Cantidad de repuesto disponible
     @Column({
         type: "integer",
         nullable: false

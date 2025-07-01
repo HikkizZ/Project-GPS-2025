@@ -10,18 +10,22 @@ export class MaintenanceHistory{
     @PrimaryGeneratedColumn()
     id!: number
 
+//?Se registra la o las fechas que se ha estado en mantención
+
     @Column({
         type: "date",
         nullable: false
     })
     date!: Date
 
+//?Descripción de la mantenciones realizadas
     @Column({
         type: "text",
         nullable: false
     })
     description!: string
 
+//?Registro del costo de la manteicón
     @Column({
         type: "decimal",
         precision: 10,
@@ -30,6 +34,7 @@ export class MaintenanceHistory{
     })
     cost!: number
 
+//?Registrar el mecánico encargado de la matención
     @Column({
         type: "varchar",
         length: 200,

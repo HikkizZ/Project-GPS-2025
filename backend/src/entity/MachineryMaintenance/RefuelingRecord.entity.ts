@@ -9,12 +9,15 @@ export class RefuelingRecord{
     @PrimaryGeneratedColumn()
     id!: number
 
+
+//?Se registra la fecha que se a recargado    
     @Column({
         type: "date",
         nullable: false
     })
     date!: Date
 
+//?Se registra los litros de recarga
     @Column({
 
         type: "decimal",
@@ -25,6 +28,7 @@ export class RefuelingRecord{
     })
     liters!: number
 
+//?Se registra el costo de la recarga
     @Column({
 
         type: "decimal",

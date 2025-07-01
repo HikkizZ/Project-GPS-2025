@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne} from "typeorm"
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn} from "typeorm"
 import { Maquinaria } from "../maquinaria/maquinaria.entity.js"
 
 //? Registro de fallos: Se deja un registro de los fallos que presenen las maquinas
@@ -17,7 +17,7 @@ export class FailureReport{
 
     })
     date!: Date
-
+//?Descrpción del problema
     @Column({
 
         type: "varchar",
@@ -27,6 +27,8 @@ export class FailureReport{
     })
     description!: string
 
+
+//?Si está arreglado
     @Column({
         type: "boolean",
         default: false,
@@ -34,8 +36,9 @@ export class FailureReport{
     })
     resolved!: boolean
 
-    @ManyToOne(() => Maquinaria)
-    maquinaria!: Maquinaria
+    @ManyToOne(() => Maquinaria, {nullable: false, onDelete: "CASCADE"})
+    @JoinColumn({ name: "maquinariaId"})
+    maquinaria!: Maquinaria;
 
 
 } 
