@@ -38,7 +38,7 @@ export const UsersPage: React.FC = () => {
   const [rutError, setRutError] = useState<string | null>(null);
   const [passwordError, setPasswordError] = useState<string | null>(null);
 
-  const availableRoles: FilterableUserRole[] = ['Usuario', 'RecursosHumanos', 'Gerencia', 'Ventas', 'Arriendo', 'Finanzas', 'Mecánico', 'Mantenciones de Maquinaria'];
+  const availableRoles: FilterableUserRole[] = ['Usuario', 'RecursosHumanos', 'Gerencia', 'Ventas', 'Arriendo', 'Finanzas', 'Mecánico', 'Mantenciones de Maquinaria', 'Conductor'];
   
   // Admin, SuperAdmin y RecursosHumanos pueden asignar rol de Administrador
   if (user?.role === 'Administrador' || user?.role === 'SuperAdministrador' || user?.role === 'RecursosHumanos') {
@@ -663,6 +663,8 @@ const getRoleBadgeColor = (role: string): string => {
       return 'warning';
     case 'Mantenciones de Maquinaria':
       return 'info';
+    case 'Conductor':
+      return 'success';
     case 'Usuario':
       return 'dark';
     default:

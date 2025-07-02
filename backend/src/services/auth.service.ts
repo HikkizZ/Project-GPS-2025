@@ -47,7 +47,8 @@ const allowedRoles: userRole[] = [
     "Arriendo",
     "Finanzas",
     "Mecánico",
-    "Mantenciones de Maquinaria"
+    "Mantenciones de Maquinaria",
+    "Conductor"
 ];
 
 /* Auxiliar function for creating error messages */

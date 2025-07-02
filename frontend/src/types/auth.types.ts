@@ -9,7 +9,8 @@ export type UserRole =
     | "Arriendo"
     | "Finanzas"
     | "Mecánico"
-    | "Mantenciones de Maquinaria";
+    | "Mantenciones de Maquinaria"
+    | "Conductor";
 
 // Roles disponibles para filtrado y asignación (excluyendo SuperAdministrador)
 export type FilterableUserRole = Exclude<UserRole, "SuperAdministrador">;
