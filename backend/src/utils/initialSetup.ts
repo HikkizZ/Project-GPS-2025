@@ -1,45 +1,42 @@
-import fs from "fs"; // File system module
-import path from "path"; // Path module
-import { encryptPassword } from "../helpers/bcrypt.helper.js";
 import { AppDataSource } from "../config/configDB.js";
 import { User } from "../entity/user.entity.js";
-import { userRole } from "../../types.js";
+import { encryptPassword } from "../utils/encrypt.js";
+import { userRole } from "../../types.d.js";
+
+// Determinar el entorno
+const isProduction = process.env.NODE_ENV === "production";
+const isTest = process.env.NODE_ENV === "test";
+const isDevelopment = !isProduction && !isTest;
 
 export async function initialSetup(): Promise<void> {
     try {
-        console.log("=> Initial setup started");
+        const userRepo = AppDataSource.getRepository(User);
 
-        const userRepository = AppDataSource.getRepository(User);
+        // Verificar si ya existe un SuperAdmin
+        const existingSuperAdmin = await userRepo.findOne({
+            where: { role: 'SuperAdministrador' }
+        });
 
-        // Check if there are users in the database
-        const usersCount = await userRepository.count();
-        if (usersCount > 0) {
-            console.log("✅ There are already users in the database. The initial configuration has been skipped.");
-            return;
+        if (!existingSuperAdmin) {
+            // Crear ÚNICAMENTE el usuario superadmin (sin RUT)
+            const superAdminPlainPassword = "204_M1n8";
+            const superAdminHashedPassword = await encryptPassword(superAdminPlainPassword);
+            
+            const superAdminUser = userRepo.create({
+                name: "Super Administrador Sistema",
+                email: "super.administrador@lamas.com",
+                password: superAdminHashedPassword,
+                role: 'SuperAdministrador' as userRole,
+                rut: null,
+                estadoCuenta: "Activa"
+            });
+            await userRepo.save(superAdminUser);
+            console.log("✅ Configuración inicial completada - SuperAdmin creado como usuario únicamente");
+        } else {
+            console.log("✅ Configuración inicial completada - SuperAdmin ya existe");
         }
-
-        // Read the initial data from the JSON file
-        const userFilePath = path.resolve("src/data/users.json");
-        if (!fs.existsSync(userFilePath)) {
-            console.error("❌ The file users.json does not exist.");
-            return;
-        }
-
-        const usersData = JSON.parse(fs.readFileSync(userFilePath, "utf-8"));
-
-        // Encrypt the password of the users
-        const usersToSave = await Promise.all(
-            usersData.map(async (user: { name: string; rut: string; email: string; role: userRole; password: string }) => ({
-                ...user,
-                password: await encryptPassword(user.password)
-            }))
-        );
-
-        // Save the users in the database
-        await userRepository.save(usersToSave);
-
-        console.log("✅ The initial configuration has been completed successfully.");
     } catch (error) {
-        console.error("❌ Error in the initial configuration: ", error);
+        console.error("❌ Error en la configuración inicial:", error);
+        throw error;
     }
 }

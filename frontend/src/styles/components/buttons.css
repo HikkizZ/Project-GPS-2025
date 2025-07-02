@@ -1,0 +1,100 @@
+/*
+  buttons.css
+  Estilos específicos para botones
+  Usa especificidad CSS en lugar de !important para mejor mantenibilidad
+*/
+
+/* Estilos base para todos los botones */
+.btn {
+  font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-sm);
+  transition: var(--transition);
+  border-radius: var(--border-radius);
+  padding: 0.5rem 1rem;
+  border: 1px solid transparent;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  line-height: 1.5;
+}
+
+/* Botón primario con especificidad apropiada */
+.btn.btn-primary,
+.btn-primary {
+  background-color: var(--primary);
+  border-color: var(--primary);
+  color: var(--text-light);
+}
+
+.btn.btn-primary:hover,
+.btn.btn-primary:focus,
+.btn-primary:hover,
+.btn-primary:focus {
+  background-color: var(--primary-hover);
+  border-color: var(--primary-hover);
+  color: var(--text-light);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 97, 255, 0.3);
+}
+
+.btn.btn-primary:active,
+.btn-primary:active {
+  background-color: var(--primary-dark);
+  border-color: var(--primary-dark);
+  transform: translateY(0);
+}
+
+/* Botón outline light para navbar */
+.btn.btn-outline-light,
+.btn-outline-light {
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  color: var(--text-light);
+  background-color: transparent;
+}
+
+.btn.btn-outline-light:hover,
+.btn.btn-outline-light:focus,
+.btn-outline-light:hover,
+.btn-outline-light:focus {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.8);
+  color: var(--text-light);
+}
+
+/* Botón personalizado con gradiente */
+.btn-custom-primary {
+  background: var(--gradient-primary);
+  border: none;
+  color: var(--text-light);
+  font-weight: var(--font-weight-medium);
+  padding: 0.5rem 1rem;
+  border-radius: var(--border-radius);
+  transition: var(--transition);
+}
+
+.btn-custom-primary:hover {
+  background: var(--gradient-primary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(13, 110, 253, 0.3);
+}
+
+/* Estados de botones */
+.btn:disabled,
+.btn[disabled] {
+  opacity: 0.6;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Tamaños de botones */
+.btn-sm {
+  padding: 0.25rem 0.5rem;
+  font-size: var(--font-size-xs);
+}
+
+.btn-lg {
+  padding: 0.75rem 1.5rem;
+  font-size: var(--font-size-base);
+}

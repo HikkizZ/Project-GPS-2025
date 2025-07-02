@@ -20,6 +20,11 @@ passport.use(
                 return done(null, false);
             }
 
+            // Verificar si la cuenta está activa
+            if (user.estadoCuenta === "Inactiva") {
+                return done(null, false);
+            }
+
             return done(null, user);
         } catch (error) {
             return done(error, false);

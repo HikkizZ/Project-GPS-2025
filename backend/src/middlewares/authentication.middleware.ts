@@ -7,17 +7,47 @@
  */
 
 import { Request, Response, NextFunction } from 'express';
-import passport from 'passport';
+import jwt from 'jsonwebtoken';
+import { AppDataSource } from '../config/configDB.js';
+import { User } from '../entity/user.entity.js';
+import { ACCESS_TOKEN_SECRET } from '../config/configEnv.js';
 
-export function authenticateJWT(req: Request, res: Response, next: NextFunction): void {
-    passport.authenticate('jwt', { session: false }, (err: Error | null, user: any, info: any) => {
-        if (err) {
-            return next(err);
+export const verifyToken = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const token = req.headers.authorization?.split(' ')[1];
+
+        if (!token) {
+            res.status(401).json({
+                status: "error",
+                message: "No se proporcionó un token de autenticación"
+            });
+            return;
         }
+
+        const decoded = jwt.verify(token, ACCESS_TOKEN_SECRET as string) as { rut: string; email: string };
+        const userRepository = AppDataSource.getRepository(User);
+        const user = await userRepository.findOne({ 
+            where: { rut: decoded.rut, email: decoded.email },
+            relations: ["trabajador"]
+        });
+
         if (!user) {
-            return res.status(401).json({ message: "No tienes permisos para acceder a esta ruta." });
+            res.status(401).json({
+                status: "error",
+                message: "Usuario no encontrado"
+            });
+            return;
         }
+
         req.user = user;
         next();
-    })(req, res, next);
-}
+    } catch (error) {
+        res.status(401).json({
+            status: "error",
+            message: "Token inválido"
+        });
+    }
+};
+
+// Mantener la compatibilidad con el código existente
+export const authenticateJWT = verifyToken;

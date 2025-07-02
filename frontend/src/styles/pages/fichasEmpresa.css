@@ -1,0 +1,346 @@
+/*
+  fichasEmpresa.css
+  Estilos específicos para la página/módulo de Fichas de Empresa.
+  Solo deben ir reglas bajo la clase raíz correspondiente.
+  NO agregar reglas globales ni utilidades aquí.
+*/
+
+/* Estilos específicos para la página de Fichas de Empresa */
+
+.fichas-empresa-page {
+  background: #fff;
+}
+
+.fichas-empresa-page .container-fluid {
+  padding-top: 1.5rem !important;
+}
+
+.fichas-empresa-page h2 {
+  margin-top: 0 !important;
+}
+
+.fichas-empresa-page .form-label {
+  color: var(--text-primary) !important;
+  font-weight: 500;
+}
+
+.fichas-empresa-page .ficha-card {
+  border: 2px solid var(--primary-color);
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  background: var(--surface);
+}
+
+.fichas-empresa-page .ficha-header {
+  font-weight: bold;
+  color: var(--primary-color);
+  margin-bottom: 1rem;
+}
+
+/* Estilos mejorados para la vista de ficha individual */
+.fichas-empresa-page .ficha-info-section {
+  padding: 1.5rem;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e9ecef;
+}
+
+.fichas-empresa-page .ficha-info-section h6 {
+  color: #495057;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.fichas-empresa-page .info-field {
+  margin-bottom: 1rem;
+}
+
+.fichas-empresa-page .info-field:last-child {
+  margin-bottom: 0;
+}
+
+.fichas-empresa-page .info-field .form-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #6c757d;
+  margin-bottom: 0.25rem;
+  display: block;
+}
+
+.fichas-empresa-page .info-field .field-value {
+  font-size: 0.95rem;
+  color: #212529;
+  margin: 0;
+  min-height: 1.2rem;
+}
+
+.fichas-empresa-page .field-undefined {
+  color: #6c757d;
+  font-style: italic;
+  background: #f8f9fa;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  display: inline-block;
+  font-size: 0.875rem;
+}
+
+.fichas-empresa-page .info-row {
+  margin-bottom: 1.25rem;
+}
+
+.fichas-empresa-page .info-row:last-child {
+  margin-bottom: 0;
+}
+
+.fichas-empresa-page .trabajador-info-card {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border: 1px solid #dee2e6;
+  border-radius: 12px;
+  height: 100%;
+}
+
+.fichas-empresa-page .trabajador-info-card .card-body {
+  padding: 1.5rem;
+}
+
+.fichas-empresa-page .trabajador-info-card .card-title {
+  color: #495057;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #dee2e6;
+}
+
+.fichas-empresa-page .trabajador-detail {
+  margin-bottom: 0.75rem;
+}
+
+.fichas-empresa-page .trabajador-detail:last-child {
+  margin-bottom: 0;
+}
+
+.fichas-empresa-page .trabajador-detail strong {
+  color: #6c757d;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.fichas-empresa-page .trabajador-detail p {
+  color: #212529;
+  font-size: 0.95rem;
+  margin: 0.25rem 0 0 0;
+}
+
+/* Agrega aquí más reglas específicas según crezca la página */
+
+/* (Agrega aquí los estilos específicos de fichas de empresa cuando los identifiques en el futuro) */
+
+/* Mantener exactamente los mismos estilos que había antes */
+.fichas-empresa-container {
+  padding: var(--spacing-lg);
+}
+
+.ficha-card {
+  margin-bottom: var(--spacing-md);
+  transition: transform 0.2s ease;
+}
+
+.ficha-card:hover {
+  transform: translateY(-2px);
+}
+
+/* ============================================
+   SECCIONES Y GRIDS DE INFORMACIÓN
+   ============================================ */
+
+.info-section {
+  background: #fff;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e9ecef;
+}
+
+.info-section h2 {
+  color: #1a1f36;
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.25rem;
+}
+
+@media (max-width: 992px) {
+  .info-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ============================================
+   CAMPOS DE INFORMACIÓN
+   ============================================ */
+
+.info-field {
+  position: relative;
+  padding: 0.75rem 0.75rem 0.75rem 2.5rem;
+  background: #f7f9fc;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.info-field:hover {
+  background: #f0f4ff;
+  transform: translateY(-1px);
+}
+
+.info-field i {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.1rem;
+  color: #4a6cf7;
+  opacity: 0.7;
+}
+
+.info-field label {
+  display: block;
+  color: #6b7280;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.35rem;
+}
+
+.value {
+  color: #1e293b;
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+.por-definir {
+  color: #adb5bd;
+  font-style: italic;
+}
+
+.pending {
+  color: #adb5bd;
+  font-style: italic;
+  font-size: 0.95rem;
+}
+
+@media (max-width: 768px) {
+  .info-section {
+    padding: 1rem;
+  }
+}
+
+/* Estado del trabajador */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  gap: 0.375rem;
+}
+
+.status-badge::before {
+  content: '';
+  display: block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.status-badge.activo {
+  background-color: #dcfce7;
+  color: #15803d;
+}
+
+.status-badge.activo::before {
+  background-color: #15803d;
+}
+
+.status-badge.inactivo {
+  background-color: #fee2e2;
+  color: #b91c1c;
+}
+
+.status-badge.inactivo::before {
+  background-color: #b91c1c;
+}
+
+.status-badge.licencia {
+  background-color: #fef9c3;
+  color: #854d0e;
+}
+
+.status-badge.licencia::before {
+  background-color: #854d0e;
+}
+
+.status-badge.permiso {
+  background-color: #e0f2fe;
+  color: #0369a1;
+}
+
+.status-badge.permiso::before {
+  background-color: #0369a1;
+}
+
+/* Estilos especiales para valores importantes */
+.info-field .value.text-success {
+  color: #15803d;
+  font-weight: 600;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.info-field .value.text-success::before {
+  content: '$';
+  font-size: 0.75rem;
+  opacity: 0.8;
+}
+
+/* Estilos para grupos de información (usados en múltiples componentes) */
+.info-group {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #f1f3f4;
+}
+
+.info-group:last-child {
+  border-bottom: none;
+}
+
+.info-group .label {
+  font-weight: 600;
+  color: #495057;
+  min-width: 120px;
+}
+
+.info-group .value {
+  color: #212529;
+  text-align: right;
+  flex: 1;
+} 
