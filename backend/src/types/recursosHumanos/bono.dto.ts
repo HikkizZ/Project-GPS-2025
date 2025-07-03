@@ -1,6 +1,6 @@
 export interface CreateBonoDTO {
     nombreBono: string;
-    monto: number;
+    monto: string;
     tipoBono?: "estatal" | "empresarial";
     temporalidad?: "permanente" | "recurrente" | "puntual";
     descripcion?: string;
@@ -9,7 +9,7 @@ export interface CreateBonoDTO {
 
 export interface UpdateBonoDTO {
     nombreBono?: string;
-    monto?: number;
+    monto?: string;
     tipoBono?: "estatal" | "empresarial";
     temporalidad?: "permanente" | "recurrente" | "puntual";
     descripcion?: string;
@@ -31,7 +31,7 @@ export interface BonoQueryDTO {
 export interface BonoResponseDTO {
     id: number;
     nombreBono: string;
-    monto: number;
+    monto: string;
     tipoBono: "estatal" | "empresarial";
     temporalidad: "permanente" | "recurrente" | "puntual";
     descripcion?: string;
@@ -76,7 +76,7 @@ export interface AsignarBonoResponseDTO {
     bono: {
         id: number;
         nombreBono: string;
-        monto: number;
+        monto: string;
         tipoBono: "estatal" | "empresarial";
         temporalidad: "permanente" | "recurrente" | "puntual";
     };

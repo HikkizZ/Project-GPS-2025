@@ -26,8 +26,8 @@ export class Bono {
     @Column({ type: "varchar", length: 50, nullable: false })
     nombreBono!: string;
 
-    @Column({ type: "decimal", precision: 10, scale: 2, nullable: false })
-    monto!: number;
+    @Column({ type: "varchar", length: 10, nullable: false })
+    monto!: string;
 
     @Column({ type: "enum", enum: tipoBono, default: tipoBono.empresarial })
     tipoBono!: tipoBono;
