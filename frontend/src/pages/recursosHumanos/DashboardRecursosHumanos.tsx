@@ -187,6 +187,58 @@ const DashboardRecursosHumanos: React.FC = () => {
                 </>
               )}
 
+              {/* Tarjeta de Gestión de Bonos - Visible para SuperAdministrador */}
+              {user && user.role === 'SuperAdministrador' && (
+                <Col md={3}>
+                  <Link to="/bonos" style={{ textDecoration: 'none' }}>
+                    <Card
+                      className="h-100 border-0 shadow-lg"
+                      style={{
+                        cursor: 'pointer',
+                        borderRadius: '20px',
+                        transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+                        background: 'white',
+                        border: '1px solid #f3e8ff'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = 'translateY(-12px) scale(1.02)';
+                        e.currentTarget.style.boxShadow = '0 25px 50px rgba(139, 92, 246, 0.25)';
+                        e.currentTarget.style.borderColor = '#8b5cf6';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = 'translateY(0) scale(1)';
+                        e.currentTarget.style.boxShadow = '0 10px 30px rgba(0, 0, 0, 0.1)';
+                        e.currentTarget.style.borderColor = '#f3e8ff';
+                      }}
+                    >
+                      <Card.Body className="p-4 text-center">
+                        <div
+                          className="d-inline-flex align-items-center justify-content-center mb-4"
+                          style={{
+                            width: '80px',
+                            height: '80px',
+                            background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
+                            borderRadius: '24px',
+                            boxShadow: '0 8px 32px rgba(139, 92, 246, 0.3)'
+                          }}
+                        >
+                          <i className="bi bi-gift-fill text-white" style={{ fontSize: '2.5rem' }}></i>
+                        </div>
+                        <Card.Title className="fw-bold text-dark mb-2 fs-5">Gestión de Bonos</Card.Title>
+                        <Card.Text className="text-muted small mb-3">Crea y gestiona bonos para los trabajadores</Card.Text>
+                        <div className="d-flex align-items-center justify-content-center">
+                          <small className="text-primary fw-semibold">
+                            <i className="bi bi-arrow-right me-1"></i>
+                            Acceder
+                          </small>
+                        </div>
+                      </Card.Body>
+                    </Card>
+                  </Link>
+                </Col>
+              )}
+              
+
               {/* Tarjeta de Mi Ficha de Empresa - Visible para todos excepto SuperAdministrador */}
               {puedeAccederModulosPersonales && (
                 <Col md={3}>

@@ -3,6 +3,7 @@ import { useRut } from './hooks/useRut';
 import { useTrabajadores } from './hooks/recursosHumanos/useTrabajadores';
 import { type CreateTrabajadorData, type Trabajador } from './types/recursosHumanos/trabajador.types';
 import { FichasEmpresaPage } from './pages/recursosHumanos/FichasEmpresaPage';
+import { BonosPage } from './pages/recursosHumanos/bonosPage';
 import { UsersPage } from './pages/UsersPage';
 import { TrabajadoresPage } from './pages/recursosHumanos/TrabajadoresPage';
 import { authService } from './services/auth.service';
@@ -633,6 +634,7 @@ function App() {
                 <Route path="trabajadores" element={<TrabajadoresPage />} />
                 <Route path="ficha-empresa" element={<FichasEmpresaPage />} />
                 <Route path="ficha-empresa/mi-ficha" element={<FichasEmpresaPage />} />
+                <Route path="bonos" element={<BonosPage />} />
                 <Route path="usuarios" element={<UsersPage />} />
                 <Route path="gestion-personal" element={<GestionPersonalPage />} />
                 <Route path="gestion-licencias-permisos" element={<GestionLicenciasPermisosPage />} />
