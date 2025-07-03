@@ -1,32 +1,54 @@
-import updateIcon from "@assets/iconSVG_2/updateIcon.svg";
-import deleteIcon from "@assets/deleteIcon.svg";
+import updateIcon from "../../assets/iconSVG_2/updateIcon.svg";
+import deleteIcon from "../../assets/deleteIcon.svg";
 
 const BonoCard = ({ bono, onEdit, onDelete }) => {
   return (
-    <div className="flex flex-col items-center bg-[#F3E8EE] border border-[#729B79] rounded-lg shadow-lg p-4 hover:shadow-xl transition-shadow max-w-sm dark:bg-[#2e2c2f]">
-      <h2 className="text-lg font-bold text-[#475B63] mb-2 text-center dark:text-[#F3E8EE]">
+    <div className="d-flex flex-column align-items-center border rounded shadow p-4"
+    style={{
+      backgroundColor: "#BDE3EC", // fondo claro
+      borderColor: "#729B79",     // borde personalizado
+      maxWidth: "24rem",          // similar a max-w-sm (~384px)
+      transition: "box-shadow 0.3s ease-in-out"
+    }}
+    onMouseEnter={e => e.currentTarget.style.boxShadow = "0 0.5rem 1rem rgba(0,0,0,0.2)"}
+    onMouseLeave={e => e.currentTarget.style.boxShadow = "0 .5rem 1rem rgba(0,0,0,0.15)"}
+  >
+      <h2 
+        className="h5 fw-bold text-center mb-2"
+        style={{ color: "#1A5E63" }}
+      >
         {bono.nombreBono}
       </h2>
-      <div>
+      <div className="d-flex flex-row h-100">
 
         <button 
           onClick={() => onEdit(bono)}
-          className="group p-3 white rounded-md hover:bg-[#bacdb0] transition"
+          className="btn btn-outline-secondary p-2"
         >
           <img  
             src={updateIcon} 
             alt="Editar" 
-            className="w-4 h-4 fill-white group-hover:invert group-hover:brightness-0 group-hover:saturate-100 group-hover:contrast-1000"
+            style={{
+              width: "20px",
+              height: "20px",
+              objectFit: "contain",
+              display: "block"
+            }}
           />
         </button>
         <button 
           onClick={() => onDelete(bono.id)}
-          className="group p-3 white rounded-md hover:bg-red-600 transition"
+          className="btn btn-outline-secondary p-2"
         >
           <img 
             src={deleteIcon} 
             alt="Eliminar" 
-            className="w-4 h-4 group-hover:invert group-hover:brightness-0 group-hover:saturate-100 group-hover:contrast-1000"
+            style={{
+              width: "20px",
+              height: "20px",
+              objectFit: "contain",
+              display: "block"
+            }}
           />
         </button>
 
