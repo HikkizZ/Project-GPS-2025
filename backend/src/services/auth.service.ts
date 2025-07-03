@@ -14,14 +14,6 @@ interface LoginData {
   password: string;
 }
 
-interface RegisterData {
-  name: string;
-  rut: string;
-  email: string;
-  password: string;
-  role: userRole;
-}
-
 /* Interface for JWT Payload */
 interface JWTPayload {
   name: string;
@@ -32,7 +24,7 @@ interface JWTPayload {
 
 /* Interface for error messages */
 interface authError {
-  dataInfo: Partial<LoginData | RegisterData>;
+  dataInfo: Partial<LoginData>;
   message: string;
 }
 
@@ -52,7 +44,7 @@ const allowedRoles: userRole[] = [
 ];
 
 /* Auxiliar function for creating error messages */
-const createErrorMessage = (dataInfo: Partial<LoginData | RegisterData>, message: string): authError => ({ dataInfo, message });
+const createErrorMessage = (dataInfo: Partial<LoginData>, message: string): authError => ({ dataInfo, message });
 
 export async function loginService(user: LoginData): Promise<[string | null, authError | string | null]> {
   try {
@@ -120,146 +112,6 @@ export async function loginService(user: LoginData): Promise<[string | null, aut
         console.error("❌ Error en login: ", error);
         return [null, "Error interno del servidor."];
   }
-}
-
-export async function registerService(user: RegisterData, userRole: userRole): Promise<[UserResponse | null, authError | string | null]> {
-  try {
-        const userRepository = AppDataSource.getRepository(User);
-        const trabajadorRepository = AppDataSource.getRepository(Trabajador);
-        const { name, rut, email, password, role } = user;
-
-        // Validaciones básicas
-        if (!name || name.trim() === "") {
-            return [null, createErrorMessage({ name }, "El nombre es requerido.")];
-        }
-
-        if (name.length < 3) {
-            return [null, createErrorMessage({ name }, "El nombre debe tener al menos 3 caracteres.")];
-        }
-
-        if (name.length > 70) {
-            return [null, createErrorMessage({ name }, "El nombre debe tener menos de 70 caracteres.")];
-        }
-
-        if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(name)) {
-            return [null, createErrorMessage({ name }, "El nombre solo puede contener letras y espacios.")];
-        }
-
-        // Validaciones de RUT (solo para usuarios que no son SuperAdministrador)
-        if (role !== "SuperAdministrador") {
-            if (!rut || rut.trim() === "") {
-                return [null, createErrorMessage({ rut }, "El RUT es requerido.")];
-            }
-
-            if (!formatRut(rut)) {
-                return [null, createErrorMessage({ rut }, "El RUT ingresado no es válido.")];
-            }
-
-            if (rut.length < 8) {
-                return [null, createErrorMessage({ rut }, "El RUT debe tener al menos 8 caracteres.")];
-            }
-
-            if (rut.length > 12) {
-                return [null, createErrorMessage({ rut }, "El RUT debe tener menos de 12 caracteres.")];
-            }
-
-            // Normalizar el RUT antes de buscar al trabajador
-            const rutNormalizado = rut.replace(/\./g, "").trim();
-            
-            // Verificar si existe el trabajador con el RUT normalizado
-            const trabajador = await trabajadorRepository.findOne({ 
-                where: { rut: rutNormalizado } 
-            });
-
-            if (!trabajador) {
-                return [null, createErrorMessage({ rut }, "No existe un trabajador con este RUT.")];
-            }
-
-            // Verificar si ya existe un usuario con el mismo RUT
-            const existingRutUser = await userRepository.findOne({ where: { rut: rutNormalizado } });
-            if (existingRutUser) {
-                return [null, createErrorMessage({ rut }, "El RUT ingresado ya está registrado.")];
-            }
-        }
-
-        // Validaciones de email
-        if (!email || email.trim() === "") {
-            return [null, createErrorMessage({ email }, "El email es requerido.")];
-        }
-
-        if (email.length < 15) {
-            return [null, createErrorMessage({ email }, "El email debe tener al menos 15 caracteres.")];
-        }
-
-        if (email.length > 50) {
-            return [null, createErrorMessage({ email }, "El email debe tener menos de 50 caracteres.")];
-        }
-
-        if (!/^[a-zA-Z0-9._%+-]+@(gmail\.com|outlook\.com|hotmail\.com|gmail\.cl|outlook\.cl|hotmail\.cl|lamas\.com|live\.cl)$/.test(email)) {
-            return [null, createErrorMessage({ email }, "El dominio del email no es válido.")];
-        }
-
-        // Verificar si ya existe un usuario con el mismo email
-        const existingEmailUser = await userRepository.findOne({ where: { email } });
-        if (existingEmailUser) {
-            return [null, createErrorMessage({ email }, "El email ingresado ya está registrado.")];
-        }
-
-        // Validaciones de contraseña
-        if (!password || password.trim() === "") {
-            return [null, createErrorMessage({ password }, "La contraseña es requerida.")];
-        }
-
-        if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,16}$/.test(password)) {
-            return [null, createErrorMessage({ password }, "La contraseña debe tener entre 8 y 16 caracteres, al menos una mayúscula, una minúscula, un número y un carácter especial.")];
-        }
-
-        // Verificar el rol
-        if (!role || !allowedRoles.includes(role)) {
-            return [null, createErrorMessage({ role }, "El rol especificado no es válido.")];
-        }
-
-        // Solo administradores pueden crear otros administradores
-        if (role === "Administrador" && userRole !== "Administrador") {
-            return [null, "No tienes permisos para crear usuarios administradores."];
-        }
-
-        // No permitir crear SuperAdministradores
-        if (role === "SuperAdministrador") {
-            return [null, "No se pueden crear usuarios SuperAdministradores adicionales."];
-        }
-
-        const hashedPassword = await encryptPassword(password);
-
-        const newUser = userRepository.create({
-            name,
-            email,
-            password: hashedPassword,
-            role,
-            rut: (role as userRole) === "SuperAdministrador" ? null : rut,
-            estadoCuenta: "Activa",
-            createAt: new Date(),
-            updateAt: new Date()
-        });
-
-        await userRepository.save(newUser);
-
-        const userResponse: UserResponse = {
-            id: newUser.id,
-            name: newUser.name,
-            email: newUser.email,
-            role: newUser.role,
-            rut: newUser.rut,
-            estadoCuenta: newUser.estadoCuenta,
-            createAt: newUser.createAt,
-            updateAt: newUser.updateAt
-        };
-
-        return [userResponse, null];
-    } catch (error) {
-        console.error("❌ Error en register:", error);
-        return [null, "Error interno del servidor."];
-    }
 }
 
 export const createUserService = async (userData: UserData): Promise<[UserResponse | null, string | null]> => {
