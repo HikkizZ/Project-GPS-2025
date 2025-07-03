@@ -5,15 +5,15 @@ import {
     getBonoByIdService,
     updateBonoService,
     deleteBonoService
-} from ".../../services/recursosHumanos/remuneraciones/bono.service.js";
-import { handleSuccess, handleErrorClient, handleErrorServer } from ".../../handlers/responseHandlers.js";
+} from "../../../services/recursosHumanos/remuneraciones/bono.service.js";
+import { handleSuccess, handleErrorClient, handleErrorServer } from "../../../handlers/responseHandlers.js";
 import { 
     CreateBonoValidation, 
     UpdateBonoValidation, 
     BonoQueryValidation 
-} from ".../../validations/recursosHumanos/remuneraciones/bono.validation.js";
-import { AppDataSource } from ".../../config/configDB.js";
-import { Trabajador } from ".../../entity/recursosHumanos/trabajador.entity.js";
+} from "../../../validations/recursosHumanos/remuneraciones/bono.validation.js";
+import { AppDataSource } from "../../../config/configDB.js";
+import { Trabajador } from "../../../entity/recursosHumanos/trabajador.entity.js";
 
 /**
  * Crear una nueva bono
@@ -28,7 +28,7 @@ export async function createBono(req: Request, res: Response): Promise<void> {
 
         // Para RRHH, pueden especificar cualquier trabajadorId
 
-        if (req.user.role !== 'RecursosHumanos') {
+        if (req.user.role !== 'RecursosHumanos' && req.user.role !== 'SuperAdministrador') {
             handleErrorClient(res, 400, "Trabajador no encontrado");
             return;
         }
@@ -91,8 +91,8 @@ export async function getAllBonos(req: Request, res: Response): Promise<void> {
         const query = validationResult.value;
 
         // Si no es RRHH, filtrar solo sus bonos
-        if (req.user.role !== 'RecursosHumanos') {
-                handleErrorClient(res, 400, "Trabajador no encontrado");
+        if (req.user.role !== 'RecursosHumanos' && req.user.role !== 'SuperAdministrador') {
+                handleErrorClient(res, 400, "Trabajador no encontrado en recursos humanos");
                 return;
         }
 
