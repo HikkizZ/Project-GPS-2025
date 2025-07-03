@@ -49,7 +49,7 @@ export async function initialSetup(): Promise<void> {
         console.log("=> Creando bonos predefinidos...");
         const bono1 = bonosRepo.create({           
             nombreBono: "Bono de Productividad",
-            monto: 80000,
+            monto: "80.000",
             tipoBono: tipoBono.empresarial,
             temporalidad: temporalidad.recurrente,
             descripcion: "Se entrega mensualmente a trabajadores que cumplan metas de productividad.",
@@ -58,7 +58,7 @@ export async function initialSetup(): Promise<void> {
 
         const bono2 = bonosRepo.create({ 
             nombreBono: "Bono de Fiestas Patrias",
-            monto: 60000,
+            monto: "60.000",
             tipoBono: tipoBono.empresarial,
             temporalidad: temporalidad.puntual,
             descripcion: "Bono otorgado en septiembre para celebrar las Fiestas Patrias.",
@@ -67,7 +67,7 @@ export async function initialSetup(): Promise<void> {
 
         const bono3 = bonosRepo.create({ 
             nombreBono: "Bono de Escolaridad",
-            monto: 25000,
+            monto: "25.000",
             tipoBono: tipoBono.empresarial,
             temporalidad: temporalidad.puntual,
             descripcion: "Bono anual entregado por la empresa a trabajadores con hijos en edad escolar.",
@@ -76,7 +76,7 @@ export async function initialSetup(): Promise<void> {
 
         const bono4 = bonosRepo.create({ 
             nombreBono: "Bono por Puntualidad",
-            monto: 15000,
+            monto: "15.000",
             tipoBono: tipoBono.empresarial,
             temporalidad: temporalidad.recurrente,
             descripcion: "Bono mensual entregado a trabajadores sin atrasos o inasistencias.",
@@ -85,7 +85,7 @@ export async function initialSetup(): Promise<void> {
 
         const bono5 = bonosRepo.create({ 
             nombreBono: "Subsidio al Empleo Joven",
-            monto: 40000,
+            monto: "40.000",
             tipoBono: tipoBono.estatal,
             temporalidad: temporalidad.recurrente,
             descripcion: "Bono entregado por el Estado para incentivar la contratación de jóvenes trabajadores.",
@@ -94,7 +94,7 @@ export async function initialSetup(): Promise<void> {
 
         const bono6 = bonosRepo.create({ 
             nombreBono: "Bono Mujer Trabajadora",
-            monto: 40000,
+            monto: "40.000",
             tipoBono: tipoBono.estatal,
             temporalidad: temporalidad.recurrente,
             descripcion: "Aporte estatal para mujeres trabajadoras de entre 25 y 59 años pertenecientes al 40% más vulnerable.",
@@ -103,7 +103,7 @@ export async function initialSetup(): Promise<void> {
 
         const bono7 = bonosRepo.create({ 
             nombreBono: "Bono Zona Extrema",
-            monto: 30000,
+            monto: "30.000",
             tipoBono: tipoBono.estatal,
             temporalidad: temporalidad.permanente,
             descripcion: "Bono por trabajar en zonas geográficas extremas de Chile.",
@@ -112,7 +112,7 @@ export async function initialSetup(): Promise<void> {
 
         const bono8 = bonosRepo.create({ 
             nombreBono: "Bono Escolaridad Estatal",
-            monto: 25000,
+            monto: "25.000",
             tipoBono: tipoBono.estatal,
             temporalidad: temporalidad.puntual,
             descripcion: "Aporte anual del Estado por carga escolar del trabajador.",

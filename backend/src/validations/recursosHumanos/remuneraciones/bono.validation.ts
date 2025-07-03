@@ -9,10 +9,10 @@ export const CreateBonoValidation = Joi.object({
         'any.required': 'El nombre del bono es requerido'
     }),
     
-    monto: Joi.number().precision(2).positive().required().messages({
-        'number.base': 'El monto debe ser un número',
-        'number.positive': 'El monto debe ser positivo',
-        'number.precision': 'El monto debe tener hasta 2 decimales',
+    monto: Joi.string().trim().min(5).max(10).required().messages({
+        'string.empty': 'El monto no puede estar vacío',
+        'string.min': 'El monto debe tener al menos 5 caracteres',
+        'string.max': 'El monto no puede superar los 10 caracteres',
         'any.required': 'El monto es requerido'
     }),
     tipoBono: Joi.string().valid('estatal', 'empresarial').default('empresarial').messages({
@@ -80,10 +80,10 @@ export const UpdateBonoValidation = Joi.object({
         'string.max': 'El nombre del bono no puede superar los 50 caracteres'
     }),
     
-    monto: Joi.number().precision(2).positive().optional().messages({
-        'number.base': 'El monto debe ser un número',
-        'number.positive': 'El monto debe ser positivo',
-        'number.precision': 'El monto debe tener hasta 2 decimales'
+    monto: Joi.string().trim().min(5).max(10).optional().messages({
+        'string.empty': 'El monto no puede estar vacío',
+        'string.min': 'El monto debe tener al menos 5 caracteres',
+        'string.max': 'El monto no puede superar los 10 caracteres'
     }),
     tipoBono: Joi.string().valid('estatal', 'empresarial').default('empresarial').messages({
         'any.only': 'El tipo de bono debe ser "estatal" o "empresarial"',
