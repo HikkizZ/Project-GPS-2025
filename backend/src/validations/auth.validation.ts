@@ -83,13 +83,13 @@ export const registerValidation = Joi.object({
         .required()
         .min(8)
         .max(16)
-        .pattern(/^[a-zA-Z0-9]+$/)
+        .pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,16}$/)
         .messages({
             "string.base": "La contraseña debe ser una cadena de texto.",
             "string.empty": "La contraseña es requerida.",
             "string.min": "La contraseña debe tener al menos {#limit} caracteres.",
             "string.max": "La contraseña debe tener menos de {#limit} caracteres.",
-            "string.pattern.base": "La contraseña solo puede contener letras y números.",
+            "string.pattern.base": "La contraseña debe tener entre 8 y 16 caracteres, al menos una mayúscula, una minúscula, un número y un carácter especial.",
             "any.required": "La contraseña es requerida."
         }),
     role: Joi.string()
