@@ -1,13 +1,12 @@
 import { Router } from "express";
-import { authenticateJWT } from ".../../middlewares/authentication.middleware.js";
-import { verifyRole } from ".../../middlewares/authorization.middleware.js";
+import { authenticateJWT } from "../../../middlewares/authentication.middleware.js";
 import {
     createBono,
     getAllBonos,
     getBonoById,
     updateBono,
     deleteBono
-} from ".../../controllers/recursosHumanos/remuneraciones/bono.controller.js";
+} from "../../../controllers/recursosHumanos/remuneraciones/bono.controller.js";
 
 const router: Router = Router();
 

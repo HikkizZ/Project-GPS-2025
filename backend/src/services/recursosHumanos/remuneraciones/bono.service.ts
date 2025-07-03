@@ -1,7 +1,7 @@
-import { AppDataSource } from ".../../config/configDB.js";
-import { Bono, temporalidad, tipoBono } from ".../../entity/recursosHumanos/Remuneraciones/Bono.entity.js";
-import { AsignarBono } from ".../../entity/recursosHumanos/Remuneraciones/asignarBono.entity.js";
-import { Trabajador } from ".../../entity/recursosHumanos/trabajador.entity.js";
+import { AppDataSource } from "../../../config/configDB.js";
+import { Bono, temporalidad, tipoBono } from "../../../entity/recursosHumanos/Remuneraciones/Bono.entity.js";
+import { AsignarBono } from "../../../entity/recursosHumanos/Remuneraciones/asignarBono.entity.js";
+import { Trabajador } from "../../../entity/recursosHumanos/trabajador.entity.js";
 import { Repository } from "typeorm";
 import { 
     CreateBonoDTO, 
