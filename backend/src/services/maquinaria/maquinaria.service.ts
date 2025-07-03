@@ -12,7 +12,6 @@ export class MaquinariaService {
   async create(maquinariaData: Partial<Maquinaria>): Promise<Maquinaria> {
     const nuevaMaquinaria = this.maquinariaRepository.create({
       ...maquinariaData,
-      cantidad: maquinariaData.cantidad || 1,
       estado: maquinariaData.estado || EstadoMaquinaria.DISPONIBLE,
     })
 
@@ -66,7 +65,6 @@ export class MaquinariaService {
     return this.maquinariaRepository.find({
       where: {
         estado: EstadoMaquinaria.DISPONIBLE,
-        cantidad: { $gt: 0 } as any,
       },
       relations: ["compras", "ventas"],
     })

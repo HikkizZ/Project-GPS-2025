@@ -26,6 +26,7 @@ export class User {
         "Ventas",
         "Arriendo",
         "Finanzas",
+        "Conductor",
         "Mecánico",
         "Mantenciones de Maquinaria"
     ] as userRole[], default: "Usuario" })

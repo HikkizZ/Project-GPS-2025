@@ -91,16 +91,13 @@ export class VentaMaquinariaService {
   }
 
   async obtenerVentasPorFecha(fechaInicio: Date, fechaFin: Date): Promise<VentaMaquinaria[]> {
-    return this.ventaRepository.find({
-      where: {
-        fechaVenta: {
-          $gte: fechaInicio,
-          $lte: fechaFin,
-        } as any,
-      },
-      relations: ["maquinaria"],
-      order: { fechaVenta: "DESC" },
-    })
+    return this.ventaRepository
+      .createQueryBuilder("venta")
+      .leftJoinAndSelect("venta.maquinaria", "maquinaria")
+      .where("venta.fechaVenta >= :fechaInicio", { fechaInicio })
+      .andWhere("venta.fechaVenta <= :fechaFin", { fechaFin })
+      .orderBy("venta.fechaVenta", "DESC")
+      .getMany()
   }
 
   async obtenerVentasPorComprador(comprador: string): Promise<VentaMaquinaria[]> {
@@ -122,33 +119,6 @@ export class VentaMaquinariaService {
     return Number.parseFloat(result.total) || 0
   }
 
-  async calcularGananciaPorPatente(patente: string): Promise<{
-    totalCompras: number
-    totalVentas: number
-    ganancia: number
-    cantidad: number
-  }> {
-    const comprasResult = await AppDataSource.getRepository("CompraMaquinaria")
-      .createQueryBuilder("compra")
-      .select("SUM(compra.valorCompra)", "total")
-      .addSelect("COUNT(*)", "cantidad")
-      .where("compra.patente = :patente", { patente })
-      .getRawOne()
-
-    const ventasResult = await this.ventaRepository
-      .createQueryBuilder("venta")
-      .select("SUM(venta.valorVenta)", "total")
-      .where("venta.patente = :patente", { patente })
-      .getRawOne()
-
-    const totalCompras = Number.parseFloat(comprasResult.total) || 0
-    const totalVentas = Number.parseFloat(ventasResult.total) || 0
-    const cantidad = Number.parseInt(comprasResult.cantidad) || 0
-    const ganancia = totalVentas - totalCompras
-
-    return { totalCompras, totalVentas, ganancia, cantidad }
-  }
-
   async actualizarVenta(id: number, datosActualizacion: Partial<VentaMaquinaria>): Promise<VentaMaquinaria> {
     const venta = await this.obtenerVentaPorId(id)
     this.ventaRepository.merge(venta, datosActualizacion)
@@ -159,4 +129,6 @@ export class VentaMaquinariaService {
     const venta = await this.obtenerVentaPorId(id)
     await this.ventaRepository.remove(venta)
   }
+
+  // ELIMINÉ EL MÉTODO calcularGananciaPorPatente SI NO LO NECESITAS
 }

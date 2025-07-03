@@ -102,23 +102,6 @@ export class VentaMaquinariaController {
     }
   }
 
-  calcularGananciaPorMaquinaria = async (req: Request, res: Response): Promise<void> => {
-    try {
-      const { maquinariaId } = req.params
-      const ganancia = await this.ventaMaquinariaService.calcularGananciaPorMaquinaria(Number(maquinariaId))
-      res.status(200).json({
-        success: true,
-        data: ganancia,
-      })
-    } catch (error) {
-      res.status(500).json({
-        success: false,
-        message: "Error al calcular ganancia",
-        error: error instanceof Error ? error.message : "Error desconocido",
-      })
-    }
-  }
-
   obtenerTotalVentas = async (req: Request, res: Response): Promise<void> => {
     try {
       const { fechaInicio, fechaFin } = req.query
@@ -179,4 +162,6 @@ export class VentaMaquinariaController {
       })
     }
   }
+
+  // ELIMINÉ EL MÉTODO calcularGananciaPorMaquinaria QUE CAUSABA EL ERROR
 }

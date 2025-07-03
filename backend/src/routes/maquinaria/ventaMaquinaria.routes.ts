@@ -17,11 +17,7 @@ router.get("/", ventaMaquinariaController.obtenerTodasLasVentas)
 router.get("/total", fechaRangoValidation, ventaMaquinariaController.obtenerTotalVentas)
 router.get("/fecha", fechaRangoValidation, ventaMaquinariaController.obtenerVentasPorFecha)
 router.get("/maquinaria/:maquinariaId", maquinariaIdValidation, ventaMaquinariaController.obtenerVentasPorMaquinaria)
-router.get(
-  "/maquinaria/:maquinariaId/ganancia",
-  maquinariaIdValidation,
-  ventaMaquinariaController.calcularGananciaPorMaquinaria,
-)
+// ELIMINÉ LA RUTA DE GANANCIA QUE CAUSABA EL ERROR
 router.get("/:id", ventaIdValidation, ventaMaquinariaController.obtenerVentaPorId)
 router.put("/:id", ventaIdValidation, actualizarVentaValidation, ventaMaquinariaController.actualizarVenta)
 router.delete("/:id", ventaIdValidation, ventaMaquinariaController.eliminarVenta)
