@@ -236,30 +236,59 @@ export async function createTrabajadorService(trabajadorData: Partial<Trabajador
 export async function getTrabajadoresService(incluirInactivos: boolean = false, filtros: any = {}): Promise<ServiceResponse<Trabajador[]>> {
     try {
         const trabajadorRepo = AppDataSource.getRepository(Trabajador);
-        // Construir el objeto where dinámicamente
-        const where: any = {};
+        
+        // Crear el query builder para usar búsquedas más flexibles
+        const queryBuilder = trabajadorRepo.createQueryBuilder('trabajador')
+            .leftJoinAndSelect('trabajador.usuario', 'usuario')
+            .leftJoinAndSelect('trabajador.fichaEmpresa', 'fichaEmpresa')
+            .leftJoinAndSelect('trabajador.historialLaboral', 'historialLaboral')
+            .leftJoinAndSelect('trabajador.licenciasPermisos', 'licenciasPermisos');
+
         // Si no se incluyen inactivos, filtrar por enSistema=true
         if (!incluirInactivos && typeof filtros.enSistema === 'undefined') {
-            where.enSistema = true;
+            queryBuilder.andWhere('trabajador.enSistema = :enSistema', { enSistema: true });
         }
+
         // Agregar filtros por campos si existen
-        if (filtros.id) where.id = filtros.id;
-        if (filtros.rut) where.rut = filtros.rut;
-        if (filtros.nombres) where.nombres = filtros.nombres;
-        if (filtros.apellidoPaterno) where.apellidoPaterno = filtros.apellidoPaterno;
-        if (filtros.apellidoMaterno) where.apellidoMaterno = filtros.apellidoMaterno;
-        if (filtros.fechaNacimiento) where.fechaNacimiento = filtros.fechaNacimiento;
-        if (filtros.telefono) where.telefono = filtros.telefono;
-        if (filtros.correoPersonal) where.correoPersonal = filtros.correoPersonal;
-        if (filtros.numeroEmergencia) where.numeroEmergencia = filtros.numeroEmergencia;
-        if (filtros.direccion) where.direccion = filtros.direccion;
-        if (filtros.fechaIngreso) where.fechaIngreso = filtros.fechaIngreso;
-        if (typeof filtros.enSistema !== 'undefined') where.enSistema = filtros.enSistema === true || filtros.enSistema === 'true';
-        // Buscar trabajadores con relaciones
-        const trabajadores = await trabajadorRepo.find({
-            relations: ["usuario", "fichaEmpresa", "historialLaboral", "licenciasPermisos"],
-            where
-        });
+        if (filtros.id) {
+            queryBuilder.andWhere('trabajador.id = :id', { id: filtros.id });
+        }
+        if (filtros.rut) {
+            queryBuilder.andWhere('trabajador.rut ILIKE :rut', { rut: `%${filtros.rut}%` });
+        }
+        if (filtros.nombres) {
+            queryBuilder.andWhere('trabajador.nombres ILIKE :nombres', { nombres: `%${filtros.nombres}%` });
+        }
+        if (filtros.apellidoPaterno) {
+            queryBuilder.andWhere('trabajador.apellidoPaterno ILIKE :apellidoPaterno', { apellidoPaterno: `%${filtros.apellidoPaterno}%` });
+        }
+        if (filtros.apellidoMaterno) {
+            queryBuilder.andWhere('trabajador.apellidoMaterno ILIKE :apellidoMaterno', { apellidoMaterno: `%${filtros.apellidoMaterno}%` });
+        }
+        if (filtros.fechaNacimiento) {
+            queryBuilder.andWhere('trabajador.fechaNacimiento = :fechaNacimiento', { fechaNacimiento: filtros.fechaNacimiento });
+        }
+        if (filtros.telefono) {
+            queryBuilder.andWhere('trabajador.telefono ILIKE :telefono', { telefono: `%${filtros.telefono}%` });
+        }
+        if (filtros.correoPersonal) {
+            queryBuilder.andWhere('trabajador.correoPersonal ILIKE :correoPersonal', { correoPersonal: `%${filtros.correoPersonal}%` });
+        }
+        if (filtros.numeroEmergencia) {
+            queryBuilder.andWhere('trabajador.numeroEmergencia ILIKE :numeroEmergencia', { numeroEmergencia: `%${filtros.numeroEmergencia}%` });
+        }
+        if (filtros.direccion) {
+            queryBuilder.andWhere('trabajador.direccion ILIKE :direccion', { direccion: `%${filtros.direccion}%` });
+        }
+        if (filtros.fechaIngreso) {
+            queryBuilder.andWhere('trabajador.fechaIngreso = :fechaIngreso', { fechaIngreso: filtros.fechaIngreso });
+        }
+        if (typeof filtros.enSistema !== 'undefined') {
+            queryBuilder.andWhere('trabajador.enSistema = :enSistema', { enSistema: filtros.enSistema === true || filtros.enSistema === 'true' });
+        }
+
+        // Ejecutar la consulta
+        const trabajadores = await queryBuilder.getMany();
         return [trabajadores, null];
     } catch (error) {
         console.error("Error en getTrabajadoresService:", error);
