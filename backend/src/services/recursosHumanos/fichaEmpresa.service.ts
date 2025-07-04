@@ -370,3 +370,53 @@ export async function descargarContratoService(id: number, userId: number): Prom
         return [null, { message: "Error interno del servidor" }];
     }
 } 
+
+export async function uploadContratoService(id: number, file: Express.Multer.File): Promise<ServiceResponse<{ contratoUrl: string }>> {
+    try {
+        const fichaRepository = AppDataSource.getRepository(FichaEmpresa);
+        const ficha = await fichaRepository.findOneBy({ id });
+        if (!ficha) {
+            // Eliminar el archivo subido si la ficha no existe
+            FileUploadService.deleteFile(file.path);
+            return [null, { message: "Ficha no encontrada." }];
+        }
+        const nuevoContratoFilename = file.filename;
+        // Si ya existe un contrato, eliminar el anterior
+        if (ficha.contratoURL) {
+            const oldFilePath = FileUploadService.getContratoPath(ficha.contratoURL);
+            FileUploadService.deleteFile(oldFilePath);
+        }
+        ficha.contratoURL = nuevoContratoFilename;
+        await fichaRepository.save(ficha);
+        return [{ contratoUrl: nuevoContratoFilename }, null];
+    } catch (error) {
+        // Si ocurre un error, eliminar el archivo subido
+        if (file && file.path) {
+            FileUploadService.deleteFile(file.path);
+        }
+        console.error("Error en uploadContratoService:", error);
+        return [null, { message: "Error interno al procesar la subida del archivo." }];
+    }
+}
+
+export async function deleteContratoService(id: number): Promise<ServiceResponse<{ deleted: boolean }>> {
+    try {
+        const fichaRepository = AppDataSource.getRepository(FichaEmpresa);
+        const ficha = await fichaRepository.findOne({ where: { id }, relations: ['trabajador'] });
+        if (!ficha) {
+            return [null, { message: "Ficha no encontrada" }];
+        }
+        if (!ficha.contratoURL) {
+            return [null, { message: "No hay contrato para eliminar" }];
+        }
+        // Eliminar archivo físico
+        const deleted = FileUploadService.deleteContratoFile(ficha.contratoURL);
+        // Actualizar ficha
+        ficha.contratoURL = null;
+        await fichaRepository.save(ficha);
+        return [{ deleted }, null];
+    } catch (error) {
+        console.error("Error en deleteContratoService:", error);
+        return [null, { message: "Error interno del servidor" }];
+    }
+} 

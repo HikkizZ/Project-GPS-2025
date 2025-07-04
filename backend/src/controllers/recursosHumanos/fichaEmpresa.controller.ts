@@ -11,7 +11,9 @@ import {
     getFichasEmpresaService,
     getMiFichaService,
     updateFichaEmpresaService,
-    descargarContratoService
+    descargarContratoService,
+    uploadContratoService,
+    deleteContratoService
 } from "../../services/recursosHumanos/fichaEmpresa.service.js";
 import path from 'path';
 import fs from 'fs';
@@ -175,35 +177,21 @@ export async function uploadContrato(req: Request, res: Response): Promise<void>
             handleErrorClient(res, 400, "ID inválido");
             return;
         }
-
         if (!req.file) {
             handleErrorClient(res, 400, "No se ha subido ningún archivo.");
             return;
         }
-
-        const fichaRepository = AppDataSource.getRepository(FichaEmpresa);
-        const ficha = await fichaRepository.findOneBy({ id });
-
-        if (!ficha) {
-            FileUploadService.deleteFile(req.file.path);
-            handleErrorClient(res, 404, "Ficha no encontrada.");
+        const [result, error] = await uploadContratoService(id, req.file);
+        if (error) {
+            const errorMsg = typeof error === 'string' ? error : error?.message || "Error al subir contrato";
+            handleErrorClient(res, 400, errorMsg);
             return;
         }
-
-        const nuevoContratoFilename = req.file.filename;
-
-        if (ficha.contratoURL) {
-            const oldFilePath = FileUploadService.getContratoPath(ficha.contratoURL);
-            FileUploadService.deleteFile(oldFilePath);
+        if (!result) {
+            handleErrorServer(res, 500, "Error inesperado al subir contrato");
+            return;
         }
-
-        ficha.contratoURL = nuevoContratoFilename;
-        await fichaRepository.save(ficha);
-
-        handleSuccess(res, 200, "Contrato subido y actualizado exitosamente", {
-            contratoUrl: nuevoContratoFilename
-        });
-
+        handleSuccess(res, 200, "Contrato subido y actualizado exitosamente", result);
     } catch (error) {
         console.error("Error al subir contrato:", error);
         if (req.file) {
@@ -220,35 +208,17 @@ export async function deleteContrato(req: Request, res: Response) {
             handleErrorClient(res, 400, "ID inválido");
             return;
         }
-
-        // Obtener ficha
-        const fichaRepository = AppDataSource.getRepository(FichaEmpresa);
-        const ficha = await fichaRepository.findOne({
-            where: { id },
-            relations: ['trabajador']
-        });
-
-        if (!ficha) {
-            handleErrorClient(res, 404, "Ficha no encontrada");
+        const [result, error] = await deleteContratoService(id);
+        if (error) {
+            const errorMsg = typeof error === 'string' ? error : error?.message || "Error al eliminar contrato";
+            handleErrorClient(res, 404, errorMsg);
             return;
         }
-
-        if (!ficha.contratoURL) {
-            handleErrorClient(res, 404, "No hay contrato para eliminar");
+        if (!result) {
+            handleErrorServer(res, 500, "Error inesperado al eliminar contrato");
             return;
         }
-
-        // Eliminar archivo físico
-        const deleted = FileUploadService.deleteContratoFile(ficha.contratoURL);
-        
-        // Actualizar ficha
-        ficha.contratoURL = null;
-        await fichaRepository.save(ficha);
-
-        handleSuccess(res, 200, "Contrato eliminado exitosamente", {
-            deleted: deleted
-        });
-
+        handleSuccess(res, 200, "Contrato eliminado exitosamente", result);
     } catch (error) {
         console.error("Error en deleteContrato:", error);
         handleErrorServer(res, 500, "Error interno del servidor");
