@@ -12,7 +12,6 @@ import {
     getFichaEmpresaById,
     getMiFichaService,
     updateFichaEmpresaService,
-    actualizarEstadoFichaService,
     descargarContratoService
 } from "../../services/recursosHumanos/fichaEmpresa.service.js";
 import path from 'path';
@@ -123,58 +122,6 @@ export async function updateFichaEmpresa(req: Request, res: Response) {
         handleSuccess(res, 200, "Ficha actualizada exitosamente", ficha!);
     } catch (error) {
         console.error("Error en updateFichaEmpresa:", error);
-        handleErrorServer(res, 500, "Error interno del servidor");
-    }
-}
-
-export async function actualizarEstadoFicha(req: Request, res: Response) {
-    try {
-        const id = parseInt(req.params.id);
-        if (isNaN(id)) {
-            handleErrorClient(res, 400, "ID inválido");
-            return;
-        }
-
-        if (!req.user?.id) {
-            handleErrorClient(res, 401, "Usuario no autenticado");
-            return;
-        }
-
-        const validationResult = EstadoFichaValidation.validate(req.body);
-        if (validationResult.error) {
-            handleErrorClient(res, 400, validationResult.error.message);
-            return;
-        }
-
-        const { estado, fechaInicio, fechaFin, motivo } = validationResult.value;
-
-        const [ficha, error] = await actualizarEstadoFichaService(
-            id,
-            estado,
-            fechaInicio,
-            fechaFin,
-            motivo,
-            req.user.id
-        );
-
-        if (error) {
-            const errorMessage = typeof error === 'string' ? error : error.message;
-            if (errorMessage.includes("No tiene permiso")) {
-                handleErrorClient(res, 403, errorMessage);
-                return;
-            }
-            if (errorMessage.includes("Ficha no encontrada")) {
-                handleErrorClient(res, 404, errorMessage);
-                return;
-            }
-            // Por defecto, cualquier otro error es un error de validación
-            handleErrorClient(res, 400, errorMessage);
-            return;
-        }
-
-        handleSuccess(res, 200, "Estado de ficha actualizado exitosamente", ficha!);
-    } catch (error) {
-        console.error("Error en actualizarEstadoFicha:", error);
         handleErrorServer(res, 500, "Error interno del servidor");
     }
 }

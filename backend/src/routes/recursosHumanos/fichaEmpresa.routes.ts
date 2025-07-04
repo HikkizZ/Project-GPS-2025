@@ -28,7 +28,6 @@ router
     .get("/", getFichasEmpresa)
     .get("/:id/contrato", descargarContrato)
     .put("/:id", updateFichaEmpresa)
-    .put("/:id/estado", actualizarEstadoFicha)
     .post("/:id/upload-contrato", FileUploadService.uploadSingle('contrato'), uploadContrato)
     .delete("/:id/contrato", deleteContrato);
 

@@ -5,7 +5,6 @@ import { User } from "../../entity/user.entity.js";
 import { CreateLicenciaPermisoDTO, UpdateLicenciaPermisoDTO } from "../../types/recursosHumanos/licenciaPermiso.dto.js";
 import { ServiceResponse } from "../../../types.js";
 import { EstadoLaboral } from "../../entity/recursosHumanos/fichaEmpresa.entity.js";
-import { actualizarEstadoFichaService } from "./fichaEmpresa.service.js";
 import { LessThan, Not, LessThanOrEqual, MoreThanOrEqual, MoreThan } from "typeorm";
 import { FileManagementService } from "../fileManagement.service.js";
 import { FileUploadService } from "../fileUpload.service.js";
@@ -255,19 +254,22 @@ export async function updateLicenciaPermisoService(id: number, data: UpdateLicen
       }
 
       // Actualizar el estado en la ficha de empresa
-      const [fichaActualizada, errorFicha] = await actualizarEstadoFichaService(
-        licencia.trabajador.fichaEmpresa.id,
-        estadoLaboral,
-        licencia.fechaInicio,
-        licencia.fechaFin,
-        licencia.motivoSolicitud
-      );
+      // Eliminar la importación de actualizarEstadoFichaService
+      // import { actualizarEstadoFichaService } from "./fichaEmpresa.service.js";
+      // Eliminar o adaptar el uso de actualizarEstadoFichaService en el archivo
+      // const [fichaActualizada, errorFicha] = await actualizarEstadoFichaService(
+      //   licencia.trabajador.fichaEmpresa.id,
+      //   estadoLaboral,
+      //   licencia.fechaInicio,
+      //   licencia.fechaFin,
+      //   licencia.motivoSolicitud
+      // );
 
-      if (errorFicha) {
-        await queryRunner.rollbackTransaction();
-        await queryRunner.release();
-        return [null, errorFicha];
-      }
+      // if (errorFicha) {
+      //   await queryRunner.rollbackTransaction();
+      //   await queryRunner.release();
+      //   return [null, errorFicha];
+      // }
     }
 
     // Guardar los cambios de la licencia
@@ -357,17 +359,20 @@ export async function verificarLicenciasVencidasService(): Promise<ServiceRespon
 
             // Solo cambiar a ACTIVO si no hay licencias vigentes
             if (!licenciaVigente) {
-                const [fichaActualizada, error] = await actualizarEstadoFichaService(
-                    fichaEmpresa.id,
-                    EstadoLaboral.ACTIVO,
-                    new Date(),
-                    undefined,
-                    "Fin de licencia/permiso"
-                );
+                // Eliminar la importación de actualizarEstadoFichaService
+                // import { actualizarEstadoFichaService } from "./fichaEmpresa.service.js";
+                // Eliminar o adaptar el uso de actualizarEstadoFichaService en el archivo
+                // const [fichaActualizada, error] = await actualizarEstadoFichaService(
+                //     fichaEmpresa.id,
+                //     EstadoLaboral.ACTIVO,
+                //     new Date(),
+                //     undefined,
+                //     "Fin de licencia/permiso"
+                // );
 
-                if (!error) {
-                    actualizaciones++;
-                }
+                // if (!error) {
+                //     actualizaciones++;
+                // }
             }
         }
 
