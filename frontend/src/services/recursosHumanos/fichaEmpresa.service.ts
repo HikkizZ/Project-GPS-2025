@@ -15,7 +15,7 @@ export interface ApiResponse<T = any> {
 
 // Exportar la clase
 export class FichaEmpresaService {
-  private baseURL = '/ficha-empresa';
+  private baseURL = '/fichas-empresa';
 
   // Obtener todas las fichas con filtros
   async getFichasEmpresa(searchParams: FichaEmpresaSearchQuery = {}): Promise<ApiResponse<FichaEmpresa[]>> {

@@ -98,7 +98,7 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
     } 
     // Para Administrador y RecursosHumanos: cargar tanto gestión como su ficha
     else if (esAdminORecursosHumanos) {
-      if (window.location.pathname === '/ficha-empresa/mi-ficha') {
+      if (window.location.pathname === '/fichas-empresa/mi-ficha') {
         loadMiFicha(); // Cargar su ficha personal en la vista personal
       } else {
         setIncluirDesvinculados(false);
@@ -299,7 +299,7 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
   };
 
   // Si es usuario sin permisos administrativos o está en la ruta de ficha personal
-  if ((user && !puedeGestionarFichas) || (puedeAccederModulosPersonales && window.location.pathname === '/ficha-empresa/mi-ficha')) {
+  if ((user && !puedeGestionarFichas) || (puedeAccederModulosPersonales && window.location.pathname === '/fichas-empresa/mi-ficha')) {
     return (
       <Container fluid className="py-2">
         <Row>
