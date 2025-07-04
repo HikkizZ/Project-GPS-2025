@@ -1,7 +1,5 @@
 import { Request, Response } from 'express';
 import { 
-    getUserService,
-    getUsersService,
     updateUserService,
     updateUserByTrabajadorService,
     searchUsersService
@@ -15,7 +13,7 @@ import { User } from '../entity/user.entity.js';
 import { Trabajador } from '../entity/recursosHumanos/trabajador.entity.js';
 import { AppDataSource } from '../config/configDB.js';
 
-/* Search users with filters */
+/* Search users with filters o sin filtros */
 export const searchUsers = async (req: Request, res: Response) => {
     try {
         const [users, error] = await searchUsersService(req.query);
@@ -33,43 +31,6 @@ export const searchUsers = async (req: Request, res: Response) => {
     } catch (error) {
         console.error("Error al buscar usuarios:", error);
         return res.status(500).json({ status: 'error', message: "Error interno del servidor", details: {} });
-    }
-};
-
-/* Get user by ID, RUT, Email or Role */
-export const getUser = async (req: Request, res: Response) => {
-    try {
-        const userId = parseInt(req.params.id);
-        if (isNaN(userId)) {
-            return res.status(400).json({ error: "ID de usuario inválido" });
-        }
-
-        const user = await getUserService({ id: userId });
-        if (!user) {
-            return res.status(404).json({ error: "Usuario no encontrado" });
-        }
-
-        return res.json(user);
-    } catch (error) {
-        console.error("Error en getUser:", error);
-        return res.status(500).json({ error: "Error interno del servidor" });
-    }
-};
-
-/* Get all users controller */
-export const getUsers = async (req: Request, res: Response) => {
-    try {
-        const users = await getUsersService();
-        // Si no hay usuarios, devolver array vacío con mensaje amigable
-        const usersData = users || [];
-        const mensaje = usersData.length === 0 
-            ? "No hay usuarios registrados en el sistema" 
-            : "Usuarios obtenidos exitosamente";
-        
-        handleSuccess(res, 200, mensaje, usersData);
-    } catch (error) {
-        console.error("Error al obtener usuarios:", error);
-        handleErrorServer(res, 500, "Error interno del servidor");
     }
 };
 

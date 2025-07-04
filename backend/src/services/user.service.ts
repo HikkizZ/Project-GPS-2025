@@ -2,13 +2,11 @@ import { User } from "../entity/user.entity.js";
 import { AppDataSource } from "../config/configDB.js";
 import { comparePassword, encryptPassword } from "../utils/encrypt.js";
 import { ServiceResponse, QueryParams, UpdateUserData, SafeUser, userRole } from '../../types.d.js';
-import { Not, ILike, FindOptionsWhere, FindOperator, Equal } from "typeorm";
+import { Not, ILike, FindOptionsWhere } from "typeorm";
 
 /* Validar formato de RUT */
 function isValidRut(rut: string | null): boolean {
-    // Si el RUT es null, es válido solo para SuperAdmin
     if (rut === null) return true;
-    // Solo aceptar formato xx.xxx.xxx-x
     const rutRegex = /^\d{2}\.\d{3}\.\d{3}-[0-9kK]$/;
     return rutRegex.test(rut);
 }
@@ -28,7 +26,6 @@ function isValidRole(role: string): boolean {
 /* Buscar usuarios con filtros */
 export async function searchUsersService(query: QueryParams): Promise<ServiceResponse<SafeUser[]>> {
     try {
-        // Validar formato de RUT y email si están presentes
         if (query.rut && !isValidRut(query.rut)) {
             return [null, "Debe ingresar el RUT en formato xx.xxx.xxx-x"];
         }
@@ -38,7 +35,6 @@ export async function searchUsersService(query: QueryParams): Promise<ServiceRes
 
         const userRepository = AppDataSource.getRepository(User);
 
-        // Búsqueda exacta por RUT (sin puntos ni guion)
         if (query.rut) {
             const cleanRut = query.rut.replace(/\./g, '').replace(/-/g, '');
             const users = await userRepository.createQueryBuilder("user")
@@ -52,9 +48,8 @@ export async function searchUsersService(query: QueryParams): Promise<ServiceRes
             return [usersData, null];
         }
 
-        // Resto de filtros (nombre, email, rol, etc.)
         const whereClause: FindOptionsWhere<User> = {
-            role: Not("SuperAdministrador") // Excluir SuperAdmin de todas las búsquedas
+            role: Not("SuperAdministrador")
         };
         if (query.id) {
             whereClause.id = query.id;
@@ -83,49 +78,6 @@ export async function searchUsersService(query: QueryParams): Promise<ServiceRes
     } catch (error) {
         console.error("Error en searchUsersService:", error);
         return [null, "Error interno del servidor"];
-    }
-}
-
-/* Obtener usuario(s) por ID, RUT, Email o Role */
-export const getUserService = async (query: { id?: number; role?: string }) => {
-    try {
-        const userRepo = AppDataSource.getRepository(User);
-        const whereClause: any = {
-            role: Not("SuperAdministrador") // Excluir SuperAdmin
-        };
-
-        if (query.id) {
-            whereClause.id = query.id;
-        }
-
-        if (query.role) {
-            if (query.role === "SuperAdministrador") {
-                return null;
-            }
-            whereClause.role = query.role;
-        }
-
-        const user = await userRepo.findOne({ where: whereClause });
-        return user;
-    } catch (error) {
-        console.error("Error in getUserService:", error);
-        throw error;
-    }
-};
-
-/* Obtener todos los usuarios */
-export async function getUsersService(): Promise<User[]> {
-    try {
-        const userRepository = AppDataSource.getRepository(User);
-        const users = await userRepository.find({
-            where: {
-                role: Not("SuperAdministrador") // Excluir SuperAdmin
-            }
-        });
-        return users || [];
-    } catch (error) {
-        console.error('Error en getUsersService:', error);
-        throw error;
     }
 }
 
