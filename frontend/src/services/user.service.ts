@@ -18,10 +18,5 @@ export const userService = {
   // Eliminar usuario (si aplica en tu backend)
   async deleteUser(userId: number) {
     await apiClient.delete(`/users/delete?id=${userId}`);
-  },
-
-  // Actualizar usuario por trabajador
-  async updateUserByTrabajador(id: number, updates: Partial<SafeUser>) {
-    await apiClient.put(`/users/trabajador/${id}`, updates);
   }
 }; 

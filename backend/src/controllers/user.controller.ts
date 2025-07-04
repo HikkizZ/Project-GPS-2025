@@ -1,7 +1,6 @@
 import { Request, Response } from 'express';
 import { 
     updateUserService,
-    updateUserByTrabajadorService,
     getUsersService
  } from '../services/user.service.js';
 
@@ -36,22 +35,6 @@ export const updateUser = async (req: Request, res: Response) => {
     try {
         const requester = req.user as User;
         const user = await updateUserService(parseInt(req.params.id), req.body, requester);
-        if (!user) {
-            return res.status(404).json({ message: "Usuario no encontrado" });
-        }
-        return res.json(user);
-    } catch (error: any) {
-        if (error.status === 403 && error.message) {
-            return res.status(403).json({ message: error.message });
-        }
-        return res.status(500).json({ message: "Error al actualizar usuario" });
-    }
-};
-
-/* Update user name by trabajador */
-export const updateUserByTrabajador = async (req: Request, res: Response) => {
-    try {
-        const user = await updateUserByTrabajadorService(parseInt(req.params.id), req.body);
         if (!user) {
             return res.status(404).json({ message: "Usuario no encontrado" });
         }

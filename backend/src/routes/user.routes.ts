@@ -1,7 +1,6 @@
 import { Router, Request, Response } from "express";
 import { authenticateJWT } from "../middlewares/authentication.middleware.js";
-import { verifyRole } from "../middlewares/authorization.middleware.js";
-import { getUsers, updateUser, updateUserByTrabajador } from "../controllers/user.controller.js";
+import { getUsers, updateUser } from "../controllers/user.controller.js";
 
 const router = Router();
 
@@ -13,11 +12,6 @@ router.get("/", authenticateJWT, async (req: Request, res: Response) => {
 // Actualizar usuario por ID
 router.put("/:id", authenticateJWT, async (req: Request, res: Response) => {
     await updateUser(req, res);
-});
-
-// Actualizar usuario por trabajador (solo RRHH o Administrador)
-router.put("/trabajador/:id", authenticateJWT, verifyRole(["RecursosHumanos", "Administrador"]), async (req: Request, res: Response) => {
-    await updateUserByTrabajador(req, res);
 });
 
 export default router;
