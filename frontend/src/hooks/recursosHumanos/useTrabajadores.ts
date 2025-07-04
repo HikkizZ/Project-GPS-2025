@@ -29,26 +29,6 @@ export const useTrabajadores = () => {
     }
   };
 
-  // Buscar trabajadores
-  const searchTrabajadores = async (query: TrabajadorSearchQuery) => {
-    setIsLoading(true);
-    setError('');
-    try {
-      const result = await trabajadorService.searchTrabajadores(query);
-      if (result.success) {
-        setTrabajadores(result.data || []);
-      } else {
-        setError(result.message || 'No se encontraron trabajadores');
-        setTrabajadores([]);
-      }
-    } catch (error) {
-      setError('Error en la búsqueda');
-      setTrabajadores([]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   // Crear trabajador
   const createTrabajador = async (trabajadorData: CreateTrabajadorData) => {
     setIsLoading(true);
@@ -153,7 +133,6 @@ export const useTrabajadores = () => {
     isLoading,
     error,
     loadTrabajadores,
-    searchTrabajadores,
     createTrabajador,
     updateTrabajador,
     deleteTrabajador,

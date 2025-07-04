@@ -3,7 +3,6 @@ import { handleSuccess, handleErrorClient, handleErrorServer } from "../../handl
 import {
     createTrabajadorService,
     getTrabajadoresService,
-    searchTrabajadoresService,
     updateTrabajadorService,
     desvincularTrabajadorService
 } from "../../services/recursosHumanos/trabajador.service.js";
@@ -66,47 +65,6 @@ export async function getTrabajadores(req: Request, res: Response): Promise<void
         handleSuccess(res, 200, mensaje, trabajadoresData);
     } catch (error) {
         console.error("Error al obtener trabajadores:", error);
-        handleErrorServer(res, 500, "Error interno del servidor");
-    }
-}
-
-export async function searchTrabajadores(req: Request, res: Response): Promise<void> {
-    try {
-        console.log("🔍 Query recibida:", req.query);
-        
-        const { error } = TrabajadorQueryValidation.validate(req.query);
-        if (error) {
-            console.log("❌ Error de validación:", error.message);
-            handleErrorClient(res, 400, error.message);
-            return;
-        }
-
-        const query = {
-            ...req.query,
-            enSistema: req.query.enSistema === "true" ? true : req.query.enSistema === "false" ? false : undefined,
-            todos: req.query.todos === "true" ? true : undefined
-        };
-        console.log("🔄 Query procesada:", query);
-
-        const [trabajadores, serviceError] = await searchTrabajadoresService(query);
-        console.log("📊 Resultado del servicio:", { trabajadores: trabajadores?.length || 0, serviceError });
-
-        if (serviceError) {
-            console.log("❌ Error del servicio:", serviceError);
-            handleErrorClient(res, 400, typeof serviceError === 'string' ? serviceError : serviceError.message);
-            return;
-        }
-
-        // Si no hay trabajadores, devolver array vacío con mensaje amigable
-        const trabajadoresData = trabajadores || [];
-        const mensaje = trabajadoresData.length === 0 
-            ? "No se encontraron trabajadores que coincidan con los criterios de búsqueda" 
-            : "Trabajadores encontrados exitosamente";
-
-        console.log("✅ Respuesta enviada:", { cantidad: trabajadoresData.length, mensaje });
-        handleSuccess(res, 200, mensaje, trabajadoresData);
-    } catch (error) {
-        console.error("❌ Error en searchTrabajadores:", error);
         handleErrorServer(res, 500, "Error interno del servidor");
     }
 }
