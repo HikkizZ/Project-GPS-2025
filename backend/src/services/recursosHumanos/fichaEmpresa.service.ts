@@ -35,6 +35,9 @@ interface SearchFichaParams {
     fechaFinDesde?: Date;
     fechaFinHasta?: Date;
     incluirSinFechaFin?: boolean;
+
+    // Búsqueda por id de ficha
+    id?: number;
 }
 
 export async function searchFichasEmpresa(params: SearchFichaParams): Promise<ServiceResponse<FichaEmpresa[]>> {
@@ -58,6 +61,11 @@ export async function searchFichasEmpresa(params: SearchFichaParams): Promise<Se
 
         if (params.trabajadorId) {
             queryBuilder.andWhere("trabajador.id = :trabajadorId", { trabajadorId: params.trabajadorId });
+        }
+
+        // Filtro por id de ficha
+        if (params.id) {
+            queryBuilder.andWhere("ficha.id = :id", { id: params.id });
         }
 
         // Filtro por estado

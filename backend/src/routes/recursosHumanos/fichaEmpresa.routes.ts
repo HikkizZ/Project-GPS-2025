@@ -25,8 +25,7 @@ router.get("/mi-ficha", getMiFicha);
 router.use(verifyRole(["RecursosHumanos", "Administrador", "SuperAdministrador"]));
 
 router
-    .get("/search", getFichasEmpresa)
-    .get("/:id", getFichaEmpresa)
+    .get("/", getFichasEmpresa)
     .get("/:id/contrato", descargarContrato)
     .put("/:id", updateFichaEmpresa)
     .put("/:id/estado", actualizarEstadoFicha)

@@ -87,7 +87,13 @@ export const useFichaEmpresa = () => {
     try {
       let result;
       if (id) {
-        result = await fichaEmpresaService.getFichaEmpresaById(id);
+        // Usar getFichasEmpresa con filtro por id
+        const res = await fichaEmpresaService.getFichasEmpresa({ id });
+        if (res.success && res.data && res.data.length > 0) {
+          result = { success: true, data: res.data[0], message: res.message };
+        } else {
+          result = { success: false, data: null, message: res.message || 'No se encontró la ficha' };
+        }
       } else {
         result = await fichaEmpresaService.getMiFicha();
       }
