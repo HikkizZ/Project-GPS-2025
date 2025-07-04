@@ -1,13 +1,13 @@
 import { Router, Request, Response } from "express";
 import { authenticateJWT } from "../middlewares/authentication.middleware.js";
 import { verifyRole } from "../middlewares/authorization.middleware.js";
-import { searchUsers, updateUser, updateUserByTrabajador } from "../controllers/user.controller.js";
+import { getUsers, updateUser, updateUserByTrabajador } from "../controllers/user.controller.js";
 
 const router = Router();
 
 // Ruta única para listar y buscar usuarios (con o sin filtros)
 router.get("/", authenticateJWT, async (req: Request, res: Response) => {
-    await searchUsers(req, res);
+    await getUsers(req, res);
 });
 
 // Actualizar usuario por ID

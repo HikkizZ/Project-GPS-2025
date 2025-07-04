@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { 
     updateUserService,
     updateUserByTrabajadorService,
-    searchUsersService
+    getUsersService
  } from '../services/user.service.js';
 
 import { handleSuccess, handleErrorClient, handleErrorServer } from '../handlers/responseHandlers.js';
@@ -13,23 +13,20 @@ import { User } from '../entity/user.entity.js';
 import { Trabajador } from '../entity/recursosHumanos/trabajador.entity.js';
 import { AppDataSource } from '../config/configDB.js';
 
-/* Search users with filters o sin filtros */
-export const searchUsers = async (req: Request, res: Response) => {
+/* Obtener usuarios con o sin filtros */
+export const getUsers = async (req: Request, res: Response) => {
     try {
-        const [users, error] = await searchUsersService(req.query);
+        const [users, error] = await getUsersService(req.query);
         if (error) {
             return res.status(400).json({ status: 'error', message: error, details: {} });
         }
-
-        // Si no hay usuarios, devolver array vacío con mensaje amigable
         const usersData = users || [];
         const mensaje = usersData.length === 0 
             ? "No se encontraron usuarios que coincidan con los criterios de búsqueda" 
             : "Usuarios encontrados exitosamente";
-
         return res.json({ status: 'success', message: mensaje, data: usersData });
     } catch (error) {
-        console.error("Error al buscar usuarios:", error);
+        console.error("Error al obtener usuarios:", error);
         return res.status(500).json({ status: 'error', message: "Error interno del servidor", details: {} });
     }
 };

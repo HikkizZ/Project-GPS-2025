@@ -82,34 +82,22 @@ export const UsersPage: React.FC = () => {
     setIsLoading(true);
     try {
       let filteredUsers: SafeUser[] = [];
-      
-      // Si hay filtros de búsqueda específicos, usar el servicio de búsqueda
-      if (params.name || params.rut || params.email || params.role) {
-        const { users: foundUsers, error: searchError } = await userService.searchUsers(params);
-        if (searchError) {
-          setError(searchError);
-          setUsers([]);
-          return;
-        }
-        filteredUsers = foundUsers || [];
-      } else {
-        // Si no hay filtros específicos, obtener todos los usuarios
-        const allUsers = await userService.getAllUsers();
-        filteredUsers = allUsers || [];
-      }
-
+      const filters: any = {};
+      if (params.name) filters.name = params.name;
+      if (params.rut) filters.rut = params.rut;
+      if (params.email) filters.email = params.email;
+      if (params.role) filters.role = params.role;
+      // Obtener usuarios con o sin filtros
+      const { data: foundUsers } = await userService.getUsers(filters);
+      filteredUsers = foundUsers || [];
       // Filtrar SuperAdmin de la lista
       filteredUsers = filteredUsers.filter(u => u.role !== "SuperAdministrador");
-      
       // Aplicar filtros de estado de cuenta
       if (params.soloInactivos) {
-        // Solo mostrar usuarios inactivos
         filteredUsers = filteredUsers.filter(u => u.estadoCuenta === 'Inactiva');
       } else if (!params.incluirInactivos) {
-        // Solo mostrar usuarios activos (comportamiento por defecto)
         filteredUsers = filteredUsers.filter(u => u.estadoCuenta === 'Activa');
       }
-      
       setUsers(filteredUsers);
       setError('');
     } catch (err) {

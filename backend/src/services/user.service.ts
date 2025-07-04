@@ -24,7 +24,7 @@ function isValidRole(role: string): boolean {
 }
 
 /* Buscar usuarios con filtros */
-export async function searchUsersService(query: QueryParams): Promise<ServiceResponse<SafeUser[]>> {
+export async function getUsersService(query: QueryParams): Promise<ServiceResponse<SafeUser[]>> {
     try {
         if (query.rut && !isValidRut(query.rut)) {
             return [null, "Debe ingresar el RUT en formato xx.xxx.xxx-x"];
@@ -76,7 +76,7 @@ export async function searchUsersService(query: QueryParams): Promise<ServiceRes
         const usersData = users.map(({ password, ...user }) => user);
         return [usersData, null];
     } catch (error) {
-        console.error("Error en searchUsersService:", error);
+        console.error("Error en getUsersService:", error);
         return [null, "Error interno del servidor"];
     }
 }
