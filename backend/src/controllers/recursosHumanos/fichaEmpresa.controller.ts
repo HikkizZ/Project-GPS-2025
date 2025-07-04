@@ -8,8 +8,7 @@ import { FichaEmpresaBodyValidation, FichaEmpresaUpdateValidation, EstadoFichaVa
 import { FileManagementService } from "../../services/fileManagement.service.js";
 import { FileUploadService } from "../../services/fileUpload.service.js";
 import {
-    getFichasEmpresa,
-    getFichaEmpresaById,
+    getFichasEmpresaService,
     getMiFichaService,
     updateFichaEmpresaService,
     descargarContratoService
@@ -19,7 +18,7 @@ import fs from 'fs';
 
 export async function getFichasEmpresa(req: Request, res: Response) {
     try {
-        const [fichas, error] = await getFichasEmpresa(req.query);
+        const [fichas, error] = await getFichasEmpresaService(req.query);
 
         if (error) {
             const errorMessage = typeof error === 'string' ? error : error.message;
@@ -37,34 +36,6 @@ export async function getFichasEmpresa(req: Request, res: Response) {
     } catch (error) {
         console.error("Error al obtener fichas de empresa:", error);
         handleErrorServer(res, 500, "Error interno del servidor");
-    }
-}
-
-export async function getFichaEmpresa(req: Request, res: Response) {
-    try {
-        const id = parseInt(req.params.id);
-        if (isNaN(id)) {
-            handleErrorClient(res, 400, "El ID proporcionado no es válido");
-            return;
-        }
-
-        const [ficha, error] = await getFichaEmpresaById(id);
-
-        if (error) {
-            const errorMessage = typeof error === 'string' ? error : error.message;
-            handleErrorClient(res, 404, errorMessage);
-            return;
-        }
-
-        if (!ficha) {
-            handleErrorClient(res, 404, "La ficha solicitada no existe o fue eliminada");
-            return;
-        }
-
-        handleSuccess(res, 200, "Ficha encontrada exitosamente", ficha);
-    } catch (error) {
-        console.error("Error al obtener ficha de empresa:", error);
-        handleErrorServer(res, 500, "Error interno al procesar la solicitud");
     }
 }
 
@@ -286,7 +257,7 @@ export async function deleteContrato(req: Request, res: Response) {
 
 export async function searchFichas(req: Request, res: Response): Promise<void> {
     try {
-        const [fichas, error] = await getFichasEmpresa(req.query);
+        const [fichas, error] = await getFichasEmpresaService(req.query);
 
         if (error) {
             const errorMessage = typeof error === 'string' ? error : error.message;

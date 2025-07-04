@@ -40,7 +40,7 @@ interface SearchFichaParams {
     id?: number;
 }
 
-export async function getFichasEmpresa(params: SearchFichaParams): Promise<ServiceResponse<FichaEmpresa[]>> {
+export async function getFichasEmpresaService(params: SearchFichaParams): Promise<ServiceResponse<FichaEmpresa[]>> {
     try {
         const fichaRepo = AppDataSource.getRepository(FichaEmpresa);
         const queryBuilder = fichaRepo.createQueryBuilder("ficha")
@@ -168,23 +168,6 @@ export async function getFichasEmpresa(params: SearchFichaParams): Promise<Servi
         return [fichas, null];
     } catch (error) {
         console.error("Error al buscar fichas de empresa:", error);
-        return [null, { message: "Error interno del servidor" }];
-    }
-}
-
-export async function getFichaEmpresaById(id: number): Promise<ServiceResponse<FichaEmpresa>> {
-    try {
-        const fichaRepo = AppDataSource.getRepository(FichaEmpresa);
-        const ficha = await fichaRepo.findOne({
-            where: { id },
-            relations: ["trabajador", "trabajador.usuario"]
-        });
-
-        if (!ficha) {
-            return [null, { message: "Ficha no encontrada" }];
-        }return [ficha, null];
-    } catch (error) {
-        console.error("Error en getFichaEmpresaById:", error);
         return [null, { message: "Error interno del servidor" }];
     }
 }
