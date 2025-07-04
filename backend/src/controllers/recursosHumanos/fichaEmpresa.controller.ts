@@ -339,13 +339,9 @@ export async function deleteContrato(req: Request, res: Response) {
 
 export async function searchFichas(req: Request, res: Response): Promise<void> {
     try {
-        console.log("🔍 Recibiendo petición de búsqueda");
-        console.log("📝 Query params recibidos:", req.query);
-
         const [fichas, error] = await searchFichasEmpresa(req.query);
 
         if (error) {
-            console.log("❌ Error en la búsqueda:", error);
             const errorMessage = typeof error === 'string' ? error : error.message;
             res.status(404).json({
                 status: "error",
@@ -354,7 +350,6 @@ export async function searchFichas(req: Request, res: Response): Promise<void> {
             return;
         }
 
-        console.log("✅ Búsqueda exitosa, enviando respuesta");
         res.status(200).json({
             status: "success",
             data: fichas

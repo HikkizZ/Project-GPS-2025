@@ -7,22 +7,16 @@ export class TrabajadorService {
 
   // Obtener todos los trabajadores o buscar con filtros
   async getTrabajadores(query: TrabajadorSearchQuery = {}): Promise<ApiResponse<Trabajador[]>> {
-    console.log('🔍 TrabajadorService.getTrabajadores: Query recibida:', query);
-    
     // Limpiar campos undefined antes de construir los parámetros
     const cleanQuery = Object.fromEntries(
       Object.entries(query).filter(([_, value]) => value !== undefined && value !== null && value !== '')
     );
-    console.log('🔍 TrabajadorService.getTrabajadores: Query limpia:', cleanQuery);
     
     const params = new URLSearchParams(cleanQuery as any).toString();
     const url = params ? `${this.baseURL}?${params}` : this.baseURL;
-    console.log('🔍 TrabajadorService.getTrabajadores: URL construida:', url);
     
     try {
-      console.log('🔍 TrabajadorService.getTrabajadores: Haciendo petición con apiClient...');
       const response = await apiClient.get<{ data: Trabajador[]; message: string }>(url);
-      console.log('✅ TrabajadorService.getTrabajadores: Respuesta recibida:', response);
       
       return {
         success: true,
@@ -30,7 +24,6 @@ export class TrabajadorService {
         message: response.message || 'Trabajadores obtenidos exitosamente',
       };
     } catch (error) {
-      console.error('❌ TrabajadorService.getTrabajadores: Error en petición:', error);
       throw error;
     }
   }

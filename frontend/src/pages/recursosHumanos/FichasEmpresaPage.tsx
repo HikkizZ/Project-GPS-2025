@@ -194,7 +194,6 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
   };
 
   const handleEditFicha = (ficha: FichaEmpresa) => {
-    console.log('handleEditFicha llamado con ficha:', ficha);
     setSelectedFicha(ficha);
     setShowEditModal(true);
   };
