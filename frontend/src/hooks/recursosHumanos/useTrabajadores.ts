@@ -10,22 +10,30 @@ export const useTrabajadores = () => {
 
   // Cargar todos los trabajadores
   const loadTrabajadores = async () => {
+    console.log('🔍 loadTrabajadores: Iniciando carga de trabajadores...');
     setIsLoading(true);
     setError('');
     try {
-      const result = await trabajadorService.getAllTrabajadores();
+      console.log('🔍 loadTrabajadores: Llamando a trabajadorService.getTrabajadores()');
+      const result = await trabajadorService.getTrabajadores();
+      console.log('🔍 loadTrabajadores: Resultado del servicio:', result);
+      
       if (result.success) {
+        console.log('✅ loadTrabajadores: Éxito - Datos recibidos:', result.data?.length || 0, 'trabajadores');
         setTrabajadores(result.data || []);
         setTotalTrabajadores((result.data || []).length);
       } else {
+        console.error('❌ loadTrabajadores: Error en el resultado:', result.message);
         setError(result.message || 'Error al cargar trabajadores');
         setTotalTrabajadores(0);
       }
     } catch (error) {
+      console.error('❌ loadTrabajadores: Error en catch:', error);
       setError('Error de conexión');
       setTotalTrabajadores(0);
     } finally {
       setIsLoading(false);
+      console.log('🔍 loadTrabajadores: Finalizando carga');
     }
   };
 
@@ -123,6 +131,27 @@ export const useTrabajadores = () => {
     }
   };
 
+  // Buscar trabajadores con filtros
+  const searchTrabajadores = async (query: TrabajadorSearchQuery = {}) => {
+    setIsLoading(true);
+    setError('');
+    try {
+      const result = await trabajadorService.getTrabajadores(query);
+      if (result.success) {
+        setTrabajadores(result.data || []);
+        setTotalTrabajadores((result.data || []).length);
+      } else {
+        setError(result.message || 'Error al buscar trabajadores');
+        setTotalTrabajadores(0);
+      }
+    } catch (error) {
+      setError('Error de conexión');
+      setTotalTrabajadores(0);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // Cargar trabajadores al inicializar el hook
   useEffect(() => {
     loadTrabajadores();
@@ -133,6 +162,7 @@ export const useTrabajadores = () => {
     isLoading,
     error,
     loadTrabajadores,
+    searchTrabajadores,
     createTrabajador,
     updateTrabajador,
     deleteTrabajador,

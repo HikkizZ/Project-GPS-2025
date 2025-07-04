@@ -48,20 +48,26 @@ export async function createTrabajador(req: Request, res: Response): Promise<voi
 
 export async function getTrabajadores(req: Request, res: Response): Promise<void> {
     try {
-        const incluirInactivos = req.query.todos === 'true';
-        const [trabajadores, serviceError] = await getTrabajadoresService(incluirInactivos);
-        
+        // Validar los query params
+        const { error, value: filtros } = TrabajadorQueryValidation.validate(req.query, { stripUnknown: true });
+        if (error) {
+            handleErrorClient(res, 400, error.message);
+            return;
+        }
+        // Separar el flag de incluir inactivos
+        const incluirInactivos = filtros.todos === true || filtros.todos === 'true';
+        // Eliminar 'todos' del objeto de filtros para no pasarlo como filtro de campo
+        delete filtros.todos;
+        // Llamar al servicio con los filtros
+        const [trabajadores, serviceError] = await getTrabajadoresService(incluirInactivos, filtros);
         if (serviceError) {
             handleErrorClient(res, 404, typeof serviceError === 'string' ? serviceError : serviceError.message);
             return;
         }
-
-        // Si no hay trabajadores, devolver array vacío con mensaje amigable
         const trabajadoresData = trabajadores || [];
         const mensaje = trabajadoresData.length === 0 
             ? "No hay trabajadores registrados en el sistema" 
             : "Trabajadores obtenidos exitosamente";
-
         handleSuccess(res, 200, mensaje, trabajadoresData);
     } catch (error) {
         console.error("Error al obtener trabajadores:", error);

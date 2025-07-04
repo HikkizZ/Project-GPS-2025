@@ -233,15 +233,33 @@ export async function createTrabajadorService(trabajadorData: Partial<Trabajador
     }
 }
 
-export async function getTrabajadoresService(incluirInactivos: boolean = false): Promise<ServiceResponse<Trabajador[]>> {
+export async function getTrabajadoresService(incluirInactivos: boolean = false, filtros: any = {}): Promise<ServiceResponse<Trabajador[]>> {
     try {
         const trabajadorRepo = AppDataSource.getRepository(Trabajador);
+        // Construir el objeto where dinámicamente
+        const where: any = {};
+        // Si no se incluyen inactivos, filtrar por enSistema=true
+        if (!incluirInactivos && typeof filtros.enSistema === 'undefined') {
+            where.enSistema = true;
+        }
+        // Agregar filtros por campos si existen
+        if (filtros.id) where.id = filtros.id;
+        if (filtros.rut) where.rut = filtros.rut;
+        if (filtros.nombres) where.nombres = filtros.nombres;
+        if (filtros.apellidoPaterno) where.apellidoPaterno = filtros.apellidoPaterno;
+        if (filtros.apellidoMaterno) where.apellidoMaterno = filtros.apellidoMaterno;
+        if (filtros.fechaNacimiento) where.fechaNacimiento = filtros.fechaNacimiento;
+        if (filtros.telefono) where.telefono = filtros.telefono;
+        if (filtros.correoPersonal) where.correoPersonal = filtros.correoPersonal;
+        if (filtros.numeroEmergencia) where.numeroEmergencia = filtros.numeroEmergencia;
+        if (filtros.direccion) where.direccion = filtros.direccion;
+        if (filtros.fechaIngreso) where.fechaIngreso = filtros.fechaIngreso;
+        if (typeof filtros.enSistema !== 'undefined') where.enSistema = filtros.enSistema === true || filtros.enSistema === 'true';
+        // Buscar trabajadores con relaciones
         const trabajadores = await trabajadorRepo.find({
             relations: ["usuario", "fichaEmpresa", "historialLaboral", "licenciasPermisos"],
-            where: incluirInactivos ? {} : { enSistema: true }
+            where
         });
-
-        // Devolver array vacío en lugar de error cuando no hay trabajadores
         return [trabajadores, null];
     } catch (error) {
         console.error("Error en getTrabajadoresService:", error);
