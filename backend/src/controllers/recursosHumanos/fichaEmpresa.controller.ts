@@ -8,7 +8,7 @@ import { FichaEmpresaBodyValidation, FichaEmpresaUpdateValidation, EstadoFichaVa
 import { FileManagementService } from "../../services/fileManagement.service.js";
 import { FileUploadService } from "../../services/fileUpload.service.js";
 import {
-    searchFichasEmpresa,
+    getFichasEmpresa,
     getFichaEmpresaById,
     getMiFichaService,
     updateFichaEmpresaService,
@@ -20,7 +20,7 @@ import fs from 'fs';
 
 export async function getFichasEmpresa(req: Request, res: Response) {
     try {
-        const [fichas, error] = await searchFichasEmpresa(req.query);
+        const [fichas, error] = await getFichasEmpresa(req.query);
 
         if (error) {
             const errorMessage = typeof error === 'string' ? error : error.message;
@@ -339,7 +339,7 @@ export async function deleteContrato(req: Request, res: Response) {
 
 export async function searchFichas(req: Request, res: Response): Promise<void> {
     try {
-        const [fichas, error] = await searchFichasEmpresa(req.query);
+        const [fichas, error] = await getFichasEmpresa(req.query);
 
         if (error) {
             const errorMessage = typeof error === 'string' ? error : error.message;
