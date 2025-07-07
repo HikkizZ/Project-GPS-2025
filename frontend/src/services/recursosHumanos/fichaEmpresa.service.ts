@@ -277,6 +277,7 @@ const fichaEmpresaService = new FichaEmpresaService();
 export default fichaEmpresaService;
 
 // Funciones de conveniencia para uso directo
+export const getFichaEmpresa = (searchParams: FichaEmpresaSearchQuery = {}) => fichaEmpresaService.getFichasEmpresa(searchParams);
 export const updateFichaEmpresa = (id: number, data: UpdateFichaEmpresaData) => fichaEmpresaService.updateFichaEmpresa(id, data);
 export const uploadContrato = (fichaId: number, file: File) => fichaEmpresaService.uploadContrato(fichaId, file);
 export const downloadContrato = (fichaId: number) => fichaEmpresaService.downloadContrato(fichaId);

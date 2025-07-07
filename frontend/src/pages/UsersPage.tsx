@@ -197,7 +197,7 @@ export const UsersPage: React.FC = () => {
 
         // Solo enviar la petición si hay cambios
         if (Object.keys(updates).length > 0) {
-            await userService.updateUser(selectedUser.id, selectedUser.rut, updates);
+            await userService.updateUser(selectedUser.id, updates);
             showSuccess('¡Usuario actualizado!', `El usuario ${selectedUser.name} se ha actualizado exitosamente`, 4000);
             setShowUpdateModal(false);
             loadUsers(); // Recargar la lista después de actualizar

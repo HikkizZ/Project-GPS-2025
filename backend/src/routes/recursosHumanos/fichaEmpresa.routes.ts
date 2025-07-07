@@ -3,9 +3,7 @@ import { authenticateJWT } from "../../middlewares/authentication.middleware.js"
 import { verifyRole } from "../../middlewares/authorization.middleware.js";
 import {
     getFichasEmpresa,
-    getFichaEmpresa,
     updateFichaEmpresa,
-    actualizarEstadoFicha,
     descargarContrato,
     getMiFicha,
     uploadContrato,

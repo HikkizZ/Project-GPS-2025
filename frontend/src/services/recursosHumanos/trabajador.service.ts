@@ -57,6 +57,11 @@ export class TrabajadorService {
     };
   }
 
+  // Alias para compatibilidad
+  async deleteTrabajador(id: number, motivo: string = 'Eliminación'): Promise<ApiResponse> {
+    return this.desvincularTrabajador(id, motivo);
+  }
+
   // Utilidades estáticas
   static formatRUT(rut: string): string {
     // Eliminar caracteres no válidos
