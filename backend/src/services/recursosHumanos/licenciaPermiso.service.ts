@@ -128,17 +128,60 @@ export async function createLicenciaPermisoService(data: CreateLicenciaPermisoDT
   }
 }
 
-export async function getAllLicenciasPermisosService(): Promise<ServiceResponse<LicenciaPermiso[]>> {
+export async function getAllLicenciasPermisosService(filtros: any = {}): Promise<ServiceResponse<LicenciaPermiso[]>> {
   try {
     const licenciaRepo = AppDataSource.getRepository(LicenciaPermiso);
     const userRepo = AppDataSource.getRepository(User);
     
-    const licencias = await licenciaRepo.find({ 
-      relations: ["trabajador", "revisadoPor"],
-      order: {
-        fechaSolicitud: "DESC"
-      }
-    });
+    // Crear el query builder para usar búsquedas más flexibles
+    const queryBuilder = licenciaRepo.createQueryBuilder('licencia')
+      .leftJoinAndSelect('licencia.trabajador', 'trabajador')
+      .leftJoinAndSelect('licencia.revisadoPor', 'revisadoPor');
+
+    // Agregar filtros por campos si existen
+    if (filtros.id) {
+      queryBuilder.andWhere('licencia.id = :id', { id: filtros.id });
+    }
+    if (filtros.trabajadorId) {
+      queryBuilder.andWhere('trabajador.id = :trabajadorId', { trabajadorId: filtros.trabajadorId });
+    }
+    if (filtros.tipo) {
+      queryBuilder.andWhere('licencia.tipo = :tipo', { tipo: filtros.tipo });
+    }
+    if (filtros.estado) {
+      queryBuilder.andWhere('licencia.estado = :estado', { estado: filtros.estado });
+    }
+    if (filtros.fechaInicio) {
+      queryBuilder.andWhere('licencia.fechaInicio = :fechaInicio', { fechaInicio: filtros.fechaInicio });
+    }
+    if (filtros.fechaFin) {
+      queryBuilder.andWhere('licencia.fechaFin = :fechaFin', { fechaFin: filtros.fechaFin });
+    }
+    if (filtros.fechaSolicitud) {
+      queryBuilder.andWhere('DATE(licencia.fechaSolicitud) = :fechaSolicitud', { fechaSolicitud: filtros.fechaSolicitud });
+    }
+    if (filtros.motivoSolicitud) {
+      queryBuilder.andWhere('licencia.motivoSolicitud ILIKE :motivoSolicitud', { motivoSolicitud: `%${filtros.motivoSolicitud}%` });
+    }
+    if (filtros.revisadoPorId) {
+      queryBuilder.andWhere('revisadoPor.id = :revisadoPorId', { revisadoPorId: filtros.revisadoPorId });
+    }
+    
+    // Filtros por campos del trabajador
+    if (filtros.trabajadorRut) {
+      queryBuilder.andWhere('trabajador.rut ILIKE :trabajadorRut', { trabajadorRut: `%${filtros.trabajadorRut}%` });
+    }
+    if (filtros.trabajadorNombres) {
+      queryBuilder.andWhere('trabajador.nombres ILIKE :trabajadorNombres', { trabajadorNombres: `%${filtros.trabajadorNombres}%` });
+    }
+    if (filtros.trabajadorApellidos) {
+      queryBuilder.andWhere('(trabajador.apellidoPaterno ILIKE :apellidos OR trabajador.apellidoMaterno ILIKE :apellidos)', { apellidos: `%${filtros.trabajadorApellidos}%` });
+    }
+
+    // Ordenar por fecha de solicitud descendente
+    queryBuilder.orderBy('licencia.fechaSolicitud', 'DESC');
+
+    const licencias = await queryBuilder.getMany();
 
     // Cargar usuarios manualmente para cada trabajador
     for (const licencia of licencias) {
@@ -157,36 +200,6 @@ export async function getAllLicenciasPermisosService(): Promise<ServiceResponse<
     return [licencias, null];
   } catch (error) {
     console.error("Error al obtener licencias/permisos:", error);
-    return [null, "Error interno del servidor."];
-  }
-}
-
-export async function getLicenciaPermisoByIdService(id: number): Promise<ServiceResponse<LicenciaPermiso>> {
-  try {
-    const licenciaRepo = AppDataSource.getRepository(LicenciaPermiso);
-    const userRepo = AppDataSource.getRepository(User);
-    
-    const licencia = await licenciaRepo.findOne({
-      where: { id },
-      relations: ["trabajador", "revisadoPor"]
-    });
-
-    if (!licencia) return [null, "Solicitud no encontrada."];
-
-    // Cargar usuario manualmente para el trabajador
-    if (licencia.trabajador?.rut) {
-      const usuario = await userRepo.findOne({
-        where: { rut: licencia.trabajador.rut },
-        select: ['id', 'email', 'role']
-      });
-      if (usuario) {
-        licencia.trabajador.usuario = usuario;
-      }
-    }
-
-    return [licencia, null];
-  } catch (error) {
-    console.error("Error al buscar la solicitud:", error);
     return [null, "Error interno del servidor."];
   }
 }

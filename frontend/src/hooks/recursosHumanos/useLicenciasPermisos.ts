@@ -163,16 +163,38 @@ export const useLicenciasPermisos = (options: UseLicenciasPermisosOptions = {}) 
     setIsLoading(true);
     setError('');
     try {
-      const result = await licenciaPermisoService.obtenerSolicitudPorId(id);
-      if (result.success && result.data) {
-        setSolicitudActual(result.data);
-        return { success: true, solicitud: result.data };
+      const result = await licenciaPermisoService.obtenerSolicitudesConFiltros({ id });
+      if (result.success && result.data && result.data.length > 0) {
+        const solicitud = result.data[0];
+        setSolicitudActual(solicitud);
+        return { success: true, solicitud };
       } else {
-        setError(result.error || 'Error al obtener solicitud');
-        return { success: false, error: result.error };
+        setError('Solicitud no encontrada');
+        return { success: false, error: 'Solicitud no encontrada' };
       }
     } catch (error) {
       const errorMsg = 'Error al obtener solicitud';
+      setError(errorMsg);
+      return { success: false, error: errorMsg };
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const buscarSolicitudesConFiltros = async (filtros: Record<string, any> = {}) => {
+    setIsLoading(true);
+    setError('');
+    try {
+      const result = await licenciaPermisoService.obtenerSolicitudesConFiltros(filtros);
+      if (result.success && result.data) {
+        setSolicitudes(result.data);
+        return { success: true, solicitudes: result.data };
+      } else {
+        setError(result.error || 'Error al buscar solicitudes');
+        return { success: false, error: result.error };
+      }
+    } catch (error) {
+      const errorMsg = 'Error al buscar solicitudes';
       setError(errorMsg);
       return { success: false, error: errorMsg };
     } finally {
@@ -279,6 +301,7 @@ export const useLicenciasPermisos = (options: UseLicenciasPermisosOptions = {}) 
     cargarTodasLasSolicitudes,
     recargarSolicitudes,
     obtenerSolicitudPorId,
+    buscarSolicitudesConFiltros,
     
     // Funciones CRUD
     crearSolicitud,
