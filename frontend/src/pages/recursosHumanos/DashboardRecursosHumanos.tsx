@@ -3,7 +3,6 @@ import { Card, Row, Col, Container } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/useAuth';
 import { UserRole } from '../../types/auth.types';
-import VerificarEstadosLaborales from '../../components/recursosHumanos/VerificarEstadosLaborales';
 
 const DashboardRecursosHumanos: React.FC = () => {
   const { user } = useAuth();
@@ -290,62 +289,6 @@ const DashboardRecursosHumanos: React.FC = () => {
                 </Col>
               )}
             </Row>
-
-            {/* Sección de Mantenimiento del Sistema - Solo para roles privilegiados */}
-            {tienePermisosCompletos && (
-              <div className="mt-5">
-                <div className="d-flex align-items-center mb-4">
-                  <div className="p-2 rounded-circle bg-warning bg-opacity-10 me-2">
-                    <i className="bi bi-gear fs-5 text-warning"></i>
-                  </div>
-                  <div>
-                    <h6 className="mb-0 fw-bold text-dark">Mantenimiento del Sistema</h6>
-                    <small className="text-muted">Herramientas administrativas y de mantenimiento</small>
-                  </div>
-                </div>
-                
-                <Card 
-                  className="border-0 shadow-sm" 
-                  style={{ 
-                    borderRadius: '16px',
-                    background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
-                    border: '1px solid #e2e8f0'
-                  }}
-                >
-                  <Card.Body className="p-4">
-                    <Row className="align-items-center">
-                      <Col md={8}>
-                        <div className="d-flex align-items-start">
-                          <div 
-                            className="p-3 rounded-circle me-3"
-                            style={{
-                              background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
-                              boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)'
-                            }}
-                          >
-                            <i className="bi bi-arrow-clockwise text-white" style={{ fontSize: '1.25rem' }}></i>
-                          </div>
-                          <div>
-                            <h6 className="mb-2 fw-bold text-dark">Verificar Estados Laborales</h6>
-                            <p className="text-muted mb-2 small">
-                              Actualiza automáticamente empleados con licencias/permisos vencidos al estado 'Activo'. 
-                              Esta acción se ejecuta automáticamente todos los días a las 00:01.
-                            </p>
-                            <div className="d-flex align-items-center">
-                              <i className="bi bi-shield-check text-success me-2"></i>
-                              <small className="text-success">Seguro ejecutar múltiples veces</small>
-                            </div>
-                          </div>
-                        </div>
-                      </Col>
-                      <Col md={4} className="text-end">
-                        <VerificarEstadosLaborales className="w-100" />
-                      </Col>
-                    </Row>
-                  </Card.Body>
-                </Card>
-              </div>
-            )}
           </div>
         </div>
         </Col>
