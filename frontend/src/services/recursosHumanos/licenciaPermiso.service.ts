@@ -19,7 +19,7 @@ export interface ApiResponse<T = any> {
 
 // Clase principal del servicio
 export class LicenciaPermisoService {
-  private baseURL = '/licencias-permisos';
+  private baseURL = '/licencia-permiso';
 
   private getHeaders() {
     const token = localStorage.getItem('auth_token');

@@ -209,31 +209,7 @@ export const useLicenciasPermisos = (options: UseLicenciasPermisosOptions = {}) 
     }
   };
 
-  const verificarLicenciasVencidas = async () => {
-    setIsLoading(true);
-    setError('');
 
-    try {
-      const result = await licenciaPermisoService.verificarLicenciasVencidas();
-      if (result.success) {
-        await recargarSolicitudes();
-        return { 
-          success: true, 
-          actualizaciones: result.data?.actualizaciones || 0,
-          message: result.message
-        };
-      } else {
-        setError(result.message || 'Error al verificar vencimientos');
-        return { success: false, error: result.message };
-      }
-    } catch (error: any) {
-      const errorMsg = error.message || 'Error al verificar vencimientos';
-      setError(errorMsg);
-      return { success: false, error: errorMsg };
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   // ===============================
   // FUNCIONES DE UTILIDAD
@@ -314,9 +290,6 @@ export const useLicenciasPermisos = (options: UseLicenciasPermisosOptions = {}) 
     // Funciones de filtrado
     aplicarFiltros,
     limpiarFiltros,
-    
-    // Funciones administrativas
-    verificarLicenciasVencidas,
     
     // Funciones de utilidad
     limpiarErrores,
