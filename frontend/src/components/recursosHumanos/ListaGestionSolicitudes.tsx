@@ -227,7 +227,7 @@ export const ListaGestionSolicitudes: React.FC = () => {
     
     try {
       const datosActualizacion: UpdateLicenciaPermisoDTO = {
-        estadoSolicitud: accionRespuesta === 'aprobar' ? EstadoSolicitud.APROBADA : EstadoSolicitud.RECHAZADA,
+        estado: accionRespuesta === 'aprobar' ? EstadoSolicitud.APROBADA : EstadoSolicitud.RECHAZADA,
         respuestaEncargado: respuestaTexto.trim() || ''
       };
 

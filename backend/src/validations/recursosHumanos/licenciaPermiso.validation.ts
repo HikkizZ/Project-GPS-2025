@@ -107,7 +107,7 @@ export const CreateLicenciaPermisoValidation = Joi.object({
 
 /* Body validation para actualización de licencias/permisos */
 export const UpdateLicenciaPermisoValidation = Joi.object({
-    estadoSolicitud: Joi.string()
+    estado: Joi.string()
         .valid(...Object.values(EstadoSolicitud))
         .required()
         .messages({

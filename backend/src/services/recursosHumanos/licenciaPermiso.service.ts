@@ -218,12 +218,12 @@ export async function updateLicenciaPermisoService(id: number, data: UpdateLicen
     const estadoAnterior = licencia.estado;
     
     // Actualizar los campos de la licencia
-    licencia.estado = data.estadoSolicitud;
+    licencia.estado = data.estado;
     licencia.respuestaEncargado = data.respuestaEncargado || '';
     licencia.revisadoPor = data.revisadoPor;
     
     // Si el estado está cambiando a APROBADA
-    if (data.estadoSolicitud === EstadoSolicitud.APROBADA && estadoAnterior !== EstadoSolicitud.APROBADA) {
+    if (data.estado === EstadoSolicitud.APROBADA && estadoAnterior !== EstadoSolicitud.APROBADA) {
       if (!licencia.trabajador?.fichaEmpresa?.id) {
         await queryRunner.rollbackTransaction();
         await queryRunner.release();
@@ -276,12 +276,12 @@ export async function updateLicenciaPermisoService(id: number, data: UpdateLicen
     await queryRunner.manager.save(licencia);
     
     // Enviar notificación por correo electrónico después de guardar exitosamente
-    if (estadoAnterior !== data.estadoSolicitud) {
+    if (estadoAnterior !== data.estado) {
       try {
         const nombreCompleto = `${licencia.trabajador.nombres} ${licencia.trabajador.apellidoPaterno}`;
         const tipoSolicitudTexto = licencia.tipo === TipoSolicitud.LICENCIA ? 'Licencia Médica' : 'Permiso Administrativo';
         
-        if (data.estadoSolicitud === EstadoSolicitud.APROBADA) {
+        if (data.estado === EstadoSolicitud.APROBADA) {
           await sendLicenciaPermisoApprovedEmail({
             to: licencia.trabajador.correoPersonal,
             nombre: nombreCompleto,
@@ -290,7 +290,7 @@ export async function updateLicenciaPermisoService(id: number, data: UpdateLicen
             fechaFin: licencia.fechaFin.toISOString(),
             motivoRespuesta: data.respuestaEncargado || undefined
           });
-        } else if (data.estadoSolicitud === EstadoSolicitud.RECHAZADA) {
+        } else if (data.estado === EstadoSolicitud.RECHAZADA) {
           await sendLicenciaPermisoRejectedEmail({
             to: licencia.trabajador.correoPersonal,
             nombre: nombreCompleto,
