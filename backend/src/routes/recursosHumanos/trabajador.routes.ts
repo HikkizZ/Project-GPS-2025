@@ -2,26 +2,27 @@ import { Router } from "express";
 import { authenticateJWT } from "../../middlewares/authentication.middleware.js";
 import { verifyRole } from "../../middlewares/authorization.middleware.js";
 import {
-    createTrabajador,
-    getTrabajadores,
-    searchTrabajadores,
-    updateTrabajador,
-    desvincularTrabajador
+  getTrabajadores,
+  createTrabajador,
+  updateTrabajador,
+  desvincularTrabajador
 } from "../../controllers/recursosHumanos/trabajador.controller.js";
 
-const router: Router = Router();
+const router = Router();
 
-// Rutas protegidas - requieren autenticación
-router.use(authenticateJWT);
+// Solo RecursosHumanos, Administrador y SuperAdministrador pueden acceder a estas rutas
+router.use(authenticateJWT, verifyRole(["RecursosHumanos", "Administrador", "SuperAdministrador"]));
 
-// Todas las rutas requieren rol de RRHH
-router.use(verifyRole(["RecursosHumanos", "Administrador"]));
+// Buscar y listar trabajadores (con o sin filtros)
+router.get("/", getTrabajadores);
 
-router
-    .post("/", createTrabajador)
-    .get("/all", getTrabajadores)
-    .get("/detail/", searchTrabajadores)
-    .put("/:id", updateTrabajador)
-    .post("/:id/desvincular", desvincularTrabajador);
+// Crear trabajador
+router.post("/", createTrabajador);
+
+// Actualizar trabajador
+router.put("/:id", updateTrabajador);
+
+// Desvincular trabajador (soft delete)
+router.delete("/:id", desvincularTrabajador);
 
 export default router; 

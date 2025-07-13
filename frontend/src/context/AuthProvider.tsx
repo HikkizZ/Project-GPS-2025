@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { AuthContext, AuthContextType } from './AuthContext';
 import { authService } from '@/services/auth.service';
-import { LoginData, RegisterData } from '@/types';
+import { LoginData } from '@/types';
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<AuthContextType['user']>(null);
@@ -44,24 +44,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const register = async (userData: RegisterData) => {
-    try {
-      setIsLoading(true);
-      const response = await authService.register(userData);
-      
-      if (response.user) {
-        return { success: true };
-      }
-      
-      return { success: false, error: response.error || 'Error al registrar usuario' };
-    } catch (error) {
-      console.error('Error en registro:', error);
-      return { success: false, error: 'Error de conexión' };
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const logout = () => {
     authService.logout();
     setUser(null);
@@ -74,7 +56,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isAuthenticated: !!user,
         isLoading,
         login,
-        register,
         logout
       }}
     >

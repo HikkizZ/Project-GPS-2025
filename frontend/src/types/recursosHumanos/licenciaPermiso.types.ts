@@ -55,7 +55,7 @@ export interface CreateLicenciaPermisoDTO {
 
 // DTO para actualizar solicitud (usado por RRHH)
 export interface UpdateLicenciaPermisoDTO {
-  estadoSolicitud: EstadoSolicitud;
+  estado: EstadoSolicitud;
   respuestaEncargado: string;
 }
 

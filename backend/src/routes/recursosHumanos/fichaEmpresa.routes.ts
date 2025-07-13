@@ -3,9 +3,7 @@ import { authenticateJWT } from "../../middlewares/authentication.middleware.js"
 import { verifyRole } from "../../middlewares/authorization.middleware.js";
 import {
     getFichasEmpresa,
-    getFichaEmpresa,
     updateFichaEmpresa,
-    actualizarEstadoFicha,
     descargarContrato,
     getMiFicha,
     uploadContrato,
@@ -25,11 +23,9 @@ router.get("/mi-ficha", getMiFicha);
 router.use(verifyRole(["RecursosHumanos", "Administrador", "SuperAdministrador"]));
 
 router
-    .get("/search", getFichasEmpresa)
-    .get("/:id", getFichaEmpresa)
+    .get("/", getFichasEmpresa)
     .get("/:id/contrato", descargarContrato)
     .put("/:id", updateFichaEmpresa)
-    .put("/:id/estado", actualizarEstadoFicha)
     .post("/:id/upload-contrato", FileUploadService.uploadSingle('contrato'), uploadContrato)
     .delete("/:id/contrato", deleteContrato);
 

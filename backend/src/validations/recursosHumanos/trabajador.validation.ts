@@ -101,12 +101,6 @@ export const TrabajadorQueryValidation = Joi.object({
         .optional()
         .messages({
             "boolean.base": "El campo 'todos' debe ser true o false."
-    }),
-
-    soloEliminados: Joi.boolean()
-        .optional()
-        .messages({
-            "boolean.base": "El campo 'soloEliminados' debe ser true o false."
     })
 });
 

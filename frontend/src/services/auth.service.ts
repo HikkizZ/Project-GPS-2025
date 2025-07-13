@@ -1,5 +1,5 @@
 import { apiClient } from '@/config/api.config';
-import { LoginData, RegisterData, AuthResponse, User, CustomJwtPayload } from '@/types';
+import { LoginData, AuthResponse, User, CustomJwtPayload } from '@/types';
 import { jwtDecode } from "jwt-decode";
 
 class AuthService {
@@ -33,27 +33,6 @@ class AuthService {
       }
     } catch (error: any) {
       console.error('Error en login:', error);
-      return {
-        error: error.response?.data?.message || error.message || 'Error en el servidor'
-      };
-    }
-  }
-
-  async register(userData: RegisterData): Promise<{ user?: User; error?: string }> {
-    try {
-      const data = await apiClient.post<AuthResponse>('/auth/register', userData);
-
-      if (data.status === 'success') {
-        return {
-          user: data.data?.user
-        };
-      } else {
-        return {
-          error: data.message || 'Error desconocido'
-        };
-      }
-    } catch (error: any) {
-      console.error('Error en registro:', error);
       return {
         error: error.response?.data?.message || error.message || 'Error en el servidor'
       };
