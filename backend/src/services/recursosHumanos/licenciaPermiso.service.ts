@@ -175,7 +175,22 @@ export async function getAllLicenciasPermisosService(filtros: any = {}): Promise
       queryBuilder.andWhere('trabajador.nombres ILIKE :trabajadorNombres', { trabajadorNombres: `%${filtros.trabajadorNombres}%` });
     }
     if (filtros.trabajadorApellidos) {
-      queryBuilder.andWhere('(trabajador.apellidoPaterno ILIKE :apellidos OR trabajador.apellidoMaterno ILIKE :apellidos)', { apellidos: `%${filtros.trabajadorApellidos}%` });
+      // Búsqueda inteligente en apellidos: permite buscar por uno solo o ambos juntos
+      const apellidosBusqueda = filtros.trabajadorApellidos.trim();
+      
+      // Si contiene espacios, buscar la frase completa en la concatenación
+      if (apellidosBusqueda.includes(' ')) {
+        queryBuilder.andWhere(
+          'CONCAT(trabajador.apellidoPaterno, \' \', trabajador.apellidoMaterno) ILIKE :apellidosCompletos',
+          { apellidosCompletos: `%${apellidosBusqueda}%` }
+        );
+      } else {
+        // Si no contiene espacios, buscar en cualquiera de los dos campos
+        queryBuilder.andWhere(
+          '(trabajador.apellidoPaterno ILIKE :apellidos OR trabajador.apellidoMaterno ILIKE :apellidos)',
+          { apellidos: `%${apellidosBusqueda}%` }
+        );
+      }
     }
 
     // Ordenar por fecha de solicitud descendente
