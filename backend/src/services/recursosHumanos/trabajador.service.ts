@@ -75,11 +75,31 @@ async function generateCorporateEmail(primerNombre: string, apellidoPaterno: str
     return newEmail;
 }
 
+// Función auxiliar para limpiar automáticamente los campos de texto
+function limpiarCamposTexto(data: Partial<Trabajador>): Partial<Trabajador> {
+    const dataCopia = { ...data };
+    
+    // Aplicar trim a todos los campos de texto
+    if (dataCopia.nombres) dataCopia.nombres = dataCopia.nombres.trim();
+    if (dataCopia.apellidoPaterno) dataCopia.apellidoPaterno = dataCopia.apellidoPaterno.trim();
+    if (dataCopia.apellidoMaterno) dataCopia.apellidoMaterno = dataCopia.apellidoMaterno.trim();
+    if (dataCopia.telefono) dataCopia.telefono = dataCopia.telefono.trim();
+    if (dataCopia.correoPersonal) dataCopia.correoPersonal = dataCopia.correoPersonal.trim();
+    if (dataCopia.numeroEmergencia) dataCopia.numeroEmergencia = dataCopia.numeroEmergencia.trim();
+    if (dataCopia.direccion) dataCopia.direccion = dataCopia.direccion.trim();
+    if (dataCopia.rut) dataCopia.rut = dataCopia.rut.trim();
+    
+    return dataCopia;
+}
+
 export async function createTrabajadorService(trabajadorData: Partial<Trabajador>): Promise<ServiceResponse<{ trabajador: Trabajador, tempPassword: string, advertencias: string[], correoUsuario: string }>> {
     try {
         const trabajadorRepo = AppDataSource.getRepository(Trabajador);
         const fichaRepo = AppDataSource.getRepository(FichaEmpresa);
         const userRepo = AppDataSource.getRepository(User);
+
+        // LIMPIEZA AUTOMÁTICA: Eliminar espacios extra de todos los campos de texto
+        trabajadorData = limpiarCamposTexto(trabajadorData);
 
         // Validar datos requeridos
         if (!trabajadorData.rut || !trabajadorData.nombres || !trabajadorData.apellidoPaterno || 
@@ -357,7 +377,8 @@ export async function updateTrabajadorService(id: number, data: any): Promise<Se
         if (!trabajador) return [null, "Trabajador no encontrado"];
         if (!trabajador.usuario) return [null, "El trabajador no tiene usuario asociado"];
 
-
+        // LIMPIEZA AUTOMÁTICA: Eliminar espacios extra de todos los campos de texto
+        data = limpiarCamposTexto(data);
 
         let updated = false;
         let correoUsuarioAnterior = trabajador.usuario.email;
