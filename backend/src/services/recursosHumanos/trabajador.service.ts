@@ -79,14 +79,14 @@ async function generateCorporateEmail(primerNombre: string, apellidoPaterno: str
 function limpiarCamposTexto(data: Partial<Trabajador>): Partial<Trabajador> {
     const dataCopia = { ...data };
     
-    // Aplicar trim a todos los campos de texto
-    if (dataCopia.nombres) dataCopia.nombres = dataCopia.nombres.trim();
-    if (dataCopia.apellidoPaterno) dataCopia.apellidoPaterno = dataCopia.apellidoPaterno.trim();
-    if (dataCopia.apellidoMaterno) dataCopia.apellidoMaterno = dataCopia.apellidoMaterno.trim();
+    // Aplicar trim y eliminar espacios dobles en campos de nombres
+    if (dataCopia.nombres) dataCopia.nombres = dataCopia.nombres.trim().replace(/\s+/g, ' ');
+    if (dataCopia.apellidoPaterno) dataCopia.apellidoPaterno = dataCopia.apellidoPaterno.trim().replace(/\s+/g, ' ');
+    if (dataCopia.apellidoMaterno) dataCopia.apellidoMaterno = dataCopia.apellidoMaterno.trim().replace(/\s+/g, ' ');
     if (dataCopia.telefono) dataCopia.telefono = dataCopia.telefono.trim();
     if (dataCopia.correoPersonal) dataCopia.correoPersonal = dataCopia.correoPersonal.trim();
     if (dataCopia.numeroEmergencia) dataCopia.numeroEmergencia = dataCopia.numeroEmergencia.trim();
-    if (dataCopia.direccion) dataCopia.direccion = dataCopia.direccion.trim();
+    if (dataCopia.direccion) dataCopia.direccion = dataCopia.direccion.trim().replace(/\s+/g, ' ');
     if (dataCopia.rut) dataCopia.rut = dataCopia.rut.trim();
     
     return dataCopia;

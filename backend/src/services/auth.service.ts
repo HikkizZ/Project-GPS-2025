@@ -114,8 +114,23 @@ export async function loginService(user: LoginData): Promise<[string | null, aut
   }
 }
 
+// Función auxiliar para limpiar automáticamente los campos de texto de usuarios
+function limpiarCamposTextoUsuario(data: any): any {
+    const dataCopia = { ...data };
+    
+    // Aplicar trim y eliminar espacios dobles
+    if (dataCopia.name) dataCopia.name = dataCopia.name.trim().replace(/\s+/g, ' ');
+    if (dataCopia.email) dataCopia.email = dataCopia.email.trim();
+    if (dataCopia.rut) dataCopia.rut = dataCopia.rut.trim();
+    
+    return dataCopia;
+}
+
 export const createUserService = async (userData: UserData): Promise<[UserResponse | null, string | null]> => {
     try {
+        // LIMPIEZA AUTOMÁTICA: Eliminar espacios extra de todos los campos de texto
+        userData = limpiarCamposTextoUsuario(userData);
+        
         const { name, email, password, role, rut } = userData;
 
         // Verificar si el usuario ya existe

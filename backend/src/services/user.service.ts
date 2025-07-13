@@ -82,8 +82,23 @@ export async function getUsersService(query: QueryParams): Promise<ServiceRespon
 }
 
 /* Actualizar datos de usuario */
+// Función auxiliar para limpiar automáticamente los campos de texto de usuarios
+function limpiarCamposTextoUsuario(data: any): any {
+    const dataCopia = { ...data };
+    
+    // Aplicar trim y eliminar espacios dobles
+    if (dataCopia.name) dataCopia.name = dataCopia.name.trim().replace(/\s+/g, ' ');
+    if (dataCopia.email) dataCopia.email = dataCopia.email.trim();
+    if (dataCopia.rut) dataCopia.rut = dataCopia.rut.trim();
+    
+    return dataCopia;
+}
+
 export const updateUserService = async (id: number, body: UpdateUserData, requester: User): Promise<User | null> => {
     try {
+        // LIMPIEZA AUTOMÁTICA: Eliminar espacios extra de todos los campos de texto
+        body = limpiarCamposTextoUsuario(body);
+        
         const userRepository = AppDataSource.getRepository(User);
         const user = await userRepository.findOne({
             where: { id }

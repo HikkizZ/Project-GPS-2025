@@ -15,7 +15,9 @@
     "verificar-licencias:prod": "pm2 start src/scripts/verificarLicenciasVencidas.ts --name=\"verificar-licencias\" --interpreter=\"tsx\"",
     "verificar-licencias:stop": "pm2 stop verificar-licencias",
     "verificar-licencias:status": "pm2 status verificar-licencias",
-    "eliminar-campo-empresa": "tsx src/scripts/eliminarCampoEmpresa.ts"
+    "eliminar-campo-empresa": "tsx src/scripts/eliminarCampoEmpresa.ts",
+    "limpiar-espacios-trabajadores": "tsx src/scripts/limpiarEspaciosTrabajadores.ts",
+    "limpiar-espacios-usuarios": "tsx src/scripts/limpiarEspaciosUsuarios.ts"
   },
   "keywords": [],
   "author": "HikkizZ",
