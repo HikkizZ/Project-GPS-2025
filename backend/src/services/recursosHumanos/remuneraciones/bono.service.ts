@@ -156,6 +156,30 @@ try {
     if (data.temporalidad !== undefined) bono.temporalidad = data.temporalidad as temporalidad;
     if (data.descripcion !== undefined) bono.descripcion = data.descripcion;
     if (data.imponible !== undefined) bono.imponible = data.imponible;
+    
+    // Validar si el bono con los nuevos datos choca con otro existente
+    const { Op } = require('sequelize');
+    // Excluir el bono actual de la búsqueda
+    const { Not } = require('sequelize').Op;
+    const existingBono = await bonosRep.findOne({
+        where: {
+            id: Not(id), // Excluir el bono actual
+            [Op.or]: [
+                { nombreBono: bono.nombreBono },
+                {
+                    [Op.and]: [
+                        { tipoBono: bono.tipoBono },
+                        { temporalidad: bono.temporalidad },
+                        { monto: bono.monto },
+                        { imponible: bono.imponible }
+                    ]
+                }
+            ]
+        }
+    });
+    if (existingBono) {
+        return [null, "Ya existe un bono con los mismos parámetros. Mismo nombre o mismas caracteristicas."];
+    }
     // Guardar cambios
     await bonosRep.save(bono);
     return [bono, null];
