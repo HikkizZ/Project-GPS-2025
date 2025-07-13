@@ -10,6 +10,21 @@ import { FileManagementService } from "../fileManagement.service.js";
 import { FileUploadService } from "../fileUpload.service.js";
 import { sendLicenciaPermisoApprovedEmail, sendLicenciaPermisoRejectedEmail } from "../email.service.js";
 
+/**
+ * Normaliza el tipo de solicitud - solo acepta valores exactos para mayor profesionalismo
+ */
+function normalizarTipoSolicitud(tipoInput: string): TipoSolicitud | null {
+  const tipoLimpio = tipoInput.trim();
+  
+  // Solo valores exactos del enum - más profesional y predecible
+  const mapeoTipos: { [key: string]: TipoSolicitud } = {
+    "Licencia médica": TipoSolicitud.LICENCIA,
+    "Permiso administrativo": TipoSolicitud.PERMISO
+  };
+  
+  return mapeoTipos[tipoLimpio] || null;
+}
+
 export async function createLicenciaPermisoService(data: CreateLicenciaPermisoDTO & { file?: Express.Multer.File }): Promise<ServiceResponse<LicenciaPermiso>> {
   const queryRunner = AppDataSource.createQueryRunner();
   await queryRunner.connect();
@@ -146,7 +161,11 @@ export async function getAllLicenciasPermisosService(filtros: any = {}): Promise
       queryBuilder.andWhere('trabajador.id = :trabajadorId', { trabajadorId: filtros.trabajadorId });
     }
     if (filtros.tipo) {
-      queryBuilder.andWhere('licencia.tipo = :tipo', { tipo: filtros.tipo });
+      // Mapeo inteligente para tipos legibles
+      const tipoNormalizado = normalizarTipoSolicitud(filtros.tipo);
+      if (tipoNormalizado) {
+        queryBuilder.andWhere('licencia.tipo = :tipo', { tipo: tipoNormalizado });
+      }
     }
     if (filtros.estado) {
       queryBuilder.andWhere('licencia.estado = :estado', { estado: filtros.estado });
