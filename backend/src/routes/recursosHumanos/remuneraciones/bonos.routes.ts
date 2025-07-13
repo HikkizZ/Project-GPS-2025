@@ -5,7 +5,9 @@ import {
     getAllBonos,
     getBonoById,
     updateBono,
-    deleteBono
+    deleteBono,
+    asignarBono,
+    updateAssignBono
 } from "../../../controllers/recursosHumanos/remuneraciones/bono.controller.js";
 
 const router: Router = Router();
@@ -25,6 +27,10 @@ router.put("/:id", updateBono); // Actualizar bono (propietario o RRHH)
 
 // Rutas para eliminar bonos
 router.delete("/:id", deleteBono); // Eliminar bono (propietario o RRHH)
+
+// Asignación de bonos
+router.post("/asignar", asignarBono); // Asignar bono a un trabajador
+router.put("/asignar/:id", updateAssignBono); // Actualizar asignación de bono
 
 
 export default router; 

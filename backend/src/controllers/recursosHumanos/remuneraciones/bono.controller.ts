@@ -4,16 +4,20 @@ import {
     getAllBonosService,
     getBonoByIdService,
     updateBonoService,
-    deleteBonoService
+    deleteBonoService,
+    assignBonoService,
+    updateAssingBonoService
 } from "../../../services/recursosHumanos/remuneraciones/bono.service.js";
 import { handleSuccess, handleErrorClient, handleErrorServer } from "../../../handlers/responseHandlers.js";
 import { 
     CreateBonoValidation, 
     UpdateBonoValidation, 
-    BonoQueryValidation 
+    BonoQueryValidation ,
+    AsignarBonoValidation
 } from "../../../validations/recursosHumanos/remuneraciones/bono.validation.js";
 import { AppDataSource } from "../../../config/configDB.js";
 import { Trabajador } from "../../../entity/recursosHumanos/trabajador.entity.js";
+import { Bono } from "../../../entity/recursosHumanos/Remuneraciones/Bono.entity.js";
 
 /**
  * Crear una nueva bono
@@ -139,7 +143,7 @@ export async function getBonoById(req: Request, res: Response): Promise<void> {
         }
 
         // Verificar permisos: usuarios solo pueden ver sus propias bonos
-        if (req.user.role !== 'RecursosHumanos' && req.user.role !== 'Administrador') {
+        if (req.user.role !== 'RecursosHumanos' && req.user.role !== 'SuperAdministrador') {
             handleErrorClient(res, 403, "No tiene permisos para ver este bono");
             return;
         }
@@ -186,12 +190,12 @@ export async function updateBono(req: Request, res: Response): Promise<void> {
             return;
         }
 
-        if (req.user.role !== 'RecursosHumanos' && req.user.role !== 'Administrador') {    
+        if (req.user.role !== 'RecursosHumanos' && req.user.role !== 'SuperAdministrador') {    
             handleErrorClient(res, 403, "No tiene permisos para actualizar esta bono");
             return;
         }
 
-        const [bonoActualizado, error] = await updateBonoService( validationResult.value, bonoId );
+        const [bonoActualizado, error] = await updateBonoService( validationResult.value, bonoExistente?.id || bonoId);
 
         if (error) {
             const errorMessage = typeof error === 'string' ? error : error.message;
@@ -230,12 +234,12 @@ export async function deleteBono(req: Request, res: Response): Promise<void> {
             return;
         }
 
-        if (req.user.role !== 'RecursosHumanos' && req.user.role !== 'Administrador') {
+        if (req.user.role !== 'RecursosHumanos' && req.user.role !== 'SuperAdministrador') {
             handleErrorClient(res, 403, "No tiene permisos para eliminar este bono");
             return;
         }
 
-        const [bonoEliminado, error] = await deleteBonoService(bonoId);
+        const [bonoEliminado, error] = await deleteBonoService(bonoExistente?.id || bonoId);
 
         if (error) {
             const errorMessage = typeof error === 'string' ? error : error.message;
@@ -250,3 +254,89 @@ export async function deleteBono(req: Request, res: Response): Promise<void> {
     }
 }
 
+export async function asignarBono(req: Request, res: Response): Promise<void> {
+    try {
+        if (!req.user?.id) {
+            handleErrorClient(res, 401, "Usuario no autenticado");
+            return;
+        }
+        // Validar que el usuario sea RRHH o SuperAdministrador
+        if (req.user.role !== 'RecursosHumanos' && req.user.role !== 'SuperAdministrador') {
+            handleErrorClient(res, 403, "No tiene permisos para asignar bonos");
+            return;
+        }
+
+        // Preparar los datos de la solicitud
+        const requestData = {
+            ...req.body,
+        };
+
+        // Validar el cuerpo de la solicitud
+        const validationResult = AsignarBonoValidation.validate(requestData, { abortEarly: false });
+        if (validationResult.error) {
+            
+            handleErrorClient(res, 400, "Error de validación", {
+                errors: validationResult.error.details.map(error => ({
+                    field: error.path.join('.'),
+                    message: error.message
+                }))
+            });
+            return;
+        }
+        
+        // Asignar el bono al trabajador
+        const [ asignacionBono, errorAsignacion ] = await assignBonoService( validationResult.value );
+        if (errorAsignacion) {
+            handleErrorClient(res, 400, errorAsignacion as string);
+            return;
+        }
+        handleSuccess(res, 201, "Bono asignado exitosamente", asignacionBono || {});
+    } catch (error) {
+        console.error("Error al asignar bono:", error);
+        handleErrorServer(res, 500, "Error interno del servidor al asignar bono");
+    }   
+}
+
+export async function updateAssignBono(req: Request, res: Response): Promise<void> {
+    try {
+        if (!req.user?.id) {
+            handleErrorClient(res, 401, "Usuario no autenticado");
+            return;
+        }
+        // Validar que el usuario sea RRHH o SuperAdministrador
+        if (req.user.role !== 'RecursosHumanos' && req.user.role !== 'SuperAdministrador') {
+            handleErrorClient(res, 403, "No tiene permisos para actualizar asignaciones de bonos");
+            return;
+        }
+        // Preparar los datos de la solicitud
+        const requestData = {
+            ...req.body,    
+        };
+        // Validar el cuerpo de la solicitud
+        const validationResult = AsignarBonoValidation.validate(requestData, { abortEarly: false });
+        if (validationResult.error) {
+            handleErrorClient(res, 400, "Error de validación", {
+                errors: validationResult.error.details.map(error => ({
+                    field: error.path.join('.'),
+                    message: error.message
+                }))
+            });
+            return;
+        }
+        // Actualizar la asignación del bono
+        const asignacionId = parseInt(req.params.id);
+        if (isNaN(asignacionId)) {
+            handleErrorClient(res, 400, "ID de asignación de bono inválido");
+            return;
+        }
+        const [ asignacionActualizada, errorActualizacion ] = await updateAssingBonoService( validationResult.value, asignacionId );
+        if (errorActualizacion) {
+            handleErrorClient(res, 400, errorActualizacion as string);
+            return;
+        }
+        handleSuccess(res, 200, "Asignación de bono actualizada exitosamente", asignacionActualizada || {});
+    } catch (error) {
+        console.error("Error al actualizar asignación de bono:", error);
+        handleErrorServer(res, 500, "Error interno del servidor al actualizar asignación de bono");
+    }
+}
