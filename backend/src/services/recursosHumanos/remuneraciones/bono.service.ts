@@ -92,8 +92,8 @@ export async function createBonoService(data: CreateBonoDTO): Promise<ServiceRes
 
     try {
         const bonosRep = queryRunner.manager.getRepository(Bono);
-        
-        //Crear bono
+
+        //obtener data del bono
         const bonoData: DeepPartial<Bono> = {
             nombreBono: data.nombreBono,
             monto: data.monto,
@@ -101,6 +101,30 @@ export async function createBonoService(data: CreateBonoDTO): Promise<ServiceRes
             temporalidad: data.temporalidad as temporalidad,
             descripcion: data.descripcion,
             imponible: data.imponible ?? true, // Por defecto es true si no se especifica
+        }
+
+        // Validar si el bono ya existe
+        const { Op } = require('sequelize');
+
+        const existingBono = await bonosRep.findOne({
+        where: {
+            [Op.or]: [
+            { nombreBono: bonoData.nombreBono },
+            {
+                [Op.and]: [
+                { tipoBono: bonoData.tipoBono },
+                { temporalidad: bonoData.temporalidad },
+                { monto: bonoData.monto },
+                { imponibilidad: bonoData.imponible }
+                ]
+            }
+            ]
+        }
+        });
+
+        if (existingBono) {
+            await queryRunner.rollbackTransaction();
+            return [null, "Ya existe un bono con los mismos parámetros. Mismo nombre o mismas caracteristicas."];
         }
 
         const nuevoBono = bonosRep.create(bonoData);
