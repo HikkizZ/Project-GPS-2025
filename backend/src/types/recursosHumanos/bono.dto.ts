@@ -42,13 +42,13 @@ export interface BonoResponseDTO {
 export interface AsignarBonoDTO {
     trabajadorId: number;
     bonoId: number;
-    fechaEntrega?: string | Date;
+    fechaAsignacion?: string | Date;
     activo?: boolean;
     observaciones?: string;
 }
 
 export interface UpdateAsignarBonoDTO {
-    fechaEntrega?: string | Date;
+    fechaAsignacion?: string | Date;
     activo?: boolean;
     observaciones?: string;
 }
@@ -80,7 +80,7 @@ export interface AsignarBonoResponseDTO {
         tipoBono: "estatal" | "empresarial";
         temporalidad: "permanente" | "recurrente" | "puntual";
     };
-    fechaEntrega: Date;
+    fechaAsignacion: Date;
     activo: boolean;
     observaciones?: string;
 }

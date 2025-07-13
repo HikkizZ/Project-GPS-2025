@@ -58,7 +58,7 @@ export const AsignarBonoValidation = Joi.object({
         'any.required': 'El ID del bono es requerido'
     }),
     
-    fechaEntrega: Joi.date().iso().required().min('now').messages({
+    fechaAsignacion: Joi.date().iso().required().min('now').messages({
         'date.base': 'La fecha de entrega debe ser una fecha válida',
         'date.format': 'La fecha de entrega debe estar en formato ISO (YYYY-MM-DD)',
         'date.min': 'La fecha de entrega debe ser una fecha actual o futura',
