@@ -84,3 +84,41 @@ export interface AsignarBonoResponseDTO {
     activo: boolean;
     observaciones?: string;
 }
+
+/**
+ * 
+ * export interface TrabajadoresByBonoResponseDTO {
+    id: number;
+    rut: string;
+    nombres: string;
+    apellidoPaterno: string;
+    apellidoMaterno: string;
+    fechaNacimiento: Date;
+    telefono: string;
+    correo: string;
+    numeroEmergencia: string;
+    direccion: string;
+    fechaIngreso: Date;
+    enSistema: boolean;
+    fichaEmpresa: any;
+    historialLaboral: any[];
+    licenciasPermisos: any[];
+    usuario: any;
+    asignaciones: AsignarBonoResponseDTO[];
+    datosPrevisionales: any[];
+    fechaRegistro: Date;
+}
+ * 
+ */
+
+export interface DetalleBonoResponseDTO {
+    id: number;
+    nombreBono: string;
+    monto: string;
+    tipoBono: "estatal" | "empresarial";
+    temporalidad: "permanente" | "recurrente" | "puntual";
+    descripcion?: string;
+    imponible: boolean;
+    fechaCreacion: Date;
+    asignaciones: AsignarBonoResponseDTO[];
+}
