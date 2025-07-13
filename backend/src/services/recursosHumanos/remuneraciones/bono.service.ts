@@ -142,6 +142,7 @@ export async function createBonoService(data: CreateBonoDTO): Promise<ServiceRes
     }
 }
 
+// Actualizar Bono
 export async function updateBonoService(data: UpdateBonoDTO, id: number): Promise<ServiceResponse<Bono>> {
 try {
     const bonosRep = AppDataSource.getRepository(Bono);
@@ -189,6 +190,7 @@ try {
   }
 }
 
+// Eliminar Bono
 export async function deleteBonoService(id: number): Promise<ServiceResponse<Bono>> {
     try {
             const bonosRep = AppDataSource.getRepository(Bono);
@@ -202,3 +204,156 @@ export async function deleteBonoService(id: number): Promise<ServiceResponse<Bon
         return [null, "Error interno del servidor"];
     }
 }
+
+// Asignar Bono
+export async function assignBonoService (data: AsignarBonoDTO): Promise<ServiceResponse<AsignarBonoResponseDTO>> {
+    // Crear un query runner para manejar transacciones
+    const queryRunner = AppDataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+        // Obtener los repositorios necesarios
+        const asignarBonoRep = queryRunner.manager.getRepository(AsignarBono);
+        const trabajadorRep = queryRunner.manager.getRepository(Trabajador);
+        const bonoRep = queryRunner.manager.getRepository(Bono);
+
+        // Validar si el trabajador existe
+        const trabajador = await trabajadorRep.findOneBy({ id: data.trabajadorId });
+        if (!trabajador) {
+            await queryRunner.rollbackTransaction();
+            return [null, "Trabajador no encontrado"];
+        }
+        // Validar si el bono existe
+        const bono = await bonoRep.findOneBy({ id: data.bonoId });
+        if (!bono) {
+            await queryRunner.rollbackTransaction();
+            return [null, "Bono no encontrado"];
+        }
+        // Crear la asignación de bono
+        const asignacionBono = asignarBonoRep.create({
+            trabajador,
+            bono,
+            fechaAsignacion: data.fechaAsignacion ? new Date(data.fechaAsignacion) : new Date(),
+            activo: data.activo ?? true, // Por defecto es true si no se especifica
+            observaciones: data.observaciones
+        });
+
+        const nuevoAsignacionBono = await asignarBonoRep.create(asignacionBono);
+        await queryRunner.manager.save(nuevoAsignacionBono);
+        await queryRunner.commitTransaction();
+
+        return [nuevoAsignacionBono, null];
+    } catch (error) {
+        await queryRunner.rollbackTransaction();
+        console.error("Error al asignar bono:", error);
+        return [null, "Error interno del servidor"];
+    } finally {
+        await queryRunner.release();
+    }
+}
+
+// Actualizar Asignación de Bono
+export async function updateAssingBonoService(data: UpdateAsignarBonoDTO, id: number): Promise<ServiceResponse<AsignarBonoResponseDTO>> {
+    try {
+        const asignarBonoRep = AppDataSource.getRepository(AsignarBono);
+        const asignacion = await asignarBonoRep.findOneBy({ id });
+        if (!asignacion) {
+            return [null, "Asignación de bono no encontrada"];
+        }
+        // Actualizar campos de la asignación
+        if (data.fechaAsignacion !== undefined) asignacion.fechaAsignacion = new Date(data.fechaAsignacion);
+        if (data.activo !== undefined) asignacion.activo = data.activo;
+        if (data.observaciones !== undefined) asignacion.observaciones = data.observaciones;
+        // Guardar cambios
+        await asignarBonoRep.save(asignacion);
+        const response: AsignarBonoResponseDTO = {
+            id: asignacion.id,
+            trabajador: {
+                id: asignacion.trabajador.id,
+                nombres: asignacion.trabajador.nombres,
+                apellidoPaterno: asignacion.trabajador.apellidoPaterno,
+                apellidoMaterno: asignacion.trabajador.apellidoMaterno,
+                rut: asignacion.trabajador.rut
+            },
+            bono: {
+                id: asignacion.bono.id,
+                nombreBono: asignacion.bono.nombreBono,
+                monto: asignacion.bono.monto,
+                tipoBono: asignacion.bono.tipoBono,
+                temporalidad: asignacion.bono.temporalidad
+            },
+            fechaAsignacion: asignacion.fechaAsignacion,
+            activo: asignacion.activo,
+            observaciones: asignacion.observaciones
+        };
+        return [response, null];
+    } catch (error) {
+        console.error("Error al actualizar asignación de bono:", error);
+        return [null, "Error interno del servidor"];
+    }
+}
+/*
+// El obtener las asignaciones suena algo mas relacionado a la ficha u otra cosa, pero se deja por si acaso
+// Obtener trabajadores asociados a bonos
+export async function getTrabajadoresByBonoService(query: AsignarBonoQueryDTO): Promise<ServiceResponse<AsignarBonoResponseDTO[]>> {
+    try {
+        const asignarBonoRep = AppDataSource.getRepository(AsignarBono);
+        const options: FindManyOptions<AsignarBono> = {
+            where: {},
+            relations: ["trabajador", "bono"],
+            order: { fechaAsignacion: "DESC" }
+        };
+        // Construir where clause
+        const whereConditions: any = {};
+        if (query.id) {
+            whereConditions.id = query.id;
+        }
+        if (query.trabajadorId) {
+            whereConditions.trabajador = { id: query.trabajadorId };
+        }
+        if (query.bonoId) {
+            whereConditions.bono = { id: query.bonoId };
+        }
+        if (query.activo !== undefined) {
+            whereConditions.activo = query.activo;
+        }
+        if (query.fechaEntregaDesde && query.fechaEntregaHasta) {
+            whereConditions.fechaAsignacion = Between(new Date(query.fechaEntregaDesde), new Date(query.fechaEntregaHasta));
+        }
+        else if (query.fechaEntregaDesde) {
+            whereConditions.fechaAsignacion = Between(new Date(query.fechaEntregaDesde), new Date());
+        } else if (query.fechaEntregaHasta) {
+            whereConditions.fechaAsignacion = Between(new Date('1900-01-01'), new Date(query.fechaEntregaHasta));
+        }
+        if (Object.keys(whereConditions).length > 0) {
+            options.where = whereConditions;
+        }
+        const asignaciones = await asignarBonoRep.find(options);
+        const response: AsignarBonoResponseDTO[] = asignaciones.map(asignacion => ({
+            id: asignacion.id,
+            trabajador: {
+                id: asignacion.trabajador.id,
+                nombres: asignacion.trabajador.nombres, 
+                apellidoPaterno: asignacion.trabajador.apellidoPaterno,
+                apellidoMaterno: asignacion.trabajador.apellidoMaterno,
+                rut: asignacion.trabajador.rut
+            },
+            bono: {
+                id: asignacion.bono.id,
+                nombreBono: asignacion.bono.nombreBono,
+                monto: asignacion.bono.monto,
+                tipoBono: asignacion.bono.tipoBono,
+                temporalidad: asignacion.bono.temporalidad
+            },
+            fechaAsignacion: asignacion.fechaAsignacion,
+            activo: asignacion.activo,      
+            observaciones: asignacion.observaciones
+        }));
+        return [response, null];
+    } catch (error) {
+        console.error("Error al obtener trabajadores por bono:", error);
+        return [null, "Error interno del servidor"];
+    }
+}
+*/
