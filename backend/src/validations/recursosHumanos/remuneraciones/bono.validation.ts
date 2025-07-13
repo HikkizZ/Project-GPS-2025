@@ -119,12 +119,6 @@ export const UpdateAsignarBonoValidation = Joi.object({
         'number.positive': 'El ID del bono debe ser positivo'
     }),
     
-    fechaEntrega: Joi.date().iso().optional().min('now').messages({
-        'date.base': 'La fecha de entrega debe ser una fecha válida',
-        'date.format': 'La fecha de entrega debe estar en formato ISO (YYYY-MM-DD)',
-        'date.min': 'La fecha de entrega debe ser una fecha actual o futura'
-    }),
-    
     activo: Joi.boolean().optional(),
     
     observaciones: Joi.string().trim().max(500).optional().allow('').messages({
@@ -174,23 +168,17 @@ export const BonoQueryValidation = Joi.object({
     imponible: Joi.boolean().optional().messages({
         'boolean.base': 'El estado imponible debe ser un booleano'
     })
+})
+.or('id', 'nombreBono', 'tipoBono', 'temporalidad', 'fechaCreacionDesde', 'fechaCreacionHasta', 'activo', 'imponible')
+.unknown(false)
+.messages({
+    'object.unknown': 'Parámetro no permitido en la consulta',
+    'object.missing': 'Al menos uno de los parámetros debe ser proporcionado'
 });
 
 // Validación de query para obtener asignaciones de bonos
 // page y limit aún lo tengo en opcional porque no estoy seguro de como hacer que se vean en frontend
 export const AsignarBonoQueryValidation = Joi.object({
-    page: Joi.number().integer().min(1).default(1).optional().messages({
-        'number.base': 'El número de página debe ser un número',
-        'number.integer': 'El número de página debe ser un número entero',
-        'number.min': 'El número de página debe ser al menos 1'
-    }),
-    
-    limit: Joi.number().integer().min(1).max(100).default(10).optional().messages({
-        'number.base': 'El límite debe ser un número',
-        'number.integer': 'El límite debe ser un número entero',
-        'number.min': 'El límite debe ser al menos 1',
-        'number.max': 'El límite no puede superar 100'
-    }),
     
     trabajadorId: Joi.number().integer().positive().optional().messages({
         'number.base': 'El ID del trabajador debe ser un número',
@@ -203,6 +191,17 @@ export const AsignarBonoQueryValidation = Joi.object({
         'number.integer': 'El ID del bono debe ser un número entero',
         'number.positive': 'El ID del bono debe ser positivo'
     }),
+
+    fechaAsignacion: Joi.date().iso().optional().messages({
+        'date.base': 'La fecha de asignación debe ser una fecha válida',
+        'date.format': 'La fecha de asignación debe estar en formato ISO (YYYY-MM-DD)'
+    }),
     
     activo: Joi.boolean().optional()
-});
+})
+.or('trabajadorId', 'bonoId', 'fechaAsignacion', 'activo')
+.unknown(false)
+.messages({
+    'object.unknown': 'Parámetro no permitido en la consulta',
+    'object.missing': 'Al menos uno de los parámetros debe ser proporcionado'
+}); 
