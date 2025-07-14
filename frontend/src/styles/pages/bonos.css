@@ -1,0 +1,69 @@
+.main-content-formBono {
+  display: inherit;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 1000px;
+  padding: 20px;
+  box-sizing: border-box;
+  margin-left: auto;
+  margin-right: auto;
+  overflow-x: hidden;
+}
+
+.controls-formBono {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  margin-bottom: 40px;
+}
+
+.button-container {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  margin-bottom: 40px;
+}
+
+
+.schedule-bonos {
+display: flex;
+flex-direction: column;
+justify-content: flex-start;
+gap: 30px; /* Espacio entre las tarjetas */
+padding: 30px;
+}
+
+.temporalidad-title-bonos {
+  font-size: 1.8rem;
+  color: #475b63;
+  margin-bottom: 20px; 
+  text-align: left;
+}
+
+
+.bonos-grid {
+  flex-grow: 1;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 20px;
+  margin-top: 10px;
+}
+
+
+
+.search-input-table {
+    padding: 8px 16px;
+    border-radius: 4px;
+    padding-left: 34px;
+    background-image: url("../assets/SearchIcon.svg");
+    background-repeat: no-repeat;
+    background-position: 10px center;
+    border: 1px solid #bacdb0;
+    font-size: 16px;
+    width: 200px;
+    background-color: rgba(255, 255, 255, 0.87);
+    color: black;
+}
+

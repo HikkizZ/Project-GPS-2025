@@ -9,6 +9,7 @@ import {
 } from "typeorm";
 import { HistorialLaboral } from "./historialLaboral.entity.js";
 import { LicenciaPermiso } from "./licenciaPermiso.entity.js";
+import { User } from "../user.entity.js";
 import { formatRut } from "../../helpers/rut.helper.js";
 
 @Entity("trabajadores")
@@ -76,7 +77,7 @@ export class Trabajador {
   telefono!: string;
 
   @Column({ type: "varchar", length: 255, nullable: false })
-  correoPersonal!: string;
+  correo!: string;
 
   @Column({ type: "varchar", length: 12, nullable: true })
   numeroEmergencia!: string;
