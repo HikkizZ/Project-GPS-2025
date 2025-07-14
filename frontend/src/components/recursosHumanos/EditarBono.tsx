@@ -15,6 +15,7 @@ enum TipoBono {
   estatal = 'estatal',
   empresarial = 'empresarial'
 }
+
 enum Temporalidad {
   permanente = 'permanente',
   recurrente = 'recurrente',
@@ -43,7 +44,7 @@ export const EditarBonoModal: React.FC<EditarBonoModalProps> = ({
     const [validated, setValidated] = useState(false);
     const [hasChanges, setHasChanges] = useState(false);
     const [closeW, setCloseW] = useState(false);
-    const [initialFormData, setInitialFormData] = useState<UpdateBonoData>({
+    const [formData, setFormData] = useState<UpdateBonoData>({
         nombreBono: 'Ejemplo',
         monto: '111.111',
         tipoBono: TipoBono.empresarial,
@@ -51,12 +52,14 @@ export const EditarBonoModal: React.FC<EditarBonoModalProps> = ({
         descripcion: '',
         imponible: true,
     });
-
+   
     // Toast notifications
-      const { toasts, removeToast, showSuccess, showError } = useToast();
+    const { toasts, removeToast, showSuccess, showError } = useToast();
 
-      if(!bono) return null;
-      const [formData, setFormData] = useState<UpdateBonoData & { monto: string }>({
+    useEffect(() => {
+      if(!bono) return;
+
+      setFormData({
           nombreBono: (bono.nombreBono && bono.nombreBono !== 'Por definir')? bono.nombreBono : 'Ejemplo',
           monto: bono.monto ? formatMiles(bono.monto) : '111.111',
           tipoBono: ( bono.tipoBono || 'empresarial' ),
@@ -64,8 +67,6 @@ export const EditarBonoModal: React.FC<EditarBonoModalProps> = ({
           descripcion: (bono.descripcion && bono.descripcion !== 'Por definir')? bono.descripcion : '',
           imponible: bono.imponible !== undefined ? bono.imponible : true,
       });
-
-    useEffect(() => {
       if(show && bono) {
         const newFormData = {
           nombreBono: (bono.nombreBono && bono.nombreBono !== 'Por definir')? bono.nombreBono : '',
@@ -76,7 +77,6 @@ export const EditarBonoModal: React.FC<EditarBonoModalProps> = ({
           imponible: bono.imponible !== undefined ? bono.imponible : true,
         };
         setFormData(newFormData);
-        setInitialFormData(newFormData);
         setHasChanges(false);
         setValidated(false);
         setCloseW(false);
@@ -102,11 +102,11 @@ export const EditarBonoModal: React.FC<EditarBonoModalProps> = ({
         // Verificar si hay cambios comparando con los valores iniciales
         const hasAnyChange = Object.keys(newFormData).some(key => {
           if (key === 'monto') {
-            const initialValue = cleanNumber(initialFormData[key]);
+            const initialValue = cleanNumber(formData[key]);
             const currentValue = cleanNumber(newFormData[key]);
             return initialValue !== currentValue;
           }
-          return newFormData[key] !== initialFormData[key];
+          return newFormData[key] !== formData[key];
         });
         setHasChanges(hasAnyChange);
     };
@@ -178,7 +178,7 @@ export const EditarBonoModal: React.FC<EditarBonoModalProps> = ({
           <Modal.Header 
                     closeButton={!closeW}
                     style={{
-                      background: 'linear-gradient(135deg, #BDE3EC 0%, #FFFF82 100%)',
+                      background: 'linear-gradient(135deg, #C9CCD3 0%, #78808D 100%)',
                       border: 'none',
                       padding: '1rem 1.25rem'
                     }}
