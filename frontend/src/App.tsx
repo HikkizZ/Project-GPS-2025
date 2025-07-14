@@ -635,8 +635,6 @@ function App() {
                 <Route path="ficha-empresa" element={<FichasEmpresaPage />} />
                 <Route path="ficha-empresa/mi-ficha" element={<FichasEmpresaPage />} />
                 <Route path="bonos" element={<BonosPage />} />
-                <Route path="fichas-empresa" element={<FichasEmpresaPage />} />
-                <Route path="fichas-empresa/mi-ficha" element={<FichasEmpresaPage />} />
                 <Route path="usuarios" element={<UsersPage />} />
                 <Route path="gestion-personal" element={<GestionPersonalPage />} />
                 <Route path="gestion-licencias-permisos" element={<GestionLicenciasPermisosPage />} />
