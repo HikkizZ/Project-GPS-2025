@@ -9,9 +9,6 @@ import {
 } from "typeorm";
 import { HistorialLaboral } from "./historialLaboral.entity.js";
 import { LicenciaPermiso } from "./licenciaPermiso.entity.js";
-import { AsignarBono } from "./Remuneraciones/asignarBono.entity.js";
-import { DatosPrevisionalesTrabajador } from "./Remuneraciones/datosPrevisionalesTrabajador.entity.js";
-import { User } from "../user.entity.js";
 import { formatRut } from "../../helpers/rut.helper.js";
 
 @Entity("trabajadores")
@@ -126,12 +123,12 @@ export class Trabajador {
   licenciasPermisos!: LicenciaPermiso[];
 
   // Relación 1:1 con usuario (por RUT)
-  @OneToOne(() => User, user => user.trabajador, { 
+  @OneToOne("User", "trabajador", { 
     eager: false,
     nullable: true,
     onDelete: 'SET NULL'
   })
-  usuario?: User;
+  usuario?: any;
 
   // Relación 1:N con asignaciones de bonos
   @OneToMany(() => AsignarBono, asignacion => asignacion.trabajador)

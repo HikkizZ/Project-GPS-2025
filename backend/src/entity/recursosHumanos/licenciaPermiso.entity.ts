@@ -6,8 +6,6 @@ import {
   CreateDateColumn,
   JoinColumn
 } from "typeorm";
-import { Trabajador } from "./trabajador.entity.js";
-import { User } from "../user.entity.js"; // Usuario que revisa (RRHH)
 
 export enum TipoSolicitud {
   LICENCIA = "Licencia médica",
@@ -25,11 +23,10 @@ export class LicenciaPermiso {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  // Relación con el trabajador solicitante
-  @ManyToOne(() => Trabajador, trabajador => trabajador.licenciasPermisos, { nullable: false })
+  // Relación con Trabajador
+  @ManyToOne("Trabajador", "licenciasPermisos", { nullable: false })
   @JoinColumn({ name: "trabajadorId" })
-  trabajador!: Trabajador;
-
+  trabajador!: any;
 
   @Column({ type: "enum", enum: TipoSolicitud })
   tipo!: TipoSolicitud;
@@ -103,10 +100,10 @@ export class LicenciaPermiso {
   @Column({ type: "text", nullable: true })
   respuestaEncargado!: string;
 
-  // Usuario que revisa la solicitud (RRHH)
-  @ManyToOne(() => User, { nullable: true })
+  // Relación con Usuario (quien revisa)
+  @ManyToOne("User", { nullable: true })
   @JoinColumn({ name: "revisadoPorId" })
-  revisadoPor!: User;
+  revisadoPor!: any;
 
   @Column({ type: "varchar", length: 255, nullable: true })
   archivoAdjuntoURL!: string;

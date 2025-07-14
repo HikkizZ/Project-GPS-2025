@@ -26,7 +26,7 @@ export const ListaGestionSolicitudes: React.FC = () => {
     cargarTodasLasSolicitudes,
     recargarSolicitudes,
     actualizarSolicitud,
-
+    buscarSolicitudesConFiltros,
     descargarArchivo,
     limpiarErrores
   } = useLicenciasPermisos(HOOK_OPTIONS_GESTION);
@@ -85,8 +85,24 @@ export const ListaGestionSolicitudes: React.FC = () => {
     // eslint-disable-next-line
   }, [showFilters]);
 
-  // Handler para aplicar filtros
-  const handleAplicarFiltros = () => {
+  // Handler para aplicar filtros - CONECTAR AL BACKEND
+  const handleAplicarFiltros = async () => {
+    // Construir objeto de filtros para el backend
+    const filtros: Record<string, any> = {};
+    
+    if (tmpEstado) filtros.estado = tmpEstado;
+    if (tmpTipo) {
+      // Usar directamente los valores del enum
+      filtros.tipo = tmpTipo;
+    }
+    if (tmpTrabajador) filtros.trabajadorApellidos = tmpTrabajador;
+    if (tmpFechaDesde) filtros.fechaInicio = tmpFechaDesde;
+    if (tmpFechaHasta) filtros.fechaFin = tmpFechaHasta;
+    
+    // Hacer búsqueda en el backend
+    await buscarSolicitudesConFiltros(filtros);
+    
+    // Actualizar filtros aplicados (para UI)
     setFiltroEstado(tmpEstado);
     setFiltroTipo(tmpTipo);
     setFiltroTrabajador(tmpTrabajador);
@@ -94,8 +110,9 @@ export const ListaGestionSolicitudes: React.FC = () => {
     setFiltroFechaHasta(tmpFechaHasta);
   };
 
-  // Limpiar filtros (aplicados y temporales)
-  const handleLimpiarFiltros = () => {
+  // Limpiar filtros - RECARGAR TODAS LAS SOLICITUDES
+  const handleLimpiarFiltros = async () => {
+    // Limpiar estados
     setFiltroEstado('');
     setFiltroTipo('');
     setFiltroTrabajador('');
@@ -106,6 +123,9 @@ export const ListaGestionSolicitudes: React.FC = () => {
     setTmpTrabajador('');
     setTmpFechaDesde('');
     setTmpFechaHasta('');
+    
+    // Recargar todas las solicitudes
+    await recargarSolicitudes();
   };
 
   // Formatear fecha
@@ -163,22 +183,8 @@ export const ListaGestionSolicitudes: React.FC = () => {
     return solicitud.trabajador.rut !== user.rut;
   };
 
-  // Filtrar solicitudes localmente
-  const solicitudesFiltradas = solicitudes.filter(solicitud => {
-    const matchEstado = !filtroEstado || solicitud.estado === filtroEstado;
-    const matchTipo = !filtroTipo || solicitud.tipo === filtroTipo;
-    const matchTrabajador = !filtroTrabajador || 
-      `${solicitud.trabajador.nombres} ${solicitud.trabajador.apellidoPaterno} ${solicitud.trabajador.apellidoMaterno}`
-        .toLowerCase().includes(filtroTrabajador.toLowerCase()) ||
-      solicitud.trabajador.rut.includes(filtroTrabajador);
-    
-    // Filtros de fecha
-    const fechaSolicitud = new Date(solicitud.fechaSolicitud);
-    const matchFechaDesde = !filtroFechaDesde || fechaSolicitud >= new Date(filtroFechaDesde);
-    const matchFechaHasta = !filtroFechaHasta || fechaSolicitud <= new Date(filtroFechaHasta + 'T23:59:59');
-    
-    return matchEstado && matchTipo && matchTrabajador && matchFechaDesde && matchFechaHasta;
-  });
+  // Ya no necesitamos filtrado local - el backend maneja todos los filtros
+  const solicitudesFiltradas = solicitudes;
 
   // Manejar descarga de archivo
   const handleDescargarArchivo = async (solicitud: LicenciaPermiso) => {
@@ -227,7 +233,7 @@ export const ListaGestionSolicitudes: React.FC = () => {
     
     try {
       const datosActualizacion: UpdateLicenciaPermisoDTO = {
-        estadoSolicitud: accionRespuesta === 'aprobar' ? EstadoSolicitud.APROBADA : EstadoSolicitud.RECHAZADA,
+        estado: accionRespuesta === 'aprobar' ? EstadoSolicitud.APROBADA : EstadoSolicitud.RECHAZADA,
         respuestaEncargado: respuestaTexto.trim() || ''
       };
 
@@ -344,8 +350,8 @@ export const ListaGestionSolicitudes: React.FC = () => {
                   onChange={(e) => setTmpTipo(e.target.value as TipoSolicitud | '')}
                 >
                   <option value="">Todos los tipos</option>
-                  <option value="Licencia">Licencia Médica</option>
-                  <option value="Permiso">Permiso Administrativo</option>
+                  <option value={TipoSolicitud.LICENCIA}>Licencia Médica</option>
+                  <option value={TipoSolicitud.PERMISO}>Permiso Administrativo</option>
                 </Form.Select>
               </Form.Group>
             </Col>
@@ -362,7 +368,7 @@ export const ListaGestionSolicitudes: React.FC = () => {
             </Col>
             <Col md={2}>
               <Form.Group className="mb-3">
-                <Form.Label>Desde</Form.Label>
+                <Form.Label>Fecha Inicio</Form.Label>
                 <Form.Control
                   type="date"
                   value={tmpFechaDesde}
@@ -372,7 +378,7 @@ export const ListaGestionSolicitudes: React.FC = () => {
             </Col>
             <Col md={2}>
               <Form.Group className="mb-3">
-                <Form.Label>Hasta</Form.Label>
+                <Form.Label>Fecha Fin</Form.Label>
                 <Form.Control
                   type="date"
                   value={tmpFechaHasta}
