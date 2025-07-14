@@ -36,18 +36,18 @@ router.use("/auth", authRoutes)
 router.use(authenticateJWT)
 
 // Rutas protegidas
-router.use("/users", userRoutes)
-router.use("/products", productRoutes)
-router.use("/customers", customerRoutes)
-router.use("/suppliers", supplierRoutes)
-router.use("/ficha-empresa", fichaEmpresaRoutes)
-router.use("/licencia-permiso", licenciaPermisoRoutes)
-router.use("/trabajadores", trabajadorRoutes)
-router.use("/historial-laboral", historialLaboralRoutes)
-router.use("/files", filesRoutes)
-router.use("/inventory-entry", inventoryEntryRoutes)
-router.use("/inventory-exit", inventoryExitRoutes)
-router.use("/inventory", inventoryRoutes)
+router.use('/users', userRoutes);
+router.use('/products', productRoutes);
+router.use('/customers', customerRoutes);
+router.use('/suppliers', supplierRoutes);
+router.use('/fichas-empresa', fichaEmpresaRoutes);
+router.use('/licencia-permiso', licenciaPermisoRoutes);
+router.use('/trabajadores', trabajadorRoutes);
+router.use('/historial-laboral', historialLaboralRoutes);
+router.use('/files', filesRoutes);
+router.use('/inventory-entry', inventoryEntryRoutes);
+router.use('/inventory-exit', inventoryExitRoutes);
+router.use('/inventory', inventoryRoutes);
 
 /* Maquinaria routes */
 router.use("/maquinaria", maquinariaRoutes)

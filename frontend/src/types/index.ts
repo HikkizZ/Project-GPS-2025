@@ -22,14 +22,6 @@ export interface LoginData {
   password: string;
 }
 
-export interface RegisterData {
-  name: string;
-  email: string;
-  password: string;
-  rut: string;
-  role?: UserRole;
-}
-
 export interface AuthResponse {
   status: 'success' | 'error';
   message?: string;

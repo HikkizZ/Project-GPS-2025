@@ -32,6 +32,7 @@ export class FileUploadService {
       // Determinar la carpeta según el tipo de archivo
       let uploadDir = FileUploadService.UPLOADS_DIR
 
+
       if (req.baseUrl.includes("licencia-permiso")) {
         uploadDir = path.join(uploadDir, "licencias")
       } else if (req.baseUrl.includes("ficha-empresa")) {
@@ -198,6 +199,7 @@ export class FileUploadService {
     FileUploadService.ensureUploadDirectories()
   }
 }
+
 
 /**
  * Servicio específico para maquinaria (agregado para compatibilidad)

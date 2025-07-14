@@ -1,11 +1,6 @@
 /* Import the required modules. */
 import { DataSource } from "typeorm";
 import { config } from "dotenv";
-import { User } from "../entity/user.entity.js";
-import { Trabajador } from "../entity/recursosHumanos/trabajador.entity.js";
-import { HistorialLaboral } from "../entity/recursosHumanos/historialLaboral.entity.js";
-import { FichaEmpresa } from "../entity/recursosHumanos/fichaEmpresa.entity.js";
-import { LicenciaPermiso } from "../entity/recursosHumanos/licenciaPermiso.entity.js";
 
 /* Import custom modules. */
 import { PORT, HOST, DATABASE, DB_USERNAME, DB_PASSWORD } from "./configEnv.js";

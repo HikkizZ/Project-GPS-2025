@@ -1,6 +1,7 @@
 import React from 'react';
 import { Container, Row, Col, Card } from 'react-bootstrap';
 import { ListaGestionSolicitudes } from '@/components/recursosHumanos/ListaGestionSolicitudes';
+import VerificarEstadosLaborales from '@/components/recursosHumanos/VerificarEstadosLaborales';
 
 export const GestionLicenciasPermisosPage: React.FC = () => {
 
@@ -11,13 +12,18 @@ export const GestionLicenciasPermisosPage: React.FC = () => {
           {/* Encabezado de página */}
           <Card className="shadow-sm mb-3">
             <Card.Header className="bg-gradient-primary text-white">
-              <div className="d-flex align-items-center">
-                <i className="bi bi-shield-check fs-4 me-3"></i>
+              <div className="d-flex align-items-center justify-content-between">
+                <div className="d-flex align-items-center">
+                  <i className="bi bi-shield-check fs-4 me-3"></i>
+                  <div>
+                    <h3 className="mb-1">Gestión de Licencias y Permisos</h3>
+                    <p className="mb-0 opacity-75">
+                      Panel administrativo para aprobar, rechazar y gestionar todas las solicitudes del sistema
+                    </p>
+                  </div>
+                </div>
                 <div>
-                  <h3 className="mb-1">Gestión de Licencias y Permisos</h3>
-                  <p className="mb-0 opacity-75">
-                    Panel administrativo para aprobar, rechazar y gestionar todas las solicitudes del sistema
-                  </p>
+                  <VerificarEstadosLaborales variant="white" />
                 </div>
               </div>
             </Card.Header>

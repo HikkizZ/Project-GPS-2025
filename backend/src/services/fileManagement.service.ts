@@ -14,7 +14,6 @@ const DIRS_TO_ENSURE = [
     path.join(UPLOADS_DIR_ABSOLUTE, 'contratos'),
     path.join(UPLOADS_DIR_ABSOLUTE, 'licencias'),
     path.join(UPLOADS_DIR_ABSOLUTE, 'historial'),
-    path.join(UPLOADS_DIR_ABSOLUTE, 'general'),
 ];
 
 export interface FileInfo {

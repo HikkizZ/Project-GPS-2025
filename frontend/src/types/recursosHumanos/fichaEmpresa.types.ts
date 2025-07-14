@@ -49,6 +49,7 @@ export interface CreateFichaEmpresaData {
 }
 
 export interface FichaEmpresaSearchQuery {
+  id?: number;
   trabajadorId?: number;
   rut?: string;
   estado?: EstadoLaboral;

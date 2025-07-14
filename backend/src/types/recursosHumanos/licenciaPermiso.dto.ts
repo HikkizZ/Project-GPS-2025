@@ -11,7 +11,7 @@ export type CreateLicenciaPermisoDTO = {
 };
 
 export type UpdateLicenciaPermisoDTO = {
-  estadoSolicitud: EstadoSolicitud;
+  estado: EstadoSolicitud;
   respuestaEncargado?: string;
   revisadoPor?: User;
 };
