@@ -56,8 +56,7 @@ export class BonoService {
 
             const responseData = await response.json();
             console.log('URL:', `${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}${this.baseURL}/`);
-            console.log('Token:', localStorage.getItem('auth_token'));
-            console.log('Response data:', responseData);
+            
             if (response.ok && responseData.status === 'success') {
                 return {
                 success: true,
@@ -100,6 +99,10 @@ export class BonoService {
             });
 
             const responseData = await response.json();
+            
+            console.log('URL:', `${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}${this.baseURL}/`);
+            console.log('Token:', localStorage.getItem('auth_token'));
+            console.log('Response data:', responseData);
 
 
             if (response.ok && responseData.status === 'success') {
@@ -127,8 +130,9 @@ export class BonoService {
     async actualizarBono( bonoId: number, bonoData: UpdateBonoData ): Promise<ApiResponse<Bono>> {
         try {
 
-            const response = await apiClient.put<{ data: Bono }>(`${this.baseURL}/${bonoId}`, bonoData);
-        
+            const response = await apiClient.put<{ data: Bono }>(`${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}${this.baseURL}/${bonoId}`, bonoData);
+            
+            
             
             return {
                 success: true,
