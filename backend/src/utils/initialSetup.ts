@@ -44,8 +44,8 @@ export async function initialSetup(): Promise<void> {
         } else {
             console.log("✅ Configuración inicial completada - SuperAdmin ya existe");
         } 
-        
-        // 8. Creacion de bonos predefinidos
+        /**
+         * // 8. Creacion de bonos predefinidos
         console.log("=> Creando bonos predefinidos...");
         const bono1 = bonosRepo.create({           
             nombreBono: "Bono de Productividad",
@@ -168,6 +168,10 @@ export async function initialSetup(): Promise<void> {
 
         await AppDataSource.getRepository(PrevisionSalud).save([saludFONASA, saludISAPRE]);
         console.log("✅ Configuración de previsión salud creada exitosamente");
+         */
+        
+
+        
         
     } catch (error) {
         console.error("❌ Error en la configuración inicial:", error);

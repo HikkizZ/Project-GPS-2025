@@ -17,47 +17,11 @@ import { ServiceResponse } from "../../../../types.js";
 import { Between, Like, FindManyOptions, DeepPartial } from "typeorm";
 import { date } from "joi";
 
-export async function getAllBonosService(query: BonoQueryDTO = {}): Promise<ServiceResponse<{ bonos: Bono[]; total: number }>> {
+export async function getAllBonosService(): Promise<ServiceResponse<{ bonos: Bono[]; total: number }>> {
     try {
         const bonosRep = AppDataSource.getRepository(Bono);
-
-        const options: FindManyOptions<Bono> = {
-            where: {},
-            take: query.limit,
-            skip: query.offset,
-            order: { fechaCreacion: "DESC" }
-        };
-
-        // Construir where clause
-            const whereConditions: any = {};
-        if (query.id) {
-            whereConditions.id = query.id;
-        }
-        if (query.nombreBono) {
-            whereConditions.nombreBono = Like(`%${query.nombreBono}%`);
-        }
-        if (query.tipoBono) {
-            whereConditions.tipoBono = query.tipoBono as tipoBono;
-        }
-        if (query.temporalidad) {
-            whereConditions.temporalidad = query.temporalidad as temporalidad;
-        }
-        if (query.fechaCreacionDesde && query.fechaCreacionHasta) {
-                whereConditions.fecha = Between(new Date(query.fechaCreacionDesde), new Date(query.fechaCreacionHasta));
-            } else if (query.fechaCreacionDesde) {
-                whereConditions.fecha = Between(new Date(query.fechaCreacionDesde), new Date());
-            } else if (query.fechaCreacionHasta) {
-                whereConditions.fecha = Between(new Date('1900-01-01'), new Date(query.fechaCreacionHasta));
-            }
-        if (query.imponible !== undefined) {
-            whereConditions.imponible = query.imponible;
-        }
-
-        if (Object.keys(whereConditions).length > 0) {
-                options.where = whereConditions;
-            }
-        
-        const [bonos, total] = await bonosRep.findAndCount(options);
+        // Obtener todos los bonos ordenados por fecha de creación
+        const [bonos, total] = await bonosRep.findAndCount({ order: { fechaCreacion: "DESC" } });
 
         return [{ bonos, total }, null];
     }catch (error) {
@@ -159,28 +123,30 @@ try {
     if (data.imponible !== undefined) bono.imponible = data.imponible;
     
     // Validar si el bono con los nuevos datos choca con otro existente
-    const { Op } = require('sequelize');
-    // Excluir el bono actual de la búsqueda
-    const { Not } = require('sequelize').Op;
-    const existingBono = await bonosRep.findOne({
+    
+    const existingBonoId = await bonosRep.findOne({
         where: {
-            id: Not(id), // Excluir el bono actual
-            [Op.or]: [
-                { nombreBono: bono.nombreBono },
-                {
-                    [Op.and]: [
-                        { tipoBono: bono.tipoBono },
-                        { temporalidad: bono.temporalidad },
-                        { monto: bono.monto },
-                        { imponible: bono.imponible }
-                    ]
-                }
-            ]
+            nombreBono: bono.nombreBono 
         }
     });
-    if (existingBono) {
-        return [null, "Ya existe un bono con los mismos parámetros. Mismo nombre o mismas caracteristicas."];
+
+    if (existingBonoId) {
+        return [null, "Ya existe un bono con el mismo nombre"];
     }
+    
+    const existingBonoCar = await bonosRep.findOne({
+        where: {          
+            tipoBono: bono.tipoBono ,
+            temporalidad: bono.temporalidad,
+            monto: bono.monto,
+            imponible: bono.imponible
+        }
+    });
+
+    if (existingBonoCar) {
+        return [null, "Ya existe un bono con las mismas caracteristicas"];
+    }
+
     // Guardar cambios
     await bonosRep.save(bono);
     return [bono, null];

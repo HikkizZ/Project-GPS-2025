@@ -79,28 +79,13 @@ export async function getAllBonos(req: Request, res: Response): Promise<void> {
             handleErrorClient(res, 401, "Usuario no autenticado");
             return;
         }
-
-        // Validar query params si existen
-        const validationResult = BonoQueryValidation.validate(req.query, { abortEarly: false });
-        if (validationResult.error) {
-            handleErrorClient(res, 400, "Error de validación", {
-                errors: validationResult.error.details.map(error => ({
-                    field: error.path.join('.'),
-                    message: error.message
-                }))
-            });
-            return;
-        }
-
-        const query = validationResult.value;
-
         // Si no es RRHH, filtrar solo sus bonos
         if (req.user.role !== 'RecursosHumanos' && req.user.role !== 'SuperAdministrador') {
                 handleErrorClient(res, 400, "Trabajador no encontrado en recursos humanos");
                 return;
         }
 
-        const [resultado, error] = await getAllBonosService(query);
+        const [resultado, error] = await getAllBonosService();
 
         if (error) {
             handleErrorClient(res, 404, error as string);
