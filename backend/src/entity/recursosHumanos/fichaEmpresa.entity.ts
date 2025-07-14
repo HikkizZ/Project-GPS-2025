@@ -13,6 +13,21 @@ export enum EstadoLaboral {
   DESVINCULADO = "Desvinculado"
 }
 
+export enum companiaFondoAFP {
+    habitat = "habitat",
+    provida = "provida",
+    modelo = "modelo",
+    cuprum = "cuprum",
+    capital = "capital",
+    planvital = "planvital",
+    uno = "uno"
+}
+
+export enum TipoPrevisionSalud {
+    ISAPRE = "ISAPRE",
+    FONASA = "FONASA"
+}
+
 @Entity("fichas_empresa")
 export class FichaEmpresa {
   @PrimaryGeneratedColumn()
@@ -50,6 +65,15 @@ export class FichaEmpresa {
     default: 0
   })
   sueldoBase!: number;
+  
+  @Column({ type: "enum", enum: TipoPrevisionSalud, nullable: false })
+  previsionSalud!: TipoPrevisionSalud;
+
+  @Column({ type: "enum", enum: companiaFondoAFP, nullable: false })
+  afp!: companiaFondoAFP;
+
+  @Column({ type: "boolean", nullable: false })
+  seguroCesantia!: string | null;
 
   @Column({
     type: "date",
