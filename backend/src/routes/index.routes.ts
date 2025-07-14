@@ -13,6 +13,9 @@ import { authenticateJWT } from '../middlewares/authentication.middleware.js';
 import inventoryEntryRoutes from './inventory/inventoryEntry.routes.js';
 import inventoryExitRoutes from './inventory/inventoryExit.routes.js';
 import inventoryRoutes from './inventory/inventory.routes.js';
+import sparePartRoutes from "./MachineryMaintenance/sparePart.routes.js";
+import maintenanceRecordRoutes from "./MachineryMaintenance/maintenanceRecord.routes.js";
+import maintenanceSparePartRoutes from "./MachineryMaintenance/mainenanceSparePart.routes.js";
 
 const router: Router = Router();
 
@@ -44,5 +47,8 @@ router.use('/files', filesRoutes);
 router.use('/inventory-entry', inventoryEntryRoutes);
 router.use('/inventory-exit', inventoryExitRoutes);
 router.use('/inventory', inventoryRoutes);
+router.use("/spare-parts", sparePartRoutes);
+router.use("/maintenance-records", maintenanceRecordRoutes);
+router.use("/maintenance-spare-parts", maintenanceSparePartRoutes);
 
 export default router;
