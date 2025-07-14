@@ -1,33 +1,54 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from "typeorm"
-import { Maquinaria } from "../maquinaria/maquinaria.entity.js"
-import { number } from "joi"
-
-//? Repuestos: Su función es tener el nombre de los respuestos y la cantidad disponible 
+import { Entity, PrimaryGeneratedColumn, Column } from "typeorm";
+import { GrupoMaquinaria } from "../maquinaria/maquinaria.entity.js";
 
 @Entity("spare_parts")
 export class SparePart {
+  @PrimaryGeneratedColumn()
+  id!: number;
 
-    @PrimaryGeneratedColumn()
-    id!: number
+  // Nombre del repuesto
+  @Column({
+    type: "varchar",
+    length: 255,
+    nullable: false
+  })
+  name!: string;
 
-//?Nombre del respuesto
-    @Column({
+  // Stock disponible del repuesto
+  @Column({
+    type: "integer",
+    nullable: false
+  })
+  stock!: number;
 
-        type: "varchar",
-        length: 255,
-        nullable: false
-    })
-    name!: string
+  // Marca del repuesto
+  @Column({
+    type: "varchar",
+    length: 100,
+    nullable: false
+  })
+  marca!: string;
 
-//?Cantidad de repuesto disponible
-    @Column({
-        type: "integer",
-        nullable: false
+  // Modelo del repuesto
+  @Column({
+    type: "varchar",
+    length: 100,
+    nullable: false
+  })
+  modelo!: string;
 
-    })
-    stock!: number
+  // Año del repuesto
+  @Column({
+    type: "int",
+    nullable: false
+  })
+  anio!: number;
 
-
-    @ManyToOne(() => Maquinaria)
-    maquinaria!: Maquinaria
+  // Tipo o categoría de maquinaria para la que se usa
+  @Column({
+    type: "enum",
+    enum: GrupoMaquinaria,
+    nullable: false
+  })
+  grupo!: GrupoMaquinaria;
 }
