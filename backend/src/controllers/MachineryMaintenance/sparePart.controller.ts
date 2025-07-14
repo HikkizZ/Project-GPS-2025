@@ -1,134 +1,144 @@
-import { Request, Response } from 'express';
+import { Request, Response } from "express";
 import {
-  getAllSparePartsService,
-  getSparePartService,
-  createSparePartService,
-  updateSparePartService,
-  deleteSparePartService
-} from '../../services/MachineryMaintenance/SparePart.service.js';
+  createSparePart,
+  updateSparePart,
+  deleteSparePart,
+  getSparePart,
+  getAllSpareParts,
+} from "../../services/MachineryMaintenance/sparePart.service.js";
 
 import {
   createSparePartValidation,
   updateSparePartValidation,
   sparePartQueryValidation
-} from '../../validations/MachineryMaintenance/sparePart.validation.js';
+} from "../../validations/MachineryMaintenance/sparePart.validation.js";
 
 import {
   handleSuccess,
   handleErrorClient,
   handleErrorServer
-} from '../../handlers/responseHandlers.js';
+} from "../../handlers/responseHandlers.js";
 
-
-//Solicitud de mostrar todo
+// GET ALL
 export async function getSpareParts(_req: Request, res: Response): Promise<void> {
   try {
-    const [records, error] = await getAllSparePartsService();
-    if (error || !records) {
-      handleErrorClient(res, 404, error || "No se encontraron repuestos.");
+    const [parts, error] = await getAllSpareParts();
+
+    if (error) {
+      const message = typeof error === "string" ? error : error.message;
+      handleErrorServer(res, 404, message);
       return;
     }
-    handleSuccess(res, 200, "Repuestos obtenidos correctamente.", records);
+
+    handleSuccess(res, 200, "Repuestos obtenidos correctamente", parts!);
   } catch (error) {
     handleErrorServer(res, 500, (error as Error).message);
   }
 }
 
-
-//Solicitud de mostrar selección
-export async function getSparePart(req: Request, res: Response): Promise<void> {
-  const { id } = req.query;
-  const parsedId = id ? Number(id) : undefined;
-  const { error } = sparePartQueryValidation.validate({ id: parsedId });
-
-  if (error || parsedId === undefined) {
-    handleErrorClient(res, 400, error?.message ?? "El parámetro 'id' es obligatorio.");
-    return;
-  }
-
+// GET ONE
+export async function getSparePartById(req: Request, res: Response): Promise<void> {
   try {
-    const [record, err] = await getSparePartService(parsedId);
-    if (err || !record) {
-      handleErrorClient(res, 404, err || "Repuesto no encontrado.");
+    const { id } = req.query;
+    const parsedId = id ? Number(id) : undefined;
+
+    const { error } = sparePartQueryValidation.validate({ id: parsedId });
+    if (error || parsedId === undefined) {
+      handleErrorClient(res, 400, error?.message ?? "El parámetro 'id' es obligatorio.");
       return;
     }
-    handleSuccess(res, 200, "Repuesto obtenido correctamente.", record);
+
+    const [spare, fetchError] = await getSparePart(parsedId);
+
+    if (fetchError) {
+      const message = typeof fetchError === "string" ? fetchError : fetchError.message;
+      handleErrorServer(res, 404, message);
+      return;
+    }
+
+    handleSuccess(res, 200, "Repuesto obtenido correctamente", spare!);
   } catch (error) {
     handleErrorServer(res, 500, (error as Error).message);
   }
 }
 
-
-
-//Solicitud de creación
-export async function createSparePart(req: Request, res: Response): Promise<void> {
-  const { error } = createSparePartValidation.validate(req.body);
-  if (error) {
-    handleErrorClient(res, 400, error.message);
-    return;
-  }
-
+// CREATE
+export async function createSpare(req: Request, res: Response): Promise<void> {
   try {
-    const [created, err] = await createSparePartService(req.body);
-    if (err || !created) {
-      handleErrorClient(res, 400, err || "No se pudo registrar el repuesto.");
+    const { error } = createSparePartValidation.validate(req.body);
+
+    if (error) {
+      handleErrorClient(res, 400, error.message);
       return;
     }
-    handleSuccess(res, 201, "Repuesto registrado correctamente.", created);
+
+    const [created, createError] = await createSparePart(req.body);
+
+    if (createError) {
+      const message = typeof createError === "string" ? createError : createError.message;
+      handleErrorServer(res, 400, message);
+      return;
+    }
+
+    handleSuccess(res, 201, "Repuesto creado correctamente", created!);
   } catch (error) {
     handleErrorServer(res, 500, (error as Error).message);
   }
 }
 
-
-//Solicitud de actualización
-export async function updateSparePart(req: Request, res: Response): Promise<void> {
-  const { id } = req.query;
-  const parsedId = id ? Number(id) : undefined;
-  const { error: queryError } = sparePartQueryValidation.validate({ id: parsedId });
-
-  if (queryError || parsedId === undefined) {
-    handleErrorClient(res, 400, queryError?.message ?? "El parámetro 'id' es obligatorio.");
-    return;
-  }
-
-  const { error: bodyError } = updateSparePartValidation.validate(req.body);
-  if (bodyError) {
-    handleErrorClient(res, 400, bodyError.message);
-    return;
-  }
-
+// UPDATE
+export async function updateSpare(req: Request, res: Response): Promise<void> {
   try {
-    const [updated, err] = await updateSparePartService(parsedId, req.body);
-    if (err || !updated) {
-      handleErrorClient(res, 404, err || "No se pudo actualizar el repuesto.");
+    const { id } = req.query;
+    const parsedId = id ? Number(id) : undefined;
+
+    const { error: queryError } = sparePartQueryValidation.validate({ id: parsedId });
+    if (queryError || parsedId === undefined) {
+      handleErrorClient(res, 400, queryError?.message ?? "El parámetro 'id' es obligatorio.");
       return;
     }
-    handleSuccess(res, 200, "Repuesto actualizado correctamente.", updated);
+
+    const { error: bodyError } = updateSparePartValidation.validate(req.body);
+    if (bodyError) {
+      handleErrorClient(res, 400, bodyError.message);
+      return;
+    }
+
+    const [updated, updateError] = await updateSparePart(parsedId, req.body);
+
+    if (updateError) {
+      const message = typeof updateError === "string" ? updateError : updateError.message;
+      handleErrorServer(res, 404, message);
+      return;
+    }
+
+    handleSuccess(res, 200, "Repuesto actualizado correctamente", updated!);
   } catch (error) {
     handleErrorServer(res, 500, (error as Error).message);
   }
 }
 
-
-//Solicitud de eliminación
-export async function deleteSparePart(req: Request, res: Response): Promise<void> {
-  const { id } = req.query;
-  const parsedId = id ? Number(id) : undefined;
-  const { error } = sparePartQueryValidation.validate({ id: parsedId });
-
-  if (error || parsedId === undefined) {
-    handleErrorClient(res, 400, error?.message ?? "El parámetro 'id' es obligatorio.");
-    return;
-  }
-
+// DELETE
+export async function deleteSpare(req: Request, res: Response): Promise<void> {
   try {
-    const [deleted, err] = await deleteSparePartService(parsedId);
-    if (err || !deleted) {
-      handleErrorClient(res, 404, err || "No se pudo eliminar el repuesto.");
+    const { id } = req.query;
+    const parsedId = id ? Number(id) : undefined;
+
+    const { error } = sparePartQueryValidation.validate({ id: parsedId });
+    if (error || parsedId === undefined) {
+      handleErrorClient(res, 400, error?.message ?? "El parámetro 'id' es obligatorio.");
       return;
     }
-    handleSuccess(res, 200, "Repuesto eliminado correctamente.", deleted);
+
+    const [deleted, deleteError] = await deleteSparePart(parsedId);
+
+    if (deleteError) {
+      const message = typeof deleteError === "string" ? deleteError : deleteError.message;
+      handleErrorServer(res, 404, message);
+      return;
+    }
+
+    handleSuccess(res, 200, "Repuesto eliminado correctamente", deleted!);
   } catch (error) {
     handleErrorServer(res, 500, (error as Error).message);
   }
