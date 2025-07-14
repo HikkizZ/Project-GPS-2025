@@ -1,7 +1,14 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from "typeorm"
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  ManyToOne,
+  JoinColumn,
+} from "typeorm"
 import { Maquinaria } from "./maquinaria.entity.js"
 
-// Importar el enum explícitamente
 export enum GrupoMaquinaria {
   CAMION_TOLVA = "camion_tolva",
   BATEA = "batea",
@@ -12,67 +19,85 @@ export enum GrupoMaquinaria {
   CARGADOR_FRONTAL = "cargador_frontal",
 }
 
-@Entity("compras_maquinaria")
+@Entity("compra_maquinaria")
 export class CompraMaquinaria {
   @PrimaryGeneratedColumn()
   id!: number
 
-  @Column({ type: "int", nullable: false })
-  maquinariaId!: number
-
-  // Campos de la compra (casi iguales a maquinaria)
-  @Column({ type: "varchar", length: 20, nullable: false })
+  @Column({ type: "varchar", length: 20 })
   patente!: string
 
   @Column({
     type: "enum",
     enum: GrupoMaquinaria,
-    enumName: "grupo_maquinaria",
-    nullable: false,
+    default: GrupoMaquinaria.ESCAVADORA,
   })
   grupo!: GrupoMaquinaria
 
-  @Column({ type: "varchar", length: 100, nullable: false })
+  @Column({ type: "varchar", length: 100 })
   marca!: string
 
-  @Column({ type: "varchar", length: 100, nullable: false })
+  @Column({ type: "varchar", length: 100 })
   modelo!: string
 
-  @Column({ type: "int", nullable: false })
-  año!: number
+  @Column({ type: "int" })
+  anio!: number
 
-  @Column({ type: "date", nullable: false })
-  fechaCompra!: Date
+  @Column({ type: "date" })
+  fechaCompra!: string
 
-  @Column({ type: "decimal", precision: 15, scale: 2, nullable: false })
+  @Column({ type: "decimal", precision: 15, scale: 2 })
   valorCompra!: number
 
-  @Column({ type: "decimal", precision: 15, scale: 2, nullable: false })
+  @Column({ type: "decimal", precision: 15, scale: 2 })
   avaluoFiscal!: number
 
-  @Column({ type: "varchar", length: 100, nullable: false })
+  @Column({ type: "varchar", length: 100 })
   numeroChasis!: string
 
-  @Column({ type: "int", nullable: false })
+  @Column({ type: "int", default: 0 })
   kilometrajeInicial!: number
 
-  @Column({ type: "int", nullable: false })
-  kilometrajeActual!: number
-
-  // Campos específicos de la compra
   @Column({ type: "varchar", length: 255, nullable: true })
   proveedor?: string
 
   @Column({ type: "text", nullable: true })
   observaciones?: string
 
-  @Column({ type: "timestamp", default: () => "CURRENT_TIMESTAMP" })
-  fechaRegistro!: Date
+  // Campos para el padrón
+  @Column({ type: "varchar", length: 500, nullable: true })
+  padronUrl?: string
 
+  @Column({ type: "varchar", length: 255, nullable: true })
+  padronFilename?: string
+
+  @Column({ type: "enum", enum: ["image", "pdf"], nullable: true })
+  padronFileType?: "image" | "pdf"
+
+  @Column({ type: "varchar", length: 255, nullable: true })
+  padronOriginalName?: string
+
+  @Column({ type: "int", nullable: true })
+  padronFileSize?: number
+
+  @CreateDateColumn()
+  fechaCreacion!: Date
+
+  @UpdateDateColumn()
+  fechaActualizacion!: Date
+
+  // Relación con Maquinaria
   @ManyToOne(
     () => Maquinaria,
     (maquinaria) => maquinaria.compras,
+    {
+      nullable: true,
+      onDelete: "CASCADE",
+    },
   )
-  @JoinColumn({ name: "maquinariaId" })
-  maquinaria!: Maquinaria
+  @JoinColumn({ name: "maquinaria_id" })
+  maquinaria?: Maquinaria
+
+  @Column({ type: "int", nullable: true })
+  maquinaria_id?: number
 }

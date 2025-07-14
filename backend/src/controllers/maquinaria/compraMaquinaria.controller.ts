@@ -1,6 +1,5 @@
- import type { Request, Response } from "express"
+import type { Request, Response } from "express"
 import { CompraMaquinariaService } from "../../services/maquinaria/compraMaquinaria.service.js"
-import { validationResult } from "express-validator"
 
 export class CompraMaquinariaController {
   private compraMaquinariaService: CompraMaquinariaService
@@ -11,23 +10,22 @@ export class CompraMaquinariaController {
 
   registrarCompra = async (req: Request, res: Response): Promise<void> => {
     try {
-      const errors = validationResult(req)
-      if (!errors.isEmpty()) {
-        res.status(400).json({ errors: errors.array() })
-        return
-      }
+      const file = req.file
+      const data = req.body
 
-      const resultado = await this.compraMaquinariaService.registrarCompra(req.body)
+      const resultado = await this.compraMaquinariaService.registrarCompra(data, file)
+
       res.status(201).json({
         success: true,
         message: "Compra registrada exitosamente",
         data: resultado,
       })
-    } catch (error) {
+    } catch (error: any) {
+      console.error("Error en registrarCompra:", error)
       res.status(500).json({
         success: false,
-        message: "Error al registrar la compra",
-        error: error instanceof Error ? error.message : "Error desconocido",
+        message: error.message || "Error interno del servidor",
+        error: error.message,
       })
     }
   }
@@ -35,15 +33,18 @@ export class CompraMaquinariaController {
   obtenerTodasLasCompras = async (req: Request, res: Response): Promise<void> => {
     try {
       const compras = await this.compraMaquinariaService.obtenerTodasLasCompras()
+
       res.status(200).json({
         success: true,
+        message: "Compras obtenidas exitosamente",
         data: compras,
       })
-    } catch (error) {
+    } catch (error: any) {
+      console.error("Error en obtenerTodasLasCompras:", error)
       res.status(500).json({
         success: false,
-        message: "Error al obtener las compras",
-        error: error instanceof Error ? error.message : "Error desconocido",
+        message: error.message || "Error interno del servidor",
+        error: error.message,
       })
     }
   }
@@ -51,16 +52,27 @@ export class CompraMaquinariaController {
   obtenerCompraPorId = async (req: Request, res: Response): Promise<void> => {
     try {
       const { id } = req.params
-      const compra = await this.compraMaquinariaService.obtenerCompraPorId(Number(id))
+      const compra = await this.compraMaquinariaService.obtenerCompraPorId(Number.parseInt(id))
+
+      if (!compra) {
+        res.status(404).json({
+          success: false,
+          message: "Compra no encontrada",
+        })
+        return
+      }
+
       res.status(200).json({
         success: true,
+        message: "Compra obtenida exitosamente",
         data: compra,
       })
-    } catch (error) {
-      res.status(404).json({
+    } catch (error: any) {
+      console.error("Error en obtenerCompraPorId:", error)
+      res.status(500).json({
         success: false,
-        message: "Compra no encontrada",
-        error: error instanceof Error ? error.message : "Error desconocido",
+        message: error.message || "Error interno del servidor",
+        error: error.message,
       })
     }
   }
@@ -68,16 +80,19 @@ export class CompraMaquinariaController {
   obtenerComprasPorMaquinaria = async (req: Request, res: Response): Promise<void> => {
     try {
       const { maquinariaId } = req.params
-      const compras = await this.compraMaquinariaService.obtenerComprasPorMaquinaria(Number(maquinariaId))
+      const compras = await this.compraMaquinariaService.obtenerComprasPorMaquinaria(Number.parseInt(maquinariaId))
+
       res.status(200).json({
         success: true,
+        message: "Compras por maquinaria obtenidas exitosamente",
         data: compras,
       })
-    } catch (error) {
+    } catch (error: any) {
+      console.error("Error en obtenerComprasPorMaquinaria:", error)
       res.status(500).json({
         success: false,
-        message: "Error al obtener compras por maquinaria",
-        error: error instanceof Error ? error.message : "Error desconocido",
+        message: error.message || "Error interno del servidor",
+        error: error.message,
       })
     }
   }
@@ -85,19 +100,23 @@ export class CompraMaquinariaController {
   obtenerComprasPorFecha = async (req: Request, res: Response): Promise<void> => {
     try {
       const { fechaInicio, fechaFin } = req.query
+
       const compras = await this.compraMaquinariaService.obtenerComprasPorFecha(
-        new Date(fechaInicio as string),
-        new Date(fechaFin as string),
+        fechaInicio as string,
+        fechaFin as string,
       )
+
       res.status(200).json({
         success: true,
+        message: "Compras por fecha obtenidas exitosamente",
         data: compras,
       })
-    } catch (error) {
+    } catch (error: any) {
+      console.error("Error en obtenerComprasPorFecha:", error)
       res.status(500).json({
         success: false,
-        message: "Error al obtener compras por fecha",
-        error: error instanceof Error ? error.message : "Error desconocido",
+        message: error.message || "Error interno del servidor",
+        error: error.message,
       })
     }
   }
@@ -105,60 +124,66 @@ export class CompraMaquinariaController {
   obtenerTotalCompras = async (req: Request, res: Response): Promise<void> => {
     try {
       const { fechaInicio, fechaFin } = req.query
-      const total = await this.compraMaquinariaService.obtenerTotalComprasPorPeriodo(
-        new Date(fechaInicio as string),
-        new Date(fechaFin as string),
-      )
+
+      const total = await this.compraMaquinariaService.obtenerTotalCompras(fechaInicio as string, fechaFin as string)
+
       res.status(200).json({
         success: true,
-        data: { total },
+        message: "Total de compras obtenido exitosamente",
+        data: total,
       })
-    } catch (error) {
+    } catch (error: any) {
+      console.error("Error en obtenerTotalCompras:", error)
       res.status(500).json({
         success: false,
-        message: "Error al calcular total de compras",
-        error: error instanceof Error ? error.message : "Error desconocido",
+        message: error.message || "Error interno del servidor",
+        error: error.message,
       })
     }
   }
 
   actualizarCompra = async (req: Request, res: Response): Promise<void> => {
     try {
-      const errors = validationResult(req)
-      if (!errors.isEmpty()) {
-        res.status(400).json({ errors: errors.array() })
-        return
-      }
-
       const { id } = req.params
-      const compra = await this.compraMaquinariaService.actualizarCompra(Number(id), req.body)
+      const file = req.file
+      const data = req.body
+
+      const compraActualizada = await this.compraMaquinariaService.actualizarCompra(Number.parseInt(id), data, file)
+
       res.status(200).json({
         success: true,
         message: "Compra actualizada exitosamente",
-        data: compra,
+        data: compraActualizada,
       })
-    } catch (error) {
+    } catch (error: any) {
+      console.error("Error en actualizarCompra:", error)
       res.status(500).json({
         success: false,
-        message: "Error al actualizar la compra",
-        error: error instanceof Error ? error.message : "Error desconocido",
+        message: error.message || "Error interno del servidor",
+        error: error.message,
       })
     }
   }
 
-  eliminarCompra = async (req: Request, res: Response): Promise<void> => {
+  // MÉTODO eliminarCompra ELIMINADO - Ya no se puede eliminar compras completas
+
+  eliminarPadron = async (req: Request, res: Response): Promise<void> => {
     try {
       const { id } = req.params
-      await this.compraMaquinariaService.eliminarCompra(Number(id))
+
+      const compraActualizada = await this.compraMaquinariaService.eliminarPadron(Number.parseInt(id))
+
       res.status(200).json({
         success: true,
-        message: "Compra eliminada exitosamente",
+        message: "Padrón eliminado exitosamente",
+        data: compraActualizada,
       })
-    } catch (error) {
+    } catch (error: any) {
+      console.error("Error en eliminarPadron:", error)
       res.status(500).json({
         success: false,
-        message: "Error al eliminar la compra",
-        error: error instanceof Error ? error.message : "Error desconocido",
+        message: error.message || "Error interno del servidor",
+        error: error.message,
       })
     }
   }

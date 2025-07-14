@@ -51,7 +51,7 @@ router.use("/inventory", inventoryRoutes)
 
 /* Maquinaria routes */
 router.use("/maquinaria", maquinariaRoutes)
-router.use("/compras-maquinaria", compraMaquinariaRoutes)
+router.use("/compra-maquinaria", compraMaquinariaRoutes)
 router.use("/ventas-maquinaria", ventaMaquinariaRoutes)
 router.use("/arriendos-maquinaria", arriendoMaquinariaRoutes)
 
