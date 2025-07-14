@@ -1,6 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToOne, JoinColumn } from "typeorm";
 import { userRole } from "../../types.d.js";
-import { Trabajador } from "./recursosHumanos/trabajador.entity.js";
 import { formatRut } from "../helpers/rut.helper.js";
 
 @Entity()
@@ -59,7 +58,7 @@ export class User {
     @UpdateDateColumn()
     updateAt: Date;
 
-    @OneToOne(() => Trabajador, trabajador => trabajador.usuario, { 
+    @OneToOne("Trabajador", "usuario", { 
         nullable: true,
         onDelete: 'SET NULL'
     })
@@ -68,5 +67,5 @@ export class User {
         referencedColumnName: "rut",
         foreignKeyConstraintName: "FK_user_trabajador_rut"
     })
-    trabajador?: Trabajador;
+    trabajador?: any;
 }
