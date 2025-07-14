@@ -9,7 +9,6 @@ import {
 } from "typeorm";
 import { HistorialLaboral } from "./historialLaboral.entity.js";
 import { LicenciaPermiso } from "./licenciaPermiso.entity.js";
-import { User } from "../user.entity.js";
 import { formatRut } from "../../helpers/rut.helper.js";
 
 @Entity("trabajadores")
@@ -123,9 +122,13 @@ export class Trabajador {
   @OneToMany(() => LicenciaPermiso, licenciaPermiso => licenciaPermiso.trabajador)
   licenciasPermisos!: LicenciaPermiso[];
 
-  // Relación 1:1 con usuario
-  @OneToOne(() => User, user => user.trabajador)
-  usuario!: User;
+  // Relación 1:1 con usuario (por RUT)
+  @OneToOne("User", "trabajador", { 
+    eager: false,
+    nullable: true,
+    onDelete: 'SET NULL'
+  })
+  usuario?: any;
 
   @CreateDateColumn({ type: "timestamp" })
   fechaRegistro!: Date;

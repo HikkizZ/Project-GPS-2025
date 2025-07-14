@@ -1,0 +1,164 @@
+/*
+  forms.css
+  Estilos específicos para formularios
+  Usa variables CSS para consistencia y mantenibilidad
+*/
+
+/* Campos de formulario base */
+.form-control,
+textarea,
+input[type="text"],
+input[type="email"],
+input[type="date"],
+input[type="number"],
+input[type="password"],
+input[type="file"],
+select {
+  border: 1.5px solid var(--border-color);
+  border-radius: var(--border-radius);
+  background: var(--background-white);
+  padding: 0.45rem 0.7rem;
+  font-size: 0.97rem;
+  font-family: var(--font-family);
+  transition: var(--transition);
+  box-shadow: none;
+  width: 100%;
+  color: var(--text-primary);
+}
+
+.form-control:focus,
+textarea:focus,
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="date"]:focus,
+input[type="number"]:focus,
+input[type="password"]:focus,
+input[type="file"]:focus,
+select:focus {
+  border-color: var(--primary);
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(0, 97, 255, 0.08);
+  background-color: var(--background-white);
+}
+
+.form-control::placeholder,
+textarea::placeholder,
+input[type="text"]::placeholder,
+input[type="email"]::placeholder,
+input[type="date"]::placeholder,
+input[type="number"]::placeholder,
+input[type="password"]::placeholder {
+  color: var(--text-muted);
+  opacity: 1;
+}
+
+/* Labels */
+.form-label {
+  font-weight: var(--font-weight-medium);
+  color: var(--text-dark);
+  margin-bottom: var(--spacing-sm);
+  font-size: var(--font-size-sm);
+  display: block;
+}
+
+/* Texto de ayuda */
+.form-text {
+  color: var(--text-muted);
+  font-size: var(--font-size-xs);
+  margin-top: var(--spacing-xs);
+  display: block;
+}
+
+/* Validación */
+.is-invalid {
+  border-color: var(--danger);
+}
+
+.is-invalid:focus {
+  border-color: var(--danger);
+  box-shadow: 0 0 0 0.2rem rgba(224, 36, 36, 0.1);
+}
+
+.invalid-feedback {
+  color: var(--danger);
+  font-size: var(--font-size-xs);
+  margin-top: var(--spacing-xs);
+  display: block;
+}
+
+.is-valid {
+  border-color: var(--success);
+}
+
+.is-valid:focus {
+  border-color: var(--success);
+  box-shadow: 0 0 0 0.2rem rgba(49, 196, 141, 0.1);
+}
+
+.valid-feedback {
+  color: var(--success);
+  font-size: var(--font-size-xs);
+  margin-top: var(--spacing-xs);
+  display: block;
+}
+
+/* Grupos de formulario */
+.form-group {
+  margin-bottom: var(--spacing-md);
+}
+
+.form-row {
+  display: flex;
+  flex-wrap: wrap;
+  margin-right: calc(var(--spacing-sm) * -1);
+  margin-left: calc(var(--spacing-sm) * -1);
+}
+
+.form-row > .form-group {
+  flex: 0 0 auto;
+  width: auto;
+  max-width: 100%;
+  padding-right: var(--spacing-sm);
+  padding-left: var(--spacing-sm);
+}
+
+/* Checkboxes y radios */
+.form-check {
+  display: flex;
+  align-items: center;
+  margin-bottom: var(--spacing-sm);
+}
+
+.form-check-input {
+  margin-right: var(--spacing-sm);
+  margin-top: 0;
+}
+
+.form-check-label {
+  margin-bottom: 0;
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+  color: var(--text-primary);
+}
+
+/* Select personalizado */
+select.form-control {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m1 6 7 7 7-7'/%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 16px 12px;
+  padding-right: 2.5rem;
+  appearance: none;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .form-row {
+    flex-direction: column;
+  }
+  
+  .form-row > .form-group {
+    width: 100%;
+    margin-bottom: var(--spacing-sm);
+  }
+}

@@ -2,9 +2,7 @@ import { Request, Response } from "express";
 import {
   createLicenciaPermisoService,
   getAllLicenciasPermisosService,
-  getLicenciaPermisoByIdService,
   updateLicenciaPermisoService,
-  deleteLicenciaPermisoService,
   descargarArchivoLicenciaService,
   verificarLicenciasVencidasService
 } from "../../services/recursosHumanos/licenciaPermiso.service.js";
@@ -23,6 +21,12 @@ export async function createLicenciaPermiso(req: Request, res: Response): Promis
     // Verificar que el usuario esté autenticado
     if (!req.user?.id) {
       handleErrorClient(res, 401, "Usuario no autenticado");
+      return;
+    }
+
+    // Validar que el Super Administrador no pueda crear solicitudes (es un usuario ficticio)
+    if (req.user.role === 'SuperAdministrador') {
+      handleErrorClient(res, 403, "Los Super Administradores no pueden crear solicitudes de licencias o permisos");
       return;
     }
 
@@ -98,46 +102,70 @@ export async function getAllLicenciasPermisos(req: Request, res: Response): Prom
       }
     }
 
-    const [licenciasPermisos, error] = await getAllLicenciasPermisosService();
+    const [licenciasPermisos, error] = await getAllLicenciasPermisosService(req.query);
 
     if (error) {
-      handleErrorClient(res, 404, error as string);
+      handleErrorClient(res, 400, error as string);
       return;
     }
 
-    handleSuccess(res, 200, "Solicitudes recuperadas exitosamente", licenciasPermisos || {});
+    // Si no hay licencias, devolver array vacío con mensaje amigable
+    const licenciasData = licenciasPermisos || [];
+    const mensaje = licenciasData.length === 0 
+      ? "No hay solicitudes registradas en el sistema" 
+      : "Solicitudes recuperadas exitosamente";
+
+    handleSuccess(res, 200, mensaje, licenciasData);
   } catch (error) {
     console.error("Error al obtener licencias/permisos:", error);
     handleErrorServer(res, 500, "Error interno del servidor");
   }
 }
 
-export async function getLicenciaPermisoById(req: Request, res: Response): Promise<void> {
+export async function getMisSolicitudes(req: Request, res: Response): Promise<void> {
   try {
-    const validationResult = LicenciaPermisoQueryValidation.validate({ id: req.params.id }, { abortEarly: false });
-    if (validationResult.error) {
-      handleErrorClient(res, 400, "Error de validación", {
-        errors: validationResult.error.details.map(error => ({
-          field: error.path.join('.'),
-          message: error.message
-        }))
-      });
+    // Verificar que el usuario esté autenticado
+    if (!req.user?.id) {
+      handleErrorClient(res, 401, "Usuario no autenticado");
       return;
     }
 
-    const [licenciaPermiso, error] = await getLicenciaPermisoByIdService(parseInt(req.params.id));
-
-    if (error) {
-      handleErrorClient(res, 404, error as string);
+    // Validar que el Super Administrador no pueda acceder a solicitudes personales (es un usuario ficticio)
+    if (req.user.role === 'SuperAdministrador') {
+      handleErrorClient(res, 403, "Los Super Administradores no tienen solicitudes personales");
       return;
     }
 
-    handleSuccess(res, 200, "Solicitud recuperada exitosamente", licenciaPermiso || {});
+    // Buscar el trabajador asociado al usuario
+    const trabajadorRepo = AppDataSource.getRepository(Trabajador);
+    const trabajador = await trabajadorRepo.findOne({ where: { rut: req.user.rut } });
+
+    if (!trabajador) {
+      handleErrorClient(res, 400, "Trabajador no encontrado");
+      return;
+    }
+
+    // Obtener solo las solicitudes del trabajador actual
+    const licenciaRepo = AppDataSource.getRepository(LicenciaPermiso);
+    const misSolicitudes = await licenciaRepo.find({
+      where: { trabajador: { id: trabajador.id } },
+      relations: ['trabajador', 'revisadoPor'],
+      order: { fechaSolicitud: 'DESC' }
+    });
+
+    // Si no hay solicitudes, devolver array vacío con mensaje amigable
+    const mensaje = misSolicitudes.length === 0 
+      ? "No tienes solicitudes registradas" 
+      : "Mis solicitudes recuperadas exitosamente";
+
+    handleSuccess(res, 200, mensaje, misSolicitudes);
   } catch (error) {
-    console.error("Error al obtener licencia/permiso:", error);
+    console.error("Error al obtener mis solicitudes:", error);
     handleErrorServer(res, 500, "Error interno del servidor");
   }
 }
+
+
 
 export async function updateLicenciaPermiso(req: Request, res: Response): Promise<void> {
   try {
@@ -160,6 +188,24 @@ export async function updateLicenciaPermiso(req: Request, res: Response): Promis
           message: error.message
         }))
       });
+      return;
+    }
+
+    // Buscar la solicitud para verificar quién es el solicitante
+    const licenciaRepo = AppDataSource.getRepository(LicenciaPermiso);
+    const solicitudExistente = await licenciaRepo.findOne({
+      where: { id: licenciaId },
+      relations: ["trabajador"]
+    });
+
+    if (!solicitudExistente) {
+      handleErrorClient(res, 404, "Solicitud no encontrada");
+      return;
+    }
+
+    // Validar que el usuario no puede aprobar/rechazar su propia solicitud
+    if (solicitudExistente.trabajador.rut === req.user.rut) {
+      handleErrorClient(res, 403, "No puede aprobar o rechazar su propia solicitud. Esta acción debe ser realizada por otro usuario con permisos adecuados");
       return;
     }
 
@@ -196,33 +242,6 @@ export async function updateLicenciaPermiso(req: Request, res: Response): Promis
   }
 }
 
-export async function deleteLicenciaPermiso(req: Request, res: Response): Promise<void> {
-  try {
-    const validationResult = LicenciaPermisoQueryValidation.validate({ id: req.params.id }, { abortEarly: false });
-    if (validationResult.error) {
-      handleErrorClient(res, 400, "Error de validación", {
-        errors: validationResult.error.details.map(error => ({
-          field: error.path.join('.'),
-          message: error.message
-        }))
-      });
-      return;
-    }
-
-    const [licenciaPermiso, error] = await deleteLicenciaPermisoService(parseInt(req.params.id));
-
-    if (error) {
-      handleErrorClient(res, 404, error as string);
-      return;
-    }
-
-    handleSuccess(res, 200, "Solicitud eliminada exitosamente", licenciaPermiso || {});
-  } catch (error) {
-    console.error("Error al eliminar licencia/permiso:", error);
-    handleErrorServer(res, 500, "Error interno del servidor");
-  }
-}
-
 export async function descargarArchivoLicencia(req: Request, res: Response): Promise<void> {
   try {
     const id = parseInt(req.params.id);
@@ -236,7 +255,7 @@ export async function descargarArchivoLicencia(req: Request, res: Response): Pro
       return;
     }
 
-    const [archivoURL, error] = await descargarArchivoLicenciaService(id, req.user.rut);
+    const [result, error] = await descargarArchivoLicenciaService(id, req.user.rut);
     
     if (error) {
       const errorMessage = typeof error === 'string' ? error : error.message;
@@ -246,31 +265,56 @@ export async function descargarArchivoLicencia(req: Request, res: Response): Pro
       return;
     }
 
-    if (!archivoURL) {
+    if (!result || !result.filePath) {
       handleErrorClient(res, 404, "Archivo no encontrado");
       return;
     }
 
-    // Obtener información del archivo para descarga
-    const [fileInfo, fileError] = FileManagementService.getFileForDownload(archivoURL);
+    const { filePath, customFilename } = result;
     
-    if (fileError || !fileInfo) {
-      handleErrorClient(res, 404, "Archivo no encontrado en el servidor");
+    // Validar que el nombre personalizado es válido
+    if (!customFilename || customFilename.trim() === '' || customFilename === 'undefined' || customFilename === 'null') {
+      const fallbackName = `Licencia_${id}.pdf`;
+      
+      // Configurar headers para evitar cache y forzar descarga ANTES de res.download
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="${fallbackName}"`);
+      res.setHeader('Access-Control-Expose-Headers', 'Content-Disposition');
+      
+      res.download(filePath, fallbackName, (err) => {
+        if (err && !res.headersSent) {
+          handleErrorServer(res, 500, "No se pudo descargar el archivo.");
+        }
+      });
       return;
     }
 
-    if (!fileInfo.exists) {
-      handleErrorClient(res, 404, "El archivo no existe");
+    // Verificar que el archivo existe antes de intentar enviarlo
+    if (!fs.existsSync(filePath)) {
+      handleErrorClient(res, 404, "El archivo del certificado no se encuentra en el servidor");
       return;
     }
 
-    // Configurar headers y enviar archivo
+    // Configurar headers para evitar cache y forzar descarga ANTES de res.download
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
     res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename="${fileInfo.filename}"`);
-    res.sendFile(require('path').resolve(fileInfo.filePath));
+    res.setHeader('Content-Disposition', `attachment; filename="${customFilename}"`);
+    res.setHeader('Access-Control-Expose-Headers', 'Content-Disposition');
+
+    // Enviar archivo con nombre personalizado
+    res.download(filePath, customFilename, (err) => {
+      if (err && !res.headersSent) {
+        handleErrorServer(res, 500, "No se pudo descargar el archivo.");
+      }
+    });
 
   } catch (error) {
-    console.error("Error al descargar archivo:", error);
+    console.error("Error en descargarArchivoLicencia:", error);
     handleErrorServer(res, 500, "Error interno del servidor");
   }
 }

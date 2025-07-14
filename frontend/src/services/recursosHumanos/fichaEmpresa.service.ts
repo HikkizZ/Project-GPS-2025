@@ -15,73 +15,46 @@ export interface ApiResponse<T = any> {
 
 // Exportar la clase
 export class FichaEmpresaService {
-  private baseURL = '/ficha-empresa';
+  private baseURL = '/fichas-empresa';
 
   // Obtener todas las fichas con filtros
   async getFichasEmpresa(searchParams: FichaEmpresaSearchQuery = {}): Promise<ApiResponse<FichaEmpresa[]>> {
     try {
       const queryParams = new URLSearchParams();
-      
       Object.entries(searchParams).forEach(([key, value]) => {
         if (value !== undefined && value !== null && value !== '') {
-          // Formatear fechas a ISO string si es necesario
           if (value instanceof Date) {
             queryParams.append(key, value.toISOString());
           } else if (key === 'rut') {
-            // Limpiar el RUT antes de enviarlo
             const cleanRut = value.toString().replace(/\./g, '').replace(/-/g, '');
             queryParams.append(key, cleanRut);
           } else if (Array.isArray(value)) {
-            // Para arrays, mantener el formato original del array
             value.forEach((v) => {
               queryParams.append(`${key}[]`, v.toString());
             });
           } else {
-            // Para strings, asegurarse de que los espacios se manejen correctamente
             const stringValue = value.toString().trim();
             queryParams.append(key, stringValue);
           }
         }
       });
-
-      const data = await apiClient.get<{ data: FichaEmpresa[] }>(`${this.baseURL}/search?${queryParams}`);
-
+      const url = queryParams.toString() ? `${this.baseURL}/?${queryParams}` : `${this.baseURL}/`;
+      const data = await apiClient.get<{ data: FichaEmpresa[] }>(url);
       return {
         success: true,
         message: 'Fichas obtenidas exitosamente',
-        data: data.data
+        data: data.data || []
       };
     } catch (error: any) {
       console.error('Error al obtener fichas:', error);
       return {
         success: false,
-        message: error.message || 'Error al obtener fichas'
+        message: error.response?.data?.message || error.message || 'Error al obtener fichas'
       };
     }
   }
 
-  // Obtener ficha por ID
-  async getFichaEmpresaById(id: number): Promise<ApiResponse<FichaEmpresa>> {
-    try {
-      const data = await apiClient.get<{ data: FichaEmpresa }>(`${this.baseURL}/${id}`);
-
-      if (!data.data) {
-        throw new Error('No se encontró la ficha solicitada');
-      }
-
-      return {
-        success: true,
-        message: 'Ficha obtenida exitosamente',
-        data: data.data
-      };
-    } catch (error: any) {
-      console.error('Error al obtener ficha:', error);
-      return {
-        success: false,
-        message: error.message || 'Error al obtener ficha'
-      };
-    }
-  }
+  // Eliminar método getFichaEmpresaById
 
   // Obtener mi ficha personal
   async getMiFicha(): Promise<ApiResponse<FichaEmpresa>> {
@@ -114,7 +87,7 @@ export class FichaEmpresaService {
       console.error('Error al crear ficha:', error);
       return {
         success: false,
-        message: error.message || 'Error al crear ficha'
+        message: error.response?.data?.message || error.message || 'Error al crear ficha'
       };
     }
   }
@@ -122,7 +95,6 @@ export class FichaEmpresaService {
   // Actualizar ficha
   async updateFichaEmpresa(id: number, data: UpdateFichaEmpresaData): Promise<ApiResponse<FichaEmpresa>> {
     try {
-      console.log('Actualizando ficha:', { id, data });
       const response = await apiClient.put<{ data: FichaEmpresa }>(`${this.baseURL}/${id}`, data);
       return {
         success: true,
@@ -133,7 +105,7 @@ export class FichaEmpresaService {
       console.error('Error al actualizar ficha:', error);
       return {
         success: false,
-        message: error.message || 'Error al actualizar ficha'
+        message: error.response?.data?.message || error.message || 'Error al actualizar ficha'
       };
     }
   }
@@ -155,7 +127,7 @@ export class FichaEmpresaService {
       console.error('Error al actualizar estado:', error);
       return {
         success: false,
-        message: error.message || 'Error al actualizar estado'
+        message: error.response?.data?.message || error.message || 'Error al actualizar estado'
       };
     }
   }
@@ -163,10 +135,8 @@ export class FichaEmpresaService {
   // Buscar por RUT
   async getFichaByRUT(rut: string): Promise<ApiResponse<FichaEmpresa | null>> {
     try {
-      // Limpiar el RUT antes de enviarlo al backend
       const cleanRut = rut.replace(/\./g, '').replace(/-/g, '');
-      const data = await apiClient.get<{ data: FichaEmpresa[] }>(`${this.baseURL}/search?rut=${cleanRut}`);
-
+      const data = await apiClient.get<{ data: FichaEmpresa[] }>(`${this.baseURL}/?rut=${cleanRut}`);
       if (!data.data || !Array.isArray(data.data) || data.data.length === 0) {
         return {
           success: false,
@@ -174,7 +144,6 @@ export class FichaEmpresaService {
           data: null
         };
       }
-
       const fichas = data.data;
       return {
         success: true,
@@ -185,7 +154,7 @@ export class FichaEmpresaService {
       console.error('Error al buscar por RUT:', error);
       return {
         success: false,
-        message: error.message || 'Error al buscar por RUT',
+        message: error.response?.data?.message || error.message || 'Error al buscar por RUT',
         data: null
       };
     }
@@ -204,7 +173,7 @@ export class FichaEmpresaService {
       console.error('Error al subir contrato:', error);
       return {
         success: false,
-        message: error.message || 'Error al subir contrato'
+        message: error.response?.data?.message || error.message || 'Error al subir contrato'
       };
     }
   }
@@ -212,8 +181,40 @@ export class FichaEmpresaService {
   // Download de contrato
   async downloadContrato(fichaId: number): Promise<void> {
     try {
-      // Ruta correcta para la descarga de archivos
-      await apiClient.downloadFile(`${this.baseURL}/${fichaId}/contrato`, `contrato_${fichaId}.pdf`);
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}${this.baseURL}/${fichaId}/contrato`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+        }
+      });
+
+      if (response.ok) {
+        const blob = await response.blob();
+        const contentDisposition = response.headers.get('Content-Disposition');
+        let filename = `contrato_${fichaId}.pdf`;
+        
+        if (contentDisposition) {
+          // Buscar filename= seguido de comillas opcionales y cualquier carácter hasta comillas opcionales o fin de línea
+          const filenameMatch = contentDisposition.match(/filename\*?=(?:"([^"]*)"|([^;,\s]*))/);
+          if (filenameMatch) {
+            filename = filenameMatch[1] || filenameMatch[2] || `contrato_${fichaId}.pdf`;
+          }
+        }
+
+        // Crear enlace de descarga
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      } else {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Error al descargar contrato');
+      }
     } catch (error: any) {
       console.error('Error al descargar contrato:', error);
       throw error;
@@ -232,7 +233,7 @@ export class FichaEmpresaService {
       console.error('Error al eliminar contrato:', error);
       return {
         success: false,
-        message: error.message || 'Error al eliminar contrato'
+        message: error.response?.data?.message || error.message || 'Error al eliminar contrato'
       };
     }
   }
@@ -276,7 +277,7 @@ const fichaEmpresaService = new FichaEmpresaService();
 export default fichaEmpresaService;
 
 // Funciones de conveniencia para uso directo
-export const getFichaEmpresa = (id: number) => fichaEmpresaService.getFichaEmpresaById(id);
+export const getFichaEmpresa = (searchParams: FichaEmpresaSearchQuery = {}) => fichaEmpresaService.getFichasEmpresa(searchParams);
 export const updateFichaEmpresa = (id: number, data: UpdateFichaEmpresaData) => fichaEmpresaService.updateFichaEmpresa(id, data);
 export const uploadContrato = (fichaId: number, file: File) => fichaEmpresaService.uploadContrato(fichaId, file);
 export const downloadContrato = (fichaId: number) => fichaEmpresaService.downloadContrato(fichaId);

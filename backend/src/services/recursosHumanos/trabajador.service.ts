@@ -75,11 +75,31 @@ async function generateCorporateEmail(primerNombre: string, apellidoPaterno: str
     return newEmail;
 }
 
+// Función auxiliar para limpiar automáticamente los campos de texto
+function limpiarCamposTexto(data: Partial<Trabajador>): Partial<Trabajador> {
+    const dataCopia = { ...data };
+    
+    // Aplicar trim y eliminar espacios dobles en campos de nombres
+    if (dataCopia.nombres) dataCopia.nombres = dataCopia.nombres.trim().replace(/\s+/g, ' ');
+    if (dataCopia.apellidoPaterno) dataCopia.apellidoPaterno = dataCopia.apellidoPaterno.trim().replace(/\s+/g, ' ');
+    if (dataCopia.apellidoMaterno) dataCopia.apellidoMaterno = dataCopia.apellidoMaterno.trim().replace(/\s+/g, ' ');
+    if (dataCopia.telefono) dataCopia.telefono = dataCopia.telefono.trim();
+    if (dataCopia.correoPersonal) dataCopia.correoPersonal = dataCopia.correoPersonal.trim();
+    if (dataCopia.numeroEmergencia) dataCopia.numeroEmergencia = dataCopia.numeroEmergencia.trim();
+    if (dataCopia.direccion) dataCopia.direccion = dataCopia.direccion.trim().replace(/\s+/g, ' ');
+    if (dataCopia.rut) dataCopia.rut = dataCopia.rut.trim();
+    
+    return dataCopia;
+}
+
 export async function createTrabajadorService(trabajadorData: Partial<Trabajador>): Promise<ServiceResponse<{ trabajador: Trabajador, tempPassword: string, advertencias: string[], correoUsuario: string }>> {
     try {
         const trabajadorRepo = AppDataSource.getRepository(Trabajador);
         const fichaRepo = AppDataSource.getRepository(FichaEmpresa);
         const userRepo = AppDataSource.getRepository(User);
+
+        // LIMPIEZA AUTOMÁTICA: Eliminar espacios extra de todos los campos de texto
+        trabajadorData = limpiarCamposTexto(trabajadorData);
 
         // Validar datos requeridos
         if (!trabajadorData.rut || !trabajadorData.nombres || !trabajadorData.apellidoPaterno || 
@@ -171,20 +191,18 @@ export async function createTrabajadorService(trabajadorData: Partial<Trabajador
             });
             await queryRunner.manager.save(User, newUser);
 
-            // Enviar correo con credenciales (excepto superadmin)
+            // Enviar correo con credenciales
             let advertencias: string[] = [];
-            if (!(trabajador.rut === "11.111.111-1")) {
-                try {
-                    await sendCredentialsEmail({
-                        to: trabajador.correoPersonal,
-                        nombre: trabajador.nombres,
-                        correoUsuario,
-                        passwordTemporal: randomPassword
-                    });
-                } catch (err) {
-                    console.error("Error enviando correo de credenciales:", err);
-                    advertencias.push("No se pudo enviar el correo de credenciales.");
-                }
+            try {
+                await sendCredentialsEmail({
+                    to: trabajador.correoPersonal,
+                    nombre: trabajador.nombres,
+                    correoUsuario,
+                    passwordTemporal: randomPassword
+                });
+            } catch (err) {
+                console.error("Error enviando correo de credenciales:", err);
+                advertencias.push("No se pudo enviar el correo de credenciales.");
             }
 
             // Crear ficha de empresa
@@ -235,113 +253,65 @@ export async function createTrabajadorService(trabajadorData: Partial<Trabajador
     }
 }
 
-export async function getTrabajadoresService(incluirInactivos: boolean = false): Promise<ServiceResponse<Trabajador[]>> {
-    try {
-        const trabajadorRepo = AppDataSource.getRepository(Trabajador);
-        const trabajadores = await trabajadorRepo.find({
-            relations: ["usuario", "fichaEmpresa", "historialLaboral", "licenciasPermisos"],
-            where: incluirInactivos ? {} : { enSistema: true }
-        });
-
-        if (!trabajadores.length) {
-            return [null, "No hay trabajadores registrados"];
-        }
-
-        return [trabajadores, null];
-    } catch (error) {
-        console.error("Error en getTrabajadoresService:", error);
-        return [null, "Error interno del servidor"];
-    }
-}
-
-export async function searchTrabajadoresService(query: any): Promise<ServiceResponse<Trabajador[]>> {
+export async function getTrabajadoresService(incluirInactivos: boolean = false, filtros: any = {}): Promise<ServiceResponse<Trabajador[]>> {
     try {
         const trabajadorRepo = AppDataSource.getRepository(Trabajador);
         
-        // Usar QueryBuilder para mayor flexibilidad en la búsqueda por RUT
-        let queryBuilder = trabajadorRepo.createQueryBuilder("trabajador")
-            .leftJoinAndSelect("trabajador.fichaEmpresa", "fichaEmpresa")
-            .leftJoinAndSelect("trabajador.historialLaboral", "historialLaboral")
-            .leftJoinAndSelect("trabajador.licenciasPermisos", "licenciasPermisos");
+        // Crear el query builder para usar búsquedas más flexibles
+        const queryBuilder = trabajadorRepo.createQueryBuilder('trabajador')
+            .leftJoinAndSelect('trabajador.usuario', 'usuario')
+            .leftJoinAndSelect('trabajador.fichaEmpresa', 'fichaEmpresa')
+            .leftJoinAndSelect('trabajador.historialLaboral', 'historialLaboral')
+            .leftJoinAndSelect('trabajador.licenciasPermisos', 'licenciasPermisos');
 
-        // Aplicar filtros
-        const conditions: string[] = [];
-        const parameters: any = {};
-
-        // Filtro especial para RUT que funciona con y sin puntos
-        if (query.rut) {
-            const rutOriginal = query.rut;
-            const rutSinPuntos = query.rut.replace(/\./g, '');
-            conditions.push("(trabajador.rut ILIKE :rutOriginal OR trabajador.rut ILIKE :rutSinPuntos)");
-            parameters.rutOriginal = `%${rutOriginal}%`;
-            parameters.rutSinPuntos = `%${rutSinPuntos}%`;
+        // Si no se incluyen inactivos, filtrar por enSistema=true
+        if (!incluirInactivos && typeof filtros.enSistema === 'undefined') {
+            queryBuilder.andWhere('trabajador.enSistema = :enSistema', { enSistema: true });
         }
 
-        if (query.nombres) {
-            conditions.push("trabajador.nombres ILIKE :nombres");
-            parameters.nombres = `%${query.nombres}%`;
+        // Agregar filtros por campos si existen
+        if (filtros.id) {
+            queryBuilder.andWhere('trabajador.id = :id', { id: filtros.id });
         }
-        if (query.apellidoPaterno) {
-            conditions.push("trabajador.apellidoPaterno ILIKE :apellidoPaterno");
-            parameters.apellidoPaterno = `%${query.apellidoPaterno}%`;
+        if (filtros.rut) {
+            queryBuilder.andWhere('trabajador.rut ILIKE :rut', { rut: `%${filtros.rut}%` });
         }
-        if (query.apellidoMaterno) {
-            conditions.push("trabajador.apellidoMaterno ILIKE :apellidoMaterno");
-            parameters.apellidoMaterno = `%${query.apellidoMaterno}%`;
+        if (filtros.nombres) {
+            queryBuilder.andWhere('trabajador.nombres ILIKE :nombres', { nombres: `%${filtros.nombres}%` });
         }
-        if (query.correoPersonal) {
-            conditions.push("trabajador.correoPersonal ILIKE :correoPersonal");
-            parameters.correoPersonal = `%${query.correoPersonal}%`;
+        if (filtros.apellidoPaterno) {
+            queryBuilder.andWhere('trabajador.apellidoPaterno ILIKE :apellidoPaterno', { apellidoPaterno: `%${filtros.apellidoPaterno}%` });
         }
-        if (query.telefono) {
-            conditions.push("trabajador.telefono ILIKE :telefono");
-            parameters.telefono = `%${query.telefono}%`;
+        if (filtros.apellidoMaterno) {
+            queryBuilder.andWhere('trabajador.apellidoMaterno ILIKE :apellidoMaterno', { apellidoMaterno: `%${filtros.apellidoMaterno}%` });
         }
-        if (query.numeroEmergencia) {
-            conditions.push("trabajador.numeroEmergencia ILIKE :numeroEmergencia");
-            parameters.numeroEmergencia = `%${query.numeroEmergencia}%`;
+        if (filtros.fechaNacimiento) {
+            queryBuilder.andWhere('trabajador.fechaNacimiento = :fechaNacimiento', { fechaNacimiento: filtros.fechaNacimiento });
         }
-        if (query.direccion) {
-            // Búsqueda insensible a tildes y mayúsculas para dirección
-            const direccionNormalizada = normalizeText(query.direccion);
-            conditions.push("LOWER(TRANSLATE(trabajador.direccion, 'ÁÉÍÓÚÀÈÌÒÙÂÊÎÔÛÄËÏÖÜÑÇ', 'aeiouaeiouaeiouaeiounç')) ILIKE :direccion");
-            parameters.direccion = `%${direccionNormalizada}%`;
+        if (filtros.telefono) {
+            queryBuilder.andWhere('trabajador.telefono ILIKE :telefono', { telefono: `%${filtros.telefono}%` });
         }
-        if (query.fechaNacimiento) {
-            conditions.push("trabajador.fechaNacimiento = :fechaNacimiento");
-            parameters.fechaNacimiento = query.fechaNacimiento;
+        if (filtros.correoPersonal) {
+            queryBuilder.andWhere('trabajador.correoPersonal ILIKE :correoPersonal', { correoPersonal: `%${filtros.correoPersonal}%` });
         }
-        if (query.fechaIngreso) {
-            conditions.push("trabajador.fechaIngreso = :fechaIngreso");
-            parameters.fechaIngreso = query.fechaIngreso;
+        if (filtros.numeroEmergencia) {
+            queryBuilder.andWhere('trabajador.numeroEmergencia ILIKE :numeroEmergencia', { numeroEmergencia: `%${filtros.numeroEmergencia}%` });
         }
-
-        // Filtro de estado
-        const soloEliminados = query.soloEliminados === true || query.soloEliminados === "true";
-        const todos = query.todos === true || query.todos === "true";
-
-        if (soloEliminados) {
-            conditions.push("trabajador.enSistema = :enSistema");
-            parameters.enSistema = false;
-        } else if (!todos) {
-            conditions.push("trabajador.enSistema = :enSistema");
-            parameters.enSistema = true;
+        if (filtros.direccion) {
+            queryBuilder.andWhere('trabajador.direccion ILIKE :direccion', { direccion: `%${filtros.direccion}%` });
+        }
+        if (filtros.fechaIngreso) {
+            queryBuilder.andWhere('trabajador.fechaIngreso = :fechaIngreso', { fechaIngreso: filtros.fechaIngreso });
+        }
+        if (typeof filtros.enSistema !== 'undefined') {
+            queryBuilder.andWhere('trabajador.enSistema = :enSistema', { enSistema: filtros.enSistema === true || filtros.enSistema === 'true' });
         }
 
-        // Aplicar todas las condiciones
-        if (conditions.length > 0) {
-            queryBuilder = queryBuilder.where(conditions.join(" AND "), parameters);
-        }
-
+        // Ejecutar la consulta
         const trabajadores = await queryBuilder.getMany();
-
-        if (!trabajadores.length) {
-            return [null, "No se encontraron trabajadores"];
-        }
-
         return [trabajadores, null];
     } catch (error) {
-        console.error("Error en searchTrabajadoresService:", error);
+        console.error("Error en getTrabajadoresService:", error);
         return [null, "Error interno del servidor"];
     }
 }
@@ -363,11 +333,7 @@ export async function desvincularTrabajadorService(id: number, motivo: string, u
             return [null, "Trabajador no encontrado o ya desvinculado"];
         }
 
-        if (trabajador.rut === "11.111.111-1") {
-            await queryRunner.rollbackTransaction();
-            await queryRunner.release();
-            return [null, "No se puede modificar, eliminar ni desvincular al superadministrador."];
-        }
+
 
         // Soft delete del trabajador
         trabajador.enSistema = false;
@@ -411,9 +377,8 @@ export async function updateTrabajadorService(id: number, data: any): Promise<Se
         if (!trabajador) return [null, "Trabajador no encontrado"];
         if (!trabajador.usuario) return [null, "El trabajador no tiene usuario asociado"];
 
-        if (trabajador.rut === "11.111.111-1") {
-            return [null, "No se puede modificar, eliminar ni desvincular al superadministrador."];
-        }
+        // LIMPIEZA AUTOMÁTICA: Eliminar espacios extra de todos los campos de texto
+        data = limpiarCamposTexto(data);
 
         let updated = false;
         let correoUsuarioAnterior = trabajador.usuario.email;

@@ -41,18 +41,19 @@ export async function getHistorialLaboral(req: Request, res: Response): Promise<
         const user = req.user as User;
         let historial, errorMsg;
 
+        // Buscar el trabajador asociado al usuario
+        const trabajadorRepo = AppDataSource.getRepository(Trabajador);
+        const trabajador = user.rut ? await trabajadorRepo.findOne({
+            where: { rut: user.rut }
+        }) : null;
+
+        if (!trabajador) {
+            handleErrorClient(res, 400, "Trabajador no encontrado");
+            return;
+        }
+
         // Si es un trabajador, solo puede ver su propio historial
         if (user.role === "Usuario" || req.path.includes("mi-historial")) {
-            const trabajadorRepo = AppDataSource.getRepository(Trabajador);
-            const trabajador = await trabajadorRepo.findOne({
-                where: { rut: user.rut }
-            });
-
-            if (!trabajador) {
-                handleErrorClient(res, 404, "Trabajador no encontrado");
-                return;
-            }
-
             [historial, errorMsg] = await getHistorialLaboralByTrabajadorService(trabajador.id);
         } else {
             // RRHH puede ver cualquier historial

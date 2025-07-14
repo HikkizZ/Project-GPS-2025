@@ -1,4 +1,5 @@
 import { FichaEmpresa } from './fichaEmpresa.types';
+import { LicenciaPermiso } from './licenciaPermiso.types';
 
 export enum EstadoTrabajador {
   ACTIVO = "ACTIVO",
@@ -20,14 +21,7 @@ export interface HistorialLaboral {
   fechaRegistro: string | Date;
 }
 
-export interface LicenciaPermiso {
-  id: number;
-  tipo: string;
-  fechaInicio: string | Date;
-  fechaFin: string | Date;
-  motivo: string;
-  estado: string;
-}
+// LicenciaPermiso se define en licenciaPermiso.types.ts
 
 export interface Trabajador {
   id: number;
@@ -93,7 +87,7 @@ export interface TrabajadorSearchQuery {
   direccion?: string;
   fechaIngreso?: string;
   todos?: boolean;
-  soloEliminados?: boolean;
+  enSistema?: boolean;
 }
 
 export interface TrabajadorResponse {

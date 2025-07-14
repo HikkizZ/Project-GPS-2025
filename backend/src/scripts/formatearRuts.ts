@@ -37,18 +37,15 @@ async function formatearRuts() {
     
     console.log(`👥 Encontrados ${users.length} usuarios para actualizar`);
 
-    // Actualizar RUTs de usuarios
+    // Formatear RUT de usuarios
     for (const user of users) {
-      const rutFormateado = formatRut(user.rut);
-      if (rutFormateado !== user.rut) {
-        console.log(`🔄 Actualizando RUT usuario: ${user.rut} → ${rutFormateado}`);
-        await userRepository
-          .createQueryBuilder()
-          .update()
-          .set({ rut: rutFormateado })
-          .where("id = :id", { id: user.id })
-          .execute();
-      }
+        if (user.rut) {  // Solo formatear si el RUT existe
+            const rutFormateado = formatRut(user.rut);
+            if (rutFormateado !== user.rut) {
+                await userRepository.update(user.id, { rut: rutFormateado });
+                console.log(`Usuario ${user.id}: RUT actualizado de ${user.rut} a ${rutFormateado}`);
+            }
+        }
     }
 
     console.log("✅ Formateo de RUTs completado exitosamente");

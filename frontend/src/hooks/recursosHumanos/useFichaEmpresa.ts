@@ -63,9 +63,10 @@ export const useFichaEmpresa = () => {
     try {
       const result = await fichaEmpresaService.getFichasEmpresa(searchParams);
       
-      if (result.success && result.data) {
+      if (result.success) {
+        // result.data puede ser un array vacío, que es un resultado válido
         updateState({
-          fichas: result.data,
+          fichas: result.data || [],
           isLoading: false,
         });
       } else {
@@ -86,7 +87,13 @@ export const useFichaEmpresa = () => {
     try {
       let result;
       if (id) {
-        result = await fichaEmpresaService.getFichaEmpresaById(id);
+        // Usar getFichasEmpresa con filtro por id
+        const res = await fichaEmpresaService.getFichasEmpresa({ id });
+        if (res.success && res.data && res.data.length > 0) {
+          result = { success: true, data: res.data[0], message: res.message };
+        } else {
+          result = { success: false, data: null, message: res.message || 'No se encontró la ficha' };
+        }
       } else {
         result = await fichaEmpresaService.getMiFicha();
       }

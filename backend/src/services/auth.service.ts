@@ -3,7 +3,7 @@ import { User } from "../entity/user.entity.js";
 import { AppDataSource } from "../config/configDB.js";
 import { comparePassword, encryptPassword } from "../utils/encrypt.js";
 import { ACCESS_TOKEN_SECRET } from "../config/configEnv.js";
-import { UserResponse, UserData, userRole } from "../../types.d.js";
+import { UserResponse, UserData, userRole, LoginResponse } from "../../types.d.js";
 import { formatRut } from "../helpers/rut.helper.js";
 import { Trabajador } from "../entity/recursosHumanos/trabajador.entity.js";
 import bcrypt from "bcrypt";
@@ -14,33 +14,37 @@ interface LoginData {
   password: string;
 }
 
-interface RegisterData {
-  name: string;
-  rut: string;
-  email: string;
-  password: string;
-  role: userRole;
-}
-
 /* Interface for JWT Payload */
 interface JWTPayload {
   name: string;
   email: string;
   role: userRole;
-  rut: string;
+  rut: string | null;
 }
 
 /* Interface for error messages */
 interface authError {
-  dataInfo: Partial<LoginData | RegisterData>;
+  dataInfo: Partial<LoginData>;
   message: string;
 }
 
 /* Definición de roles permitidos */
-const allowedRoles: userRole[] = ["SuperAdministrador", "Administrador", "Usuario", "RecursosHumanos", "Gerencia", "Ventas", "Arriendo", "Finanzas", "Mecánico", "Mantenciones de Maquinaria"];
+const allowedRoles: userRole[] = [
+    "SuperAdministrador",
+    "Administrador",
+    "Usuario",
+    "RecursosHumanos",
+    "Gerencia",
+    "Ventas",
+    "Arriendo",
+    "Finanzas",
+    "Mecánico",
+    "Mantenciones de Maquinaria",
+    "Conductor"
+];
 
 /* Auxiliar function for creating error messages */
-const createErrorMessage = (dataInfo: Partial<LoginData | RegisterData>, message: string): authError => ({ dataInfo, message });
+const createErrorMessage = (dataInfo: Partial<LoginData>, message: string): authError => ({ dataInfo, message });
 
 export async function loginService(user: LoginData): Promise<[string | null, authError | string | null]> {
   try {
@@ -110,151 +114,23 @@ export async function loginService(user: LoginData): Promise<[string | null, aut
   }
 }
 
-export async function registerService(user: RegisterData, userRole: userRole): Promise<[UserResponse | null, authError | string | null]> {
-  try {
-        const userRepository = AppDataSource.getRepository(User);
-        const trabajadorRepository = AppDataSource.getRepository(Trabajador);
-        const { name, rut, email, password, role } = user;
-
-        // Validaciones básicas
-        if (!name || name.trim() === "") {
-            return [null, createErrorMessage({ name }, "El nombre es requerido.")];
-        }
-
-        if (name.length < 3) {
-            return [null, createErrorMessage({ name }, "El nombre debe tener al menos 3 caracteres.")];
-        }
-
-        if (name.length > 70) {
-            return [null, createErrorMessage({ name }, "El nombre debe tener menos de 70 caracteres.")];
-        }
-
-        if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(name)) {
-            return [null, createErrorMessage({ name }, "El nombre solo puede contener letras y espacios.")];
-        }
-
-        // Validaciones de RUT
-        if (!rut || rut.trim() === "") {
-            return [null, createErrorMessage({ rut }, "El RUT es requerido.")];
-        }
-
-        if (!formatRut(rut)) {
-            return [null, createErrorMessage({ rut }, "El RUT ingresado no es válido.")];
-        }
-
-        if (rut.length < 8) {
-            return [null, createErrorMessage({ rut }, "El RUT debe tener al menos 8 caracteres.")];
-        }
-
-        if (rut.length > 12) {
-            return [null, createErrorMessage({ rut }, "El RUT debe tener menos de 12 caracteres.")];
-        }
-
-        // Validaciones de email
-        if (!email || email.trim() === "") {
-            return [null, createErrorMessage({ email }, "El email es requerido.")];
-        }
-
-        if (email.length < 15) {
-            return [null, createErrorMessage({ email }, "El email debe tener al menos 15 caracteres.")];
-        }
-
-        if (email.length > 50) {
-            return [null, createErrorMessage({ email }, "El email debe tener menos de 50 caracteres.")];
-        }
-
-        if (!/^[a-zA-Z0-9._%+-]+@(gmail\.com|outlook\.com|hotmail\.com|gmail\.cl|outlook\.cl|hotmail\.cl|lamas\.com|live\.cl)$/.test(email)) {
-            return [null, createErrorMessage({ email }, "El dominio del email no es válido.")];
-        }
-
-        // Validaciones de contraseña
-        if (!password || password.trim() === "") {
-            return [null, createErrorMessage({ password }, "La contraseña es requerida.")];
-        }
-
-        if (password.length < 8) {
-            return [null, createErrorMessage({ password }, "La contraseña debe tener al menos 8 caracteres.")];
-        }
-
-        if (password.length > 16) {
-            return [null, createErrorMessage({ password }, "La contraseña debe tener menos de 16 caracteres.")];
-        }
-
-        if (!/^[a-zA-Z0-9]+$/.test(password)) {
-            return [null, createErrorMessage({ password }, "La contraseña solo puede contener letras y números.")];
-        }
-
-        // Normalizar el RUT antes de buscar al trabajador
-        const rutNormalizado = rut.replace(/\./g, "").trim();
-        
-        // Verificar si existe el trabajador con el RUT normalizado
-        const trabajador = await trabajadorRepository.findOne({ 
-            where: { rut: rutNormalizado } 
-        });
-
-        if (!trabajador) {
-            return [null, createErrorMessage({ rut }, "No existe un trabajador con este RUT.")];
-        }
-
-        // Verificar si ya existe un usuario con el mismo email o RUT
-        const [existingEmailUser, existingRutUser] = await Promise.all([
-            userRepository.findOne({ where: { email } }),
-            userRepository.findOne({ where: { rut: rutNormalizado } })
-        ]);
-
-        if (existingEmailUser) {
-            return [null, createErrorMessage({ email }, "El email ingresado ya está registrado.")];
-        }
-
-        if (existingRutUser) {
-            return [null, createErrorMessage({ rut }, "El RUT ingresado ya está registrado.")];
-        }
-
-        // Verificar el rol
-        if (!role || !allowedRoles.includes(role)) {
-            return [null, createErrorMessage({ role }, "El rol especificado no es válido.")];
-        }
-
-        // Solo administradores pueden crear otros administradores
-        if (role === "Administrador" && userRole !== "Administrador") {
-            return [null, "No tienes permisos para crear usuarios administradores."];
-        }
-
-        const hashedPassword = await encryptPassword(password);
-
-        const newUser = userRepository.create({
-            name,
-            email,
-            password: hashedPassword,
-            role,
-            rut,
-            estadoCuenta: "Activa",
-            createAt: new Date(),
-            updateAt: new Date()
-        });
-
-        await userRepository.save(newUser);
-
-        const userResponse: UserResponse = {
-            id: newUser.id,
-            name: newUser.name,
-            email: newUser.email,
-            role: newUser.role,
-            rut: newUser.rut,
-            estadoCuenta: newUser.estadoCuenta,
-            createAt: newUser.createAt,
-            updateAt: newUser.updateAt
-        };
-
-        return [userResponse, null];
-    } catch (error) {
-        console.error("❌ Error en register:", error);
-        return [null, "Error interno del servidor."];
-    }
+// Función auxiliar para limpiar automáticamente los campos de texto de usuarios
+function limpiarCamposTextoUsuario(data: any): any {
+    const dataCopia = { ...data };
+    
+    // Aplicar trim y eliminar espacios dobles
+    if (dataCopia.name) dataCopia.name = dataCopia.name.trim().replace(/\s+/g, ' ');
+    if (dataCopia.email) dataCopia.email = dataCopia.email.trim();
+    if (dataCopia.rut) dataCopia.rut = dataCopia.rut.trim();
+    
+    return dataCopia;
 }
 
 export const createUserService = async (userData: UserData): Promise<[UserResponse | null, string | null]> => {
     try {
+        // LIMPIEZA AUTOMÁTICA: Eliminar espacios extra de todos los campos de texto
+        userData = limpiarCamposTextoUsuario(userData);
+        
         const { name, email, password, role, rut } = userData;
 
         // Verificar si el usuario ya existe

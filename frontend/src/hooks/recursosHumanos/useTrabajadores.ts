@@ -6,40 +6,25 @@ export const useTrabajadores = () => {
   const [trabajadores, setTrabajadores] = useState<Trabajador[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string>('');
+  const [totalTrabajadores, setTotalTrabajadores] = useState<number>(0);
 
   // Cargar todos los trabajadores
   const loadTrabajadores = async () => {
     setIsLoading(true);
     setError('');
     try {
-      const result = await trabajadorService.getAllTrabajadores();
-      if (result.success && result.data) {
-        setTrabajadores(result.data);
+      const result = await trabajadorService.getTrabajadores();
+      
+      if (result.success) {
+        setTrabajadores(result.data || []);
+        setTotalTrabajadores((result.data || []).length);
       } else {
         setError(result.message || 'Error al cargar trabajadores');
+        setTotalTrabajadores(0);
       }
     } catch (error) {
       setError('Error de conexión');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Buscar trabajadores
-  const searchTrabajadores = async (query: TrabajadorSearchQuery) => {
-    setIsLoading(true);
-    setError('');
-    try {
-      const result = await trabajadorService.searchTrabajadores(query);
-      if (result.success && result.data) {
-        setTrabajadores(result.data);
-      } else {
-        setError(result.message || 'No se encontraron trabajadores');
-        setTrabajadores([]);
-      }
-    } catch (error) {
-      setError('Error en la búsqueda');
-      setTrabajadores([]);
+      setTotalTrabajadores(0);
     } finally {
       setIsLoading(false);
     }
@@ -139,6 +124,27 @@ export const useTrabajadores = () => {
     }
   };
 
+  // Buscar trabajadores con filtros
+  const searchTrabajadores = async (query: TrabajadorSearchQuery = {}) => {
+    setIsLoading(true);
+    setError('');
+    try {
+      const result = await trabajadorService.getTrabajadores(query);
+      if (result.success) {
+        setTrabajadores(result.data || []);
+        setTotalTrabajadores((result.data || []).length);
+      } else {
+        setError(result.message || 'Error al buscar trabajadores');
+        setTotalTrabajadores(0);
+      }
+    } catch (error) {
+      setError('Error de conexión');
+      setTotalTrabajadores(0);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // Cargar trabajadores al inicializar el hook
   useEffect(() => {
     loadTrabajadores();
@@ -154,6 +160,7 @@ export const useTrabajadores = () => {
     updateTrabajador,
     deleteTrabajador,
     desvincularTrabajador,
-    clearError: () => setError('')
+    clearError: () => setError(''),
+    totalTrabajadores
   };
 }; 

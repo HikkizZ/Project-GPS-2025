@@ -2,10 +2,7 @@ import { AppDataSource } from '../config/configDB.js';
 
 async function eliminarCampoEmpresa() {
     try {
-        console.log('🔄 Iniciando eliminación del campo empresa...');
-
         await AppDataSource.initialize();
-        console.log('✅ Conexión a la base de datos establecida');
 
         const queryRunner = AppDataSource.createQueryRunner();
         await queryRunner.connect();
@@ -20,18 +17,12 @@ async function eliminarCampoEmpresa() {
             `);
 
             if (columnas.length > 0) {
-                console.log('📋 Columna empresa encontrada, eliminando...');
                 await queryRunner.query('ALTER TABLE fichas_empresa DROP COLUMN empresa');
-                console.log('✅ Campo empresa eliminado exitosamente de la tabla fichas_empresa');
-            } else {
-                console.log('ℹ️  La columna empresa no existe en la tabla fichas_empresa');
             }
 
         } finally {
             await queryRunner.release();
         }
-
-        console.log('✅ Proceso completado exitosamente');
 
     } catch (error) {
         console.error('❌ Error durante el proceso:', error);
@@ -39,7 +30,6 @@ async function eliminarCampoEmpresa() {
     } finally {
         if (AppDataSource.isInitialized) {
             await AppDataSource.destroy();
-            console.log('🔌 Conexión a la base de datos cerrada');
         }
     }
 }

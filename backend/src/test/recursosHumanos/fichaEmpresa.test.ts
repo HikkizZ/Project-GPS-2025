@@ -2,111 +2,99 @@
 import { expect } from 'chai';
 // @ts-ignore
 import request from 'supertest';
-import { app, server } from '../setup.js';
+import { app, server, SUPER_ADMIN_CREDENTIALS, RRHH_CREDENTIALS } from '../setup.js';
 import { AppDataSource } from '../../config/configDB.js';
 import { FichaEmpresa } from '../../entity/recursosHumanos/fichaEmpresa.entity.js';
 import { Trabajador } from '../../entity/recursosHumanos/trabajador.entity.js';
 import { EstadoLaboral } from '../../entity/recursosHumanos/fichaEmpresa.entity.js';
 
 describe('📋 Ficha Empresa API', () => {
-    let adminToken: string;
-    let rrhToken: string;
-    let usuarioToken: string;
+    let adminToken: string = '';
+    let rrhToken: string = '';
+    let usuarioToken: string = '';
     let fichaId: number;
     let trabajadorId: number;
+    let userId: number;
+    let token: string = '';
 
     before(async () => {
         try {
             console.log("✅ Iniciando pruebas de Ficha Empresa");
 
-            // Obtener token de admin
+            // Obtener token de SuperAdmin
             const adminLogin = await request(app)
                 .post('/api/auth/login')
-                .send({
-                    email: "admin.principal@gmail.com",
-                    password: "204dm1n8"
-                });
+                .send(SUPER_ADMIN_CREDENTIALS);
 
             adminToken = adminLogin.body.data.token;
 
             // Login como RRHH
             const rrhLogin = await request(app)
                 .post('/api/auth/login')
-                .send({
-                    email: 'recursoshumanos@gmail.com',
-                    password: 'RRHH2024'
-                });
+                .send(RRHH_CREDENTIALS);
 
             rrhToken = rrhLogin.body.data.token;
 
-            // Crear un trabajador de prueba con ficha empresa
+            // Crear trabajador para las pruebas
             const trabajadorResponse = await request(app)
-                .post('/api/trabajador')
-                .set('Authorization', `Bearer ${rrhToken}`)
+                .post('/api/trabajadores')
+                .set('Authorization', `Bearer ${adminToken}`)
                 .send({
-                    nombres: "Juan Test",
-                    apellidoPaterno: "Ficha",
-                    apellidoMaterno: "Empresa",
-                    rut: "26.789.456-6",
-                    fechaNacimiento: "1990-01-01",
-                    telefono: "+56912345678",
-                    correo: "juan.ficha.test@gmail.com",
-                    numeroEmergencia: "+56987654321",
-                    direccion: "Av. Test 123",
-                    fechaIngreso: "2024-01-01",
-                    fichaEmpresa: {
-                        cargo: "Desarrollador Test",
-                        area: "TI",
-                        tipoContrato: "Indefinido",
-                        jornadaLaboral: "Completa",
-                        sueldoBase: 1000000,
-                        fechaInicioContrato: "2024-01-01",
-                        contratoURL: "https://example.com/contratos/test.pdf"
-                    }
+                    rut: '12.345.678-9',
+                    nombres: 'Juan',
+                    apellidoPaterno: 'Pérez',
+                    apellidoMaterno: 'González',
+                    fechaNacimiento: '1990-01-01',
+                    nacionalidad: 'Chilena',
+                    genero: 'Masculino',
+                    estadoCivil: 'Soltero',
+                    direccion: 'Calle 123',
+                    telefono: '+56912345678',
+                    correo: 'juan.perez@test.com',
+                    cargo: 'Desarrollador',
+                    departamento: 'TI',
+                    fechaIngreso: '2023-01-01',
+                    sueldoBase: 1000000
                 });
 
-            if (!trabajadorResponse.body.data?.fichaEmpresa?.id) {
+            if (!trabajadorResponse.body.trabajador?.id || !trabajadorResponse.body.ficha?.id) {
                 console.error('Error: No se pudo obtener el ID de la ficha:', trabajadorResponse.body);
-                throw new Error('No se pudo obtener el ID de la ficha empresa');
+                throw new Error('No se pudieron obtener los IDs necesarios');
             }
 
-            trabajadorId = trabajadorResponse.body.data.id;
-            fichaId = trabajadorResponse.body.data.fichaEmpresa.id;
+            trabajadorId = trabajadorResponse.body.trabajador.id;
+            fichaId = trabajadorResponse.body.ficha.id;
 
-            console.log('IDs obtenidos:', { trabajadorId, fichaId });
-
-            // Login como el nuevo trabajador
+            // Registrar usuario
             const userResponse = await request(app)
                 .post('/api/auth/register')
-                .set('Authorization', `Bearer ${rrhToken}`)
                 .send({
-                    rut: "26.789.456-6",
-                    email: "juan.ficha.test@gmail.com",
-                    password: "Test2024",
-                    role: "Usuario",
-                    name: "Juan Test Ficha"
+                    rut: '12.345.678-9',
+                    password: 'password123',
+                    role: 'Usuario'
                 });
 
-            if (userResponse.status !== 201) {
+            if (!userResponse.body.user?.id) {
                 console.error('Error en registro de usuario:', userResponse.body);
-                throw new Error('No se pudo registrar el usuario de prueba');
+                throw new Error('No se pudo registrar el usuario');
             }
 
-            await new Promise(resolve => setTimeout(resolve, 1000)); // Esperar un momento antes del login
+            userId = userResponse.body.user.id;
 
+            // Login como usuario
             const userLogin = await request(app)
                 .post('/api/auth/login')
                 .send({
-                    email: "juan.ficha.test@gmail.com",
-                    password: "Test2024"
+                    rut: '12.345.678-9',
+                    password: 'password123'
                 });
 
-            if (userLogin.status !== 200 || !userLogin.body.data?.token) {
+            if (!userLogin.body.token) {
                 console.error('Error en login de usuario:', userLogin.body);
-                throw new Error('No se pudo obtener el token del usuario');
+                throw new Error('No se pudo hacer login');
             }
 
-            usuarioToken = userLogin.body.data.token;
+            token = userLogin.body.token;
 
         } catch (error) {
             console.error("Error en la configuración de pruebas:", error);
@@ -118,11 +106,11 @@ describe('📋 Ficha Empresa API', () => {
         it('debe permitir a un trabajador ver su propia ficha', async () => {
             const response = await request(app)
                 .get('/api/ficha-empresa/mi-ficha')
-                .set('Authorization', `Bearer ${usuarioToken}`);
+                .set('Authorization', `Bearer ${token}`);
 
             expect(response.status).to.equal(200);
             expect(response.body.status).to.equal("success");
-            expect(response.body.data).to.have.property("cargo", "Desarrollador Test");
+            expect(response.body.data).to.have.property("cargo", "Desarrollador");
         });
 
         it('debe permitir a RRHH buscar fichas', async () => {
@@ -275,7 +263,7 @@ describe('📋 Ficha Empresa API', () => {
         it('debe permitir descargar contrato al dueño de la ficha', async () => {
             const response = await request(app)
                 .get(`/api/ficha-empresa/${fichaId}/contrato`)
-                .set('Authorization', `Bearer ${usuarioToken}`);
+                .set('Authorization', `Bearer ${token}`);
 
             expect(response.status).to.equal(200);
         });
@@ -318,7 +306,7 @@ describe('📋 Ficha Empresa API', () => {
 
             const response = await request(app)
                 .get(`/api/ficha-empresa/${otraFichaId}/contrato`)
-                .set('Authorization', `Bearer ${usuarioToken}`);
+                .set('Authorization', `Bearer ${token}`);
 
             expect(response.status).to.equal(403);
             expect(response.body.status).to.equal("error");

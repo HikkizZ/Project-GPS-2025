@@ -1,0 +1,151 @@
+/*
+  toast.css
+  Estilos específicos para notificaciones toast
+  Usa variables CSS para consistencia y mantenibilidad
+*/
+
+/* Toast base */
+.toast-custom {
+  min-width: 260px;
+  max-width: 340px;
+  border-radius: var(--border-radius-xl) !important;
+  box-shadow: 0 4px 18px 0 rgba(0, 0, 0, 0.13), 0 1.5px 6px 0 rgba(0, 0, 0, 0.08);
+  border: none;
+  padding: 0;
+  overflow: hidden;
+  font-family: var(--font-family);
+  background: var(--background-white);
+}
+
+/* Headers de toast por tipo */
+.toast-header-success {
+  background: #21916b !important; /* Verde profesional */
+  color: #fff !important;
+  border-bottom: none;
+}
+
+.toast-header-error {
+  background: #c0392b !important; /* Rojo sobrio */
+  color: #fff !important;
+  border-bottom: none;
+}
+
+.toast-header-warning {
+  background: #e1b000 !important; /* Amarillo profesional */
+  color: #fff !important;
+  border-bottom: none;
+}
+
+.toast-header-info {
+  background: #2563eb !important; /* Azul elegante */
+  color: #fff !important;
+  border-bottom: none;
+}
+
+/* Header del toast */
+.toast-custom .toast-header {
+  display: flex;
+  align-items: center;
+  padding: 0.7rem 1rem 0.5rem 1rem;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  border-radius: var(--border-radius-xl) var(--border-radius-xl) 0 0;
+  border: none;
+  background: none;
+}
+
+/* Icono del toast */
+.toast-custom .toast-icon {
+  font-size: 1.35rem;
+  margin-right: 0.6rem;
+  vertical-align: middle;
+  flex-shrink: 0;
+  opacity: 0.95;
+}
+
+/* Botón de cerrar */
+.toast-custom .btn-close {
+  filter: invert(1);
+  opacity: 0.9;
+  margin-left: 0.5rem;
+  margin-right: -0.2rem;
+  font-size: 1.1rem;
+  box-shadow: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  width: 1.5rem;
+  height: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.toast-custom .btn-close:hover {
+  opacity: 1;
+}
+
+/* Cuerpo del toast */
+.toast-custom .toast-body {
+  padding: 0.55rem 1rem 0.8rem 1rem;
+  font-size: 0.98rem;
+  color: var(--text-primary);
+  background: var(--background-white);
+  border-radius: 0 0 var(--border-radius-xl) var(--border-radius-xl);
+  line-height: var(--line-height-body);
+}
+
+/* Ajuste para icono y texto alineados */
+.toast-custom .d-flex.align-items-center {
+  align-items: flex-start !important;
+}
+
+/* Animaciones de entrada */
+.toast-custom {
+  animation: slideInRight 0.3s ease-out;
+}
+
+@keyframes slideInRight {
+  from { 
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to { 
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Animación de salida */
+.toast-custom.fade-out {
+  animation: slideOutRight 0.3s ease-in forwards;
+}
+
+@keyframes slideOutRight {
+  from { 
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to { 
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .toast-custom {
+    min-width: 90vw;
+    max-width: 98vw;
+    margin: 0 var(--spacing-sm);
+  }
+  
+  .toast-custom .toast-header {
+    padding: 0.5rem 0.75rem 0.4rem 0.75rem;
+  }
+  
+  .toast-custom .toast-body {
+    padding: 0.4rem 0.75rem 0.6rem 0.75rem;
+  }
+} 

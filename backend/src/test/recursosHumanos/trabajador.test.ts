@@ -2,12 +2,12 @@
 import { expect } from 'chai';
 // @ts-ignore
 import request from 'supertest';
-import { app, server } from '../setup.js';
+import { app, server, SUPER_ADMIN_CREDENTIALS, RRHH_CREDENTIALS } from '../setup.js';
 import { AppDataSource } from '../../config/configDB.js';
 import { Trabajador } from '../../entity/recursosHumanos/trabajador.entity.js';
 import { FichaEmpresa } from '../../entity/recursosHumanos/fichaEmpresa.entity.js';
 
-describe('👥 Trabajadores API', () => {
+describe('👥 Pruebas de Trabajadores', () => {
     let adminToken: string;
     let rrhToken: string;
     const uniqueTimestamp = Date.now();
@@ -19,29 +19,34 @@ describe('👥 Trabajadores API', () => {
         try {
             console.log("✅ Iniciando pruebas de Trabajadores");
 
-            // Obtener token de admin
+            // Obtener token de SuperAdmin
             const adminLogin = await request(app)
                 .post('/api/auth/login')
-                .send({
-                    email: "admin.principal@gmail.com",
-                    password: "204dm1n8"
-                });
+                .send(SUPER_ADMIN_CREDENTIALS);
 
             adminToken = adminLogin.body.data.token;
 
             // Login como RRHH
             const rrhLogin = await request(app)
                 .post('/api/auth/login')
-                .send({
-                    email: 'recursoshumanos@gmail.com',
-                    password: 'RRHH2024'
-                });
+                .send(RRHH_CREDENTIALS);
 
             if (rrhLogin.status !== 200 || !rrhLogin.body.data?.token) {
                 console.error('Error en login RRHH:', rrhLogin.body);
                 throw new Error('No se pudo obtener el token de RRHH');
             }
             rrhToken = rrhLogin.body.data.token;
+
+            // Limpiar datos de prueba previos
+            const trabajadorPrevio = await request(app)
+                .get('/api/trabajadores/rut/12.345.678-9')
+                .set('Authorization', `Bearer ${adminToken}`);
+
+            if (trabajadorPrevio.body.data) {
+                await request(app)
+                    .delete(`/api/trabajadores/${trabajadorPrevio.body.data.id}`)
+                    .set('Authorization', `Bearer ${adminToken}`);
+            }
 
         } catch (error) {
             console.error("Error en la configuración de pruebas:", error);
@@ -296,6 +301,9 @@ describe('👥 Trabajadores API', () => {
     after(async () => {
         try {
             console.log("✅ Pruebas de Trabajadores completadas");
+            await request(app)
+                .delete(`/api/trabajadores/${trabajadorId}`)
+                .set('Authorization', `Bearer ${adminToken}`);
         } catch (error) {
             console.error("Error en la limpieza de pruebas:", error);
         }

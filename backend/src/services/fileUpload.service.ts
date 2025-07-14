@@ -31,7 +31,8 @@ export class FileUploadService {
             } else if (req.baseUrl.includes('historial-laboral')) {
                 uploadDir = path.join(uploadDir, 'historial');
             } else {
-                uploadDir = path.join(uploadDir, 'general');
+                // Por defecto, guardar en 'contratos'
+                uploadDir = path.join(uploadDir, 'contratos');
             }
 
             // Crear el directorio si no existe
@@ -117,6 +118,22 @@ export class FileUploadService {
     }
 
     /**
+     * Obtiene la ruta completa de un archivo de licencia/permiso
+     */
+    static getLicenciaPath(filenameOrPath: string): string {
+        // Extraer el nombre del archivo de cualquier URL o ruta
+        // Si es una URL, tomar solo la parte final después del último '/'
+        let filename = filenameOrPath;
+        
+        if (filenameOrPath.includes('http://') || filenameOrPath.includes('https://')) {
+            filename = filenameOrPath.split('/').pop() || filenameOrPath;
+        }
+        
+        const baseFilename = path.basename(filename);
+        return path.join(FileUploadService.UPLOADS_DIR, 'licencias', baseFilename);
+    }
+
+    /**
      * Elimina un archivo de contrato específico usando FileManagementService
      */
     static deleteContratoFile(filename: string): boolean {
@@ -149,8 +166,7 @@ export class FileUploadService {
             UPLOADS_DIR: FileUploadService.UPLOADS_DIR,
             CONTRATOS_DIR: path.join(FileUploadService.UPLOADS_DIR, 'contratos'),
             LICENCIAS_DIR: path.join(FileUploadService.UPLOADS_DIR, 'licencias'),
-            HISTORIAL_DIR: path.join(FileUploadService.UPLOADS_DIR, 'historial'),
-            GENERAL_DIR: path.join(FileUploadService.UPLOADS_DIR, 'general')
+            HISTORIAL_DIR: path.join(FileUploadService.UPLOADS_DIR, 'historial')
         };
     }
 

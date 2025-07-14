@@ -55,7 +55,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, error, setError
     <div className="bg-light d-flex justify-content-center" style={{ minHeight: '100vh', paddingTop: '15vh' }}>
       <div style={{ width: '100%', maxWidth: 400, margin: '0 auto' }}>
         <div className="card shadow" style={{ borderRadius: 12 }}>
-          <div className="card-header bg-primary text-white text-center">
+          <div className="card-header bg-primary text-white text-center header-text-white">
             <h4 className="mb-0">
               <i className="bi bi-truck me-2"></i>
               S.G. Lamas

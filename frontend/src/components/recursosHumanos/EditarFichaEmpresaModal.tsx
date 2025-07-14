@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { Modal, Button, Form, Alert, Spinner, Row, Col, OverlayTrigger, Tooltip } from 'react-bootstrap';
+import React, { useState, useEffect, useRef } from 'react';
+import { Modal, Button, Form, Row, Col, Toast as BootstrapToast } from 'react-bootstrap';
 import { FichaEmpresa, UpdateFichaEmpresaData, EstadoLaboral } from '@/types/recursosHumanos/fichaEmpresa.types';
 import { updateFichaEmpresa, uploadContrato, downloadContrato, deleteContrato, getFichaEmpresa } from '@/services/recursosHumanos/fichaEmpresa.service';
+import { useToast } from '@/components/common/Toast';
 
 interface EditarFichaEmpresaModalProps {
   show: boolean;
@@ -9,16 +10,6 @@ interface EditarFichaEmpresaModalProps {
   ficha: FichaEmpresa;
   onUpdate?: () => void;
 }
-
-// Componente para el ícono de información con tooltip
-const InfoIcon: React.FC<{ text: string }> = ({ text }) => (
-  <OverlayTrigger
-    placement="right"
-    overlay={<Tooltip>{text}</Tooltip>}
-  >
-    <i className="bi bi-info-circle ms-2" style={{ cursor: 'help' }}></i>
-  </OverlayTrigger>
-);
 
 // Función para formatear el RUT con puntos y guion
 function formatearRut(rut: string): string {
@@ -41,6 +32,16 @@ function cleanNumber(value: string): string {
   return value.replace(/\./g, '');
 }
 
+// Función para formatear sueldo
+function formatSueldo(sueldo: number): string {
+  return new Intl.NumberFormat('es-CL', {
+    style: 'currency',
+    currency: 'CLP',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(sueldo);
+}
+
 export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = ({
   show,
   onHide,
@@ -48,126 +49,166 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
   onUpdate
 }) => {
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [isContratoDeleted, setIsContratoDeleted] = useState(false);
+  const [validated, setValidated] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [hasContrato, setHasContrato] = useState(!!ficha.contratoURL);
+  const [hasChanges, setHasChanges] = useState(false);
+  const [contratoEliminado, setContratoEliminado] = useState(false);
+  const [initialFormData, setInitialFormData] = useState<UpdateFichaEmpresaData & { sueldoBase: string }>({
+    cargo: '',
+    area: '',
+    tipoContrato: '',
+    jornadaLaboral: '',
+    sueldoBase: '',
+    fechaInicioContrato: '',
+    fechaFinContrato: ''
+  });
+
+  // Toast notifications
+  const { toasts, removeToast, showSuccess, showError } = useToast();
 
   const [formData, setFormData] = useState<UpdateFichaEmpresaData & { sueldoBase: string }>({
-    cargo: ficha.cargo || '',
-    area: ficha.area || '',
-    tipoContrato: ficha.tipoContrato || '',
-    jornadaLaboral: ficha.jornadaLaboral || '',
-    sueldoBase: ficha.sueldoBase ? ficha.sueldoBase.toString() : '',
+    cargo: (ficha.cargo && ficha.cargo !== 'Por Definir') ? ficha.cargo : '',
+    area: (ficha.area && ficha.area !== 'Por Definir') ? ficha.area : '',
+    tipoContrato: (ficha.tipoContrato && ficha.tipoContrato !== 'Por Definir') ? ficha.tipoContrato : '',
+    jornadaLaboral: (ficha.jornadaLaboral && ficha.jornadaLaboral !== 'Por Definir') ? ficha.jornadaLaboral : '',
+    sueldoBase: ficha.sueldoBase ? formatMiles(ficha.sueldoBase) : '',
     fechaInicioContrato: ficha.fechaInicioContrato ? new Date(ficha.fechaInicioContrato).toISOString().split('T')[0] : '',
     fechaFinContrato: ficha.fechaFinContrato ? new Date(ficha.fechaFinContrato).toISOString().split('T')[0] : ''
   });
 
   useEffect(() => {
     if (show) {
-      setError(null);
-      setSuccess(null);
-      setSelectedFile(null);
-      setIsContratoDeleted(false);
-      setFormData({
-        cargo: ficha.cargo || '',
-        area: ficha.area || '',
-        tipoContrato: ficha.tipoContrato || '',
-        jornadaLaboral: ficha.jornadaLaboral || '',
-        sueldoBase: ficha.sueldoBase ? ficha.sueldoBase.toString() : '',
+      const newFormData = {
+        cargo: (ficha.cargo && ficha.cargo !== 'Por Definir') ? ficha.cargo : '',
+        area: (ficha.area && ficha.area !== 'Por Definir') ? ficha.area : '',
+        tipoContrato: (ficha.tipoContrato && ficha.tipoContrato !== 'Por Definir') ? ficha.tipoContrato : '',
+        jornadaLaboral: (ficha.jornadaLaboral && ficha.jornadaLaboral !== 'Por Definir') ? ficha.jornadaLaboral : '',
+        sueldoBase: ficha.sueldoBase ? formatMiles(ficha.sueldoBase) : '',
         fechaInicioContrato: ficha.fechaInicioContrato ? new Date(ficha.fechaInicioContrato).toISOString().split('T')[0] : '',
         fechaFinContrato: ficha.fechaFinContrato ? new Date(ficha.fechaFinContrato).toISOString().split('T')[0] : ''
-      });
+      };
+      setFormData(newFormData);
+      setInitialFormData(newFormData);
+      setHasChanges(false);
+      setSelectedFile(null);
+      setValidated(false);
+      setContratoEliminado(false);
+      setHasContrato(!!ficha.contratoURL);
     }
   }, [show, ficha]);
 
   const handleInputChange = (e: any) => {
     const { name, value } = e.target;
+    let newFormData;
     if (name === 'sueldoBase') {
-      // Limpiar puntos y dejar solo números
       const numericValue = cleanNumber(value).replace(/[^0-9]/g, '');
-      // Formatear con puntos de miles
       const formatted = numericValue ? formatMiles(numericValue) : '';
-      setFormData(prev => ({ ...prev, [name]: formatted }));
-    } else if (name === 'fechaInicioContrato' || name === 'fechaFinContrato') {
-      setFormData(prev => ({ ...prev, [name]: value }));
+      newFormData = { ...formData, [name]: formatted };
     } else {
-      setFormData(prev => ({ ...prev, [name]: value }));
+      newFormData = { ...formData, [name]: value };
     }
+    setFormData(newFormData);
+    // Si el formulario ya fue validado, revalidar solo el campo editado
+    if (validated) {
+      setValidated(false);
+    }
+    // Verificar si hay cambios comparando con los valores iniciales
+    const hasAnyChange = Object.keys(newFormData).some(key => {
+      if (key === 'sueldoBase') {
+        const initialValue = cleanNumber(initialFormData[key]);
+        const currentValue = cleanNumber(newFormData[key]);
+        return initialValue !== currentValue;
+      }
+      return newFormData[key] !== initialFormData[key];
+    });
+    setHasChanges(hasAnyChange || !!selectedFile);
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       if (file.type !== 'application/pdf') {
-        setError('Solo se permiten archivos PDF');
+        showError('Archivo inválido', 'Solo se permiten archivos PDF', 4000);
         e.target.value = '';
         return;
       }
-      if (file.size > 10 * 1024 * 1024) { // 10MB
-        setError('El archivo no puede superar los 10MB');
+      if (file.size > 10 * 1024 * 1024) {
+        showError('Archivo muy grande', 'El archivo no puede superar los 10MB', 4000);
         e.target.value = '';
         return;
       }
       setSelectedFile(file);
-      setError(null);
-    }
-  };
-
-  const handleDownloadFile = async () => {
-    try {
-      await downloadContrato(ficha.id);
-    } catch (error: any) {
-      setError(error.message || 'Error al descargar el contrato');
-    }
-  };
-
-  const handleDeleteFile = async () => {
-    if (!confirm('¿Está seguro de que desea eliminar el contrato?')) {
-      return;
-    }
-    try {
-      const response = await deleteContrato(ficha.id);
-      if (response.success) {
-        setIsContratoDeleted(true);
-        if (onUpdate) onUpdate();
-        setSuccess('Contrato eliminado exitosamente');
-        // Hacer que el mensaje desaparezca después de 3 segundos
-        setTimeout(() => {
-          setSuccess(null);
-        }, 1500);
-      } else {
-        setError(response.message || 'Error al eliminar el contrato');
-      }
-    } catch (error: any) {
-      setError(error.message || 'Error al eliminar el contrato');
+      setHasChanges(true);
     }
   };
 
   const handleRemoveFile = () => {
     setSelectedFile(null);
-    if (document.getElementById('contratoFile')) {
-      (document.getElementById('contratoFile') as HTMLInputElement).value = '';
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+    // Verificar si hay otros cambios además del archivo
+    const hasOtherChanges = Object.keys(formData).some(key => {
+      if (key === 'sueldoBase') {
+        const initialValue = cleanNumber(initialFormData[key]);
+        const currentValue = cleanNumber(formData[key]);
+        return initialValue !== currentValue;
+      }
+      return formData[key] !== initialFormData[key];
+    });
+    setHasChanges(hasOtherChanges);
+  };
+
+  const handleDownloadFile = async () => {
+    try {
+      await downloadContrato(ficha.id);
+      showSuccess('Descarga exitosa', 'El contrato se ha descargado correctamente', 4000);
+    } catch (error: any) {
+      showError('Error de descarga', error.message || 'Error al descargar el contrato', 6000);
+    }
+  };
+
+  const handleDeleteFile = async () => {
+    setShowDeleteConfirm(false);
+    try {
+      const response = await deleteContrato(ficha.id);
+      if (response.success) {
+        setHasContrato(false);
+        setHasChanges(true);
+        setContratoEliminado(true);
+        showSuccess('Contrato eliminado', 'El contrato se ha eliminado exitosamente. Debe guardar los cambios para finalizar.', 6000);
+      } else {
+        showError('Error al eliminar', response.message || 'Error al eliminar el contrato', 6000);
+      }
+    } catch (error: any) {
+      showError('Error al eliminar', error.message || 'Error al eliminar el contrato', 6000);
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setValidated(true);
+    
+    // Validar campos requeridos
+    const isValid = formData.cargo.trim() && formData.cargo.trim() !== 'Por Definir' &&
+                   formData.area.trim() && formData.area.trim() !== 'Por Definir' &&
+                   formData.tipoContrato && formData.tipoContrato !== 'Por Definir' &&
+                   formData.jornadaLaboral && formData.jornadaLaboral !== 'Por Definir' &&
+                   formData.sueldoBase && 
+                   parseInt(cleanNumber(formData.sueldoBase)) > 0 && 
+                   formData.fechaInicioContrato;
+    
+    if (!isValid) {
+      return; // No mostrar mensaje de error general, dejar que los campos individuales muestren sus errores
+    }
+    
     setLoading(true);
-    setError(null);
-    setSuccess(null);
 
     try {
-      // Verificar si la ficha existe antes de actualizarla
       const fichaId = typeof ficha.id === 'string' ? parseInt(ficha.id) : ficha.id;
-      const verificacion = await getFichaEmpresa(fichaId);
-      
-      if (!verificacion.success) {
-        throw new Error('No se pudo encontrar la ficha para actualizar. Por favor, recargue la página e intente nuevamente.');
-      }
-
-      console.log('Ficha encontrada:', verificacion.data);
-      console.log('Datos a actualizar:', formData);
 
       // Si hay un archivo seleccionado, subirlo
       if (selectedFile) {
@@ -198,247 +239,420 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
       const response = await updateFichaEmpresa(fichaId, dataToSubmit);
       
       if (response.success) {
-        setSuccess('Ficha actualizada exitosamente');
         if (onUpdate) onUpdate();
-        onHide();
+        onHide(); // Cerrar inmediatamente
       } else {
-        throw new Error(response.message || 'Error al actualizar la ficha');
+        showError('Error al actualizar', response.message || 'Error al actualizar la ficha', 6000);
       }
     } catch (error: any) {
-      setError(error.message || 'Error al actualizar la información');
+      showError('Error inesperado', error.message || 'Error inesperado al actualizar la ficha', 6000);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <Modal show={show} onHide={onHide} size="lg">
-      <Modal.Header closeButton>
-        <Modal.Title>Editar Ficha de Empresa</Modal.Title>
-      </Modal.Header>
-      <Form onSubmit={handleSubmit}>
-        <Modal.Body>
-          {error && (
-            <Alert variant="danger" className="mb-3">
-              <i className="bi bi-exclamation-triangle me-2"></i>
-              {error}
-            </Alert>
-          )}
-          {success && (
-            <Alert variant="success" className="mb-3">
-              <i className="bi bi-check-circle me-2"></i>
-              {success}
-            </Alert>
-          )}
-          {loading && (
-            <div className="text-center p-3">
-              <Spinner animation="border" role="status">
-                <span className="visually-hidden">Cargando...</span>
-              </Spinner>
-            </div>
-          )}
+    <>
+      <Modal 
+        show={show} 
+        onHide={onHide} 
+        size="lg" 
+        centered
+        backdrop={contratoEliminado ? 'static' : true}
+        keyboard={!contratoEliminado}
+      >
+        <Modal.Header 
+          closeButton={!contratoEliminado}
+          style={{
+            background: 'linear-gradient(135deg, #17a2b8 0%, #138496 100%)',
+            border: 'none',
+            padding: '1rem 1.25rem'
+          }}
+          className="text-white"
+        >
+          <Modal.Title className="fw-semibold">
+            <i className="bi bi-clipboard-data me-2"></i>
+            Editar Ficha de Empresa
+          </Modal.Title>
+        </Modal.Header>
 
-          <h5 className="mb-3 mt-4">Información del Trabajador</h5>
-          <div className="alert alert-info">
-            <strong>Trabajador:</strong>
-            <span className="ms-2">{ficha.trabajador.nombres} {ficha.trabajador.apellidoPaterno} {ficha.trabajador.apellidoMaterno}</span>
-            <span className="mx-4"></span>
-            <strong>RUT:</strong>
-            <span className="ms-2">{formatearRut(ficha.trabajador.rut)}</span>
+        <Modal.Body style={{ padding: '1.25rem' }}>
+          {/* Información del Trabajador - Tamaño balanceado */}
+          <div 
+            className="mb-3 p-2" 
+            style={{ 
+              backgroundColor: '#f8f9fa', 
+              borderRadius: '8px',
+              border: '1px solid #e9ecef'
+            }}
+          >
+            <div className="row">
+              <div className="col-md-8">
+                <span className="text-muted">Trabajador:</span>
+                <strong className="ms-1">{ficha.trabajador.nombres} {ficha.trabajador.apellidoPaterno} {ficha.trabajador.apellidoMaterno}</strong>
+              </div>
+              <div className="col-md-4">
+                <span className="text-muted">RUT:</span>
+                <strong className="ms-1">{formatearRut(ficha.trabajador.rut)}</strong>
+              </div>
+            </div>
           </div>
 
-          <h5 className="mb-3">Información Laboral</h5>
-          <Row>
-            <Col md={6}>
-              <Form.Group className="mb-3">
-                <Form.Label>
-                  Cargo *
-                  <InfoIcon text="El cargo debe tener entre 3 y 100 caracteres" />
-                </Form.Label>
-                <Form.Control
-                  type="text"
-                  name="cargo"
-                  value={formData.cargo}
-                  onChange={handleInputChange}
-                  required
-                />
-              </Form.Group>
-            </Col>
-            <Col md={6}>
-              <Form.Group className="mb-3">
-                <Form.Label>
-                  Área *
-                  <InfoIcon text="El área debe tener entre 3 y 100 caracteres" />
-                </Form.Label>
-                <Form.Control
-                  type="text"
-                  name="area"
-                  value={formData.area}
-                  onChange={handleInputChange}
-                  required
-                />
-              </Form.Group>
-            </Col>
-          </Row>
+          <Form onSubmit={handleSubmit} noValidate>
+            <Row className="g-3 mb-3">
+              {/* Cargo y Área */}
+              <Col md={6}>
+                <Form.Group>
+                  <Form.Label className="fw-semibold">Cargo <span className="text-danger">*</span></Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="cargo"
+                    value={formData.cargo}
+                    onChange={handleInputChange}
+                    required
+                    style={{ borderRadius: '8px' }}
+                    placeholder="Ej: Desarrollador Senior"
+                    isInvalid={validated && (!formData.cargo.trim() || formData.cargo.trim() === 'Por Definir')}
+                  />
+                  <Form.Control.Feedback type="invalid">
+                    {validated && (!formData.cargo.trim() || formData.cargo.trim() === 'Por Definir') && 'Completa este campo'}
+                  </Form.Control.Feedback>
+                </Form.Group>
+              </Col>
+              <Col md={6}>
+                <Form.Group>
+                  <Form.Label className="fw-semibold">Área <span className="text-danger">*</span></Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="area"
+                    value={formData.area}
+                    onChange={handleInputChange}
+                    required
+                    style={{ borderRadius: '8px' }}
+                    placeholder="Ej: Tecnología"
+                    isInvalid={validated && (!formData.area.trim() || formData.area.trim() === 'Por Definir')}
+                  />
+                  <Form.Control.Feedback type="invalid">
+                    {validated && (!formData.area.trim() || formData.area.trim() === 'Por Definir') && 'Completa este campo'}
+                  </Form.Control.Feedback>
+                </Form.Group>
+              </Col>
+            </Row>
 
-          <Row>
-            <Col md={6}>
-              <Form.Group className="mb-3">
-                <Form.Label>
-                  Tipo de Contrato *
-                </Form.Label>
-                <Form.Select
-                  name="tipoContrato"
-                  value={formData.tipoContrato}
-                  onChange={handleInputChange}
-                  required
-                >
-                  <option value="">Seleccione</option>
-                  <option value="Indefinido">Indefinido</option>
-                  <option value="Plazo Fijo">Plazo Fijo</option>
-                  <option value="Por Obra">Por Obra</option>
-                  <option value="Part-Time">Part-Time</option>
-                </Form.Select>
-              </Form.Group>
-            </Col>
-          </Row>
-
-          <Row>
-            <Col md={6}>
-              <Form.Group className="mb-3">
-                <Form.Label>
-                  Jornada Laboral *
-                </Form.Label>
-                <Form.Select
-                  name="jornadaLaboral"
-                  value={formData.jornadaLaboral}
-                  onChange={handleInputChange}
-                  required
-                >
-                  <option value="">Seleccione...</option>
-                  <option value="Completa">Completa</option>
-                  <option value="Media">Media</option>
-                  <option value="Part-Time">Part-Time</option>
-                </Form.Select>
-              </Form.Group>
-            </Col>
-            <Col md={6}>
-              <Form.Group className="mb-3">
-                <Form.Label>
-                  Sueldo Base *
-                  <InfoIcon text="El sueldo base debe ser mayor a 0" />
-                </Form.Label>
-                <Form.Control
-                  type="text"
-                  inputMode="numeric"
-                  name="sueldoBase"
-                  value={formData.sueldoBase}
-                  onChange={handleInputChange}
-                  maxLength={12}
-                  required
-                />
-              </Form.Group>
-            </Col>
-          </Row>
-
-          <Row>
-            <Col md={6}>
-              <Form.Group className="mb-3">
-                <Form.Label>
-                  Fecha Inicio Contrato *
-                </Form.Label>
-                <Form.Control
-                  type="date"
-                  name="fechaInicioContrato"
-                  value={formData.fechaInicioContrato?.toString() || ''}
-                  onChange={handleInputChange}
-                  required
-                />
-              </Form.Group>
-            </Col>
-            <Col md={6}>
-              <Form.Group className="mb-3">
-                <Form.Label>
-                  Fecha Fin Contrato
-                  <InfoIcon text="La fecha de fin debe ser posterior a la fecha de inicio" />
-                </Form.Label>
-                <Form.Control
-                  type="date"
-                  name="fechaFinContrato"
-                  value={formData.fechaFinContrato?.toString() || ''}
-                  onChange={handleInputChange}
-                  min={formData.fechaInicioContrato?.toString() || ''}
-                />
-              </Form.Group>
-            </Col>
-          </Row>
-
-          <hr className="my-4" />
-
-          <h5 className="mb-3">Contrato</h5>
-          {ficha.contratoURL && !isContratoDeleted ? (
-            <div className="d-flex gap-2 align-items-center">
-              <Button 
-                variant="outline-primary" 
-                onClick={handleDownloadFile}
-                disabled={loading}
-              >
-                <i className="bi bi-download me-2"></i>
-                Descargar Contrato
-              </Button>
-              <Button 
-                variant="outline-danger" 
-                onClick={handleDeleteFile}
-                disabled={loading}
-              >
-                <i className="bi bi-trash me-2"></i>
-                Eliminar Contrato
-              </Button>
-            </div>
-          ) : (
-            <Form.Group>
-              <Form.Label>Subir Contrato (PDF, máx. 10MB)</Form.Label>
-              <Form.Control
-                id="contratoFile"
-                type="file"
-                accept=".pdf"
-                onChange={handleFileSelect}
-              />
-              {selectedFile && (
-                <div className="d-flex align-items-center gap-2 mt-2">
-                  <span className="text-success">
-                    <i className="bi bi-check-circle me-1"></i>
-                    Archivo seleccionado: {selectedFile.name}
-                  </span>
-                  <Button
-                    variant="outline-danger"
-                    size="sm"
-                    onClick={handleRemoveFile}
+            <Row className="g-3 mb-3">
+              {/* Tipo de Contrato y Jornada */}
+              <Col md={6}>
+                <Form.Group>
+                  <Form.Label className="fw-semibold">Tipo de Contrato <span className="text-danger">*</span></Form.Label>
+                  <Form.Select
+                    name="tipoContrato"
+                    value={formData.tipoContrato}
+                    onChange={handleInputChange}
+                    required
+                    style={{ borderRadius: '8px' }}
+                    isInvalid={validated && (!formData.tipoContrato || formData.tipoContrato === 'Por Definir')}
                   >
-                    <i className="bi bi-x-circle me-1"></i>
-                    Quitar archivo
-                  </Button>
-                </div>
+                    <option value="">Seleccione...</option>
+                    <option value="Indefinido">Indefinido</option>
+                    <option value="Plazo Fijo">Plazo Fijo</option>
+                    <option value="Por Obra">Por Obra</option>
+                    <option value="Part-Time">Part-Time</option>
+                  </Form.Select>
+                  <Form.Control.Feedback type="invalid">
+                    {validated && (!formData.tipoContrato || formData.tipoContrato === 'Por Definir') && 'Completa este campo'}
+                  </Form.Control.Feedback>
+                </Form.Group>
+              </Col>
+              <Col md={6}>
+                <Form.Group>
+                  <Form.Label className="fw-semibold">Jornada Laboral <span className="text-danger">*</span></Form.Label>
+                  <Form.Select
+                    name="jornadaLaboral"
+                    value={formData.jornadaLaboral}
+                    onChange={handleInputChange}
+                    required
+                    style={{ borderRadius: '8px' }}
+                    isInvalid={validated && (!formData.jornadaLaboral || formData.jornadaLaboral === 'Por Definir')}
+                  >
+                    <option value="">Seleccione...</option>
+                    <option value="Completa">Completa</option>
+                    <option value="Media">Media</option>
+                    <option value="Part-Time">Part-Time</option>
+                  </Form.Select>
+                  <Form.Control.Feedback type="invalid">
+                    {validated && (!formData.jornadaLaboral || formData.jornadaLaboral === 'Por Definir') && 'Completa este campo'}
+                  </Form.Control.Feedback>
+                </Form.Group>
+              </Col>
+            </Row>
+
+            <Row className="g-3 mb-3">
+              {/* Sueldo Base */}
+              <Col md={4}>
+                <Form.Group>
+                  <Form.Label className="fw-semibold">Sueldo Base <span className="text-danger">*</span></Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="sueldoBase"
+                    value={formData.sueldoBase}
+                    onChange={handleInputChange}
+                    required
+                    style={{ borderRadius: '8px' }}
+                    placeholder="1.000.000"
+                    isInvalid={validated && (!formData.sueldoBase || parseInt(cleanNumber(formData.sueldoBase)) <= 0)}
+                  />
+                  <Form.Control.Feedback type="invalid">
+                    {validated && (!formData.sueldoBase || parseInt(cleanNumber(formData.sueldoBase)) <= 0) && 'El sueldo debe ser mayor a 0'}
+                  </Form.Control.Feedback>
+                </Form.Group>
+              </Col>
+              {/* Fecha Inicio Contrato */}
+              <Col md={4}>
+                <Form.Group>
+                  <Form.Label className="fw-semibold">Fecha Inicio <span className="text-danger">*</span></Form.Label>
+                  <Form.Control
+                    type="date"
+                    name="fechaInicioContrato"
+                    value={formData.fechaInicioContrato}
+                    onChange={handleInputChange}
+                    required
+                    style={{ borderRadius: '8px' }}
+                    isInvalid={validated && !formData.fechaInicioContrato}
+                  />
+                  <Form.Control.Feedback type="invalid">
+                    {validated && !formData.fechaInicioContrato && 'Completa este campo'}
+                  </Form.Control.Feedback>
+                </Form.Group>
+              </Col>
+              {/* Fecha Fin Contrato */}
+              <Col md={4}>
+                <Form.Group>
+                  <Form.Label className="fw-semibold">Fecha Fin</Form.Label>
+                  <Form.Control
+                    type="date"
+                    name="fechaFinContrato"
+                    value={formData.fechaFinContrato}
+                    onChange={handleInputChange}
+                    style={{ borderRadius: '8px' }}
+                  />
+                  <Form.Text className="text-muted small">
+                    <i className="bi bi-info-circle me-1"></i>
+                    Opcional para contratos indefinidos
+                  </Form.Text>
+                </Form.Group>
+              </Col>
+            </Row>
+
+            {/* Sección de Contrato */}
+            <div style={{ borderTop: '1px solid #e9ecef', paddingTop: '1rem', marginTop: '1rem' }}>
+              <h6 className="text-primary mb-3 fw-semibold">Contrato</h6>
+              
+              {/* Mostrar botones de descargar y eliminar si hay contrato */}
+              {hasContrato ? (
+                <>
+                  <div className="d-flex align-items-center text-success mb-3">
+                    <i className="bi bi-file-earmark-pdf me-2"></i>
+                    <small>Contrato actual disponible</small>
+                  </div>
+                  <div className="d-flex gap-2 mb-3">
+                    <Button 
+                      variant="outline-primary" 
+                      size="sm"
+                      onClick={handleDownloadFile}
+                      style={{ borderRadius: '6px' }}
+                    >
+                      <i className="bi bi-download me-1"></i>
+                      Descargar Contrato
+                    </Button>
+                    <Button 
+                      variant="outline-danger" 
+                      size="sm"
+                      onClick={() => setShowDeleteConfirm(true)}
+                      style={{ borderRadius: '6px' }}
+                    >
+                      <i className="bi bi-trash me-1"></i>
+                      Eliminar Contrato
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                /* Mostrar input para subir nuevo contrato si no hay contrato */
+                <Form.Group>
+                  <Form.Label className="fw-semibold">Subir nuevo contrato</Form.Label>
+                  <Form.Control
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".pdf"
+                    onChange={handleFileSelect}
+                    style={{ borderRadius: '8px' }}
+                  />
+                  <Form.Text className="text-muted small">
+                    <i className="bi bi-info-circle me-1"></i>
+                    Solo archivos PDF, máximo 10MB
+                  </Form.Text>
+                  {selectedFile && (
+                    <div className="mt-2 p-2 bg-light rounded d-flex align-items-center justify-content-between">
+                      <div>
+                        <i className="bi bi-file-pdf text-danger me-2"></i>
+                        <strong>{selectedFile.name}</strong>
+                      </div>
+                      <Button 
+                        variant="outline-danger" 
+                        size="sm" 
+                        onClick={handleRemoveFile}
+                        style={{ borderRadius: '6px' }}
+                      >
+                        <i className="bi bi-x me-1"></i>
+                        Quitar archivo
+                      </Button>
+                    </div>
+                  )}
+                </Form.Group>
               )}
-              <Form.Text className="text-muted">
-                Solo archivos PDF. Máximo 10MB.
-              </Form.Text>
-            </Form.Group>
-          )}
+            </div>
+          </Form>
         </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={onHide}>
+
+        <Modal.Footer style={{ padding: '1rem 1.25rem', borderTop: '1px solid #e9ecef' }}>
+          {!contratoEliminado && (
+            <Button 
+              variant="outline-secondary" 
+              onClick={onHide}
+              style={{ borderRadius: '20px', fontWeight: '500' }}
+            >
+              Cancelar
+            </Button>
+          )}
+          <Button 
+            variant="primary" 
+            onClick={handleSubmit}
+            disabled={loading || !hasChanges}
+            style={{ 
+              borderRadius: '20px', 
+              fontWeight: '500', 
+              minWidth: '120px',
+              marginLeft: contratoEliminado ? 'auto' : '0' // Centra el botón cuando está solo
+            }}
+          >
+            {loading ? (
+              <>
+                <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                Guardando...
+              </>
+            ) : (
+              <>
+                <i className="bi bi-check-lg me-2"></i>
+                Guardar Cambios
+              </>
+            )}
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* Modal de confirmación para eliminar contrato */}
+      <Modal 
+        show={showDeleteConfirm} 
+        onHide={() => setShowDeleteConfirm(false)}
+        centered
+        size="sm"
+        style={{ 
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        }}
+        backdropClassName="confirm-delete-backdrop"
+      >
+        <Modal.Header 
+          closeButton 
+          style={{ 
+            border: 'none', 
+            paddingBottom: '0.5rem',
+            background: 'white',
+            borderTopLeftRadius: '8px',
+            borderTopRightRadius: '8px'
+          }}
+        >
+          <Modal.Title as="h6" className="d-flex align-items-center">
+            <i className="bi bi-exclamation-triangle-fill text-warning me-2"></i>
+            Confirmar eliminación
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body 
+          style={{ 
+            paddingTop: '0.5rem', 
+            paddingBottom: '1.5rem',
+            background: 'white'
+          }}
+        >
+          ¿Está seguro que desea eliminar el contrato?
+        </Modal.Body>
+        <Modal.Footer 
+          style={{ 
+            border: 'none', 
+            paddingTop: '0',
+            background: 'white',
+            borderBottomLeftRadius: '8px',
+            borderBottomRightRadius: '8px'
+          }}
+        >
+          <Button 
+            variant="outline-secondary" 
+            size="sm"
+            onClick={() => setShowDeleteConfirm(false)}
+            style={{ 
+              borderRadius: '6px',
+              padding: '0.375rem 1rem'
+            }}
+          >
             Cancelar
           </Button>
           <Button 
-            variant="primary" 
-            type="submit" 
-            disabled={loading}
+            variant="danger" 
+            size="sm"
+            onClick={handleDeleteFile}
+            style={{ 
+              borderRadius: '6px',
+              padding: '0.375rem 1rem'
+            }}
           >
-            {loading ? 'Guardando...' : 'Guardar Cambios'}
+            Aceptar
           </Button>
         </Modal.Footer>
-      </Form>
-    </Modal>
+      </Modal>
+
+      {/* Sistema de notificaciones */}
+      <div 
+        style={{ 
+          position: 'fixed', 
+          top: '20px', 
+          left: '50%',
+          transform: 'translateX(-50%)',
+          zIndex: 10000,
+          width: 'auto',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center'
+        }}
+      >
+        {toasts.map((toast) => (
+          <BootstrapToast
+            key={toast.id}
+            onClose={() => removeToast(toast.id)}
+            show={true}
+            delay={toast.duration || 5000}
+            autohide
+            className="toast-custom mb-2"
+          >
+            <BootstrapToast.Header className={`toast-header-${toast.type}`}>
+              <div className="d-flex align-items-center">
+                <i className={`bi ${toast.type === 'success' ? 'bi-check-circle-fill' : toast.type === 'error' ? 'bi-exclamation-triangle-fill' : 'bi-info-circle-fill'} me-2`}></i>
+                <strong className="me-auto">{toast.title}</strong>
+              </div>
+            </BootstrapToast.Header>
+            <BootstrapToast.Body className="toast-body">
+              {toast.message}
+            </BootstrapToast.Body>
+          </BootstrapToast>
+        ))}
+      </div>
+    </>
   );
 }; 

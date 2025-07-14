@@ -1,243 +1,65 @@
+import { Trabajador, CreateTrabajadorData, UpdateTrabajadorData, TrabajadorSearchQuery, TrabajadorResponse, PaginatedTrabajadores } from '@/types/recursosHumanos/trabajador.types';
+import { ApiResponse } from '@/types';
 import { apiClient } from '@/config/api.config';
-import {
-  Trabajador,
-  CreateTrabajadorData,
-  TrabajadorSearchQuery,
-  TrabajadorResponse,
-  UpdateTrabajadorData
-} from '@/types/recursosHumanos/trabajador.types';
 
-export interface ApiResponse<T = any> {
-  success: boolean;
-  message: string;
-  data?: T;
-}
-
-// Exportar la clase
 export class TrabajadorService {
   private baseURL = '/trabajadores';
 
-  private getHeaders() {
-    const token = localStorage.getItem('auth_token');
-    return {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`
-    };
-  }
-
-  // Obtener todos los trabajadores
-  async getAllTrabajadores(): Promise<ApiResponse<Trabajador[]>> {
+  // Obtener todos los trabajadores o buscar con filtros
+  async getTrabajadores(query: TrabajadorSearchQuery = {}): Promise<ApiResponse<Trabajador[]>> {
+    // Limpiar campos undefined antes de construir los parámetros
+    const cleanQuery = Object.fromEntries(
+      Object.entries(query).filter(([_, value]) => value !== undefined && value !== null && value !== '')
+    );
+    
+    const params = new URLSearchParams(cleanQuery as any).toString();
+    const url = params ? `${this.baseURL}?${params}` : this.baseURL;
+    
     try {
-      // Usar fetch directamente para obtener la respuesta completa
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}${this.baseURL}/all`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-        }
-      });
-
-      // Verificar si la respuesta es JSON válida
-      const contentType = response.headers.get('content-type');
-      if (!contentType || !contentType.includes('application/json')) {
-        const textResponse = await response.text();
-        console.error('Respuesta no JSON recibida:', textResponse);
-        return {
-          success: false,
-          message: `Error del servidor: ${response.status} ${response.statusText}`
-        };
-      }
-
-      const responseData = await response.json();
-
-      if (response.ok && responseData.status === 'success') {
-        return {
-          success: true,
-          message: responseData.message || 'Trabajadores obtenidos exitosamente',
-          data: responseData.data
-        };
-      }
-
-      return {
-        success: false,
-        message: responseData.message || 'Error al obtener trabajadores'
-      };
-    } catch (error: any) {
-      console.error('Error al obtener trabajadores:', error);
-      return {
-        success: false,
-        message: error.message || 'Error al obtener trabajadores'
-      };
-    }
-  }
-
-  // Obtener trabajador por ID
-  async getTrabajadorById(id: number): Promise<ApiResponse<Trabajador>> {
-    try {
-      const data = await apiClient.get<{ data: Trabajador }>(`${this.baseURL}/${id}`);
+      const response = await apiClient.get<{ data: Trabajador[]; message: string }>(url);
+      
       return {
         success: true,
-        message: 'Trabajador obtenido exitosamente',
-        data: data.data
+        data: response.data,
+        message: response.message || 'Trabajadores obtenidos exitosamente',
       };
-    } catch (error: any) {
-      console.error('Error al obtener trabajador:', error);
-      return {
-        success: false,
-        message: error.message || 'Error al obtener trabajador'
-      };
+    } catch (error) {
+      throw error;
     }
   }
 
   // Crear nuevo trabajador
   async createTrabajador(trabajadorData: CreateTrabajadorData): Promise<any> {
-    try {
-      const response = await apiClient.post(`${this.baseURL}/`, trabajadorData);
-      return {
-        success: true,
-        trabajador: response.data,
-        advertencias: response.advertencias || []
-      };
-    } catch (error: any) {
-      console.error('Error al crear trabajador:', error);
-      return {
-        success: false,
-        error: error.message || 'Error al crear trabajador'
-      };
-    }
+    const response = await apiClient.post(`${this.baseURL}/`, trabajadorData);
+    return {
+      success: true,
+      trabajador: response.data,
+      message: response.message || 'Trabajador creado exitosamente',
+    };
   }
 
   // Actualizar trabajador
   async updateTrabajador(id: number, trabajadorData: UpdateTrabajadorData): Promise<ApiResponse<Trabajador>> {
-    try {
-      const data = await apiClient.put<{ data: Trabajador }>(`${this.baseURL}/${id}`, trabajadorData);
-      return {
-        success: true,
-        message: 'Trabajador actualizado exitosamente',
-        data: data.data
-      };
-    } catch (error: any) {
-      console.error('Error al actualizar trabajador:', error);
-      return {
-        success: false,
-        message: error.message || 'Error al actualizar trabajador'
-      };
-    }
-  }
-
-  // Eliminar trabajador
-  async deleteTrabajador(id: number): Promise<ApiResponse> {
-    try {
-      await apiClient.delete(`${this.baseURL}/${id}`);
-      return {
-        success: true,
-        message: 'Trabajador eliminado exitosamente'
-      };
-    } catch (error: any) {
-      console.error('Error al eliminar trabajador:', error);
-      return {
-        success: false,
-        message: error.message || 'Error al eliminar trabajador'
-      };
-    }
-  }
-
-  // Buscar trabajadores
-  async searchTrabajadores(query: any): Promise<ApiResponse<Trabajador[]>> {
-    try {
-      const queryParams = new URLSearchParams();
-      Object.entries(query).forEach(([key, value]) => {
-        if (value !== undefined && value !== '') {
-          queryParams.append(key, value.toString());
-        }
-      });
-
-      // Usar fetch directamente para obtener la respuesta completa
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}${this.baseURL}/detail/?${queryParams}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-        }
-      });
-
-      // Verificar si la respuesta es JSON válida
-      const contentType = response.headers.get('content-type');
-      if (!contentType || !contentType.includes('application/json')) {
-        const textResponse = await response.text();
-        console.error('Respuesta no JSON recibida:', textResponse);
-        return {
-          success: false,
-          message: `Error del servidor: ${response.status} ${response.statusText}`
-        };
-      }
-
-      const responseData = await response.json();
-
-      if (response.ok && responseData.status === 'success') {
-        return {
-          success: true,
-          message: responseData.message || 'Búsqueda completada exitosamente',
-          data: responseData.data
-        };
-      }
-
-      return {
-        success: false,
-        message: responseData.message || 'Error al buscar trabajadores'
-      };
-    } catch (error: any) {
-      console.error('Error al buscar trabajadores:', error);
-      return {
-        success: false,
-        message: error.message || 'Error al buscar trabajadores'
-      };
-    }
+    const response = await apiClient.put<{ data: Trabajador; message: string }>(`${this.baseURL}/${id}`, trabajadorData);
+    return {
+      success: true,
+      data: response.data,
+      message: response.message || 'Trabajador actualizado exitosamente',
+    };
   }
 
   // Desvincular trabajador
   async desvincularTrabajador(id: number, motivo: string): Promise<ApiResponse> {
-    try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}${this.baseURL}/${id}/desvincular`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-        },
-        body: JSON.stringify({ motivo })
-      });
+    const response = await apiClient.delete(`${this.baseURL}/${id}`, { data: { motivo } });
+    return {
+      success: true,
+      message: response.message || 'Trabajador desvinculado exitosamente',
+    };
+  }
 
-      // Verificar si la respuesta es JSON válida
-      const contentType = response.headers.get('content-type');
-      if (!contentType || !contentType.includes('application/json')) {
-        const textResponse = await response.text();
-        console.error('Respuesta no JSON recibida:', textResponse);
-        return {
-          success: false,
-          message: `Error del servidor: ${response.status} ${response.statusText}`
-        };
-      }
-
-      const responseData = await response.json();
-
-      if (response.ok && responseData.status === 'success') {
-        return { 
-          success: true, 
-          message: responseData.message || 'Trabajador desvinculado exitosamente' 
-        };
-      }
-
-      return { 
-        success: false, 
-        message: responseData.message || 'Error al desvincular trabajador' 
-      };
-    } catch (error: any) {
-      console.error('Error al desvincular trabajador:', error);
-      return { 
-        success: false, 
-        message: 'Error de conexión con el servidor' 
-      };
-    }
+  // Alias para compatibilidad
+  async deleteTrabajador(id: number, motivo: string = 'Eliminación'): Promise<ApiResponse> {
+    return this.desvincularTrabajador(id, motivo);
   }
 
   // Utilidades estáticas
@@ -306,13 +128,4 @@ export class TrabajadorService {
   }
 }
 
-// Instancia singleton del servicio
-export const trabajadorService = new TrabajadorService();
-
-// Funciones de conveniencia para uso directo
-export const getAllTrabajadores = () => trabajadorService.getAllTrabajadores();
-export const getTrabajadorById = (id: number) => trabajadorService.getTrabajadorById(id);
-export const createTrabajador = (data: CreateTrabajadorData) => trabajadorService.createTrabajador(data);
-export const updateTrabajador = (id: number, data: UpdateTrabajadorData) => trabajadorService.updateTrabajador(id, data);
-export const deleteTrabajador = (id: number) => trabajadorService.deleteTrabajador(id);
-export const searchTrabajadores = (query: any) => trabajadorService.searchTrabajadores(query); 
+export const trabajadorService = new TrabajadorService(); 

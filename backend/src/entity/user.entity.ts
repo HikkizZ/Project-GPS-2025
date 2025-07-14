@@ -1,6 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToOne, JoinColumn } from "typeorm";
 import { userRole } from "../../types.d.js";
-import { Trabajador } from "./recursosHumanos/trabajador.entity.js";
 import { formatRut } from "../helpers/rut.helper.js";
 
 @Entity()
@@ -18,23 +17,25 @@ export class User {
     password: string;
 
     @Column({ type: "enum", enum: [
-        'SuperAdministrador',
-        'Administrador',
-        'Usuario',
-        'RecursosHumanos',
-        'Gerencia',
-        'Ventas',
-        'Arriendo',
-        'Finanzas',
-        'Mecánico',
-        'Mantenciones de Maquinaria'
-    ], default: 'Usuario' })
+        "SuperAdministrador",
+        "Administrador",
+        "Usuario",
+        "RecursosHumanos",
+        "Gerencia",
+        "Ventas",
+        "Arriendo",
+        "Finanzas",
+        "Mecánico",
+        "Mantenciones de Maquinaria",
+        "Conductor"
+    ] as userRole[], default: "Usuario" })
     role: userRole;
 
     @Column({ 
         type: "varchar", 
         length: 20, 
         unique: true,
+        nullable: true,
         transformer: {
             to: (value: string | null): string | null => {
                 if (!value) return null;
@@ -46,7 +47,7 @@ export class User {
             }
         }
     })
-    rut: string;
+    rut: string | null;
 
     @Column({ type: "varchar", length: 50, default: "Activa" })
     estadoCuenta: string;
@@ -57,7 +58,14 @@ export class User {
     @UpdateDateColumn()
     updateAt: Date;
 
-    @OneToOne(() => Trabajador)
-    @JoinColumn({ name: "rut", referencedColumnName: "rut" })
-    trabajador!: Trabajador;
+    @OneToOne("Trabajador", "usuario", { 
+        nullable: true,
+        onDelete: 'SET NULL'
+    })
+    @JoinColumn({ 
+        name: "rut", 
+        referencedColumnName: "rut",
+        foreignKeyConstraintName: "FK_user_trabajador_rut"
+    })
+    trabajador?: any;
 }

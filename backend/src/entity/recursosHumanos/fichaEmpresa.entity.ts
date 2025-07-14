@@ -5,11 +5,10 @@ import {
   OneToOne,
   JoinColumn
 } from "typeorm";
-import { Trabajador } from "./trabajador.entity.js";
 
 export enum EstadoLaboral {
   ACTIVO = "Activo",
-  LICENCIA = "Licencia",
+  LICENCIA = "Licencia médica",
   PERMISO = "Permiso administrativo",
   DESVINCULADO = "Desvinculado"
 }
@@ -19,9 +18,10 @@ export class FichaEmpresa {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @OneToOne(() => Trabajador, trabajador => trabajador.fichaEmpresa)
+  // Relación con Trabajador
+  @OneToOne("Trabajador", "fichaEmpresa")
   @JoinColumn()
-  trabajador!: Trabajador;
+  trabajador!: any;
 
   @Column({ type: "varchar", length: 100, nullable: false })
   cargo!: string;
@@ -114,6 +114,57 @@ export class FichaEmpresa {
 
   @Column({ type: "text", nullable: true })
   motivoDesvinculacion!: string | null;
+
+  @Column({
+    type: "date",
+    nullable: true,
+    transformer: {
+      to: (value: Date | string | null): string | null => {
+        if (!value) return null;
+        if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+          return value;
+        }
+        const date = typeof value === 'string' ? new Date(value) : value;
+        return date.toISOString().split('T')[0];
+      },
+      from: (value: string | Date | null): Date | null => {
+        if (!value) return null;
+        if (typeof value === 'string') {
+          const [year, month, day] = value.split('-').map(Number);
+          return new Date(year, month - 1, day);
+        }
+        return value;
+      }
+    }
+  })
+  fechaInicioLicencia?: Date | null;
+
+  @Column({
+    type: "date",
+    nullable: true,
+    transformer: {
+      to: (value: Date | string | null): string | null => {
+        if (!value) return null;
+        if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+          return value;
+        }
+        const date = typeof value === 'string' ? new Date(value) : value;
+        return date.toISOString().split('T')[0];
+      },
+      from: (value: string | Date | null): Date | null => {
+        if (!value) return null;
+        if (typeof value === 'string') {
+          const [year, month, day] = value.split('-').map(Number);
+          return new Date(year, month - 1, day);
+        }
+        return value;
+      }
+    }
+  })
+  fechaFinLicencia?: Date | null;
+
+  @Column({ type: "text", nullable: true })
+  motivoLicencia?: string | null;
 
   @Column({ type: "varchar", length: 255, nullable: true })
   contratoURL!: string | null;

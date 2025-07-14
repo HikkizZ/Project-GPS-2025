@@ -18,56 +18,41 @@ const rutValidator = (value: string, helper: CustomHelpers) => {
 export const userQueryValidation: ObjectSchema = Joi.object({
     id: Joi.number()
         .integer()
-        .positive()
+        .min(1)
         .messages({
             "number.base": "El ID debe ser un número.",
             "number.integer": "El ID debe ser un número entero.",
-            "number.positive": "El ID debe ser un número positivo."
+            "number.min": "El ID debe ser mayor a 0."
         }),
     email: Joi.string()
-        .min(15)
-        .max(50)
         .email()
-        .custom(domainEmailValidator, "domain email validation")
         .messages({
-            "string.base": "El email debe ser de tipo texto.",
-            "string.empty": "El campo del email no puede estar vacío.",
-            "string.email": "El email ingresado no es válido.",
-            "string.min": "El email debe tener al menos 15 caracteres.",
-            "string.max": "El email debe tener menos de 50 caracteres."
+            "string.base": "El email debe ser una cadena de texto.",
+            "string.email": "El email debe tener un formato válido."
         }),
     rut: Joi.string()
-        .min(8)
-        .max(12)
-        .custom(rutValidator, "rut validation")
+        .custom((value, helpers) => {
+            if (!validateRut(value)) {
+                return helpers.error("any.invalid");
+            }
+            return value;
+        })
         .messages({
-            "string.base": "El RUT debe ser de tipo texto.",
-            "string.empty": "El campo del RUT no puede estar vacío.",
-            "string.min": "El RUT debe tener al menos 8 caracteres.",
-            "string.max": "El RUT debe tener menos de 12 caracteres."
+            "string.base": "El RUT debe ser una cadena de texto.",
+            "any.invalid": "El RUT no es válido."
         }),
     role: Joi.string()
-        .valid("Administrador", "RecursosHumanos", "Usuario", "Gerencia", "Ventas", "Arriendo", "Finanzas", "Mecánico", "Mantenciones de Maquinaria")
+        .valid("SuperAdministrador", "Administrador", "Usuario", "RecursosHumanos", "Gerencia", "Ventas", "Arriendo", "Finanzas", "Mecánico", "Mantenciones de Maquinaria", "Conductor")
         .messages({
-            "string.base": "El rol debe ser de tipo texto.",
-            "any.only": "El rol debe ser uno de los roles permitidos."
-        }),
-    name: Joi.string()
-        .min(3)
-        .max(70)
-        .pattern(/^[a-zA-Z\s]+$/)
-        .messages({
-            "string.base": "El nombre debe ser de tipo texto.",
-            "string.min": "El nombre debe tener al menos 3 caracteres.",
-            "string.max": "El nombre debe tener menos de 70 caracteres.",
-            "string.pattern.base": "El nombre solo puede contener letras y espacios."
+            "string.base": "El rol debe ser una cadena de texto.",
+            "any.only": "El rol especificado no es válido."
         })
 })
-    .or('id', 'email', 'rut', 'role', 'name')
+    .or('id', 'email', 'rut', 'role')
     .unknown(false)
     .messages({
         "object.unknown": "El objeto contiene campos no permitidos.",
-        "object.missing": "Se requiere al menos uno de los siguientes campos: id, email, rut, role o name."
+        "object.missing": "Se requiere al menos uno de los siguientes campos: id, email, rut, role."
     });
 
 /* Validation of the body for creation or update */
@@ -75,74 +60,59 @@ export const userBodyValidation: ObjectSchema = Joi.object({
     name: Joi.string()
         .min(3)
         .max(70)
-        .pattern(/^[a-zA-Z\s]+$/)
-        .required()
+        .pattern(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/)
         .messages({
-            "string.base": "El nombre debe ser de tipo texto.",
-            "string.empty": "El campo del nombre no puede estar vacío.",
-            "string.min": "El nombre debe tener al menos 3 caracteres.",
-            "string.max": "El nombre debe tener menos de 70 caracteres.",
-            "any.required": "El nombre es requerido."
+            "string.base": "El nombre debe ser una cadena de texto.",
+            "string.empty": "El nombre es requerido.",
+            "string.min": "El nombre debe tener al menos {#limit} caracteres.",
+            "string.max": "El nombre debe tener menos de {#limit} caracteres.",
+            "string.pattern.base": "El nombre solo puede contener letras y espacios."
         }),
     email: Joi.string()
-        .min(15)
-        .max(50)
         .email()
-        .custom(domainEmailValidator, "domain email validation")
         .messages({
-            "string.base": "El email debe ser de tipo texto.",
-            "string.empty": "El campo del email no puede estar vacío.",
-            "string.email": "El email ingresado no es válido.",
-            "string.min": "El email debe tener al menos 15 caracteres.",
-            "string.max": "El email debe tener menos de 50 caracteres.",
-            "any.required": "El email es requerido."
+            "string.base": "El email debe ser una cadena de texto.",
+            "string.email": "El email debe tener un formato válido."
         }),
     rut: Joi.string()
-        .min(8)
-        .max(12)
-        .custom(rutValidator, "rut validation")
-        .messages({
-            "string.base": "El RUT debe ser de tipo texto.",
-            "string.empty": "El campo del RUT no puede estar vacío.",
-            "string.min": "El RUT debe tener al menos 8 caracteres.",
-            "string.max": "El RUT debe tener menos de 12 caracteres.",
-            "any.required": "El RUT es requerido."
+        .when('role', {
+            is: 'SuperAdministrador',
+            then: Joi.optional(),
+            otherwise: Joi.string()
+                .required()
+                .custom((value, helpers) => {
+                    if (!validateRut(value)) {
+                        return helpers.error("any.invalid");
+                    }
+                    return value;
+                })
+                .messages({
+                    "string.base": "El RUT debe ser una cadena de texto.",
+                    "string.empty": "El RUT es requerido.",
+                    "any.required": "El RUT es requerido.",
+                    "any.invalid": "El RUT no es válido."
+                })
         }),
     password: Joi.string()
         .min(8)
         .max(16)
-        .pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,16}$/)
+        .pattern(/^[a-zA-Z0-9]+$/)
         .messages({
-            "string.base": "La contraseña debe ser de tipo texto.",
-            "string.empty": "El campo de la contraseña no puede estar vacío.",
-            "string.min": "La contraseña debe tener al menos 8 caracteres.",
-            "string.max": "La contraseña debe tener menos de 16 caracteres.",
-            "string.pattern.base": "La contraseña debe tener al menos una mayúscula, una minúscula, un número y un carácter especial."
-        }),
-    newPassword: Joi.string()
-        .min(8)
-        .max(16)
-        .pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,16}$/)
-        .messages({
-            "string.base": "La nueva contraseña debe ser de tipo texto.",
-            "string.empty": "El campo de la nueva contraseña no puede estar vacío.",
-            "string.min": "La nueva contraseña debe tener al menos 8 caracteres.",
-            "string.max": "La nueva contraseña debe tener menos de 16 caracteres.",
-            "string.pattern.base": "La nueva contraseña debe tener al menos una mayúscula, una minúscula, un número y un carácter especial."
+            "string.base": "La contraseña debe ser una cadena de texto.",
+            "string.min": "La contraseña debe tener al menos {#limit} caracteres.",
+            "string.max": "La contraseña debe tener menos de {#limit} caracteres.",
+            "string.pattern.base": "La contraseña solo puede contener letras y números."
         }),
     role: Joi.string()
-        .min(3)
-        .max(30)
+        .valid("SuperAdministrador", "Administrador", "Usuario", "RecursosHumanos", "Gerencia", "Ventas", "Arriendo", "Finanzas", "Mecánico", "Mantenciones de Maquinaria", "Conductor")
         .messages({
-            "string.base": "El rol debe ser de tipo texto.",
-            "string.empty": "El campo del rol no puede estar vacío.",
-            "string.min": "El rol debe tener al menos 3 caracteres.",
-            "string.max": "El rol debe tener menos de 30 caracteres."
+            "string.base": "El rol debe ser una cadena de texto.",
+            "any.only": "El rol especificado no es válido."
         })
 })
-    .or('name', 'email', 'rut', 'password', 'newPassword', 'role')
+    .or('name', 'email', 'rut', 'password', 'role')
     .unknown(false)
     .messages({
         "object.unknown": "El objeto contiene campos no permitidos.",
-        "object.missing": "Se requiere al menos uno de los siguientes campos: name, email, rut, password, newPassword o role."
+        "object.missing": "Se requiere al menos uno de los siguientes campos: name, email, rut, password o role."
     });

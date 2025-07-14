@@ -9,8 +9,10 @@ import {
 } from '@/types/recursosHumanos/fichaEmpresa.types';
 import { Trabajador } from '@/types/recursosHumanos/trabajador.types';
 import { EditarFichaEmpresaModal } from '@/components/recursosHumanos/EditarFichaEmpresaModal';
-import '../../styles/fichasEmpresa.css';
+import '../../styles/pages/fichasEmpresa.css';
 import { FiltrosBusquedaHeader } from '@/components/common/FiltrosBusquedaHeader';
+import { Container, Row, Col, Card, Button, Alert, Table, Form } from 'react-bootstrap';
+import { Toast, useToast } from '@/components/common/Toast';
 
 interface FichasEmpresaPageProps {
   trabajadorRecienRegistrado?: Trabajador | null;
@@ -29,9 +31,12 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
   onTrabajadorModalClosed 
 }) => {
   const { user, isLoading: isAuthLoading } = useAuth();
-  const { setSuccess, setError: setUIError } = useUI();
+  const { setSuccess, setError } = useUI();
   const { formatRUT } = useRut();
   const [localError, setLocalError] = useState<string | null>(null);
+  
+  // Toast notifications
+  const { toasts, removeToast, showSuccess, showError } = useToast();
   
   const {
     fichas,
@@ -64,6 +69,12 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
   // Ya no necesitamos filtrar aquí porque todo se maneja en el backend
   const fichasFiltradas = fichas;
 
+  // Definir roles y permisos
+  const esSuperAdministrador = user?.role === 'SuperAdministrador';
+  const esAdminORecursosHumanos = user?.role === 'Administrador' || user?.role === 'RecursosHumanos';
+  const puedeGestionarFichas = esSuperAdministrador || esAdminORecursosHumanos;
+  const puedeAccederModulosPersonales = user && user.role !== 'SuperAdministrador';
+
   // Cargar datos iniciales
   useEffect(() => {
     // No ejecutar si aún está cargando la autenticación
@@ -76,17 +87,33 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
       return;
     }
 
-    if (user.role === 'Usuario') {
-      loadMiFicha();
-    } else {
+    // Para SuperAdministrador: solo gestión
+    if (esSuperAdministrador) {
       setIncluirDesvinculados(false);
       setIncluirLicencias(false);
       setIncluirPermisos(false);
       setIncluirSinFechaFin(false);
       setSearchQuery({ estado: EstadoLaboral.ACTIVO });
       searchFichas({ estado: EstadoLaboral.ACTIVO });
+    } 
+    // Para Administrador y RecursosHumanos: cargar tanto gestión como su ficha
+    else if (esAdminORecursosHumanos) {
+      if (window.location.pathname === '/fichas-empresa/mi-ficha') {
+        loadMiFicha(); // Cargar su ficha personal en la vista personal
+      } else {
+        setIncluirDesvinculados(false);
+        setIncluirLicencias(false);
+        setIncluirPermisos(false);
+        setIncluirSinFechaFin(false);
+        setSearchQuery({ estado: EstadoLaboral.ACTIVO });
+        searchFichas({ estado: EstadoLaboral.ACTIVO });
+      }
     }
-  }, [user, isAuthLoading, loadMiFicha]);
+    // Para todos los demás roles: solo su ficha
+    else {
+      loadMiFicha();
+    }
+  }, [user, isAuthLoading, loadMiFicha, esSuperAdministrador, esAdminORecursosHumanos]);
 
   // Detectar trabajador recién registrado y abrir modal automáticamente
   useEffect(() => {
@@ -106,11 +133,11 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
             setShowEditModal(true);
           } else {
             console.error('No se pudo encontrar la ficha del trabajador recién registrado');
-            setUIError('No se pudo encontrar la ficha del trabajador. Por favor, intente más tarde.');
+            setError('No se pudo encontrar la ficha del trabajador. Por favor, intente más tarde.');
           }
         } catch (error) {
           console.error('Error al buscar la ficha:', error);
-          setUIError('Error al buscar la ficha del trabajador. Por favor, intente más tarde.');
+          setError('Error al buscar la ficha del trabajador. Por favor, intente más tarde.');
         } finally {
           // Limpiar el trabajador recién registrado
           if (onTrabajadorModalClosed) {
@@ -121,7 +148,7 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
       
       buscarYAbrirModal();
     }
-  }, [trabajadorRecienRegistrado, searchByRUT, onTrabajadorModalClosed]);
+  }, [trabajadorRecienRegistrado, searchByRUT, onTrabajadorModalClosed, setError]);
 
   const handleSearch = async () => {
     // Crear un objeto de búsqueda que incluya todos los filtros
@@ -161,7 +188,7 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
     setIncluirLicencias(false);
     setIncluirPermisos(false);
     setIncluirSinFechaFin(false);
-    if (user?.role !== 'Usuario') {
+    if (puedeGestionarFichas) {
       searchFichas({ estado: EstadoLaboral.ACTIVO });
     }
   };
@@ -179,15 +206,16 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
   const handleUpdateSuccess = () => {
     // Recargar las fichas
     handleSearch();
-    // Mostrar mensaje de éxito
-    setSuccess('Ficha actualizada exitosamente');
+    // Mostrar toast de éxito
+    showSuccess('¡Usuario actualizado!', 'La ficha de empresa se ha actualizado exitosamente', 4000);
   };
 
   const handleDownloadContrato = async (fichaId: number) => {
     try {
       await downloadContrato(fichaId);
+      showSuccess('Descarga exitosa', 'El contrato se ha descargado correctamente', 4000);
     } catch (error) {
-      setUIError('Error al descargar el contrato. Por favor, intente nuevamente.');
+      showError('Error de descarga', 'Error al descargar el contrato. Por favor, intente nuevamente.', 6000);
     }
   };
 
@@ -209,6 +237,11 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
   // Función helper para campos "Por Definir"
   const getFieldClass = (value: string) => {
     return value === 'Por Definir' ? 'por-definir' : '';
+  };
+
+  // Función para verificar si la ficha pertenece al usuario actual
+  const esFichaActual = (ficha: FichaEmpresa) => {
+    return user && ficha.trabajador.rut && user.rut && ficha.trabajador.rut.replace(/\.|-/g, '') === user.rut.replace(/\.|-/g, '');
   };
 
   const getTipoContratoColor = (tipo: string) => {
@@ -265,219 +298,222 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
     return telefono;
   };
 
-  // Si es usuario normal, mostrar solo su ficha
-  if (user?.role === 'Usuario') {
+  // Si es usuario sin permisos administrativos o está en la ruta de ficha personal
+  if ((user && !puedeGestionarFichas) || (puedeAccederModulosPersonales && window.location.pathname === '/fichas-empresa/mi-ficha')) {
     return (
-      <div className="fichas-empresa-page">
-        <div className="container py-4">
-          <div className="row">
-            <div className="col-12">
-              <div className="card">
-                <div className="card-header bg-primary text-white">
-                  <h5 className="card-title mb-0">
-                    <i className="bi bi-person-badge me-2"></i>
-                    Mi Ficha de Empresa
-                  </h5>
+      <Container fluid className="py-2">
+        <Row>
+          <Col>
+            <Card className="shadow-sm main-card-spacing">
+              <Card.Header className="bg-gradient-primary text-white">
+                <div className="d-flex align-items-center">
+                  <i className="bi bi-person-badge fs-4 me-3"></i>
+                  <div>
+                    <h3 className="mb-1">Mi Ficha de Empresa</h3>
+                    <p className="mb-0 opacity-75">Información personal y laboral</p>
+                  </div>
                 </div>
-                <div className="card-body">
-                  {isLoading ? (
-                    <div className="text-center py-5">
-                      <div className="spinner-border text-primary" role="status">
-                        <span className="visually-hidden">Cargando...</span>
-                      </div>
-                      <p className="mt-2 text-muted">Cargando mi ficha...</p>
+              </Card.Header>
+              <Card.Body>
+                {isLoading ? (
+                  <div className="text-center py-5">
+                    <div className="spinner-border text-primary" role="status">
+                      <span className="visually-hidden">Cargando...</span>
                     </div>
-                  ) : localError || fichaError ? (
-                    <div className="alert alert-danger">
-                      <i className="bi bi-exclamation-triangle me-2"></i>
-                      {localError || fichaError}
-                    </div>
-                  ) : miFicha ? (
-                    <div className="row">
-                      <div className="col-lg-8">
-                        <div className="ficha-info-section">
-                          <h6 className="text-muted mb-3">Información Laboral</h6>
-                          
-                          <div className="info-row">
-                            <div className="row g-3">
-                              <div className="col-md-4">
-                                <div className="info-field">
-                                  <label className="form-label">Cargo:</label>
-                                  <p className={`field-value ${getFieldClass(miFicha.cargo)}`}>
-                                    {miFicha.cargo === 'Por Definir' ? 
-                                      <span className="field-undefined">Por Definir</span> : 
-                                      miFicha.cargo
-                                    }
-                                  </p>
-                                </div>
-                              </div>
-                              <div className="col-md-4">
-                                <div className="info-field">
-                                  <label className="form-label">Área:</label>
-                                  <p className={`field-value ${getFieldClass(miFicha.area)}`}>
-                                    {miFicha.area === 'Por Definir' ? 
-                                      <span className="field-undefined">Por Definir</span> : 
-                                      miFicha.area
-                                    }
-                                  </p>
-                                </div>
-                              </div>
-                              <div className="col-md-4">
-                                <div className="info-field">
-                                  <label className="form-label">Estado:</label>
-                                  <span className={`badge ${getEstadoBadgeClass(miFicha.estado)}`}>
-                                    {miFicha.estado}
-                                  </span>
-                                </div>
-                              </div>
+                    <p className="mt-2 text-muted">Cargando mi ficha...</p>
+                  </div>
+                ) : localError || fichaError ? (
+                  <div className="alert alert-danger">
+                    <i className="bi bi-exclamation-triangle me-2"></i>
+                    {localError || fichaError}
+                  </div>
+                ) : miFicha ? (
+                  <div className="row">
+                    <div className="col-lg-8">
+                      <div className="info-section">
+                        <h2>Información Laboral</h2>
+                        <div className="info-grid">
+                          <div className="info-field">
+                            <i className="bi bi-person-badge"></i>
+                            <label>Cargo</label>
+                            <div className={`value ${getFieldClass(miFicha.cargo)}`}>
+                              {miFicha.cargo === 'Por Definir' ? 
+                                <span className="pending">Por Definir</span> : 
+                                miFicha.cargo
+                              }
                             </div>
                           </div>
 
-                          <div className="info-row">
-                            <div className="row g-3">
-                              <div className="col-md-6">
-                                <div className="info-field">
-                                  <label className="form-label">Tipo de Contrato:</label>
-                                  <p className={`field-value ${getTipoContratoColor(miFicha.tipoContrato)}`}>
-                                    {miFicha.tipoContrato === 'Por Definir' ? 
-                                      <span className="field-undefined">Por Definir</span> : 
-                                      miFicha.tipoContrato
-                                    }
-                                  </p>
-                                </div>
-                              </div>
-                              <div className="col-md-6">
-                                <div className="info-field">
-                                  <label className="form-label">Jornada:</label>
-                                  <p className={`field-value ${getFieldClass(miFicha.jornadaLaboral)}`}>
-                                    {miFicha.jornadaLaboral === 'Por Definir' ? 
-                                      <span className="field-undefined">Por Definir</span> : 
-                                      miFicha.jornadaLaboral
-                                    }
-                                  </p>
-                                </div>
-                              </div>
+                          <div className="info-field">
+                            <i className="bi bi-diagram-3"></i>
+                            <label>Área</label>
+                            <div className={`value ${getFieldClass(miFicha.area)}`}>
+                              {miFicha.area === 'Por Definir' ? 
+                                <span className="pending">Por Definir</span> : 
+                                miFicha.area
+                              }
                             </div>
                           </div>
 
-                          <div className="info-row">
-                            <div className="row g-3">
-                              <div className="col-md-6">
-                                <div className="info-field">
-                                  <label className="form-label">Fecha Inicio:</label>
-                                  <p className="field-value">{formatFecha(miFicha.fechaInicioContrato)}</p>
-                                </div>
-                              </div>
-                              {miFicha.fechaFinContrato && (
-                                <div className="col-md-6">
-                                  <div className="info-field">
-                                    <label className="form-label">Fecha Fin:</label>
-                                    <p className="field-value">{formatFecha(miFicha.fechaFinContrato)}</p>
-                                  </div>
-                                </div>
-                              )}
-                              <div className="col-md-6">
-                                <div className="info-field">
-                                  <label className="form-label">Sueldo Base:</label>
-                                  <p className="field-value text-success fw-bold">{formatSueldo(miFicha.sueldoBase)}</p>
-                                </div>
-                              </div>
+                          <div className="info-field">
+                            <i className="bi bi-file-text"></i>
+                            <label>Tipo de Contrato</label>
+                            <div className={`value ${getTipoContratoColor(miFicha.tipoContrato)}`}>
+                              {miFicha.tipoContrato === 'Por Definir' ? 
+                                <span className="pending">Por Definir</span> : 
+                                miFicha.tipoContrato
+                              }
+                            </div>
+                          </div>
+
+                          <div className="info-field">
+                            <i className="bi bi-clock"></i>
+                            <label>Jornada</label>
+                            <div className={`value ${getFieldClass(miFicha.jornadaLaboral)}`}>
+                              {miFicha.jornadaLaboral === 'Por Definir' ? 
+                                <span className="pending">Por Definir</span> : 
+                                miFicha.jornadaLaboral
+                              }
+                            </div>
+                          </div>
+
+                          <div className="info-field">
+                            <i className="bi bi-calendar-event"></i>
+                            <label>Fecha Inicio</label>
+                            <div className="value">{formatFecha(miFicha.fechaInicioContrato)}</div>
+                          </div>
+
+                          {miFicha.fechaFinContrato && (
+                            <div className="info-field">
+                              <i className="bi bi-calendar-x"></i>
+                              <label>Fecha Fin</label>
+                              <div className="value">{formatFecha(miFicha.fechaFinContrato)}</div>
+                            </div>
+                          )}
+
+                          <div className="info-field">
+                            <i className="bi bi-cash"></i>
+                            <label>Sueldo Base</label>
+                            <div className="value text-success">{formatSueldo(miFicha.sueldoBase)}</div>
+                          </div>
+
+                          <div className="info-field">
+                            <i className="bi bi-person-check"></i>
+                            <label>Estado</label>
+                            <div className="value">
+                              <span className={`status-badge ${miFicha.estado.toLowerCase()}`}>
+                                {miFicha.estado}
+                              </span>
                             </div>
                           </div>
                         </div>
                       </div>
-                      <div className="col-lg-4">
-                        <div className="card trabajador-info-card">
-                          <div className="card-body">
-                            <h6 className="card-title">Información del Trabajador</h6>
-                            <div className="trabajador-detail">
-                              <strong>Nombre:</strong>
-                              <p>{miFicha.trabajador.nombres} {miFicha.trabajador.apellidoPaterno} {miFicha.trabajador.apellidoMaterno}</p>
-                            </div>
-                            <div className="trabajador-detail">
-                              <strong>RUT:</strong>
-                              <p>{formatRUT(miFicha.trabajador.rut)}</p>
-                            </div>
-                            {miFicha.trabajador.usuario?.email && (
-                              <div className="trabajador-detail">
-                                <strong>Correo Corporativo:</strong>
-                                <p>{miFicha.trabajador.usuario.email}</p>
-                              </div>
-                            )}
-                            <div className="trabajador-detail">
-                              <strong>Teléfono:</strong>
-                              <p>{formatTelefono(miFicha.trabajador.telefono)}</p>
-                            </div>
-                            <div className="trabajador-detail">
-                              <strong>Fecha Ingreso:</strong>
-                              <p>{formatFecha(miFicha.trabajador.fechaIngreso)}</p>
-                            </div>
-                            {miFicha.trabajador.fechaNacimiento && (
-                              <div className="trabajador-detail">
-                                <strong>Edad:</strong>
-                                <p>{calcularEdad(miFicha.trabajador.fechaNacimiento)} años</p>
-                              </div>
-                            )}
+                    </div>
+
+                    <div className="col-lg-4">
+                      <div className="info-section">
+                        <h2>Información del Trabajador</h2>
+                        <div className="info-field">
+                          <i className="bi bi-person"></i>
+                          <label>Nombre</label>
+                          <div className="value">
+                            {miFicha.trabajador.nombres} {miFicha.trabajador.apellidoPaterno} {miFicha.trabajador.apellidoMaterno}
                           </div>
                         </div>
+
+                        <div className="info-field">
+                          <i className="bi bi-person-vcard"></i>
+                          <label>RUT</label>
+                          <div className="value">{formatRUT(miFicha.trabajador.rut)}</div>
+                        </div>
+
+                        {miFicha.trabajador.usuario?.email && (
+                          <div className="info-field">
+                            <i className="bi bi-envelope"></i>
+                            <label>Correo Corporativo</label>
+                            <div className="value">{miFicha.trabajador.usuario.email}</div>
+                          </div>
+                        )}
+
+                        <div className="info-field">
+                          <i className="bi bi-telephone"></i>
+                          <label>Teléfono</label>
+                          <div className="value">{formatTelefono(miFicha.trabajador.telefono)}</div>
+                        </div>
+
+                        <div className="info-field">
+                          <i className="bi bi-calendar-check"></i>
+                          <label>Fecha Ingreso</label>
+                          <div className="value">{formatFecha(miFicha.trabajador.fechaIngreso)}</div>
+                        </div>
+
+                        {miFicha.trabajador.fechaNacimiento && (
+                          <div className="info-field">
+                            <i className="bi bi-calendar-heart"></i>
+                            <label>Edad</label>
+                            <div className="value">{calcularEdad(miFicha.trabajador.fechaNacimiento)} años</div>
+                          </div>
+                        )}
                       </div>
                     </div>
-                  ) : (
-                    <div className="text-center py-5">
-                      <i className="bi bi-person-x display-1 text-muted"></i>
-                      <h5 className="mt-3">No tienes ficha asignada</h5>
-                      <p className="text-muted">Contacta con Recursos Humanos para más información.</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-5">
+                    <i className="bi bi-person-x display-1 text-muted"></i>
+                    <h5 className="mt-3">No tienes ficha asignada</h5>
+                    <p className="text-muted">Contacta con Recursos Humanos para más información.</p>
+                  </div>
+                )}
+              </Card.Body>
+            </Card>
+          </Col>
+        </Row>
+      </Container>
     );
   }
 
   // Vista para RRHH/Admin
   return (
-    <div className="fichas-empresa-page">
-      <div className="container py-4">
-
-
-        {/* Header */}
-        <div className="row mb-4">
-          <div className="col-12">
-            <div className="d-flex justify-content-between align-items-center">
-              <div>
-                <h2 className="mb-1 mt-0 d-flex align-items-center">
-                  <i className="bi bi-clipboard-data me-2"></i>
-                  Fichas de Empresa
-                </h2>
-                <p className="text-muted mb-0">Gestión de información laboral y contratos</p>
+    <Container fluid className="py-2">
+      <Row>
+        <Col>
+          {/* Encabezado de página */}
+          <Card className="shadow-sm mb-3">
+            <Card.Header className="bg-gradient-primary text-white">
+              <div className="d-flex align-items-center justify-content-between">
+                <div className="d-flex align-items-center">
+                  <i className="bi bi-clipboard-data fs-4 me-3"></i>
+                  <div>
+                    <h3 className="mb-1">Fichas de Empresa</h3>
+                    <p className="mb-0 opacity-75">
+                      Gestión de información laboral y contratos
+                    </p>
+                  </div>
+                </div>
+                <div>
+                  <Button 
+                    variant={showFilters ? "outline-light" : "light"}
+                    onClick={() => setShowFilters(!showFilters)}
+                  >
+                    <i className={`bi bi-funnel${showFilters ? '-fill' : ''} me-2`}></i>
+                    {showFilters ? 'Ocultar' : 'Mostrar'} Filtros
+                  </Button>
+                </div>
               </div>
-              <button 
-                className="btn btn-outline-primary"
-                onClick={() => setShowFilters(!showFilters)}
-              >
-                <i className="bi bi-funnel me-2"></i>
-                {showFilters ? 'Ocultar' : 'Mostrar'} Filtros
-              </button>
-            </div>
-          </div>
-        </div>
+            </Card.Header>
+          </Card>
 
-        {/* Filtros de búsqueda */}
-        {showFilters && (
-          <div className="row mb-4">
-            <div className="col-12">
-              <div className="card">
-                <FiltrosBusquedaHeader />
-                <div className="card-body">
-                  {/* Checkboxes de estado */}
-                  <div className="row mb-4">
-                    <div className="col-12">
-                      <h6 className="mb-3">Estados a mostrar:</h6>
-                      <div className="form-check form-check-inline">
+          {/* Panel de filtros */}
+          {showFilters && (
+            <Card className="shadow-sm mb-3">
+              <FiltrosBusquedaHeader />
+              <Card.Body>
+                {/* Checkboxes de estado */}
+                <div className="row mb-4">
+                  <div className="col-12">
+                    <h6 className="mb-3 fw-semibold">Estados a mostrar:</h6>
+                    <div className="d-flex gap-4">
+                      <div className="form-check">
                         <input
                           className="form-check-input"
                           type="checkbox"
@@ -485,11 +521,11 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                           checked={incluirDesvinculados}
                           onChange={(e) => setIncluirDesvinculados(e.target.checked)}
                         />
-                        <label className="form-check-label" htmlFor="incluirDesvinculados">
+                        <label className="form-check-label fw-semibold" htmlFor="incluirDesvinculados">
                           Desvinculados
                         </label>
                       </div>
-                      <div className="form-check form-check-inline">
+                      <div className="form-check">
                         <input
                           className="form-check-input"
                           type="checkbox"
@@ -497,11 +533,11 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                           checked={incluirLicencias}
                           onChange={(e) => setIncluirLicencias(e.target.checked)}
                         />
-                        <label className="form-check-label" htmlFor="incluirLicencias">
-                          Licencias
+                        <label className="form-check-label fw-semibold" htmlFor="incluirLicencias">
+                          Licencia Médica
                         </label>
                       </div>
-                      <div className="form-check form-check-inline">
+                      <div className="form-check">
                         <input
                           className="form-check-input"
                           type="checkbox"
@@ -509,77 +545,88 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                           checked={incluirPermisos}
                           onChange={(e) => setIncluirPermisos(e.target.checked)}
                         />
-                        <label className="form-check-label" htmlFor="incluirPermisos">
+                        <label className="form-check-label fw-semibold" htmlFor="incluirPermisos">
                           Permisos Administrativos
                         </label>
                       </div>
                     </div>
                   </div>
+                </div>
 
-                  <div className="row g-3">
-                    <div className="col-md-3">
-                      <label className="form-label">RUT:</label>
-                      <input
+                <div className="row g-3">
+                  <div className="col-md-3">
+                    <Form.Group>
+                      <Form.Label className="fw-semibold">RUT:</Form.Label>
+                      <Form.Control
                         type="text"
-                        className="form-control"
                         placeholder="Ej: 12.345.678-9"
                         value={searchQuery.rut || ''}
                         onChange={handleRutChange}
+                        style={{ borderRadius: '8px' }}
                       />
-                    </div>
-                    <div className="col-md-3">
-                      <label className="form-label">Estado:</label>
-                      <select
-                        className="form-select"
+                    </Form.Group>
+                  </div>
+                  <div className="col-md-3">
+                    <Form.Group>
+                      <Form.Label className="fw-semibold">Estado:</Form.Label>
+                      <Form.Select
                         value={searchQuery.estado || ''}
                         onChange={(e) => setSearchQuery({ ...searchQuery, estado: e.target.value as EstadoLaboral })}
+                        style={{ borderRadius: '8px' }}
                       >
                         <option value="">Todos los estados</option>
                         {Object.values(EstadoLaboral).map(estado => (
                           <option key={estado} value={estado}>{estado}</option>
                         ))}
-                      </select>
-                    </div>
-                    <div className="col-md-3">
-                      <label className="form-label">Cargo:</label>
-                      <input
+                      </Form.Select>
+                    </Form.Group>
+                  </div>
+                  <div className="col-md-3">
+                    <Form.Group>
+                      <Form.Label className="fw-semibold">Cargo:</Form.Label>
+                      <Form.Control
                         type="text"
-                        className="form-control"
                         placeholder="Cargo"
                         value={searchQuery.cargo || ''}
                         onChange={(e) => setSearchQuery({ ...searchQuery, cargo: e.target.value })}
+                        style={{ borderRadius: '8px' }}
                       />
-                    </div>
-                    <div className="col-md-3">
-                      <label className="form-label">Área:</label>
-                      <input
+                    </Form.Group>
+                  </div>
+                  <div className="col-md-3">
+                    <Form.Group>
+                      <Form.Label className="fw-semibold">Área:</Form.Label>
+                      <Form.Control
                         type="text"
-                        className="form-control"
                         placeholder="Departamento o área"
                         value={searchQuery.area || ''}
                         onChange={(e) => setSearchQuery({ ...searchQuery, area: e.target.value })}
+                        style={{ borderRadius: '8px' }}
                       />
-                    </div>
-                    <div className="col-md-3">
-                      <label className="form-label">Tipo de Contrato:</label>
-                      <select
-                        className="form-select"
+                    </Form.Group>
+                  </div>
+                  <div className="col-md-3">
+                    <Form.Group>
+                      <Form.Label className="fw-semibold">Tipo de Contrato:</Form.Label>
+                      <Form.Select
                         value={searchQuery.tipoContrato || ''}
                         onChange={(e) => setSearchQuery({ ...searchQuery, tipoContrato: e.target.value })}
+                        style={{ borderRadius: '8px' }}
                       >
                         <option value="">Todos los tipos</option>
                         <option value="Indefinido">Indefinido</option>
                         <option value="Plazo Fijo">Plazo Fijo</option>
                         <option value="Por Obra">Por Obra</option>
                         <option value="Part-Time">Part-Time</option>
-                      </select>
-                    </div>
-                    <div className="col-md-3">
-                      <label className="form-label">Sueldo desde:</label>
-                      <input
+                      </Form.Select>
+                    </Form.Group>
+                  </div>
+                  <div className="col-md-3">
+                    <Form.Group>
+                      <Form.Label className="fw-semibold">Sueldo desde:</Form.Label>
+                      <Form.Control
                         type="text"
                         inputMode="numeric"
-                        className="form-control"
                         placeholder="Monto mínimo"
                         value={searchQuery.sueldoBaseDesde !== undefined && searchQuery.sueldoBaseDesde !== null ? formatMiles(searchQuery.sueldoBaseDesde) : ''}
                         onChange={(e) => {
@@ -591,14 +638,16 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                           }
                         }}
                         maxLength={12}
+                        style={{ borderRadius: '8px' }}
                       />
-                    </div>
-                    <div className="col-md-3">
-                      <label className="form-label">Sueldo hasta:</label>
-                      <input
+                    </Form.Group>
+                  </div>
+                  <div className="col-md-3">
+                    <Form.Group>
+                      <Form.Label className="fw-semibold">Sueldo hasta:</Form.Label>
+                      <Form.Control
                         type="text"
                         inputMode="numeric"
-                        className="form-control"
                         placeholder="Monto máximo"
                         value={searchQuery.sueldoBaseHasta !== undefined && searchQuery.sueldoBaseHasta !== null ? formatMiles(searchQuery.sueldoBaseHasta) : ''}
                         onChange={(e) => {
@@ -610,237 +659,243 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                           }
                         }}
                         maxLength={12}
+                        style={{ borderRadius: '8px' }}
                       />
-                    </div>
-                    <div className="col-md-3">
-                      <label className="form-label">Fecha Inicio Desde:</label>
-                      <input
+                    </Form.Group>
+                  </div>
+                  <div className="col-md-3">
+                    <Form.Group>
+                      <Form.Label className="fw-semibold">Fecha Inicio Desde:</Form.Label>
+                      <Form.Control
                         type="date"
-                        className="form-control"
                         value={searchQuery.fechaInicioDesde || ''}
                         onChange={(e) => setSearchQuery({ ...searchQuery, fechaInicioDesde: e.target.value })}
+                        style={{ borderRadius: '8px' }}
                       />
-                    </div>
-                    <div className="col-md-3">
-                      <label className="form-label">Fecha Inicio Hasta:</label>
-                      <input
+                    </Form.Group>
+                  </div>
+                  <div className="col-md-3">
+                    <Form.Group>
+                      <Form.Label className="fw-semibold">Fecha Inicio Hasta:</Form.Label>
+                      <Form.Control
                         type="date"
-                        className="form-control"
                         value={searchQuery.fechaInicioHasta || ''}
                         onChange={(e) => setSearchQuery({ ...searchQuery, fechaInicioHasta: e.target.value })}
+                        style={{ borderRadius: '8px' }}
                       />
-                    </div>
-                    <div className="col-md-3">
-                      <label className="form-label">Fecha Fin Desde:</label>
-                      <input
+                    </Form.Group>
+                  </div>
+                  <div className="col-md-3">
+                    <Form.Group>
+                      <Form.Label className="fw-semibold">Fecha Fin Desde:</Form.Label>
+                      <Form.Control
                         type="date"
-                        className="form-control"
                         value={searchQuery.fechaFinDesde || ''}
                         onChange={(e) => setSearchQuery({ ...searchQuery, fechaFinDesde: e.target.value })}
+                        style={{ borderRadius: '8px' }}
                       />
-                    </div>
-                    <div className="col-md-3">
-                      <label className="form-label">Fecha Fin Hasta:</label>
-                      <input
+                    </Form.Group>
+                  </div>
+                  <div className="col-md-3">
+                    <Form.Group>
+                      <Form.Label className="fw-semibold">Fecha Fin Hasta:</Form.Label>
+                      <Form.Control
                         type="date"
-                        className="form-control"
                         value={searchQuery.fechaFinHasta || ''}
                         onChange={(e) => setSearchQuery({ ...searchQuery, fechaFinHasta: e.target.value })}
+                        style={{ borderRadius: '8px' }}
                       />
-                    </div>
+                    </Form.Group>
                   </div>
-                  
-                  {/* Checkbox para incluir fichas sin fecha fin */}
-                  <div className="row mb-3">
-                    <div className="col-12">
-                      <div className="form-check">
-                        <input
-                          className="form-check-input"
-                          type="checkbox"
-                          id="incluirSinFechaFin"
-                          checked={incluirSinFechaFin}
-                          onChange={(e) => setIncluirSinFechaFin(e.target.checked)}
-                          disabled={!searchQuery.fechaFinDesde && !searchQuery.fechaFinHasta}
-                        />
-                        <label className="form-check-label d-flex align-items-center gap-2" htmlFor="incluirSinFechaFin">
-                          Incluir " Fecha Fin: - "
-                          <span
-                            tabIndex={0}
-                            data-bs-toggle="tooltip"
-                            data-bs-placement="right"
-                            title="Se activa cuando se utiliza el filtro de fecha fin desde y/o fecha fin hasta"
-                            style={{ cursor: 'pointer' }}
-                          >
-                            <i className="bi bi-info-circle" style={{ fontSize: '1rem' }}></i>
-                          </span>
-                        </label>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="row mt-3">
-                    <div className="col-12">
-                      <button
-                        onClick={handleSearch}
-                        disabled={isLoading}
-                        className="btn btn-primary me-2"
-                      >
+                  <div className="col-md-6 d-flex align-items-end">
+                    <div className="d-flex gap-2 mb-3">
+                      <Button variant="primary" onClick={handleSearch} style={{ borderRadius: '20px', fontWeight: '500' }}>
                         <i className="bi bi-search me-2"></i>
-                        {isLoading ? 'Buscando...' : 'Buscar'}
-                      </button>
-                      <button
-                        onClick={handleReset}
-                        disabled={isLoading}
-                        className="btn btn-outline-secondary"
-                      >
-                        <i className="bi bi-arrow-clockwise me-2"></i>
-                        Limpiar filtros
-                      </button>
+                        Buscar
+                      </Button>
+                      <Button variant="outline-secondary" onClick={handleReset} style={{ borderRadius: '20px', fontWeight: '500' }}>
+                        <i className="bi bi-x-circle me-2"></i>
+                        Limpiar
+                      </Button>
                     </div>
                   </div>
                 </div>
-              </div>
-            </div>
-          </div>
-        )}
 
-
-
-        {/* Resultados */}
-        <div className="row">
-          <div className="col-12">
-            <div className="card">
-              <div className="card-header">
-                <h6 className="card-title mb-0">
-                  <i className="bi bi-table me-2"></i>
-                  Fichas Encontradas ({fichasFiltradas.length})
-                </h6>
-              </div>
-              <div className="card-body">
-                {fichasFiltradas.length > 0 && (
-                  <small className="text-muted mb-3 d-block">
-                    Activos: {fichasFiltradas.filter(f => f.estado === EstadoLaboral.ACTIVO).length} • 
-                    Licencias: {fichasFiltradas.filter(f => f.estado === EstadoLaboral.LICENCIA).length} • 
-                    Permisos: {fichasFiltradas.filter(f => f.estado === EstadoLaboral.PERMISO).length} • 
-                    Desvinculados: {fichasFiltradas.filter(f => f.estado === EstadoLaboral.DESVINCULADO).length}
-                  </small>
-                )}
-
-                {isLoading ? (
-                  <div className="text-center py-5">
-                    <div className="spinner-border text-primary" role="status">
-                      <span className="visually-hidden">Cargando...</span>
+                {/* Opción adicional */}
+                <div className="row">
+                  <div className="col-12">
+                    <div className="form-check">
+                      <input
+                        className="form-check-input"
+                        type="checkbox"
+                        id="incluirSinFechaFin"
+                        checked={incluirSinFechaFin}
+                        onChange={(e) => setIncluirSinFechaFin(e.target.checked)}
+                      />
+                      <label className="form-check-label fw-semibold" htmlFor="incluirSinFechaFin">
+                        Incluir fichas sin fecha de fin
+                      </label>
                     </div>
-                    <p className="mt-2 text-muted">Cargando fichas...</p>
                   </div>
-                ) : fichasFiltradas.length === 0 ? (
-                  <div className="text-center py-5">
-                    <i className="bi bi-clipboard-x display-1 text-muted"></i>
-                    <h5 className="mt-3">No hay resultados que coincidan con tu búsqueda</h5>
-                  </div>
-                ) : (
-                  <div className="table-responsive">
-                    <table className="table table-hover">
-                      <thead className="table-light">
-                        <tr>
-                          <th>Trabajador</th>
-                          <th>Cargo</th>
-                          <th>Área</th>
-                          <th>Estado</th>
-                          <th>Tipo Contrato</th>
-                          <th>Jornada</th>
-                          <th>Fecha Inicio</th>
-                          <th>Fecha Fin</th>
-                          <th>Sueldo Base</th>
-                          <th>Acciones</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {fichasFiltradas.map((ficha) => (
-                          <tr key={ficha.id}>
-                            <td>
-                              <div>
-                                <strong>{ficha.trabajador.nombres} {ficha.trabajador.apellidoPaterno} {ficha.trabajador.apellidoMaterno}</strong>
-                                <br />
-                                <small className="text-muted">{formatRUT(ficha.trabajador.rut)}</small>
-                              </div>
-                            </td>
-                            <td>
-                              <span className={getFieldClass(ficha.cargo || '-')}>
-                                {ficha.cargo || '-'}
-                              </span>
-                            </td>
-                            <td>
-                              <span className={getFieldClass(ficha.area || '-')}>
-                                {ficha.area || '-'}
-                              </span>
-                            </td>
-                            <td>
-                              <span className={`badge ${getEstadoBadgeClass(ficha.estado)}`}>
-                                {ficha.estado}
-                              </span>
-                            </td>
-                            <td>
-                              <span className={getTipoContratoColor(ficha.tipoContrato)}>
-                                {ficha.tipoContrato}
-                              </span>
-                            </td>
-                            <td>
-                              <span className={getFieldClass(ficha.jornadaLaboral || '-')}>
-                                {ficha.jornadaLaboral || '-'}
-                              </span>
-                            </td>
-                            <td>{formatFecha(ficha.fechaInicioContrato)}</td>
-                            <td>{ficha.fechaFinContrato ? formatFecha(ficha.fechaFinContrato) : '-'}</td>
-                            <td>
-                              <span className="fw-bold text-success">
-                                {formatSueldo(ficha.sueldoBase)}
-                              </span>
-                            </td>
-                            <td>
-                              {/* Ocultar acciones si es el admin principal */}
-                              {(ficha.trabajador.rut !== '11.111.111-1') && (
-                                <div className="btn-group btn-group-sm">
-                                  <button
-                                    className={`btn ${ficha.contratoURL ? 'btn-outline-danger' : 'btn-outline-secondary'}`}
-                                    onClick={() => handleDownloadContrato(ficha.id)}
-                                    title={ficha.contratoURL ? "Descargar contrato" : "No hay contrato disponible"}
-                                    disabled={!ficha.contratoURL || ficha.estado === EstadoLaboral.DESVINCULADO}
-                                  >
-                                    <i className="bi bi-file-earmark-pdf"></i>
-                                  </button>
-                                  <button
-                                    className="btn btn-outline-warning"
-                                    onClick={() => handleEditFicha(ficha)}
-                                    title="Editar"
-                                    disabled={ficha.estado === EstadoLaboral.DESVINCULADO}
-                                  >
-                                    <i className="bi bi-pencil"></i>
-                                  </button>
-                                </div>
-                              )}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
+                </div>
+              </Card.Body>
+            </Card>
+          )}
 
-        {/* Modal de Edición */}
-        {showEditModal && selectedFicha && (
-          <EditarFichaEmpresaModal
-            show={showEditModal}
-            onHide={handleCloseEditModal}
-            ficha={selectedFicha}
-            onUpdate={handleUpdateSuccess}
-          />
-        )}
-      </div>
-    </div>
+          {/* Contenido principal */}
+          <Card className="shadow-sm">
+            <Card.Body>
+              {/* Mostrar errores */}
+              {(localError || fichaError) && (
+                <Alert variant="danger" className="border-0 mb-3" style={{ borderRadius: '12px' }}>
+                  <i className="bi bi-exclamation-triangle me-2"></i>
+                  {localError || fichaError}
+                </Alert>
+              )}
+
+              {/* Contenido de la tabla */}
+              {isLoading ? (
+                <div className="text-center py-5">
+                  <div className="spinner-border text-primary" role="status">
+                    <span className="visually-hidden">Cargando...</span>
+                  </div>
+                  <p className="mt-2 text-muted">Cargando fichas...</p>
+                </div>
+              ) : fichas.length === 0 ? (
+                <div className="text-center py-5">
+                  <i className="bi bi-clipboard-x display-1 text-muted"></i>
+                  <h5 className="mt-3">
+                    {Object.keys(searchQuery).length === 1 && searchQuery.estado === EstadoLaboral.ACTIVO ? 
+                      'No hay fichas de empresa en el sistema' : 
+                      'No hay resultados que coincidan con tu búsqueda'}
+                  </h5>
+                  <p className="text-muted">
+                    {Object.keys(searchQuery).length === 1 && searchQuery.estado === EstadoLaboral.ACTIVO ? 
+                      'Las fichas de empresa se crean automáticamente al registrar un nuevo trabajador' : 
+                      'Intenta ajustar los filtros para obtener más resultados'}
+                  </p>
+                  {Object.keys(searchQuery).length > 1 || searchQuery.estado !== EstadoLaboral.ACTIVO ? (
+                    <Button variant="outline-primary" onClick={handleReset}>
+                      <i className="bi bi-arrow-clockwise me-2"></i>
+                      Mostrar Todas
+                    </Button>
+                  ) : null}
+                </div>
+              ) : (
+                <>
+                  <div className="d-flex justify-content-between align-items-center mb-3">
+                    <h6 className="mb-0">
+                      <i className="bi bi-list-ul me-2"></i>
+                      Fichas de Empresa ({fichas.length})
+                      <small className="text-muted ms-2">
+                        (Activos: {fichas.filter(f => f.estado === EstadoLaboral.ACTIVO).length} • 
+                        Licencias: {fichas.filter(f => f.estado === EstadoLaboral.LICENCIA).length} • 
+                        Permisos: {fichas.filter(f => f.estado === EstadoLaboral.PERMISO).length} • 
+                        Desvinculados: {fichas.filter(f => f.estado === EstadoLaboral.DESVINCULADO).length})
+                      </small>
+                    </h6>
+                  </div>
+                  <div className="table-responsive">
+                    <Table hover className="mb-0">
+                    <thead className="table-light">
+                      <tr>
+                        <th>Trabajador</th>
+                        <th>Cargo</th>
+                        <th>Área</th>
+                        <th>Estado</th>
+                        <th>Tipo Contrato</th>
+                        <th>Jornada</th>
+                        <th>Fecha Inicio</th>
+                        <th>Fecha Fin</th>
+                        <th>Sueldo Base</th>
+                        <th>Acciones</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {fichas.map((ficha) => (
+                        <tr key={ficha.id}>
+                          <td>
+                            <div>
+                              <strong>{ficha.trabajador.nombres} {ficha.trabajador.apellidoPaterno} {ficha.trabajador.apellidoMaterno}</strong>
+                              <br />
+                              <small className="text-muted">{formatRUT(ficha.trabajador.rut)}</small>
+                            </div>
+                          </td>
+                          <td>
+                            <span className={getFieldClass(ficha.cargo || '-')}>
+                              {ficha.cargo || '-'}
+                            </span>
+                          </td>
+                          <td>
+                            <span className={getFieldClass(ficha.area || '-')}>
+                              {ficha.area || '-'}
+                            </span>
+                          </td>
+                          <td>
+                            <span className={`badge ${getEstadoBadgeClass(ficha.estado)}`}>
+                              {ficha.estado}
+                            </span>
+                          </td>
+                          <td>
+                            <span className={getTipoContratoColor(ficha.tipoContrato)}>
+                              {ficha.tipoContrato}
+                            </span>
+                          </td>
+                          <td>
+                            <span className={getFieldClass(ficha.jornadaLaboral || '-')}>
+                              {ficha.jornadaLaboral || '-'}
+                            </span>
+                          </td>
+                          <td>{formatFecha(ficha.fechaInicioContrato)}</td>
+                          <td>{ficha.fechaFinContrato ? formatFecha(ficha.fechaFinContrato) : '-'}</td>
+                          <td>{formatSueldo(ficha.sueldoBase)}</td>
+                          <td>
+                            <div className="btn-group">
+                              {/* Ocultar botón de editar si es la ficha del usuario actual */}
+                              {!esFichaActual(ficha) && (
+                                <Button 
+                                  variant="outline-primary" 
+                                  onClick={() => handleEditFicha(ficha)}
+                                  title="Editar ficha"
+                                >
+                                  <i className="bi bi-pencil"></i>
+                                </Button>
+                              )}
+                              {ficha.contratoURL && (
+                                <Button 
+                                  variant="outline-success" 
+                                  onClick={() => handleDownloadContrato(ficha.id)}
+                                  title="Descargar contrato"
+                                >
+                                  <i className="bi bi-download"></i>
+                                </Button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </Table>
+                  </div>
+                </>
+              )}
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
+
+      {/* Modal de edición */}
+      {selectedFicha && (
+        <EditarFichaEmpresaModal
+          show={showEditModal}
+          onHide={handleCloseEditModal}
+          ficha={selectedFicha}
+          onUpdate={handleUpdateSuccess}
+        />
+      )}
+
+      {/* Sistema de notificaciones */}
+      <Toast toasts={toasts} removeToast={removeToast} />
+    </Container>
   );
 }; 

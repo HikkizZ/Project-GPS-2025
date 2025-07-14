@@ -1,4 +1,19 @@
-export type UserRole = 'SuperAdministrador' | 'Administrador' | 'Usuario' | 'RecursosHumanos' | 'Gerencia' | 'Ventas' | 'Arriendo' | 'Finanzas' | 'Mecánico' | 'Mantenciones de Maquinaria';
+// Todos los roles posibles del sistema (incluyendo SuperAdministrador)
+export type UserRole = 
+    | "SuperAdministrador"
+    | "Administrador"
+    | "Usuario"
+    | "RecursosHumanos"
+    | "Gerencia"
+    | "Ventas"
+    | "Arriendo"
+    | "Finanzas"
+    | "Mecánico"
+    | "Mantenciones de Maquinaria"
+    | "Conductor";
+
+// Roles disponibles para filtrado y asignación (excluyendo SuperAdministrador)
+export type FilterableUserRole = Exclude<UserRole, "SuperAdministrador">;
 
 export interface User {
   id: number;
@@ -14,14 +29,6 @@ export interface User {
 export interface LoginData {
   email: string;
   password: string;
-}
-
-export interface RegisterData {
-  name: string;
-  rut: string;
-  email: string;
-  password: string;
-  role: UserRole;
 }
 
 export interface AuthResponse {

@@ -35,9 +35,12 @@ interface SearchFichaParams {
     fechaFinDesde?: Date;
     fechaFinHasta?: Date;
     incluirSinFechaFin?: boolean;
+
+    // Búsqueda por id de ficha
+    id?: number;
 }
 
-export async function searchFichasEmpresa(params: SearchFichaParams): Promise<ServiceResponse<FichaEmpresa[]>> {
+export async function getFichasEmpresaService(params: SearchFichaParams): Promise<ServiceResponse<FichaEmpresa[]>> {
     try {
         const fichaRepo = AppDataSource.getRepository(FichaEmpresa);
         const queryBuilder = fichaRepo.createQueryBuilder("ficha")
@@ -58,6 +61,11 @@ export async function searchFichasEmpresa(params: SearchFichaParams): Promise<Se
 
         if (params.trabajadorId) {
             queryBuilder.andWhere("trabajador.id = :trabajadorId", { trabajadorId: params.trabajadorId });
+        }
+
+        // Filtro por id de ficha
+        if (params.id) {
+            queryBuilder.andWhere("ficha.id = :id", { id: params.id });
         }
 
         // Filtro por estado
@@ -156,36 +164,10 @@ export async function searchFichasEmpresa(params: SearchFichaParams): Promise<Se
 
         const fichas = await queryBuilder.getMany();
 
-        if (!fichas.length) {
-            return [null, { message: "No hay fichas de empresa que coincidan con los criterios de búsqueda" }];
-        }
-
+        // Devolver array vacío en lugar de error cuando no hay fichas
         return [fichas, null];
     } catch (error) {
         console.error("Error al buscar fichas de empresa:", error);
-        return [null, { message: "Error interno del servidor" }];
-    }
-}
-
-export async function getFichaEmpresaById(id: number): Promise<ServiceResponse<FichaEmpresa>> {
-    try {
-        const fichaRepo = AppDataSource.getRepository(FichaEmpresa);
-        const ficha = await fichaRepo.findOne({
-            where: { id },
-            relations: ["trabajador", "trabajador.usuario"]
-        });
-
-        if (!ficha) {
-            return [null, { message: "Ficha no encontrada" }];
-        }
-
-        if (ficha.trabajador && ficha.trabajador.rut === "11.111.111-1") {
-            return [null, { message: "No se puede modificar ni eliminar la ficha del superadministrador." }];
-        }
-
-        return [ficha, null];
-    } catch (error) {
-        console.error("Error en getFichaEmpresaById:", error);
         return [null, { message: "Error interno del servidor" }];
     }
 }
@@ -211,89 +193,9 @@ export async function getMiFichaService(userId: number): Promise<ServiceResponse
 
         if (!ficha) {
             return [null, { message: "Ficha no encontrada" }];
-        }
-
-        if (ficha.trabajador && ficha.trabajador.rut === "11.111.111-1") {
-            return [null, { message: "No se puede modificar ni eliminar la ficha del superadministrador." }];
-        }
-
-        return [ficha, null];
+        }return [ficha, null];
     } catch (error) {
         console.error("Error en getMiFichaService:", error);
-        return [null, { message: "Error interno del servidor" }];
-    }
-}
-
-export async function actualizarEstadoFichaService(
-    id: number, 
-    estado: EstadoLaboral,
-    fechaInicio?: Date | string,
-    fechaFin?: Date | string,
-    motivo?: string,
-    userId?: number
-): Promise<ServiceResponse<FichaEmpresa>> {
-    const queryRunner = AppDataSource.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
-
-    try {
-        // Convertir fechas de string a Date si es necesario
-        const fechaInicioDate = fechaInicio ? new Date(fechaInicio) : undefined;
-        const fechaFinDate = fechaFin ? new Date(fechaFin) : undefined;
-
-        // Primero verificamos si la ficha existe
-        const fichaRepo = queryRunner.manager.getRepository(FichaEmpresa);
-        const ficha = await fichaRepo.findOne({
-            where: { id },
-            relations: ["trabajador", "trabajador.usuario"]
-        });
-
-        if (!ficha) {
-            await queryRunner.rollbackTransaction();
-            await queryRunner.release();
-            return [null, { message: "Ficha no encontrada" }];
-        }
-
-        if (ficha.trabajador && ficha.trabajador.rut === "11.111.111-1") {
-            return [null, { message: "No se puede modificar ni eliminar la ficha del superadministrador." }];
-        }
-
-        // Verificar permisos del usuario
-        if (userId) {
-            const userRepo = queryRunner.manager.getRepository(User);
-            const user = await userRepo.findOne({ where: { id: userId } });
-            if (!user || (user.role !== "RecursosHumanos" && user.role !== "Administrador")) {
-                throw new Error('No tienes permisos para realizar esta acción');
-            }
-        }
-
-        // Validar que si es desvinculación, se proporcione un motivo
-        if (estado === EstadoLaboral.DESVINCULADO) {
-            if (!motivo) {
-                await queryRunner.rollbackTransaction();
-                await queryRunner.release();
-                return [null, { message: "El motivo es requerido para la desvinculación" }];
-            }
-            ficha.fechaFinContrato = new Date();
-            ficha.motivoDesvinculacion = motivo;
-        }
-
-        // Actualizar el estado y otros campos
-        ficha.estado = estado;
-
-        // Guardar los cambios
-        const fichaActualizada = await fichaRepo.save(ficha);
-
-        // Confirmar la transacción
-        await queryRunner.commitTransaction();
-        await queryRunner.release();
-
-        return [fichaActualizada, null];
-    } catch (error) {
-        // Revertir en caso de error
-        await queryRunner.rollbackTransaction();
-        await queryRunner.release();
-        console.error("Error en actualizarEstadoFichaService:", error);
         return [null, { message: "Error interno del servidor" }];
     }
 }
@@ -321,13 +223,7 @@ export async function updateFichaEmpresaService(
 
         if (!fichaActual) {
             return [null, { message: "Ficha no encontrada" }];
-        }
-
-        if (fichaActual.trabajador && fichaActual.trabajador.rut === "11.111.111-1") {
-            return [null, { message: "No se puede modificar ni eliminar la ficha del superadministrador." }];
-        }
-
-        // 2. Validar campos protegidos
+        }// 2. Validar campos protegidos
         const camposInvalidos = CAMPOS_PROTEGIDOS.filter(campo => campo in fichaData);
         if (camposInvalidos.length > 0) {
             return [null, { message: `No se pueden modificar los siguientes campos: ${camposInvalidos.join(', ')}` }];
@@ -386,7 +282,7 @@ export async function updateFichaEmpresaService(
     }
 }
 
-export async function descargarContratoService(id: number, userId: number): Promise<ServiceResponse<string>> {
+export async function descargarContratoService(id: number, userId: number): Promise<ServiceResponse<{filePath: string, customFilename: string}>> {
     try {
         const fichaRepo = AppDataSource.getRepository(FichaEmpresa);
         const userRepo = AppDataSource.getRepository(User);
@@ -398,13 +294,7 @@ export async function descargarContratoService(id: number, userId: number): Prom
 
         if (!ficha) {
             return [null, { message: "Ficha no encontrada" }];
-        }
-
-        if (ficha.trabajador && ficha.trabajador.rut === "11.111.111-1") {
-            return [null, { message: "No se puede modificar ni eliminar la ficha del superadministrador." }];
-        }
-
-        const user = await userRepo.findOne({
+        }const user = await userRepo.findOne({
             where: { id: userId },
             relations: ["trabajador"]
         });
@@ -419,7 +309,9 @@ export async function descargarContratoService(id: number, userId: number): Prom
         const esSuperAdmin = user.role === "SuperAdministrador";
         const esDueno = user.trabajador?.id === ficha.trabajador.id;
 
-        if (!esRRHH && !esAdmin && !esSuperAdmin && !esDueno) {
+        const tienePrivilegios = esRRHH || esAdmin || esSuperAdmin || esDueno;
+
+        if (!tienePrivilegios) {
             return [null, { message: "No tiene permiso para descargar este contrato" }];
         }
 
@@ -429,15 +321,102 @@ export async function descargarContratoService(id: number, userId: number): Prom
 
         // Usar el servicio de archivos para obtener la ruta absoluta y correcta
         const filePath = FileUploadService.getContratoPath(ficha.contratoURL);
-        
+
         // Verificar si el archivo existe
         if (!FileUploadService.fileExists(filePath)) {
             return [null, { message: "El archivo del contrato no se encuentra en el servidor." }];
         }
 
-        return [filePath, null];
+        // Generar nombre personalizado
+        const trabajador = ficha.trabajador;
+
+        // Función para limpiar caracteres especiales y espacios
+        const limpiarNombre = (nombre: string): string => {
+            return nombre
+                .replace(/[áàäâ]/g, 'a')
+                .replace(/[éèëê]/g, 'e')
+                .replace(/[íìïî]/g, 'i')
+                .replace(/[óòöô]/g, 'o')
+                .replace(/[úùüû]/g, 'u')
+                .replace(/[ñ]/g, 'n')
+                .replace(/[ç]/g, 'c')
+                .replace(/[^a-zA-Z0-9]/g, '_')
+                .replace(/_+/g, '_')
+                .replace(/^_|_$/g, '');
+        };
+
+        const nombresLimpios = limpiarNombre(trabajador.nombres || '');
+        const apellidoPLimpio = limpiarNombre(trabajador.apellidoPaterno || '');
+        const apellidoMLimpio = limpiarNombre(trabajador.apellidoMaterno || '');
+
+        // Construir nombre personalizado
+        let customFilename = '';
+        if (nombresLimpios && apellidoPLimpio) {
+            customFilename = `${nombresLimpios}_${apellidoPLimpio}`;
+            if (apellidoMLimpio) {
+                customFilename += `_${apellidoMLimpio}`;
+            }
+            customFilename += '-Contrato.pdf';
+        }
+
+        // Validar que el nombre personalizado sea válido
+        if (!customFilename || customFilename.length < 5 || !customFilename.includes('-Contrato.pdf')) {
+            customFilename = `Contrato_${id}.pdf`;
+        }
+
+        return [{ filePath, customFilename }, null];
     } catch (error) {
         console.error("Error en descargarContratoService:", error);
+        return [null, { message: "Error interno del servidor" }];
+    }
+} 
+
+export async function uploadContratoService(id: number, file: Express.Multer.File): Promise<ServiceResponse<{ contratoUrl: string }>> {
+    try {
+        const fichaRepository = AppDataSource.getRepository(FichaEmpresa);
+        const ficha = await fichaRepository.findOneBy({ id });
+        if (!ficha) {
+            // Eliminar el archivo subido si la ficha no existe
+            FileUploadService.deleteFile(file.path);
+            return [null, { message: "Ficha no encontrada." }];
+        }
+        const nuevoContratoFilename = file.filename;
+        // Si ya existe un contrato, eliminar el anterior
+        if (ficha.contratoURL) {
+            const oldFilePath = FileUploadService.getContratoPath(ficha.contratoURL);
+            FileUploadService.deleteFile(oldFilePath);
+        }
+        ficha.contratoURL = nuevoContratoFilename;
+        await fichaRepository.save(ficha);
+        return [{ contratoUrl: nuevoContratoFilename }, null];
+    } catch (error) {
+        // Si ocurre un error, eliminar el archivo subido
+        if (file && file.path) {
+            FileUploadService.deleteFile(file.path);
+        }
+        console.error("Error en uploadContratoService:", error);
+        return [null, { message: "Error interno al procesar la subida del archivo." }];
+    }
+}
+
+export async function deleteContratoService(id: number): Promise<ServiceResponse<{ deleted: boolean }>> {
+    try {
+        const fichaRepository = AppDataSource.getRepository(FichaEmpresa);
+        const ficha = await fichaRepository.findOne({ where: { id }, relations: ['trabajador'] });
+        if (!ficha) {
+            return [null, { message: "Ficha no encontrada" }];
+        }
+        if (!ficha.contratoURL) {
+            return [null, { message: "No hay contrato para eliminar" }];
+        }
+        // Eliminar archivo físico
+        const deleted = FileUploadService.deleteContratoFile(ficha.contratoURL);
+        // Actualizar ficha
+        ficha.contratoURL = null;
+        await fichaRepository.save(ficha);
+        return [{ deleted }, null];
+    } catch (error) {
+        console.error("Error en deleteContratoService:", error);
         return [null, { message: "Error interno del servidor" }];
     }
 } 

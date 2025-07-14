@@ -3,7 +3,6 @@ import { handleSuccess, handleErrorClient, handleErrorServer } from "../../handl
 import {
     createTrabajadorService,
     getTrabajadoresService,
-    searchTrabajadoresService,
     updateTrabajadorService,
     desvincularTrabajadorService
 } from "../../services/recursosHumanos/trabajador.service.js";
@@ -49,63 +48,29 @@ export async function createTrabajador(req: Request, res: Response): Promise<voi
 
 export async function getTrabajadores(req: Request, res: Response): Promise<void> {
     try {
-        const incluirInactivos = req.query.todos === 'true';
-        const [trabajadores, serviceError] = await getTrabajadoresService(incluirInactivos);
-        
-        if (serviceError) {
-            handleErrorClient(res, 404, typeof serviceError === 'string' ? serviceError : serviceError.message);
-            return;
-        }
-
-        if (!trabajadores) {
-            handleErrorClient(res, 404, "No se encontraron trabajadores");
-            return;
-        }
-
-        handleSuccess(res, 200, "Trabajadores obtenidos exitosamente", trabajadores);
-    } catch (error) {
-        console.error("Error al obtener trabajadores:", error);
-        handleErrorServer(res, 500, "Error interno del servidor");
-    }
-}
-
-export async function searchTrabajadores(req: Request, res: Response): Promise<void> {
-    try {
-        console.log("🔍 Query recibida:", req.query);
-        
-        const { error } = TrabajadorQueryValidation.validate(req.query);
+        // Validar los query params
+        const { error, value: filtros } = TrabajadorQueryValidation.validate(req.query, { stripUnknown: true });
         if (error) {
-            console.log("❌ Error de validación:", error.message);
             handleErrorClient(res, 400, error.message);
             return;
         }
-
-        const query = {
-            ...req.query,
-            enSistema: req.query.enSistema === "true" ? true : req.query.enSistema === "false" ? false : undefined,
-            todos: req.query.todos === "true" ? true : undefined
-        };
-        console.log("🔄 Query procesada:", query);
-
-        const [trabajadores, serviceError] = await searchTrabajadoresService(query);
-        console.log("📊 Resultado del servicio:", { trabajadores: trabajadores?.length || 0, serviceError });
-
+        // Separar el flag de incluir inactivos
+        const incluirInactivos = filtros.todos === true || filtros.todos === 'true';
+        // Eliminar 'todos' del objeto de filtros para no pasarlo como filtro de campo
+        delete filtros.todos;
+        // Llamar al servicio con los filtros
+        const [trabajadores, serviceError] = await getTrabajadoresService(incluirInactivos, filtros);
         if (serviceError) {
-            console.log("❌ Error del servicio:", serviceError);
             handleErrorClient(res, 404, typeof serviceError === 'string' ? serviceError : serviceError.message);
             return;
         }
-
-        if (!trabajadores || trabajadores.length === 0) {
-            console.log("❌ No se encontraron trabajadores");
-            handleErrorClient(res, 404, "No se encontraron trabajadores que coincidan con los criterios de búsqueda");
-            return;
-        }
-
-        console.log("✅ Trabajadores encontrados:", trabajadores.length);
-        handleSuccess(res, 200, "Trabajadores encontrados exitosamente", trabajadores);
+        const trabajadoresData = trabajadores || [];
+        const mensaje = trabajadoresData.length === 0 
+            ? "No hay trabajadores registrados en el sistema" 
+            : "Trabajadores obtenidos exitosamente";
+        handleSuccess(res, 200, mensaje, trabajadoresData);
     } catch (error) {
-        console.error("❌ Error en searchTrabajadores:", error);
+        console.error("Error al obtener trabajadores:", error);
         handleErrorServer(res, 500, "Error interno del servidor");
     }
 }

@@ -30,13 +30,64 @@ export const LicenciaPermisoQueryValidation = Joi.object({
         .messages({
             "any.only": "El estado de la solicitud no es válido.",
             "string.base": "El estado de la solicitud debe ser una cadena de texto."
+        }),
+    fechaInicio: Joi.date()
+        .iso()
+        .messages({
+            "date.base": "La fecha de inicio debe ser una fecha válida.",
+            "date.format": "La fecha de inicio debe estar en formato YYYY-MM-DD"
+        }),
+    fechaFin: Joi.date()
+        .iso()
+        .messages({
+            "date.base": "La fecha de fin debe ser una fecha válida.",
+            "date.format": "La fecha de fin debe estar en formato YYYY-MM-DD"
+        }),
+    fechaSolicitud: Joi.date()
+        .iso()
+        .messages({
+            "date.base": "La fecha de solicitud debe ser una fecha válida.",
+            "date.format": "La fecha de solicitud debe estar en formato YYYY-MM-DD"
+        }),
+    motivoSolicitud: Joi.string()
+        .min(1)
+        .max(500)
+        .messages({
+            "string.base": "El motivo debe ser una cadena de texto.",
+            "string.min": "El motivo debe tener al menos 1 caracter.",
+            "string.max": "El motivo no puede exceder los 500 caracteres."
+        }),
+    revisadoPorId: Joi.number()
+        .integer()
+        .positive()
+        .messages({
+            "number.base": "El ID del revisor debe ser un número.",
+            "number.integer": "El ID del revisor debe ser un número entero.",
+            "number.positive": "El ID del revisor debe ser un número positivo."
+        }),
+    // Filtros por campos del trabajador
+    trabajadorRut: Joi.string()
+        .min(1)
+        .messages({
+            "string.base": "El RUT del trabajador debe ser una cadena de texto.",
+            "string.min": "El RUT del trabajador debe tener al menos 1 caracter."
+        }),
+    trabajadorNombres: Joi.string()
+        .min(1)
+        .messages({
+            "string.base": "Los nombres del trabajador deben ser una cadena de texto.",
+            "string.min": "Los nombres del trabajador deben tener al menos 1 caracter."
+        }),
+    trabajadorApellidos: Joi.string()
+        .min(1)
+        .messages({
+            "string.base": "Los apellidos del trabajador deben ser una cadena de texto.",
+            "string.min": "Los apellidos del trabajador deben tener al menos 1 caracter."
         })
 })
-.or('id', 'trabajadorId', 'tipo', 'estado')
 .unknown(false)
 .messages({
-    "object.unknown": "El objeto contiene campos no permitidos.",
-    "object.missing": "Se requiere al menos uno de los siguientes campos: id, trabajadorId, tipo o estado."
+    "object.unknown": "El objeto contiene campos no permitidos."
 });
 
 /* Body validation para creación de licencias/permisos */
@@ -98,12 +149,16 @@ export const CreateLicenciaPermisoValidation = Joi.object({
         .optional()
         .messages({
             "string.uri": "La URL del archivo adjunto no es válida."
-        })
+        }),
+
+    file: Joi.any()
+        .optional()
+        .description("Archivo adjunto para licencias médicas")
 });
 
 /* Body validation para actualización de licencias/permisos */
 export const UpdateLicenciaPermisoValidation = Joi.object({
-    estadoSolicitud: Joi.string()
+    estado: Joi.string()
         .valid(...Object.values(EstadoSolicitud))
         .required()
         .messages({
@@ -113,13 +168,11 @@ export const UpdateLicenciaPermisoValidation = Joi.object({
         }),
 
     respuestaEncargado: Joi.string()
-        .min(10)
         .max(500)
-        .required()
+        .allow('')
+        .optional()
         .messages({
             "string.base": "La respuesta debe ser una cadena de texto.",
-            "string.min": "La respuesta debe tener al menos 10 caracteres.",
-            "string.max": "La respuesta no puede exceder los 500 caracteres.",
-            "any.required": "La respuesta del encargado es requerida."
+            "string.max": "La respuesta no puede exceder los 500 caracteres."
         })
 }); 

@@ -19,6 +19,18 @@ import { LicenciaPermiso } from "../entity/recursosHumanos/licenciaPermiso.entit
 let app: Application;
 let server: any;
 
+// Credenciales del SuperAdmin para tests
+export const SUPER_ADMIN_CREDENTIALS = {
+    email: "super.administrador@lamas.com",
+    password: "204_M1n8"
+};
+
+// Credenciales de RRHH para tests
+export const RRHH_CREDENTIALS = {
+    email: "recursoshumanos@gmail.com",
+    password: "RRHH2024"
+};
+
 // Configurar la aplicación para pruebas
 before(async function() {
     this.timeout(10000);
@@ -78,13 +90,13 @@ after(async function() {
             await AppDataSource.getRepository(User)
                 .createQueryBuilder()
                 .delete()
-                .where("rut NOT IN (:...ruts)", { ruts: ['11.111.111-1'] })
+                .where("rut NOT IN (:...ruts)", { ruts: [] })
                 .execute();
                 
             await AppDataSource.getRepository(Trabajador)
                 .createQueryBuilder()
                 .delete()
-                .where("rut NOT IN (:...ruts)", { ruts: ['11.111.111-1'] })
+                .where("rut NOT IN (:...ruts)", { ruts: [] })
                 .execute();
         }
     } catch (error) {

@@ -2,7 +2,7 @@
 import { expect } from 'chai';
 // @ts-ignore
 import request from 'supertest';
-import { app, server } from '../setup.js';
+import { app, server, SUPER_ADMIN_CREDENTIALS } from '../setup.js';
 import path from 'path';
 import fs from 'fs';
 
@@ -14,13 +14,10 @@ describe('📁 File Upload and Download API', () => {
         try {
             console.log("✅ Iniciando pruebas de File Upload");
 
-            // Obtener token de admin
+            // Obtener token de SuperAdmin
             const adminLogin = await request(app)
                 .post('/api/auth/login')
-                .send({
-                    email: "admin.principal@gmail.com",
-                    password: "204dm1n8"
-                });
+                .send(SUPER_ADMIN_CREDENTIALS);
 
             adminToken = adminLogin.body.data.token;
 
