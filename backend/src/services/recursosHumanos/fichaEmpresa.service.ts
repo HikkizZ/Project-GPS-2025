@@ -24,6 +24,9 @@ interface SearchFichaParams {
     area?: string;
     tipoContrato?: string;
     jornadaLaboral?: string;
+    afp?: string;
+    previsionSalud?: string;
+    seguroCesantia?: boolean;
 
     // Búsqueda por rango salarial
     sueldoBaseDesde?: number;
@@ -38,6 +41,11 @@ interface SearchFichaParams {
 
     // Búsqueda por id de ficha
     id?: number;
+
+    //Búsqueda por bonos
+    bonoId?: number;
+    bonoNombre?: string;
+    bonoActivo?: boolean;
 }
 
 export async function getFichasEmpresaService(params: SearchFichaParams): Promise<ServiceResponse<FichaEmpresa[]>> {
@@ -113,6 +121,34 @@ export async function getFichasEmpresaService(params: SearchFichaParams): Promis
             if (params.sueldoBaseHasta) {
                 queryBuilder.andWhere("ficha.sueldoBase <= :sueldoBaseHasta", { sueldoBaseHasta: params.sueldoBaseHasta });
             }
+        }
+
+        // Filtros por previsión de salud y AFP
+        if (params.previsionSalud) {
+            queryBuilder.andWhere("ficha.previsionSalud = :previsionSalud", { previsionSalud: params.previsionSalud });
+        }
+        if (params.afp) {
+            queryBuilder.andWhere("ficha.afp = :afp", { afp: params.afp });
+        }
+
+        // Filtro por seguro de cesantía
+        if (params.seguroCesantia !== undefined) {
+            queryBuilder.andWhere("ficha.seguroCesantia = :seguroCesantia", { seguroCesantia: params.seguroCesantia });
+        }
+
+        // Filtros por bonos asignados
+        if (params.bonoId) {
+            queryBuilder.innerJoinAndSelect("ficha.asignacionesBonos", "asignarBono")
+                .andWhere("asignarBono.bonoId = :bonoId", { bonoId: params.bonoId });
+        }
+        if (params.bonoNombre) {
+            queryBuilder.innerJoinAndSelect("ficha.asignacionesBonos", "asignarBono")
+                .innerJoinAndSelect("asignarBono.bono", "bono")
+                .andWhere("LOWER(bono.nombre) ILIKE LOWER(:bonoNombre)", { bonoNombre: `%${params.bonoNombre.trim().toLowerCase()}%` });
+        }
+        if (params.bonoActivo !== undefined) {
+            queryBuilder.innerJoinAndSelect("ficha.asignacionesBonos", "asignarBono")
+                .andWhere("asignarBono.activo = :bonoActivo", { bonoActivo: params.bonoActivo });
         }
 
         // Filtros por fechas
@@ -201,8 +237,8 @@ export async function getMiFichaService(userId: number): Promise<ServiceResponse
 }
 
 // Definir los campos que no se pueden modificar según el estado
-const CAMPOS_PROTEGIDOS = ['id', 'trabajador'] as const;
-const CAMPOS_ESTADO_DESVINCULADO = ['cargo', 'area', 'tipoContrato', 'jornadaLaboral', 'sueldoBase'] as const;
+const CAMPOS_PROTEGIDOS = ['id', 'trabajador', 'afp', 'previsionSalud', 'seguroCesantia', 'bonoId', 'bonoNombre'] as const;
+const CAMPOS_ESTADO_DESVINCULADO = ['cargo', 'area', 'tipoContrato', 'jornadaLaboral', 'sueldoBase', 'bonoActivo'] as const;
 
 export async function updateFichaEmpresaService(
     id: number, 
@@ -241,6 +277,12 @@ export async function updateFichaEmpresaService(
         if ('sueldoBase' in fichaData && fichaData.sueldoBase !== undefined) {
             if (fichaData.sueldoBase <= 0) {
                 return [null, { message: "El sueldo base debe ser mayor a 0" }];
+            }
+        }
+
+        if ('bonoActivo' in fichaData && fichaData.bonoActivo !== undefined) {
+            if (typeof fichaData.bonoActivo !== 'boolean') {
+                return [null, { message: "El campo bonoActivo debe ser un booleano" }];
             }
         }
 
