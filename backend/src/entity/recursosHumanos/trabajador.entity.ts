@@ -130,13 +130,6 @@ export class Trabajador {
   })
   usuario?: any;
 
-  // Relación 1:N con asignaciones de bonos
-  @OneToMany(() => AsignarBono, asignacion => asignacion.trabajador)
-  asignaciones!: AsignarBono[];
-
-  // Relación 1:N con datos previsionales
-  @OneToMany(() => DatosPrevisionalesTrabajador, datosPrevisionales => datosPrevisionales.trabajador)
-  datosPrevisionales!: DatosPrevisionalesTrabajador;
 
   @CreateDateColumn({ type: "timestamp" })
   fechaRegistro!: Date;
