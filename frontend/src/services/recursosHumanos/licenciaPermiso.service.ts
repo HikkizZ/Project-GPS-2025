@@ -60,7 +60,7 @@ export class LicenciaPermisoService {
         formData.append('archivo', solicitudData.archivo);
       }
 
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}${this.baseURL}`, {
+      const response = await fetch(`${import.meta.env.VITE_BASE_URL || 'http://localhost:3000/api'}${this.baseURL}`, {
         method: 'POST',
         headers: this.getMultipartHeaders(),
         body: formData
@@ -94,7 +94,7 @@ export class LicenciaPermisoService {
    */
   async obtenerMisSolicitudes(): Promise<LicenciasPermisosOperationResult> {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}${this.baseURL}/mis-solicitudes`, {
+      const response = await fetch(`${import.meta.env.VITE_BASE_URL || 'http://localhost:3000/api'}${this.baseURL}/mis-solicitudes`, {
         method: 'GET',
         headers: this.getHeaders()
       });
@@ -130,7 +130,7 @@ export class LicenciaPermisoService {
    */
   async obtenerTodasLasSolicitudes(): Promise<LicenciasPermisosOperationResult> {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}${this.baseURL}`, {
+      const response = await fetch(`${import.meta.env.VITE_BASE_URL || 'http://localhost:3000/api'}${this.baseURL}`, {
         method: 'GET',
         headers: this.getHeaders()
       });
@@ -172,7 +172,7 @@ export class LicenciaPermisoService {
       });
 
       const queryString = queryParams.toString();
-      const url = `${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}${this.baseURL}${queryString ? `?${queryString}` : ''}`;
+      const url = `${import.meta.env.VITE_BASE_URL || 'http://localhost:3000/api'}${this.baseURL}${queryString ? `?${queryString}` : ''}`;
 
       const response = await fetch(url, {
         method: 'GET',
@@ -234,7 +234,7 @@ export class LicenciaPermisoService {
    */
   async actualizarSolicitud(id: number, updateData: UpdateLicenciaPermisoDTO): Promise<LicenciaPermisoOperationResult> {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}${this.baseURL}/${id}`, {
+      const response = await fetch(`${import.meta.env.VITE_BASE_URL || 'http://localhost:3000/api'}${this.baseURL}/${id}`, {
         method: 'PUT',
         headers: this.getHeaders(),
         body: JSON.stringify(updateData)
@@ -274,7 +274,7 @@ export class LicenciaPermisoService {
    */
   async descargarArchivo(id: number): Promise<{ success: boolean; blob?: Blob; filename?: string; error?: string }> {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}${this.baseURL}/${id}/archivo`, {
+      const response = await fetch(`${import.meta.env.VITE_BASE_URL || 'http://localhost:3000/api'}${this.baseURL}/${id}/archivo`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
@@ -324,7 +324,7 @@ export class LicenciaPermisoService {
    */
   async verificarLicenciasVencidas(): Promise<ApiResponse<{ actualizaciones: number }>> {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}${this.baseURL}/verificar-vencimientos`, {
+      const response = await fetch(`${import.meta.env.VITE_BASE_URL || 'http://localhost:3000/api'}${this.baseURL}/verificar-vencimientos`, {
         method: 'POST',
         headers: this.getHeaders()
       });
