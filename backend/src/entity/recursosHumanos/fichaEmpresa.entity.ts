@@ -3,8 +3,11 @@ import {
   PrimaryGeneratedColumn,
   Column,
   OneToOne,
-  JoinColumn
+  JoinColumn,
+  OneToMany
 } from "typeorm";
+
+import { AsignarBono } from "./Remuneraciones/asignarBono.entity.js";
 
 export enum EstadoLaboral {
   ACTIVO = "Activo",
@@ -37,6 +40,9 @@ export class FichaEmpresa {
   @OneToOne("Trabajador", "fichaEmpresa")
   @JoinColumn()
   trabajador!: any;
+
+  @OneToMany("AsignarBono", "trabajador")
+  asignacionesBonos!: AsignarBono[];
 
   @Column({ type: "varchar", length: 100, nullable: false })
   cargo!: string;
@@ -73,7 +79,7 @@ export class FichaEmpresa {
   afp!: companiaFondoAFP;
 
   @Column({ type: "boolean", nullable: false })
-  seguroCesantia!: string | null;
+  seguroCesantia!: boolean;
 
   @Column({
     type: "date",

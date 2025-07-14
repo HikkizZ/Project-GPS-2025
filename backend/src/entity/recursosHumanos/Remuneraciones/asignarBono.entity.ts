@@ -4,7 +4,7 @@ import {
     Column,
     ManyToOne
 } from "typeorm";
-import { Trabajador } from "../trabajador.entity.js";
+import { FichaEmpresa } from "../fichaEmpresa.entity.js";
 import { Bono } from "./Bono.entity.js";
 
 @Entity("asignar_bono")
@@ -12,9 +12,10 @@ export class AsignarBono {
     @PrimaryGeneratedColumn()
         id!: number;
 
-    //Relación con el trabajador al que se le asigna el bono
-    @ManyToOne(() => Trabajador, trabajador => trabajador.asignaciones, { nullable: true })
-        trabajador!: Trabajador;
+    //Relación con la ficha del trabajador al que se le asigna el bono
+    @ManyToOne(() => FichaEmpresa, fichaEmpresa => fichaEmpresa.asignacionesBonos, { nullable: true })
+        trabajador!: FichaEmpresa;
+        
     // Relación con el bono asignado
     @ManyToOne(() => Bono, bono => bono.asignaciones, { nullable: false })
         bono!: Bono;
