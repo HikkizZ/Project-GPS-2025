@@ -5,8 +5,8 @@ const BonoCard = ({ bono, onEdit, onDelete }) => {
   return (
     <div className="d-flex flex-column align-items-center border rounded shadow p-4"
     style={{
-      backgroundColor: "#BDE3EC", // fondo claro
-      borderColor: "#729B79",     // borde personalizado
+      backgroundColor: "#C9CCD3", // fondo claro
+      borderColor: "#283349",     // borde personalizado
       maxWidth: "24rem",          // similar a max-w-sm (~384px)
       transition: "box-shadow 0.3s ease-in-out"
     }}
@@ -15,7 +15,7 @@ const BonoCard = ({ bono, onEdit, onDelete }) => {
   >
       <h2 
         className="h5 fw-bold text-center mb-2"
-        style={{ color: "#1A5E63" }}
+        style={{ color: "#283349" }}
       >
         {bono.nombreBono}
       </h2>
