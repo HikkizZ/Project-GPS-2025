@@ -97,7 +97,6 @@ export const BonosPage = () => {
     console.log('bonos: ', bonosData);
     console.log('bonos es array? ', Array.isArray(bonosData));
     const listarBonos = Array.isArray(bonosData)? bonosData : [];
-    console.log('bonos filtrados: ', listarBonos);
     console.log("typeof bonos:", typeof bonosData);
 
 
@@ -110,21 +109,17 @@ export const BonosPage = () => {
         permanente: [],
     };
     if (bonosList.length > 0) {
-        console.log("Bonos.bonos existe");
 
         groupedAndOrderedBonos = bonosOrdenados.reduce<Record<string, Bono[]>>((acc, temporalidad) => {
             // Mostrar qué temporalidad estamos procesando
-            console.log("Procesando temporalidad:", temporalidad);
 
             // Obtener los bonos que coinciden con esta temporalidad
             acc[temporalidad] = bonosList.filter(
                 (b) => b.temporalidad.toLowerCase() === temporalidad
             );
             // Mostrar cómo va quedando el acumulador hasta ahora
-            console.log("Acumulador parcial:", acc);
             return acc;
         }, {});
-        console.log('bonos ordenados: ', groupedAndOrderedBonos);
 
     }
 
@@ -159,11 +154,12 @@ export const BonosPage = () => {
                     <div className="button-container">
                         <button 
                             style={{
-                                background: ' #FFFF82',
+                                borderRadius: '10px', 
+                                background: ' #EDB65B',
                                 border: 'none',
                                 padding: '1rem 1.25rem'
                             }}
-                            className="text-black"                            
+                            className="btn btn-outline-dark p-3"                            
                             onClick={handleCreateClick}
                         >
                             Crear Bono
