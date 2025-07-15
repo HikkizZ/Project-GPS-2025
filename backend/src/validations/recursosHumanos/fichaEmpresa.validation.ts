@@ -51,6 +51,16 @@ export const FichaEmpresaQueryValidation = Joi.object({
 
 /* Body validation para actualización de ficha de empresa */
 export const FichaEmpresaBodyValidation = Joi.object({
+    //Asignacion de bonos
+    asignacionesBonos: Joi.array()
+    .items(Joi.string().trim()) // O Joi.number() si los IDs son numéricos
+    .messages({
+        "array.base": "Las asignaciones de bonos deben ser un arreglo",
+        "string.base": "Cada bono debe ser un identificador válido"
+    })
+    .optional()
+    .allow(null, ''), // Permitir que sea null o una cadena vacía
+
     cargo: Joi.string()
         .min(3)
         .max(100)
@@ -94,6 +104,25 @@ export const FichaEmpresaBodyValidation = Joi.object({
             "number.min": "El sueldo base debe ser mayor a 0"
         }),
 
+    previsionSalud: Joi.string()
+        .valid('FONASA', 'ISAPRE')
+        .messages({
+            "any.only": "La previsión de salud debe ser FONASA o ISAPRE",
+            "string.base": "La previsión de salud debe ser una cadena de texto"
+        }),
+
+    afp: Joi.string()
+        .valid(  'habitat',   'provida',   'modelo',   'cuprum',   'capital',   'planvital',   'uno') 
+        .messages({
+            "any.only": "La AFP debe ser una de las opciones válidas",
+            "string.base": "La AFP debe ser una cadena de texto"
+        }),
+
+    seguroCesantia: Joi.boolean()
+        .messages({
+            "boolean.base": "El seguro de cesantía debe ser un valor booleano (true o false)"
+        }),
+
     fechaInicioContrato: Joi.date()
         .iso()
         .messages({
@@ -128,6 +157,16 @@ export const FichaEmpresaBodyValidation = Joi.object({
 });
 
 export const FichaEmpresaUpdateValidation = Joi.object({
+    //Asignacion de bonos
+    asignacionesBonos: Joi.array()
+    .items(Joi.string().trim()) // O Joi.number() si los IDs son numéricos
+    .messages({
+        "array.base": "Las asignaciones de bonos deben ser un arreglo",
+        "string.base": "Cada bono debe ser un identificador válido"
+    })
+    .optional()
+    .allow(null, ''), // Permitir que sea null o una cadena vacía
+
     cargo: Joi.string()
         .min(3)
         .max(100)
@@ -169,6 +208,25 @@ export const FichaEmpresaUpdateValidation = Joi.object({
         .messages({
             "number.base": "El sueldo base debe ser mayor a 0",
             "number.min": "El sueldo base debe ser mayor a 0"
+        }),
+
+    previsionSalud: Joi.string()
+        .valid('FONASA', 'ISAPRE')
+        .messages({
+            "any.only": "La previsión de salud debe ser FONASA o ISAPRE",
+            "string.base": "La previsión de salud debe ser una cadena de texto"
+        }),
+
+    afp: Joi.string()
+        .valid(  'habitat',   'provida',   'modelo',   'cuprum',   'capital',   'planvital',   'uno') 
+        .messages({
+            "any.only": "La AFP debe ser una de las opciones válidas",
+            "string.base": "La AFP debe ser una cadena de texto"
+        }),
+
+    seguroCesantia: Joi.boolean()
+        .messages({
+            "boolean.base": "El seguro de cesantía debe ser un valor booleano (true o false)"
         }),
 
     fechaInicioContrato: Joi.date()

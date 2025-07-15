@@ -8,6 +8,9 @@ import { LicenciaPermiso, TipoSolicitud, EstadoSolicitud } from "../../entity/re
 import { normalizeText } from "../../helpers/normalizeText.helper.js";
 import { FileUploadService } from "../../services/fileUpload.service.js";
 import path from 'path';
+import { get } from "http";
+import { Bono } from "../../entity/recursosHumanos/Remuneraciones/Bono.entity.js";
+import { AsignarBono } from "entity/recursosHumanos/Remuneraciones/asignarBono.entity.js";  
 
 // Interfaz para los parámetros de búsqueda
 interface SearchFichaParams {
@@ -237,8 +240,8 @@ export async function getMiFichaService(userId: number): Promise<ServiceResponse
 }
 
 // Definir los campos que no se pueden modificar según el estado
-const CAMPOS_PROTEGIDOS = ['id', 'trabajador', 'afp', 'previsionSalud', 'seguroCesantia', 'bonoId', 'bonoNombre'] as const;
-const CAMPOS_ESTADO_DESVINCULADO = ['cargo', 'area', 'tipoContrato', 'jornadaLaboral', 'sueldoBase', 'bonoActivo'] as const;
+const CAMPOS_PROTEGIDOS = ['id', 'trabajador'] as const;
+const CAMPOS_ESTADO_DESVINCULADO = ['cargo', 'area', 'tipoContrato', 'jornadaLaboral', 'sueldoBase', 'afp', 'previsionSalud', 'seguroCesantia'] as const;
 
 export async function updateFichaEmpresaService(
     id: number, 
@@ -250,11 +253,13 @@ export async function updateFichaEmpresaService(
 
     try {
         const fichaRepo = queryRunner.manager.getRepository(FichaEmpresa);
+        const bonoRepo = queryRunner.manager.getRepository(Bono);
+        const asignarBonoRepo = queryRunner.manager.getRepository(AsignarBono);
         
         // 1. Obtener la ficha actual con sus relaciones
         const fichaActual = await fichaRepo.findOne({
             where: { id },
-            relations: ["trabajador", "trabajador.usuario"]
+            relations: ["trabajador", "trabajador.usuario", "asignacionesBonos", "asignacionesBonos.bono"]
         });
 
         if (!fichaActual) {
@@ -280,9 +285,23 @@ export async function updateFichaEmpresaService(
             }
         }
 
-        if ('bonoActivo' in fichaData && fichaData.bonoActivo !== undefined) {
-            if (typeof fichaData.bonoActivo !== 'boolean') {
-                return [null, { message: "El campo bonoActivo debe ser un booleano" }];
+        if ('afp' in fichaData && fichaData.afp) {
+            const afpsValidas = ["habitat", "provida", "modelo", "cuprum", "capital", "planvital", "uno"];
+            if (!afpsValidas.includes(fichaData.afp)) {
+                return [null, { message: "AFP no válida" }];
+            }
+        }
+
+        if ('previsionSalud' in fichaData && fichaData.previsionSalud) {
+            const previsionesValidas = ["ISAPRE", "FONASA"];
+            if (!previsionesValidas.includes(fichaData.previsionSalud)) {
+                return [null, { message: "Previsión de salud no válida" }];
+            }
+        }
+
+        if ('seguroCesantia' in fichaData && fichaData.seguroCesantia !== undefined) {
+            if (typeof fichaData.seguroCesantia !== 'boolean') {
+                return [null, { message: "El seguro de cesantía debe ser un valor booleano" }];
             }
         }
 
@@ -307,10 +326,45 @@ export async function updateFichaEmpresaService(
             }
         }
 
-        // 5. Aplicar los cambios validados
+        // 5. Validar cambios en bonos asignados
+        if (Array.isArray(fichaData.asignacionesBonos)) {
+            const bonosSeleccionadosIds = fichaData.asignacionesBonos;
+            // Buscar los bonos válidos por ID
+            const bonosSeleccionados = await bonoRepo.findByIds(bonosSeleccionadosIds);
+
+            if (bonosSeleccionados.length !== bonosSeleccionadosIds.length) {
+                const encontradosIds = bonosSeleccionados.map(b => b.id);
+                const noEncontrados = bonosSeleccionadosIds.filter(id => !encontradosIds.includes(id));
+                return [null, { message: `Los siguientes bonos no existen: ${noEncontrados.join(", ")}` }];
+            }
+            
+            // Obtener IDs de bonos ya asignados
+            const bonosActualesIds = fichaActual.asignacionesBonos.map(ab => ab.bono.id);
+
+            // Bonos a eliminar (los que ya estaban y no están en la nueva lista)
+            const bonosAEliminar = fichaActual.asignacionesBonos.filter(ab => !bonosSeleccionadosIds.includes(ab.bono.id));
+
+            // Bonos a agregar (los que están en la nueva lista pero no estaban antes)
+            const bonosAAgregar = bonosSeleccionados.filter(bono => !bonosActualesIds.includes(bono.id));
+
+            // Eliminar asignaciones obsoletas
+            for (const ab of bonosAEliminar) {
+                await asignarBonoRepo.remove(ab);
+            }
+
+            // Agregar nuevas asignaciones
+            for (const bono of bonosAAgregar) {
+                const nuevaAsignacion = asignarBonoRepo.create({
+                    trabajador: fichaActual.trabajador,
+                    bono: bono
+                });
+                await asignarBonoRepo.save(nuevaAsignacion);
+            }
+        }
+        // 6. Aplicar los cambios validados
         Object.assign(fichaActual, fichaData);
 
-        // 6. Guardar los cambios
+        // 7. Guardar los cambios
         const fichaActualizada = await fichaRepo.save(fichaActual);
         await queryRunner.commitTransaction();
 
