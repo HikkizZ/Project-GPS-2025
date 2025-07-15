@@ -530,10 +530,10 @@ export const UsersPage: React.FC = () => {
                                     <Button
                                       variant="outline-success"
                                       onClick={() => handleShowSelfEditModal(userItem)}
-                                      title="Editar mi perfil"
+                                      title="Cambiar mi contraseña"
                                       disabled={userItem.estadoCuenta === 'Inactiva'}
                                     >
-                                      <i className="bi bi-person-gear"></i>
+                                      <i className="bi bi-key"></i>
                                     </Button>
                                   ) : (
                                     // Botón para editar otros usuarios (solo roles permitidos)
@@ -681,8 +681,8 @@ export const UsersPage: React.FC = () => {
           }}>
             <Modal.Header closeButton>
               <Modal.Title>
-                <i className="bi bi-person-gear me-2"></i>
-                Editar Mi Perfil
+                <i className="bi bi-key me-2"></i>
+                Cambiar Mi Contraseña
               </Modal.Title>
             </Modal.Header>
             <Modal.Body>
