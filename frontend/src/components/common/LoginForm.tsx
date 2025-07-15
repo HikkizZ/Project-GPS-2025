@@ -78,7 +78,6 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, error, setError
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
-                  placeholder="super.administrador@lamas.com"
                   required
                   disabled={isLoading}
                 />
@@ -91,7 +90,6 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, error, setError
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
-                  placeholder="204_M1n8"
                   required
                   disabled={isLoading}
                 />
@@ -110,12 +108,6 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, error, setError
                 )}
               </button>
             </form>
-            <div className="mt-3">
-              <small className="text-muted">
-                <strong>Credenciales de prueba:</strong><br/>
-                <strong>Admin:</strong> super.administrador@lamas.com / 204_M1n8
-              </small>
-            </div>
           </div>
         </div>
       </div>
