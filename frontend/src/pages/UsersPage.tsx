@@ -28,6 +28,7 @@ export const UsersPage: React.FC = () => {
   const [isUpdating, setIsUpdating] = useState(false);
   const [users, setUsers] = useState<SafeUser[]>([]);
   const [showUpdateModal, setShowUpdateModal] = useState(false);
+  const [showSelfEditModal, setShowSelfEditModal] = useState(false);
   const [newRole, setNewRole] = useState<FilterableUserRole>();
   const [newPassword, setNewPassword] = useState<string>('');
   const [searchParams, setSearchParams] = useState<UserSearchParams>({
@@ -161,6 +162,13 @@ export const UsersPage: React.FC = () => {
     setShowUpdateModal(true);
   };
 
+  const handleShowSelfEditModal = (user: SafeUser) => {
+    setSelectedUser(user);
+    setNewPassword('');
+    setPasswordError(null);
+    setShowSelfEditModal(true);
+  };
+
   // Función para validar contraseña
   const validatePassword = (password: string): string | null => {
     if (password.length === 0) return null; // Vacía es válida (no cambiar)
@@ -210,6 +218,35 @@ export const UsersPage: React.FC = () => {
         setIsUpdating(false);
         setNewPassword('');
         setPasswordError(null);
+    }
+  };
+
+  const handleChangeOwnPassword = async () => {
+    if (!selectedUser) return;
+
+    try {
+        setIsUpdating(true);
+        setError('');
+        setPasswordError(null);
+        
+        // Validar nueva contraseña
+        if (newPassword) {
+          const passwordValidation = validatePassword(newPassword);
+          if (passwordValidation) {
+            setPasswordError(passwordValidation);
+            return;
+          }
+        }
+        
+        // Llamar al servicio para cambiar contraseña
+        await userService.changeOwnPassword(newPassword);
+        showSuccess('¡Contraseña actualizada!', 'Tu contraseña se ha actualizado exitosamente', 4000);
+        setShowSelfEditModal(false);
+        setNewPassword('');
+    } catch (err: any) {
+        setError(err.message || 'Error al cambiar contraseña');
+    } finally {
+        setIsUpdating(false);
     }
   };
 
@@ -485,17 +522,30 @@ export const UsersPage: React.FC = () => {
                               </span>
                             </td>
                             <td className="text-center">
-                              {/* Ocultar acciones si es el admin principal, SuperAdministrador o si es el usuario actual */}
-                              {(userItem.email !== 'admin.principal@gmail.com' && userItem.role !== 'SuperAdministrador' && !esUsuarioActual(userItem)) && (
+                              {/* Mostrar diferentes acciones según el tipo de usuario */}
+                              {userItem.email !== 'admin.principal@gmail.com' && userItem.role !== 'SuperAdministrador' && (
                                 <div className="btn-group">
-                                  <Button
-                                    variant="outline-primary"
-                                    onClick={() => handleShowModal(userItem)}
-                                    title="Editar rol"
-                                    disabled={userItem.estadoCuenta === 'Inactiva'}
-                                  >
-                                    <i className="bi bi-pencil-square"></i>
-                                  </Button>
+                                  {esUsuarioActual(userItem) ? (
+                                    // Botón para editar propio perfil
+                                    <Button
+                                      variant="outline-success"
+                                      onClick={() => handleShowSelfEditModal(userItem)}
+                                      title="Editar mi perfil"
+                                      disabled={userItem.estadoCuenta === 'Inactiva'}
+                                    >
+                                      <i className="bi bi-person-gear"></i>
+                                    </Button>
+                                  ) : (
+                                    // Botón para editar otros usuarios (solo roles permitidos)
+                                    <Button
+                                      variant="outline-primary"
+                                      onClick={() => handleShowModal(userItem)}
+                                      title="Editar rol"
+                                      disabled={userItem.estadoCuenta === 'Inactiva'}
+                                    >
+                                      <i className="bi bi-pencil-square"></i>
+                                    </Button>
+                                  )}
                                 </div>
                               )}
                             </td>
@@ -617,6 +667,120 @@ export const UsersPage: React.FC = () => {
                   <>
                     <i className="bi bi-check-circle me-2"></i>
                     Guardar Cambios
+                  </>
+                )}
+              </Button>
+            </Modal.Footer>
+          </Modal>
+
+          {/* Modal de Autoedición */}
+          <Modal show={showSelfEditModal} onHide={() => {
+            setShowSelfEditModal(false);
+            setNewPassword('');
+            setPasswordError(null);
+          }}>
+            <Modal.Header closeButton>
+              <Modal.Title>
+                <i className="bi bi-person-gear me-2"></i>
+                Editar Mi Perfil
+              </Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+              {selectedUser && (
+                <Form>
+                  <Form.Group className="mb-3">
+                    <Form.Label>
+                      <i className="bi bi-person me-2"></i>
+                      Usuario
+                    </Form.Label>
+                    <Form.Control type="text" value={selectedUser.name} disabled />
+                  </Form.Group>
+                  
+                  <Form.Group className="mb-3">
+                    <Form.Label>
+                      <i className="bi bi-credit-card me-2"></i>
+                      RUT
+                    </Form.Label>
+                    <Form.Control type="text" value={formatRUT(selectedUser.rut)} disabled />
+                  </Form.Group>
+
+                  <Form.Group className="mb-3">
+                    <Form.Label>
+                      <i className="bi bi-shield me-2"></i>
+                      Rol
+                    </Form.Label>
+                    <Form.Control 
+                      type="text" 
+                      value={selectedUser.role} 
+                      disabled 
+                      className="bg-light"
+                    />
+                    <Form.Text className="text-muted">
+                      <i className="bi bi-info-circle me-1"></i>
+                      El rol no puede ser modificado por el mismo usuario
+                    </Form.Text>
+                  </Form.Group>
+
+                  <Form.Group className="mb-3">
+                    <Form.Label>
+                      <i className="bi bi-key me-2"></i>
+                      Nueva Contraseña
+                    </Form.Label>
+                    <Form.Control
+                      type="password"
+                      value={newPassword}
+                      onChange={(e) => {
+                        setNewPassword(e.target.value);
+                        if (e.target.value) {
+                          setPasswordError(validatePassword(e.target.value));
+                        } else {
+                          setPasswordError(null);
+                        }
+                      }}
+                      placeholder="Ingrese la nueva contraseña"
+                      maxLength={16}
+                      isInvalid={!!passwordError}
+                    />
+                    <Form.Control.Feedback type="invalid">
+                      {passwordError}
+                    </Form.Control.Feedback>
+                    <Form.Text className="text-muted">
+                      La contraseña debe tener entre 8 y 16 caracteres, al menos una mayúscula, una minúscula, un número y un carácter especial.
+                    </Form.Text>
+                  </Form.Group>
+                </Form>
+              )}
+            </Modal.Body>
+            <Modal.Footer>
+              <Button variant="secondary" onClick={() => {
+                setShowSelfEditModal(false);
+                setNewPassword('');
+                setPasswordError(null);
+              }}>
+                <i className="bi bi-x-circle me-2"></i>
+                Cancelar
+              </Button>
+              <Button
+                variant="success"
+                onClick={handleChangeOwnPassword}
+                disabled={isUpdating || !!passwordError || !newPassword}
+              >
+                {isUpdating ? (
+                  <>
+                    <Spinner
+                      as="span"
+                      animation="border"
+                      size="sm"
+                      role="status"
+                      aria-hidden="true"
+                      className="me-2"
+                    />
+                    Actualizando...
+                  </>
+                ) : (
+                  <>
+                    <i className="bi bi-check-circle me-2"></i>
+                    Cambiar Contraseña
                   </>
                 )}
               </Button>

@@ -147,3 +147,73 @@ export const updateUserService = async (id: number, body: UpdateUserData, reques
         throw error;
     }
 };
+
+/* Actualizar perfil propio - solo permite editar name, email y rut, NO el rol */
+export const updateOwnProfileService = async (userId: number, body: { name?: string; email?: string; rut?: string }): Promise<User | null> => {
+    try {
+        // LIMPIEZA AUTOMÁTICA: Eliminar espacios extra de todos los campos de texto
+        const cleanBody = limpiarCamposTextoUsuario(body);
+        
+        const userRepository = AppDataSource.getRepository(User);
+        const user = await userRepository.findOne({
+            where: { id: userId }
+        });
+
+        if (!user) {
+            return null;
+        }
+
+        const dataUserUpdate: any = {};
+
+        if (cleanBody.name) {
+            dataUserUpdate.name = cleanBody.name;
+        }
+        if (cleanBody.email) {
+            dataUserUpdate.email = cleanBody.email;
+        }
+        if (cleanBody.rut) {
+            dataUserUpdate.rut = cleanBody.rut;
+        }
+
+        dataUserUpdate.updateAt = new Date();
+
+        await userRepository.update(userId, dataUserUpdate);
+
+        const updatedUser = await userRepository.findOne({
+            where: { id: userId }
+        });
+
+        return updatedUser;
+    } catch (error) {
+        console.error('Error en updateOwnProfileService:', error);
+        throw error;
+    }
+};
+
+/* Cambiar contraseña propia */
+export const changeOwnPasswordService = async (userId: number, newPassword: string): Promise<[boolean, string | null]> => {
+    try {
+        const userRepository = AppDataSource.getRepository(User);
+        const user = await userRepository.findOne({
+            where: { id: userId }
+        });
+
+        if (!user) {
+            return [false, "Usuario no encontrado"];
+        }
+
+        // Encriptar nueva contraseña
+        const encryptedNewPassword = await encryptPassword(newPassword);
+        
+        // Actualizar contraseña
+        await userRepository.update(userId, {
+            password: encryptedNewPassword,
+            updateAt: new Date()
+        });
+
+        return [true, null];
+    } catch (error) {
+        console.error('Error en changeOwnPasswordService:', error);
+        return [false, "Error interno del servidor"];
+    }
+};

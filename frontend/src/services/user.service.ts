@@ -13,5 +13,12 @@ export const userService = {
   // Actualizar usuario por ID
   async updateUser(id: number, updates: Partial<SafeUser>) {
     await apiClient.put(`/users/${id}`, updates);
+  },
+
+  // Cambiar contraseña propia
+  async changeOwnPassword(newPassword: string) {
+    await apiClient.put('/users/password', {
+      newPassword
+    });
   }
 }; 
