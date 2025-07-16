@@ -53,13 +53,13 @@ export const FichaEmpresaQueryValidation = Joi.object({
 export const FichaEmpresaBodyValidation = Joi.object({
     //Asignacion de bonos
     asignacionesBonos: Joi.array()
-    .items(Joi.string().trim()) // O Joi.number() si los IDs son numéricos
-    .messages({
-        "array.base": "Las asignaciones de bonos deben ser un arreglo",
-        "string.base": "Cada bono debe ser un identificador válido"
-    })
-    .optional()
-    .allow(null, ''), // Permitir que sea null o una cadena vacía
+        .items(Joi.number().integer().positive()) // Cambia string() por number()
+        .messages({
+            "array.base": "Las asignaciones de bonos deben ser un arreglo",
+            "number.base": "Cada bono debe ser un identificador numérico válido"
+        })
+        .optional()
+        .allow(null, ''), // Permitir que sea null o una cadena vacía
 
     cargo: Joi.string()
         .min(3)
@@ -159,13 +159,13 @@ export const FichaEmpresaBodyValidation = Joi.object({
 export const FichaEmpresaUpdateValidation = Joi.object({
     //Asignacion de bonos
     asignacionesBonos: Joi.array()
-    .items(Joi.string().trim()) // O Joi.number() si los IDs son numéricos
-    .messages({
-        "array.base": "Las asignaciones de bonos deben ser un arreglo",
-        "string.base": "Cada bono debe ser un identificador válido"
-    })
-    .optional()
-    .allow(null, ''), // Permitir que sea null o una cadena vacía
+        .items(Joi.number().integer().positive()) // Cambia string() por number()
+        .messages({
+            "array.base": "Las asignaciones de bonos deben ser un arreglo",
+            "number.base": "Cada bono debe ser un identificador numérico válido"
+        })
+        .optional()
+        .allow(null, ''), // Permitir que sea null o una cadena vacía
 
     cargo: Joi.string()
         .min(3)
