@@ -4,6 +4,7 @@ import App from './App'
 import { AuthProvider } from './context'
 import { BrowserRouter } from 'react-router-dom'
 import { UIProvider } from './context/UIContext'
+import { ToastProvider } from './components/common/Toast';
 
 // Importar Bootstrap y estilos globales
 import 'bootstrap/dist/css/bootstrap.min.css'
@@ -19,7 +20,9 @@ if (rootElement) {
       <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <AuthProvider>
           <UIProvider>
-            <App />
+            <ToastProvider>
+              <App />
+            </ToastProvider>
           </UIProvider>
         </AuthProvider>
       </BrowserRouter>
