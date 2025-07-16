@@ -44,7 +44,7 @@ describe('📋 Historial Laboral API', () => {
                     rut: "35.678.901-6",
                     fechaNacimiento: "1990-01-01",
                     telefono: "+56912345678",
-                    correo: "test.historial.1@gmail.com",
+                    correoPersonal: "test.historial.1@gmail.com",
                     numeroEmergencia: "+56987654321",
                     direccion: "Av. Test 123",
                     fechaIngreso: "2024-01-01",

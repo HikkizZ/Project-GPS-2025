@@ -53,7 +53,7 @@ describe('📋 Licencias y Permisos API', () => {
                     rut: "28.123.456-0",
                     fechaNacimiento: "1987-03-10",
                     telefono: "+56966666666",
-                    correo: uniqueEmail,
+                    correoPersonal: uniqueEmail,
                     numeroEmergencia: "+56977777777",
                     direccion: "Av. Licencias 456",
                     fechaIngreso: "2024-01-01",
