@@ -7,6 +7,7 @@ import { userService } from '@/services/user.service';
 import { Table, Button, Form, Spinner, Modal, Container, Row, Col, Card } from 'react-bootstrap';
 import { FiltrosBusquedaHeader } from '@/components/common/FiltrosBusquedaHeader';
 import { useToast, Toast } from '@/components/common/Toast';
+import { PasswordInput } from '@/components/common/LoginForm';
 
 // Interfaz para los parámetros de búsqueda
 interface UserSearchParams {
@@ -624,10 +625,9 @@ export const UsersPage: React.FC = () => {
                       <i className="bi bi-key me-2"></i>
                       Nueva Contraseña
                     </Form.Label>
-                    <Form.Control
-                      type="password"
+                    <PasswordInput
                       value={newPassword}
-                      onChange={(e) => {
+                      onChange={e => {
                         setNewPassword(e.target.value);
                         if (e.target.value) {
                           setPasswordError(validatePassword(e.target.value));
@@ -638,10 +638,11 @@ export const UsersPage: React.FC = () => {
                       placeholder="Dejar vacío para mantener la actual"
                       maxLength={16}
                       isInvalid={!!passwordError}
+                      feedback={passwordError || ''}
+                      disabled={isUpdating}
+                      name="newPassword"
+                      autoComplete="new-password"
                     />
-                    <Form.Control.Feedback type="invalid">
-                      {passwordError}
-                    </Form.Control.Feedback>
                     <Form.Text className="text-muted">
                       La contraseña debe tener entre 8 y 16 caracteres, al menos una mayúscula, una minúscula, un número y un carácter especial.
                     </Form.Text>
@@ -739,10 +740,9 @@ export const UsersPage: React.FC = () => {
                       <i className="bi bi-key me-2"></i>
                       Nueva Contraseña
                     </Form.Label>
-                    <Form.Control
-                      type="password"
+                    <PasswordInput
                       value={newPassword}
-                      onChange={(e) => {
+                      onChange={e => {
                         setNewPassword(e.target.value);
                         if (e.target.value) {
                           setPasswordError(validatePassword(e.target.value));
@@ -753,10 +753,11 @@ export const UsersPage: React.FC = () => {
                       placeholder="Ingrese la nueva contraseña"
                       maxLength={16}
                       isInvalid={!!passwordError}
+                      feedback={passwordError || ''}
+                      disabled={isUpdating}
+                      name="newPassword"
+                      autoComplete="new-password"
                     />
-                    <Form.Control.Feedback type="invalid">
-                      {passwordError}
-                    </Form.Control.Feedback>
                     <Form.Text className="text-muted">
                       La contraseña debe tener entre 8 y 16 caracteres, al menos una mayúscula, una minúscula, un número y un carácter especial.
                     </Form.Text>

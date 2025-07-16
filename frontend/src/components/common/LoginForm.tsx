@@ -9,6 +9,47 @@ interface LoginFormProps {
   setError: (msg: string) => void;
 }
 
+// Componente reutilizable para input de contraseña con toggle de visibilidad
+export const PasswordInput: React.FC<{
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  placeholder?: string;
+  maxLength?: number;
+  isInvalid?: boolean;
+  feedback?: string;
+  disabled?: boolean;
+  name?: string;
+  autoComplete?: string;
+}> = ({ value, onChange, placeholder, maxLength, isInvalid, feedback, disabled, name, autoComplete }) => {
+  const [show, setShow] = useState(false);
+  return (
+    <div className="input-group">
+      <input
+        type={show ? 'text' : 'password'}
+        className={`form-control${isInvalid ? ' is-invalid' : ''}`}
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder}
+        maxLength={maxLength}
+        disabled={disabled}
+        name={name}
+        autoComplete={autoComplete}
+      />
+      <button
+        type="button"
+        className="btn btn-outline-secondary"
+        tabIndex={-1}
+        onClick={() => setShow(s => !s)}
+        style={{ borderTopLeftRadius: 0, borderBottomLeftRadius: 0 }}
+        aria-label={show ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+      >
+        <i className={`bi ${show ? 'bi-eye-slash' : 'bi-eye'}`}></i>
+      </button>
+      {isInvalid && feedback && <div className="invalid-feedback d-block">{feedback}</div>}
+    </div>
+  );
+};
+
 export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, error, setError }) => {
   const { login, isLoading } = useAuth();
   const [formData, setFormData] = useState<LoginData>({
@@ -84,14 +125,13 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, error, setError
               </div>
               <div className="mb-3">
                 <label className="form-label">Contraseña:</label>
-                <input
-                  type="password"
-                  className="form-control"
+                <PasswordInput
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
-                  required
+                  placeholder="Ingrese su contraseña"
                   disabled={isLoading}
+                  autoComplete="current-password"
                 />
               </div>
               <button type="submit" className="btn btn-primary w-100" disabled={isLoading}>

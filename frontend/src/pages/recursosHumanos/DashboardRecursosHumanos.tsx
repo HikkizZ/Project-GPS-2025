@@ -7,6 +7,7 @@ import { useState } from 'react';
 import { Modal, Button, Form, Spinner } from 'react-bootstrap';
 import { userService } from '../../services/user.service';
 import { useToast } from '@/components/common/Toast';
+import { PasswordInput } from '@/components/common/LoginForm';
 
 const DashboardRecursosHumanos: React.FC = () => {
   const { user } = useAuth();
@@ -480,17 +481,17 @@ const DashboardRecursosHumanos: React.FC = () => {
               <h6 className="mb-3 text-primary"><i className="bi bi-key me-2"></i>Cambiar Contraseña</h6>
               <Form.Group className="mb-3">
                 <Form.Label>Nueva Contraseña</Form.Label>
-                <Form.Control
-                  type="password"
+                <PasswordInput
                   value={newPassword}
                   onChange={e => setNewPassword(e.target.value)}
                   placeholder="Ingrese la nueva contraseña"
                   maxLength={16}
                   isInvalid={!!passwordError}
+                  feedback={passwordError || ''}
+                  disabled={isUpdating}
+                  name="newPassword"
+                  autoComplete="new-password"
                 />
-                <Form.Control.Feedback type="invalid">
-                  {passwordError}
-                </Form.Control.Feedback>
                 <Form.Text className="text-muted">
                   La contraseña debe tener entre 8 y 16 caracteres, al menos una mayúscula, una minúscula, un número y un carácter especial.
                 </Form.Text>
