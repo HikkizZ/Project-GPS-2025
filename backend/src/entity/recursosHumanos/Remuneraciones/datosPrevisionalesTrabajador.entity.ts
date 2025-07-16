@@ -5,7 +5,6 @@ import {
     ManyToOne,
     JoinColumn
 } from "typeorm";
-import { Trabajador } from "../trabajador.entity.js";
 import { PrevisionAFP } from "./previsionAFP.entity.js";
 import { PrevisionSalud } from "./previsionSalud.entity.js";
 
@@ -14,8 +13,6 @@ export class DatosPrevisionalesTrabajador {
     @PrimaryGeneratedColumn()
     id!: number;
 
-    @ManyToOne(() => Trabajador, trabajador => trabajador.datosPrevisionales, { nullable: false })
-    trabajador!: Trabajador;
 
     @ManyToOne(() => PrevisionAFP, afp => afp.asignacionesA, { nullable: false })
     afp!: PrevisionAFP;
