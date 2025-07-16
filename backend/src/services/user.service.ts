@@ -94,126 +94,66 @@ function limpiarCamposTextoUsuario(data: any): any {
     return dataCopia;
 }
 
-export const updateUserService = async (id: number, body: UpdateUserData, requester: User): Promise<User | null> => {
+export const updateUserService = async (query: {id?: number, rut?: string, email?: string}, body: UpdateUserData, requester: User): Promise<User | null> => {
     try {
-        // LIMPIEZA AUTOMÁTICA: Eliminar espacios extra de todos los campos de texto
-        body = limpiarCamposTextoUsuario(body);
-        
-        const userRepository = AppDataSource.getRepository(User);
-        const user = await userRepository.findOne({
-            where: { id }
-        });
-
-        if (!user) {
-            return null;
+        // Validar que no se use 'rol' en vez de 'role'
+        if (Object.prototype.hasOwnProperty.call(body, 'rol')) {
+            throw { status: 400, message: "El campo correcto es 'role', no 'rol'." };
         }
-
+        body = limpiarCamposTextoUsuario(body);
+        const userRepository = AppDataSource.getRepository(User);
+        // Buscar usuario por id, rut o email
+        let user: User | null = null;
+        if (query.id) {
+            user = await userRepository.findOne({ where: { id: query.id } });
+        } else if (query.rut) {
+            const cleanRut = query.rut.replace(/\./g, '').replace(/-/g, '');
+            user = await userRepository.createQueryBuilder("user")
+                .where("REPLACE(REPLACE(user.rut, '.', ''), '-', '') = :cleanRut", { cleanRut })
+                .getOne();
+        } else if (query.email) {
+            user = await userRepository.findOne({ where: { email: query.email } });
+        }
+        if (!user) return null;
         if (user.role === "SuperAdministrador") {
             throw { status: 403, message: "No se puede modificar el SuperAdministrador." };
         }
-
-        const dataUserUpdate: any = {};
-
-        if (body.name) {
-            dataUserUpdate.name = body.name;
-        }
-        if (body.email) {
-            dataUserUpdate.email = body.email;
-        }
-        if (body.password) {
-            dataUserUpdate.password = await encryptPassword(body.password);
-        }
-        if (body.role) {
+        // Permisos
+        const isSelf = requester.id === user.id;
+        const allowedRoles = ["SuperAdministrador", "Administrador", "RecursosHumanos"];
+        // Si es el mismo usuario, solo puede cambiar su password
+        if (isSelf) {
+            if (!body.password || Object.keys(body).length !== 1) {
+                throw { status: 403, message: "Solo puedes cambiar tu propia contraseña." };
+            }
+        } else {
+            // Si no es el mismo usuario, debe tener rol permitido
+            if (!allowedRoles.includes(requester.role)) {
+                throw { status: 403, message: "No tienes permisos para modificar a otros usuarios." };
+            }
+            // No puede cambiar su propio rol
+            if (body.role && user.id === requester.id) {
+                throw { status: 403, message: "No puedes cambiar tu propio rol." };
+            }
+            // No puede cambiar a SuperAdministrador
             if (body.role === "SuperAdministrador") {
                 throw { status: 403, message: "No se puede cambiar un usuario a SuperAdministrador." };
             }
+        }
+        // Solo se permite cambiar password y/o role (según permisos)
+        const dataUserUpdate: any = {};
+        if (body.password) {
+            dataUserUpdate.password = await encryptPassword(body.password);
+        }
+        if (body.role && !isSelf) {
             dataUserUpdate.role = body.role as string;
         }
-        if (body.rut) {
-            dataUserUpdate.rut = body.rut;
-        }
-
         dataUserUpdate.updateAt = new Date();
-
-        await userRepository.update(id, dataUserUpdate);
-
-        const updatedUser = await userRepository.findOne({
-            where: { id }
-        });
-
+        await userRepository.update(user.id, dataUserUpdate);
+        const updatedUser = await userRepository.findOne({ where: { id: user.id } });
         return updatedUser;
     } catch (error) {
         console.error('Error en updateUserService:', error);
         throw error;
-    }
-};
-
-/* Actualizar perfil propio - solo permite editar name, email y rut, NO el rol */
-export const updateOwnProfileService = async (userId: number, body: { name?: string; email?: string; rut?: string }): Promise<User | null> => {
-    try {
-        // LIMPIEZA AUTOMÁTICA: Eliminar espacios extra de todos los campos de texto
-        const cleanBody = limpiarCamposTextoUsuario(body);
-        
-        const userRepository = AppDataSource.getRepository(User);
-        const user = await userRepository.findOne({
-            where: { id: userId }
-        });
-
-        if (!user) {
-            return null;
-        }
-
-        const dataUserUpdate: any = {};
-
-        if (cleanBody.name) {
-            dataUserUpdate.name = cleanBody.name;
-        }
-        if (cleanBody.email) {
-            dataUserUpdate.email = cleanBody.email;
-        }
-        if (cleanBody.rut) {
-            dataUserUpdate.rut = cleanBody.rut;
-        }
-
-        dataUserUpdate.updateAt = new Date();
-
-        await userRepository.update(userId, dataUserUpdate);
-
-        const updatedUser = await userRepository.findOne({
-            where: { id: userId }
-        });
-
-        return updatedUser;
-    } catch (error) {
-        console.error('Error en updateOwnProfileService:', error);
-        throw error;
-    }
-};
-
-/* Cambiar contraseña propia */
-export const changeOwnPasswordService = async (userId: number, newPassword: string): Promise<[boolean, string | null]> => {
-    try {
-        const userRepository = AppDataSource.getRepository(User);
-        const user = await userRepository.findOne({
-            where: { id: userId }
-        });
-
-        if (!user) {
-            return [false, "Usuario no encontrado"];
-        }
-
-        // Encriptar nueva contraseña
-        const encryptedNewPassword = await encryptPassword(newPassword);
-        
-        // Actualizar contraseña
-        await userRepository.update(userId, {
-            password: encryptedNewPassword,
-            updateAt: new Date()
-        });
-
-        return [true, null];
-    } catch (error) {
-        console.error('Error en changeOwnPasswordService:', error);
-        return [false, "Error interno del servidor"];
     }
 };

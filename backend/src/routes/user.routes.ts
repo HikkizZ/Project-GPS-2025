@@ -1,7 +1,7 @@
 import { Router, Request, Response } from "express";
 import { authenticateJWT } from "../middlewares/authentication.middleware.js";
 import { verifyRole } from "../middlewares/authorization.middleware.js";
-import { getUsers, updateUser, updateOwnProfile, changeOwnPassword } from "../controllers/user.controller.js";
+import { getUsers, updateUser } from "../controllers/user.controller.js";
 
 const router = Router();
 
@@ -13,17 +13,8 @@ router.get("/", authenticateJWT, verifyRole(allowedRoles), async (req: Request, 
     await getUsers(req, res);
 });
 
-// Rutas para autoedición (cualquier usuario autenticado puede acceder)
-router.put("/profile", authenticateJWT, async (req: Request, res: Response) => {
-    await updateOwnProfile(req, res);
-});
-
-router.put("/password", authenticateJWT, async (req: Request, res: Response) => {
-    await changeOwnPassword(req, res);
-});
-
-// Actualizar usuario por ID (solo roles específicos)
-router.put("/:id", authenticateJWT, verifyRole(allowedRoles), async (req: Request, res: Response) => {
+// Ruta única para actualizar usuario (por id, rut o email)
+router.put("/update", authenticateJWT, async (req: Request, res: Response) => {
     await updateUser(req, res);
 });
 
