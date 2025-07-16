@@ -198,19 +198,28 @@ export const UsersPage: React.FC = () => {
           }
         }
         
-        // Crear objeto con las actualizaciones
-        const updates: { role?: FilterableUserRole, password?: string } = {};
-        if (newRole && newRole !== selectedUser.role) updates.role = newRole;
-        if (newPassword && newPassword.length >= 8 && newPassword.length <= 16) updates.password = newPassword;
-
-        // Solo enviar la petición si hay cambios
-        if (Object.keys(updates).length > 0) {
-            await userService.updateUser(selectedUser.id, updates);
-            showSuccess('¡Usuario actualizado!', `El usuario ${selectedUser.name} se ha actualizado exitosamente`, 4000);
-            setShowUpdateModal(false);
-            loadUsers(); // Recargar la lista después de actualizar
+        // Construir query y body según permisos
+        const isSelf = user && selectedUser.id === user.id;
+        const rolesPrivilegiados = ['SuperAdministrador', 'Administrador', 'RecursosHumanos'];
+        const puedeEditarRol = user && rolesPrivilegiados.includes(user.role) && !isSelf;
+        const query = { id: selectedUser.id };
+        const updates: any = {};
+        if (isSelf) {
+          // Solo puede cambiar su propia contraseña
+          if (newPassword) updates.password = newPassword;
         } else {
-            setShowUpdateModal(false); // Cerrar modal si no hay cambios
+          // Puede cambiar rol y/o contraseña de otros
+          if (puedeEditarRol && newRole && newRole !== selectedUser.role) updates.role = newRole;
+          if (newPassword) updates.password = newPassword;
+        }
+        // Solo enviar si hay cambios válidos
+        if (Object.keys(updates).length > 0) {
+          await userService.updateUser(query, updates);
+          showSuccess('¡Usuario actualizado!', `El usuario ${selectedUser.name} se ha actualizado exitosamente`, 4000);
+          setShowUpdateModal(false);
+          loadUsers();
+        } else {
+          setShowUpdateModal(false);
         }
     } catch (err: any) {
         setError(err.message || 'Error al actualizar usuario');
@@ -237,12 +246,16 @@ export const UsersPage: React.FC = () => {
             return;
           }
         }
-        
-        // Llamar al servicio para cambiar contraseña
-        await userService.changeOwnPassword(newPassword);
-        showSuccess('¡Contraseña actualizada!', 'Tu contraseña se ha actualizado exitosamente', 4000);
-        setShowSelfEditModal(false);
-        setNewPassword('');
+        // Usar el nuevo endpoint de update
+        const query = { id: selectedUser.id };
+        const updates: any = {};
+        if (newPassword) updates.password = newPassword;
+        if (Object.keys(updates).length > 0) {
+          await userService.updateUser(query, updates);
+          showSuccess('¡Contraseña actualizada!', 'Tu contraseña se ha actualizado exitosamente', 4000);
+          setShowSelfEditModal(false);
+          setNewPassword('');
+        }
     } catch (err: any) {
         setError(err.message || 'Error al cambiar contraseña');
     } finally {
