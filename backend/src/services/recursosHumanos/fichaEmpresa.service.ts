@@ -56,7 +56,9 @@ export async function getFichasEmpresaService(params: SearchFichaParams): Promis
         const fichaRepo = AppDataSource.getRepository(FichaEmpresa);
         const queryBuilder = fichaRepo.createQueryBuilder("ficha")
             .leftJoinAndSelect("ficha.trabajador", "trabajador")
-            .leftJoinAndSelect("trabajador.usuario", "usuario");
+            .leftJoinAndSelect("trabajador.usuario", "usuario")
+            .leftJoinAndSelect("ficha.asignacionesBonos", "asignacionesBonos")
+            .leftJoinAndSelect("asignacionesBonos.bono", "bono");
 
         // Filtros por trabajador
         if (params.rut) {
@@ -355,8 +357,9 @@ export async function updateFichaEmpresaService(
             // Agregar nuevas asignaciones
             for (const bono of bonosAAgregar) {
                 const nuevaAsignacion = asignarBonoRepo.create({
-                    trabajador: fichaActual.trabajador,
-                    bono: bono
+                    trabajador: fichaActual,
+                    bono: bono,
+                    fechaAsignacion: new Date()
                 });
                 await asignarBonoRepo.save(nuevaAsignacion);
             }
