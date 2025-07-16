@@ -72,13 +72,13 @@ export class FichaEmpresa {
   })
   sueldoBase!: number;
   
-  @Column({ type: "enum", enum: TipoPrevisionSalud, nullable: false })
+  @Column({ type: "enum", enum: TipoPrevisionSalud, nullable: true })
   previsionSalud!: TipoPrevisionSalud;
 
-  @Column({ type: "enum", enum: companiaFondoAFP, nullable: false })
+  @Column({ type: "enum", enum: companiaFondoAFP, nullable: true })
   afp!: companiaFondoAFP;
 
-  @Column({ type: "boolean", nullable: false })
+  @Column({ type: "boolean", nullable: true })
   seguroCesantia!: boolean;
 
   @Column({
