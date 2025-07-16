@@ -190,11 +190,12 @@ export const TrabajadoresPage: React.FC = () => {
                   </Col>
                   <Col md={3}>
                     <Form.Group className="mb-3">
-                      <Form.Label>Correo personal</Form.Label>
+                      <Form.Label>Correo Corporativo</Form.Label>
                       <Form.Control
                         type="email"
-                        value={searchParams.correoPersonal || ''}
-                        onChange={(e) => setSearchParams({ ...searchParams, correoPersonal: e.target.value })}
+                        name="corporateEmail"
+                        value={searchParams.corporateEmail || ''}
+                        onChange={(e) => setSearchParams({ ...searchParams, corporateEmail: e.target.value })}
                         placeholder="correo@ejemplo.com"
                       />
                     </Form.Group>

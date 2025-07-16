@@ -24,7 +24,7 @@ export interface LicenciaPermiso {
     correo?: string; // Alias para compatibilidad
     usuario?: {
       id: number;
-      email: string;
+      corporateEmail: string;
       role: string;
     };
   };

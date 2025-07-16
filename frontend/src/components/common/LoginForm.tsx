@@ -112,16 +112,16 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, error, setError
             )}
             <form onSubmit={handleSubmit}>
               <div className="mb-3">
-                <label className="form-label">Correo de Empresa:</label>
+                <label className="form-label">Correo Corporativo:</label>
                 <input
                   type="email"
                   className="form-control"
-                  name="email"
-                  value={formData.email}
+                  name="corporateEmail"
+                  value={formData.corporateEmail}
                   onChange={handleChange}
                   required
                   disabled={isLoading}
-                  placeholder="Ingrese su correo de empresa"
+                  placeholder="Ingrese su correo corporativo"
                 />
               </div>
               <div className="mb-3">

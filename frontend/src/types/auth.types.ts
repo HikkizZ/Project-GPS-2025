@@ -18,16 +18,16 @@ export type FilterableUserRole = Exclude<UserRole, "SuperAdministrador">;
 export interface User {
   id: number;
   name: string;
+  corporateEmail: string;
+  role: string;
   rut: string;
-  email: string;
-  role: UserRole;
   estadoCuenta: string;
   createAt: string;
   updateAt: string;
 }
 
 export interface LoginData {
-  email: string;
+  corporateEmail: string;
   password: string;
 }
 
@@ -57,4 +57,12 @@ export interface SafeUser {
     updateAt: string;
     password?: string;
     showPassword?: boolean;
+} 
+
+export interface CustomJwtPayload {
+  id: number;
+  name: string;
+  corporateEmail: string;
+  role: string;
+  rut: string;
 } 

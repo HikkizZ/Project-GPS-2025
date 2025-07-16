@@ -11,10 +11,10 @@ function isValidRut(rut: string | null): boolean {
     return rutRegex.test(rut);
 }
 
-/* Validar formato de email */
-function isValidEmail(email: string): boolean {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
+/* Validar formato de corporateEmail */
+function isValidCorporateEmail(corporateEmail: string): boolean {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(corporateEmail);
 }
 
 /* Validar rol de usuario */
@@ -29,8 +29,8 @@ export async function getUsersService(query: QueryParams): Promise<ServiceRespon
         if (query.rut && !isValidRut(query.rut)) {
             return [null, "Debe ingresar el RUT en formato xx.xxx.xxx-x"];
         }
-        if (query.email && !isValidEmail(query.email)) {
-            return [null, "Formato de email inválido"];
+        if (query.corporateEmail && !isValidCorporateEmail(query.corporateEmail)) {
+            return [null, "Formato de correo corporativo inválido"];
         }
 
         const userRepository = AppDataSource.getRepository(User);
@@ -54,8 +54,8 @@ export async function getUsersService(query: QueryParams): Promise<ServiceRespon
         if (query.id) {
             whereClause.id = query.id;
         }
-        if (query.email) {
-            whereClause.email = ILike(`%${query.email}%`);
+        if (query.corporateEmail) {
+            whereClause.corporateEmail = ILike(`%${query.corporateEmail}%`);
         }
         if (query.role) {
             if (!isValidRole(query.role) || query.role === "SuperAdministrador") {
@@ -88,13 +88,13 @@ function limpiarCamposTextoUsuario(data: any): any {
     
     // Aplicar trim y eliminar espacios dobles
     if (dataCopia.name) dataCopia.name = dataCopia.name.trim().replace(/\s+/g, ' ');
-    if (dataCopia.email) dataCopia.email = dataCopia.email.trim();
+    if (dataCopia.corporateEmail) dataCopia.corporateEmail = dataCopia.corporateEmail.trim();
     if (dataCopia.rut) dataCopia.rut = dataCopia.rut.trim();
     
     return dataCopia;
 }
 
-export const updateUserService = async (query: {id?: number, rut?: string, email?: string}, body: UpdateUserData, requester: User): Promise<User | null> => {
+export const updateUserService = async (query: {id?: number, rut?: string, corporateEmail?: string}, body: UpdateUserData, requester: User): Promise<User | null> => {
     try {
         // Validar que no se use 'rol' en vez de 'role'
         if (Object.prototype.hasOwnProperty.call(body, 'rol')) {
@@ -102,7 +102,7 @@ export const updateUserService = async (query: {id?: number, rut?: string, email
         }
         body = limpiarCamposTextoUsuario(body);
         const userRepository = AppDataSource.getRepository(User);
-        // Buscar usuario por id, rut o email
+        // Buscar usuario por id, rut o corporateEmail
         let user: User | null = null;
         if (query.id) {
             user = await userRepository.findOne({ where: { id: query.id } });
@@ -111,8 +111,8 @@ export const updateUserService = async (query: {id?: number, rut?: string, email
             user = await userRepository.createQueryBuilder("user")
                 .where("REPLACE(REPLACE(user.rut, '.', ''), '-', '') = :cleanRut", { cleanRut })
                 .getOne();
-        } else if (query.email) {
-            user = await userRepository.findOne({ where: { email: query.email } });
+        } else if (query.corporateEmail) {
+            user = await userRepository.findOne({ where: { corporateEmail: query.corporateEmail } });
         }
         if (!user) return null;
         if (user.role === "SuperAdministrador") {

@@ -13,7 +13,7 @@ import { PasswordInput } from '@/components/common/LoginForm';
 interface UserSearchParams {
   name?: string;
   rut?: string;
-  email?: string;
+  corporateEmail?: string;
   role?: FilterableUserRole;
   incluirInactivos: boolean;
   soloInactivos: boolean;
@@ -87,7 +87,7 @@ export const UsersPage: React.FC = () => {
       const filters: any = {};
       if (params.name) filters.name = params.name;
       if (params.rut) filters.rut = params.rut;
-      if (params.email) filters.email = params.email;
+      if (params.corporateEmail) filters.corporateEmail = params.corporateEmail;
       if (params.role) filters.role = params.role;
       // Obtener usuarios con o sin filtros
       const { data: foundUsers } = await userService.getUsers(filters);
@@ -366,17 +366,17 @@ export const UsersPage: React.FC = () => {
                   </Col>
                   <Col md={3}>
                     <Form.Group className="mb-3">
-                      <Form.Label>Email</Form.Label>
+                      <Form.Label>Correo Corporativo</Form.Label>
                       <Form.Control
                         type="text"
-                        name="email"
+                        name="corporateEmail"
                         placeholder="usuario@gmail.com"
-                        value={searchParams.email || ''}
+                        value={searchParams.corporateEmail || ''}
                         onChange={(e) => {
                           const { value } = e.target;
                           setSearchParams(prev => ({
                             ...prev,
-                            email: value
+                            corporateEmail: value
                           }));
                         }}
                       />
@@ -479,16 +479,16 @@ export const UsersPage: React.FC = () => {
                 <div className="text-center py-5">
                   <i className="bi bi-person-x display-1 text-muted"></i>
                   <h5 className="mt-3">
-                    {(!searchParams.name && !searchParams.rut && !searchParams.email && !searchParams.role && !searchParams.soloInactivos && !searchParams.incluirInactivos) ? 
+                    {(!searchParams.name && !searchParams.rut && !searchParams.corporateEmail && !searchParams.role && !searchParams.soloInactivos && !searchParams.incluirInactivos) ? 
                       'No hay usuarios registrados en el sistema' : 
                       'No hay resultados que coincidan con tu búsqueda'}
                   </h5>
                   <p className="text-muted">
-                    {(!searchParams.name && !searchParams.rut && !searchParams.email && !searchParams.role && !searchParams.soloInactivos && !searchParams.incluirInactivos) ? 
+                    {(!searchParams.name && !searchParams.rut && !searchParams.corporateEmail && !searchParams.role && !searchParams.soloInactivos && !searchParams.incluirInactivos) ? 
                       'Los usuarios se crean automáticamente al registrar un nuevo trabajador' : 
                       'Intenta ajustar los filtros para obtener más resultados'}
                   </p>
-                  {(searchParams.name || searchParams.rut || searchParams.email || searchParams.role || searchParams.soloInactivos || searchParams.incluirInactivos) && (
+                  {(searchParams.name || searchParams.rut || searchParams.corporateEmail || searchParams.role || searchParams.soloInactivos || searchParams.incluirInactivos) && (
                     <Button variant="outline-primary" onClick={handleResetSearch}>
                       <i className="bi bi-arrow-clockwise me-2"></i>
                       Mostrar Todos
@@ -513,7 +513,7 @@ export const UsersPage: React.FC = () => {
                         <tr>
                           <th>Nombre</th>
                           <th>RUT</th>
-                          <th>Correo de Empresa</th>
+                          <th>Correo Corporativo</th>
                           <th>Rol</th>
                           <th>Estado</th>
                           <th className="text-center">Acciones</th>
@@ -524,7 +524,7 @@ export const UsersPage: React.FC = () => {
                           <tr key={userItem.id}>
                             <td>{userItem.name}</td>
                             <td>{userItem.rut ? formatRUT(userItem.rut) : <span className="text-muted">No aplica</span>}</td>
-                            <td>{userItem.email}</td>
+                            <td>{userItem.corporateEmail}</td>
                             <td>
                               <span className={`badge bg-${getRoleBadgeColor(userItem.role)}`}>
                                 {userItem.role}
@@ -537,7 +537,7 @@ export const UsersPage: React.FC = () => {
                             </td>
                             <td className="text-center">
                               {/* Mostrar diferentes acciones según el tipo de usuario */}
-                              {userItem.email !== 'admin.principal@gmail.com' && userItem.role !== 'SuperAdministrador' && (
+                              {userItem.corporateEmail !== 'admin.principal@gmail.com' && userItem.role !== 'SuperAdministrador' && (
                                 <div className="btn-group">
                                   {esUsuarioActual(userItem) ? (
                                     // Botón para editar propio perfil

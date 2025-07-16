@@ -10,7 +10,7 @@ import bcrypt from "bcrypt";
 
 /* Interface for the user data */
 interface LoginData {
-  email: string;
+  corporateEmail: string;
   password: string;
 }
 
@@ -48,69 +48,69 @@ const createErrorMessage = (dataInfo: Partial<LoginData>, message: string): auth
 
 export async function loginService(user: LoginData): Promise<[string | null, authError | string | null]> {
   try {
-        const userRepository = AppDataSource.getRepository(User);
-    const { email, password } = user;
+    const userRepository = AppDataSource.getRepository(User);
+    const { corporateEmail, password } = user;
 
-        // Validaciones básicas
-        if (!email || email.trim() === "") {
-            return [null, createErrorMessage({ email }, "El email es requerido.")];
-        }
+    // Validaciones básicas
+    if (!corporateEmail || corporateEmail.trim() === "") {
+      return [null, createErrorMessage({ corporateEmail }, "El correo corporativo es requerido.")];
+    }
 
-        if (!password || password.trim() === "") {
-            return [null, createErrorMessage({ password }, "La contraseña es requerida.")];
-        }
+    if (!password || password.trim() === "") {
+      return [null, createErrorMessage({ password }, "La contraseña es requerida.")];
+    }
 
-        // Validaciones de formato de email
-        if (email.length < 15) {
-            return [null, createErrorMessage({ email }, "El email debe tener al menos 15 caracteres.")];
-        }
+    // Validaciones de formato de correo corporativo
+    if (corporateEmail.length < 15) {
+      return [null, createErrorMessage({ corporateEmail }, "El correo corporativo debe tener al menos 15 caracteres.")];
+    }
 
-        if (email.length > 50) {
-            return [null, createErrorMessage({ email }, "El email debe tener menos de 50 caracteres.")];
-        }
+    if (corporateEmail.length > 50) {
+      return [null, createErrorMessage({ corporateEmail }, "El correo corporativo debe tener menos de 50 caracteres.")];
+    }
 
-        if (!/^[a-zA-Z0-9._%+-]+@(gmail\.com|outlook\.com|hotmail\.com|gmail\.cl|outlook\.cl|hotmail\.cl|lamas\.com|live\.cl)$/.test(email)) {
-            return [null, createErrorMessage({ email }, "El dominio del email no es válido.")];
-        }
+    if (!/^[a-zA-Z0-9._%+-]+@(gmail\.com|outlook\.com|hotmail\.com|gmail\.cl|outlook\.cl|hotmail\.cl|lamas\.com|live\.cl)$/.test(corporateEmail)) {
+      return [null, createErrorMessage({ corporateEmail }, "El dominio del correo corporativo no es válido.")];
+    }
 
-        // Validaciones de formato de contraseña
-        if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,16}$/.test(password)) {
-            return [null, createErrorMessage({ password }, "La contraseña debe tener entre 8 y 16 caracteres, al menos una mayúscula, una minúscula, un número y un carácter especial.")];
-        }
+    // Validaciones de formato de contraseña
+    if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,16}$/.test(password)) {
+      return [null, createErrorMessage({ password }, "La contraseña debe tener entre 8 y 16 caracteres, al menos una mayúscula, una minúscula, un número y un carácter especial.")];
+    }
 
-        // Buscar usuario y verificar credenciales
-        const userFound = await userRepository.findOne({ where: { email } });
+    // Buscar usuario y verificar credenciales
+    const userFound = await userRepository.findOne({ where: { corporateEmail } });
 
-        if (!userFound) {
-            return [null, createErrorMessage({ email }, "El email ingresado no está registrado.")];
-        }
+    if (!userFound) {
+      return [null, createErrorMessage({ corporateEmail }, "El correo corporativo ingresado no está registrado.")];
+    }
 
-        // Verificar estado de la cuenta
-        if (userFound.estadoCuenta === "Inactiva") {
-            return [null, createErrorMessage({ email }, "Esta cuenta ha sido desactivada. Por favor, contacte al administrador.")];
-        }
+    // Verificar estado de la cuenta
+    if (userFound.estadoCuenta === "Inactiva") {
+      return [null, createErrorMessage({ corporateEmail }, "Esta cuenta ha sido desactivada. Por favor, contacte al administrador.")];
+    }
 
-        const isMatch = await comparePassword(password, userFound.password);
-        if (!isMatch) {
-            return [null, createErrorMessage({ password }, "La contraseña ingresada es incorrecta.")];
-        }
+    const isMatch = await comparePassword(password, userFound.password);
+    if (!isMatch) {
+      return [null, createErrorMessage({ password }, "La contraseña ingresada es incorrecta.")];
+    }
 
-        const payload: JWTPayload = {
-            name: userFound.name,
-            email: userFound.email,
-            role: userFound.role,
-            rut: userFound.rut
-        };
+    const payload: JWTPayload = {
+      name: userFound.name,
+      corporateEmail: userFound.corporateEmail,
+      role: userFound.role,
+      rut: userFound.rut
+    };
 
-        if (!ACCESS_TOKEN_SECRET) {
-            return [null, "Error interno del servidor. Falta la clave secreta."];
-        }        
+    if (!ACCESS_TOKEN_SECRET) {
+      return [null, "Error interno del servidor. Falta la clave secreta."];
+    }
 
-        const accessToken = jwt.sign(payload, ACCESS_TOKEN_SECRET, { expiresIn: "1d" });
-        return [accessToken, null];
+    const accessToken = jwt.sign(payload, ACCESS_TOKEN_SECRET, { expiresIn: "1d" });
+    return [accessToken, null];
   } catch (error) {
-        console.error("❌ Error en login: ", error);
-        return [null, "Error interno del servidor."];
+    console.error("❌ Error en login: ", error);
+    return [null, "Error interno del servidor."];
   }
 }
 

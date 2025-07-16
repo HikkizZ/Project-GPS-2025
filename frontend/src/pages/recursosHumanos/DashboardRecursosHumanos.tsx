@@ -60,8 +60,8 @@ const DashboardRecursosHumanos: React.FC = () => {
       let query: any = {};
       if (user.id) query.id = String(user.id);
       else if (user.rut) query.rut = user.rut;
-      else if (user.email) query.email = user.email;
-      else throw new Error('No se puede identificar al usuario (falta id, rut o email)');
+      else if (user.corporateEmail) query.corporateEmail = user.corporateEmail;
+      else throw new Error('No se puede identificar al usuario (falta id, rut o corporateEmail)');
       await userService.updateUser(query, { password: newPassword });
       setSuccessMsg(''); // Limpiar mensaje local
       setShowAccountModal(false); // Cerrar modal
@@ -469,7 +469,7 @@ const DashboardRecursosHumanos: React.FC = () => {
                 <strong>Nombre:</strong> {user.name}
               </div>
               <div className="mb-3">
-                <strong>Email:</strong> {user.email}
+                <strong>Correo Corporativo:</strong> {user.corporateEmail}
               </div>
               <div className="mb-3">
                 <strong>RUT:</strong> {user.rut}

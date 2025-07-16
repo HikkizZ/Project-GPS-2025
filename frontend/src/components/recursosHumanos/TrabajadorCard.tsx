@@ -45,7 +45,7 @@ export const TrabajadorCard: React.FC<TrabajadorCardProps> = ({
         </div>
 
         <div className="info-group">
-          <span className="label">Email:</span>
+          <span className="label">Correo Corporativo:</span>
           <span className="value">{trabajador.correo}</span>
         </div>
 

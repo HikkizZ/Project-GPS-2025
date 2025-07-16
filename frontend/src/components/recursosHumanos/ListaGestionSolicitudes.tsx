@@ -584,11 +584,11 @@ export const ListaGestionSolicitudes: React.FC = () => {
                         <div className="mt-1 font-monospace">{solicitudSeleccionada.trabajador.rut}</div>
                       </div>
                       <div className="mb-3">
-                        <strong className="text-primary">Email Corporativo:</strong>
+                        <strong className="text-primary">Correo Corporativo:</strong>
                         <div className="mt-1">
-                          <a href={`mailto:${solicitudSeleccionada.trabajador.usuario?.email || 'No disponible'}`} className="text-decoration-none">
+                          <a href={`mailto:${solicitudSeleccionada.trabajador.usuario?.corporateEmail || 'No disponible'}`} className="text-decoration-none">
                             <i className="bi bi-building me-1"></i>
-                            {solicitudSeleccionada.trabajador.usuario?.email || 'No disponible'}
+                            {solicitudSeleccionada.trabajador.usuario?.corporateEmail || 'No disponible'}
                           </a>
                         </div>
                       </div>
