@@ -68,22 +68,17 @@ export async function createBonoService(data: CreateBonoDTO): Promise<ServiceRes
         }
 
         // Validar si el bono ya existe
-        const { Op } = require('sequelize');
 
         const existingBono = await bonosRep.findOne({
-        where: {
-            [Op.or]: [
-            { nombreBono: bonoData.nombreBono },
-            {
-                [Op.and]: [
-                { tipoBono: bonoData.tipoBono },
-                { temporalidad: bonoData.temporalidad },
-                { monto: bonoData.monto },
-                { imponibilidad: bonoData.imponible }
-                ]
-            }
+            where: [
+                { nombreBono: bonoData.nombreBono },
+                {
+                tipoBono: bonoData.tipoBono,
+                temporalidad: bonoData.temporalidad,
+                monto: bonoData.monto,
+                imponible: bonoData.imponible
+                }
             ]
-        }
         });
 
         if (existingBono) {
