@@ -513,7 +513,7 @@ export const UsersPage: React.FC = () => {
                         <tr>
                           <th>Nombre</th>
                           <th>RUT</th>
-                          <th>Email</th>
+                          <th>Correo de Empresa</th>
                           <th>Rol</th>
                           <th>Estado</th>
                           <th className="text-center">Acciones</th>
