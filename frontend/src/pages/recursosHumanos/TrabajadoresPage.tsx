@@ -190,13 +190,13 @@ export const TrabajadoresPage: React.FC = () => {
                   </Col>
                   <Col md={3}>
                     <Form.Group className="mb-3">
-                      <Form.Label>Correo Corporativo</Form.Label>
+                      <Form.Label>Correo Personal</Form.Label>
                       <Form.Control
                         type="email"
-                        name="corporateEmail"
-                        value={searchParams.corporateEmail || ''}
-                        onChange={(e) => setSearchParams({ ...searchParams, corporateEmail: e.target.value })}
-                        placeholder="correo@ejemplo.com"
+                        name="correoPersonal"
+                        value={searchParams.correoPersonal || ''}
+                        onChange={(e) => setSearchParams({ ...searchParams, correoPersonal: e.target.value })}
+                        placeholder="correo@gmail.com"
                       />
                     </Form.Group>
                   </Col>
@@ -372,7 +372,7 @@ export const TrabajadoresPage: React.FC = () => {
                           <th>RUT</th>
                           <th>Nombre Completo</th>
                           <th>Fecha Nacimiento</th>
-                          <th>Correo personal</th>
+                          <th>Correo Personal</th>
                           <th>Teléfono</th>
                           <th>N° Emergencia</th>
                           <th>Dirección</th>

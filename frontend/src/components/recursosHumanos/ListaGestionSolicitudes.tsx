@@ -889,7 +889,7 @@ export const ListaGestionSolicitudes: React.FC = () => {
                 </div>
               </div>
               <div>
-                <div className="text-secondary mb-1">Correo electrónico</div>
+                <div className="text-secondary mb-1">Correo Corporativo</div>
                 <div className="d-flex align-items-center">
                   <i className="bi bi-envelope text-primary me-2"></i>
                   <a href={`mailto:${revisorSeleccionado.corporateEmail}`} className="text-decoration-none text-primary">

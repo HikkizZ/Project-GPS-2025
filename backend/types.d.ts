@@ -70,17 +70,6 @@ export interface LoginResponse {
     user: UserResponse;
 }
 
-/* userResponse Interface (legacy, keep for compatibility) */
-export interface LegacyUserResponse {
-    id: number;
-    name: string;
-    rut: string;
-    email: string;
-    role: string;
-    createAt: string;
-    updateAt: string;
-}
-
 export interface SafeUser extends Omit<User, 'password'> {
     password?: string;
     showPassword?: boolean;
