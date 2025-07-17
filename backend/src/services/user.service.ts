@@ -157,3 +157,61 @@ export const updateUserService = async (query: {id?: number, rut?: string, corpo
         throw error;
     }
 };
+
+/* Actualizar perfil propio del usuario */
+export const updateOwnProfileService = async (userId: number, body: { name?: string, corporateEmail?: string }): Promise<User | null> => {
+    try {
+        body = limpiarCamposTextoUsuario(body);
+        const userRepository = AppDataSource.getRepository(User);
+        
+        const user = await userRepository.findOne({ where: { id: userId } });
+        if (!user) return null;
+        
+        // Solo permitir actualizar name y corporateEmail
+        const dataUserUpdate: any = {};
+        if (body.name) dataUserUpdate.name = body.name;
+        if (body.corporateEmail) dataUserUpdate.corporateEmail = body.corporateEmail;
+        
+        if (Object.keys(dataUserUpdate).length === 0) {
+            return user; // No hay cambios
+        }
+        
+        dataUserUpdate.updateAt = new Date();
+        await userRepository.update(user.id, dataUserUpdate);
+        const updatedUser = await userRepository.findOne({ where: { id: user.id } });
+        return updatedUser;
+    } catch (error) {
+        console.error('Error en updateOwnProfileService:', error);
+        throw error;
+    }
+};
+
+/* Cambiar contraseña propia del usuario */
+export const changeOwnPasswordService = async (userId: number, currentPassword: string, newPassword: string): Promise<boolean> => {
+    try {
+        const userRepository = AppDataSource.getRepository(User);
+        
+        const user = await userRepository.findOne({ where: { id: userId } });
+        if (!user) return false;
+        
+        // Verificar contraseña actual
+        const isCurrentPasswordValid = await comparePassword(currentPassword, user.password);
+        if (!isCurrentPasswordValid) {
+            return false;
+        }
+        
+        // Encriptar nueva contraseña
+        const encryptedNewPassword = await encryptPassword(newPassword);
+        
+        // Actualizar contraseña
+        await userRepository.update(user.id, { 
+            password: encryptedNewPassword,
+            updateAt: new Date()
+        });
+        
+        return true;
+    } catch (error) {
+        console.error('Error en changeOwnPasswordService:', error);
+        throw error;
+    }
+};

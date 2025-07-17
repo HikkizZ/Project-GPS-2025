@@ -98,12 +98,12 @@ export const TrabajadorList: React.FC = () => {
           </div>
 
           <div className="form-group">
-            <label>Correo Corporativo:</label>
+            <label>Correo Personal:</label>
             <input
               type="email"
-              placeholder="correo@empresa.com"
-              value={searchQuery.corporateEmail || ''}
-              onChange={(e) => setSearchQuery({ ...searchQuery, corporateEmail: e.target.value })}
+              placeholder="correo@gmail.com"
+              value={searchQuery.correoPersonal || ''}
+              onChange={(e) => setSearchQuery({ ...searchQuery, correoPersonal: e.target.value })}
             />
           </div>
 

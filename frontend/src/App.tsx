@@ -33,7 +33,7 @@ const RegistrarTrabajadorPage: React.FC<{
     apellidoMaterno: '',
     fechaNacimiento: '',
     telefono: '',
-    corporateEmail: '',
+    correoPersonal: '',
     numeroEmergencia: '',
     direccion: '',
     fechaIngreso: new Date().toISOString().split('T')[0],
@@ -63,9 +63,9 @@ const RegistrarTrabajadorPage: React.FC<{
       errors.apellidoMaterno = 'Apellido materno debe tener al menos 2 caracteres';
     }
     
-    const corporateEmailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!corporateEmailRegex.test(formData.corporateEmail)) {
-      errors.corporateEmail = 'Correo corporativo inválido';
+    const correoPersonalRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!correoPersonalRegex.test(formData.correoPersonal)) {
+      errors.correoPersonal = 'Correo personal inválido';
     }
     
     if (formData.telefono.length < 9) {
@@ -220,17 +220,17 @@ const RegistrarTrabajadorPage: React.FC<{
 
                 <div className="row">
                   <div className="col-md-6 mb-3">
-                    <label className="form-label">Correo Corporativo: <span className="text-danger">*</span></label>
+                    <label className="form-label">Correo Personal: <span className="text-danger">*</span></label>
                     <input
                       type="email"
-                      className={`form-control ${validationErrors.corporateEmail ? 'is-invalid' : ''}`}
-                      value={formData.corporateEmail}
-                      onChange={(e) => handleChange('corporateEmail', e.target.value)}
-                      placeholder="juan.perez@empresa.com"
+                      className={`form-control ${validationErrors.correoPersonal ? 'is-invalid' : ''}`}
+                      value={formData.correoPersonal}
+                      onChange={(e) => handleChange('correoPersonal', e.target.value)}
+                      placeholder="juan.perez@gmail.com"
                       required
                     />
-                    {validationErrors.corporateEmail && (
-                      <div className="invalid-feedback">{validationErrors.corporateEmail}</div>
+                    {validationErrors.correoPersonal && (
+                      <div className="invalid-feedback">{validationErrors.correoPersonal}</div>
                     )}
                   </div>
                   <div className="col-md-6 mb-3">
