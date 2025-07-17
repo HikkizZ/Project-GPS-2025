@@ -857,6 +857,7 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                                   variant="outline-primary" 
                                   onClick={() => handleEditFicha(ficha)}
                                   title="Editar ficha"
+                                  disabled={ficha.estado === EstadoLaboral.DESVINCULADO}
                                 >
                                   <i className="bi bi-pencil"></i>
                                 </Button>
