@@ -320,11 +320,11 @@ export class LicenciaPermisoService {
   // ==============================
 
   /**
-   * Verificar licencias vencidas - solo RRHH
+   * Verificar estados de licencias - SuperAdministrador, Administrador, RecursosHumanos
    */
-  async verificarLicenciasVencidas(): Promise<ApiResponse<{ actualizaciones: number }>> {
+  async verificarEstadosLicencias(): Promise<ApiResponse<{ activadas: number; desactivadas: number }>> {
     try {
-      const response = await fetch(`${import.meta.env.VITE_BASE_URL || 'http://localhost:3000/api'}${this.baseURL}/verificar-vencimientos`, {
+      const response = await fetch(`${import.meta.env.VITE_BASE_URL || 'http://localhost:3000/api'}${this.baseURL}/verificar-estados`, {
         method: 'POST',
         headers: this.getHeaders()
       });
@@ -341,13 +341,13 @@ export class LicenciaPermisoService {
 
       return {
         success: false,
-        message: responseData.message || 'Error al verificar vencimientos'
+        message: responseData.message || 'Error al verificar estados de licencias'
       };
     } catch (error: any) {
-      console.error('Error al verificar vencimientos:', error);
+      console.error('Error al verificar estados de licencias:', error);
       return {
         success: false,
-        message: error.message || 'Error al verificar vencimientos'
+        message: error.message || 'Error al verificar estados de licencias'
       };
     }
   }
@@ -414,5 +414,4 @@ export const obtenerSolicitudesConFiltros = (filtros: Record<string, any> = {}) 
 export const obtenerSolicitudPorId = (id: number) => licenciaPermisoService.obtenerSolicitudPorId(id);
 export const actualizarSolicitud = (id: number, data: UpdateLicenciaPermisoDTO) => licenciaPermisoService.actualizarSolicitud(id, data);
 
-export const descargarArchivo = (id: number) => licenciaPermisoService.descargarArchivo(id);
-export const verificarLicenciasVencidas = () => licenciaPermisoService.verificarLicenciasVencidas(); 
+export const descargarArchivo = (id: number) => licenciaPermisoService.descargarArchivo(id); 
