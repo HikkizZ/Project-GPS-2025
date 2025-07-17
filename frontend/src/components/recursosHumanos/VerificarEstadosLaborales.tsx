@@ -45,9 +45,17 @@ const VerificarEstadosLaborales: React.FC<VerificarEstadosLaboralesProps> = ({
         
         const totalCambios = activadas + desactivadas;
         if (totalCambios > 0) {
+          let mensajeDetallado = '';
+          if (activadas > 0 && desactivadas > 0) {
+            mensajeDetallado = `${activadas} licencias/permisos activadas y ${desactivadas} desactivadas`;
+          } else if (activadas > 0) {
+            mensajeDetallado = `${activadas} licencias/permisos activadas`;
+          } else if (desactivadas > 0) {
+            mensajeDetallado = `${desactivadas} licencias/permisos desactivadas`;
+          }
           showSuccess(
             'Procesamiento Completado',
-            `Se procesaron ${activadas} licencias/permisos activadas y ${desactivadas} desactivadas`
+            `Se procesaron: ${mensajeDetallado}`
           );
         } else {
           showInfo(

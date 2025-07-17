@@ -405,10 +405,12 @@ export async function procesarEstadosLicenciasService(): Promise<ServiceResponse
             const estadoLaboral = licencia.tipo === TipoSolicitud.LICENCIA ? 
                 EstadoLaboral.LICENCIA : EstadoLaboral.PERMISO;
 
-            // Cambiar estado a licencia/permiso
-            fichaEmpresa.estado = estadoLaboral;
-            await fichaRepo.save(fichaEmpresa);
-            activadas++;
+            // Cambiar estado a licencia/permiso SOLO si es diferente
+            if (fichaEmpresa.estado !== estadoLaboral) {
+                fichaEmpresa.estado = estadoLaboral;
+                await fichaRepo.save(fichaEmpresa);
+                activadas++;
+            }
         }
 
         // 2. DESACTIVAR licencias/permisos que terminaron ayer
@@ -434,8 +436,8 @@ export async function procesarEstadosLicenciasService(): Promise<ServiceResponse
                 }
             });
 
-            // Solo cambiar a ACTIVO si no hay licencias vigentes
-            if (!licenciaVigente) {
+            // Solo cambiar a ACTIVO si no hay licencias vigentes Y el estado es distinto
+            if (!licenciaVigente && fichaEmpresa.estado !== EstadoLaboral.ACTIVO) {
                 fichaEmpresa.estado = EstadoLaboral.ACTIVO;
                 fichaEmpresa.fechaInicioLicencia = null;
                 fichaEmpresa.fechaFinLicencia = null;
