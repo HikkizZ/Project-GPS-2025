@@ -14,7 +14,7 @@ export class AsignarBono {
 
     //Relación con la ficha del trabajador al que se le asigna el bono
     @ManyToOne(() => FichaEmpresa, fichaEmpresa => fichaEmpresa.asignacionesBonos, { nullable: true })
-        trabajador!: FichaEmpresa;
+        fichaEmpresa!: FichaEmpresa;
         
     // Relación con el bono asignado
     @ManyToOne(() => Bono, bono => bono.asignaciones, { nullable: false })
