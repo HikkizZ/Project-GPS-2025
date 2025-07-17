@@ -508,11 +508,48 @@ export async function assignBonoService (idFicha: number, data: AsignarBonoDTO):
             return [null, "El bono ya está asignado a esta ficha"];
         }
 
+        // Validar fechas - usar comparación de strings y crear fechas locales correctamente
+        const hoy = new Date();
+        const fechaHoyString = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
+    
+        // Comparar directamente las cadenas de fecha en formato yyyy-mm-dd
+        if (data.fechaInicio < fechaHoyString) {
+            await queryRunner.rollbackTransaction();
+            await queryRunner.release();
+            return [null, "La fecha de inicio debe ser hoy o en el futuro"];
+        }
+    
+        // Crear fechas locales correctamente manejando tanto strings como objetos Date
+        let fechaInicio: Date;
+        let fechaFin: Date;
+        
+        if (typeof data.fechaInicio === 'string') {
+            fechaInicio = new Date(data.fechaInicio + 'T12:00:00');
+        } else {
+            // Si ya es un objeto Date, extraer solo la parte de fecha y crear nuevo Date al mediodía
+            const fechaString = (data.fechaInicio as Date).toISOString().split('T')[0];
+            fechaInicio = new Date(fechaString + 'T12:00:00');
+        }
+        
+        if (typeof data.fechaFin === 'string') {
+            fechaFin = new Date(data.fechaFin + 'T12:00:00');
+        } else {
+            // Si ya es un objeto Date, extraer solo la parte de fecha y crear nuevo Date al mediodía
+            const fechaString = (data.fechaFin as Date).toISOString().split('T')[0];
+            fechaFin = new Date(fechaString + 'T12:00:00');
+        }
+    
+        if (fechaFin <= fechaInicio) {
+            await queryRunner.rollbackTransaction();
+            await queryRunner.release();
+            return [null, "La fecha de fin debe ser posterior a la fecha de inicio"];
+        }
+        
         //Obtener data de la asignación
         const asignacionData: DeepPartial<AsignarBono> = {
             fichaEmpresa: fichaActual,
             bono: bono,
-            fechaAsignacion: data.fechaAsignacion ? new Date(data.fechaAsignacion) : new Date(),
+            fechaAsignacion: fechaHoyString,
             activo: data.activo ?? true, // Por defecto es true si no se especifica
             observaciones: data.observaciones
         };
