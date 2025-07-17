@@ -41,7 +41,7 @@ export class FichaEmpresa {
   @JoinColumn()
   trabajador!: any;
 
-  @OneToMany("AsignarBono", "trabajador")
+  @OneToMany("AsignarBono", "fichaEmpresa")
   asignacionesBonos!: AsignarBono[];
 
   @Column({ type: "varchar", length: 100, nullable: false })
