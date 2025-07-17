@@ -1,8 +1,7 @@
 import { AppDataSource } from "../../config/configDB.js";
 import { FichaEmpresa, EstadoLaboral } from "../../entity/recursosHumanos/fichaEmpresa.entity.js";
 import { ServiceResponse } from "../../../types.js";
-import { FindOptionsWhere, ILike, LessThanOrEqual, MoreThanOrEqual, Between, In } from "typeorm";
-import { Trabajador } from "../../entity/recursosHumanos/trabajador.entity.js";
+import { FindOptionsWhere, ILike, LessThanOrEqual, MoreThanOrEqual, Between, In, DeepPartial } from "typeorm";
 import { User } from "../../entity/user.entity.js";
 import { LicenciaPermiso, TipoSolicitud, EstadoSolicitud } from "../../entity/recursosHumanos/licenciaPermiso.entity.js";
 import { normalizeText } from "../../helpers/normalizeText.helper.js";
@@ -10,7 +9,10 @@ import { FileUploadService } from "../../services/fileUpload.service.js";
 import path from 'path';
 import { get } from "http";
 import { Bono } from "../../entity/recursosHumanos/Remuneraciones/Bono.entity.js";
-import { AsignarBono } from "entity/recursosHumanos/Remuneraciones/asignarBono.entity.js";  
+import { AsignarBono } from "entity/recursosHumanos/Remuneraciones/asignarBono.entity.js"; 
+import { 
+    AsignarBonoDTO 
+} from "types/recursosHumanos/bono.dto.js";
 
 // Interfaz para los parámetros de búsqueda
 interface SearchFichaParams {
@@ -141,21 +143,6 @@ export async function getFichasEmpresaService(params: SearchFichaParams): Promis
             queryBuilder.andWhere("ficha.seguroCesantia = :seguroCesantia", { seguroCesantia: params.seguroCesantia });
         }
 
-        // Filtros por bonos asignados
-        if (params.bonoId) {
-            queryBuilder.innerJoinAndSelect("ficha.asignacionesBonos", "asignarBono")
-                .andWhere("asignarBono.bonoId = :bonoId", { bonoId: params.bonoId });
-        }
-        if (params.bonoNombre) {
-            queryBuilder.innerJoinAndSelect("ficha.asignacionesBonos", "asignarBono")
-                .innerJoinAndSelect("asignarBono.bono", "bono")
-                .andWhere("LOWER(bono.nombre) ILIKE LOWER(:bonoNombre)", { bonoNombre: `%${params.bonoNombre.trim().toLowerCase()}%` });
-        }
-        if (params.bonoActivo !== undefined) {
-            queryBuilder.innerJoinAndSelect("ficha.asignacionesBonos", "asignarBono")
-                .andWhere("asignarBono.activo = :bonoActivo", { bonoActivo: params.bonoActivo });
-        }
-
         // Filtros por fechas
         if (params.fechaInicioDesde || params.fechaInicioHasta) {
             if (params.fechaInicioDesde) {
@@ -255,8 +242,6 @@ export async function updateFichaEmpresaService(
 
     try {
         const fichaRepo = queryRunner.manager.getRepository(FichaEmpresa);
-        const bonoRepo = queryRunner.manager.getRepository(Bono);
-        const asignarBonoRepo = queryRunner.manager.getRepository(AsignarBono);
         
         // 1. Obtener la ficha actual con sus relaciones
         const fichaActual = await fichaRepo.findOne({
@@ -328,42 +313,7 @@ export async function updateFichaEmpresaService(
             }
         }
 
-        // 5. Validar cambios en bonos asignados
-        if (Array.isArray(fichaData.asignacionesBonos)) {
-            const bonosSeleccionadosIds = fichaData.asignacionesBonos;
-            // Buscar los bonos válidos por ID
-            const bonosSeleccionados = await bonoRepo.findByIds(bonosSeleccionadosIds);
-
-            if (bonosSeleccionados.length !== bonosSeleccionadosIds.length) {
-                const encontradosIds = bonosSeleccionados.map(b => b.id);
-                const noEncontrados = bonosSeleccionadosIds.filter(id => !encontradosIds.includes(id));
-                return [null, { message: `Los siguientes bonos no existen: ${noEncontrados.join(", ")}` }];
-            }
-            
-            // Obtener IDs de bonos ya asignados
-            const bonosActualesIds = fichaActual.asignacionesBonos.map(ab => ab.bono.id);
-
-            // Bonos a eliminar (los que ya estaban y no están en la nueva lista)
-            const bonosAEliminar = fichaActual.asignacionesBonos.filter(ab => !bonosSeleccionadosIds.includes(ab.bono.id));
-
-            // Bonos a agregar (los que están en la nueva lista pero no estaban antes)
-            const bonosAAgregar = bonosSeleccionados.filter(bono => !bonosActualesIds.includes(bono.id));
-
-            // Eliminar asignaciones obsoletas
-            for (const ab of bonosAEliminar) {
-                await asignarBonoRepo.remove(ab);
-            }
-
-            // Agregar nuevas asignaciones
-            for (const bono of bonosAAgregar) {
-                const nuevaAsignacion = asignarBonoRepo.create({
-                    trabajador: fichaActual,
-                    bono: bono,
-                    fechaAsignacion: new Date()
-                });
-                await asignarBonoRepo.save(nuevaAsignacion);
-            }
-        }
+        
         // 6. Aplicar los cambios validados
         Object.assign(fichaActual, fichaData);
 
@@ -381,7 +331,7 @@ export async function updateFichaEmpresaService(
     }
 }
 
-export async function descargarContratoService(id: number, userId: number): Promise<ServiceResponse<{filePath: string, customFilename: string}>> {
+export async function descargarContratoService( id: number, userId: number ): Promise<ServiceResponse<{filePath: string, customFilename: string}>> {
     try {
         const fichaRepo = AppDataSource.getRepository(FichaEmpresa);
         const userRepo = AppDataSource.getRepository(User);
@@ -470,7 +420,7 @@ export async function descargarContratoService(id: number, userId: number): Prom
     }
 } 
 
-export async function uploadContratoService(id: number, file: Express.Multer.File): Promise<ServiceResponse<{ contratoUrl: string }>> {
+export async function uploadContratoService( id: number, file: Express.Multer.File ): Promise<ServiceResponse<{ contratoUrl: string }>> {
     try {
         const fichaRepository = AppDataSource.getRepository(FichaEmpresa);
         const ficha = await fichaRepository.findOneBy({ id });
@@ -498,7 +448,7 @@ export async function uploadContratoService(id: number, file: Express.Multer.Fil
     }
 }
 
-export async function deleteContratoService(id: number): Promise<ServiceResponse<{ deleted: boolean }>> {
+export async function deleteContratoService( id: number ): Promise<ServiceResponse<{ deleted: boolean }>> {
     try {
         const fichaRepository = AppDataSource.getRepository(FichaEmpresa);
         const ficha = await fichaRepository.findOne({ where: { id }, relations: ['trabajador'] });
@@ -518,4 +468,68 @@ export async function deleteContratoService(id: number): Promise<ServiceResponse
         console.error("Error en deleteContratoService:", error);
         return [null, { message: "Error interno del servidor" }];
     }
-} 
+}
+
+// Asignar Bono
+export async function assignBonoService (idFicha: number, data: AsignarBonoDTO): Promise<ServiceResponse<AsignarBono>> {
+    // Crear un query runner para manejar transacciones
+    const queryRunner = AppDataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+        const fichaRepo = queryRunner.manager.getRepository(FichaEmpresa);
+        const bonoRepo = queryRunner.manager.getRepository(Bono);
+        const asignarBonoRepo = queryRunner.manager.getRepository(AsignarBono);
+        // Obtener los repositorios necesarios
+        const fichaActual = await fichaRepo.findOne({
+            where: { id: idFicha },
+            relations: ["trabajador", "trabajador.usuario", "asignacionesBonos", "asignacionesBonos.bono"]
+        });
+        
+        // Validar si el bono existe
+        const bono = await bonoRepo.findOneBy({ id: data.bonoId });
+        if (!bono) {
+            await queryRunner.rollbackTransaction();
+            return [null, "Bono no encontrado"];
+        }
+
+        // Validar si el bono ya está asignado al trabajador
+        if (!fichaActual) {
+            await queryRunner.rollbackTransaction();
+            return [null, "Ficha no encontrada"];
+        }
+        const asignacionExistente = Array.isArray(fichaActual.asignacionesBonos)
+        ? fichaActual.asignacionesBonos.filter(ab => ab.bono.id === bono.id)
+        : [];
+
+        if (asignacionExistente.length > 0) {
+            await queryRunner.rollbackTransaction();
+            return [null, "El bono ya está asignado a esta ficha"];
+        }
+
+        //Obtener data de la asignación
+        const asignacionData: DeepPartial<AsignarBono> = {
+            fichaEmpresa: fichaActual,
+            bono: bono,
+            fechaAsignacion: data.fechaAsignacion ? new Date(data.fechaAsignacion) : new Date(),
+            activo: data.activo ?? true, // Por defecto es true si no se especifica
+            observaciones: data.observaciones
+        };
+
+        // Crear la asignación de bono
+        const asignacionBono = asignarBonoRepo.create(asignacionData);
+        await queryRunner.manager.save(asignacionBono);
+        await queryRunner.commitTransaction();
+
+        return [asignacionBono, null];
+    } catch (error) {
+        await queryRunner.rollbackTransaction();
+        console.error("Error al asignar bono:", error);
+        return [null, "Error interno del servidor"];
+    } finally {
+        await queryRunner.release();
+    }
+}
+
+// Actualizar estado Asignación de Bono
