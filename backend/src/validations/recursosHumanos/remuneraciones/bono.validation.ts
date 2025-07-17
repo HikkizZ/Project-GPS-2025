@@ -44,11 +44,11 @@ export const CreateBonoValidation = Joi.object({
 //puede recibir bonos en diferentes momentos, por lo que no es necesario que exista una relación directa
 //entre un bono y un trabajador en la base de datos, sino que se puede asignar
 export const AsignarBonoValidation = Joi.object({
-    trabajadorId: Joi.number().integer().positive().required().messages({
-        'number.base': 'El ID del trabajador debe ser un número',
-        'number.integer': 'El ID del trabajador debe ser un número entero',
-        'number.positive': 'El ID del trabajador debe ser positivo',
-        'any.required': 'El ID del trabajador es requerido'
+    fichaEmpresaId: Joi.number().integer().positive().required().messages({
+        'number.base': 'El ID de la ficha de empresa debe ser un número',
+        'number.integer': 'El ID de la ficha de empresa debe ser un número entero',
+        'number.positive': 'El ID de la ficha de empresa debe ser positivo',
+        'any.required': 'El ID de la ficha de empresa es requerido'
     }),
     
     bonoId: Joi.number().integer().positive().required().messages({
