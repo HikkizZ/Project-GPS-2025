@@ -4,7 +4,7 @@ import {
   getAllLicenciasPermisosService,
   updateLicenciaPermisoService,
   descargarArchivoLicenciaService,
-  verificarLicenciasVencidasService
+  procesarEstadosLicenciasService
 } from "../../services/recursosHumanos/licenciaPermiso.service.js";
 import { User } from "../../entity/user.entity.js";
 import { handleSuccess, handleErrorClient, handleErrorServer } from "../../handlers/responseHandlers.js";
@@ -319,7 +319,7 @@ export async function descargarArchivoLicencia(req: Request, res: Response): Pro
   }
 }
 
-export async function verificarLicenciasVencidas(req: Request, res: Response): Promise<void> {
+export async function procesarEstadosLicencias(req: Request, res: Response): Promise<void> {
     try {
         if (!req.user?.id) {
             handleErrorClient(res, 401, "Usuario no autenticado");
@@ -332,16 +332,24 @@ export async function verificarLicenciasVencidas(req: Request, res: Response): P
             return;
         }
 
-        const [actualizaciones, error] = await verificarLicenciasVencidasService();
+        const [resultado, error] = await procesarEstadosLicenciasService();
 
         if (error) {
             handleErrorServer(res, 500, typeof error === 'string' ? error : error.message);
             return;
         }
 
-        handleSuccess(res, 200, `Se actualizaron ${actualizaciones} registros`, { actualizaciones });
+        if (!resultado) {
+            handleErrorServer(res, 500, "Error al procesar estados de licencias");
+            return;
+        }
+
+        const { activadas, desactivadas } = resultado;
+        const mensaje = `Procesamiento completado: ${activadas} licencias/permisos activadas, ${desactivadas} desactivadas`;
+        
+        handleSuccess(res, 200, mensaje, { activadas, desactivadas });
     } catch (error) {
-        console.error("Error en verificarLicenciasVencidas:", error);
+        console.error("Error en procesarEstadosLicencias:", error);
         handleErrorServer(res, 500, "Error interno del servidor");
     }
 }

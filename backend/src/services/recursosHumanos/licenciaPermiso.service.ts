@@ -301,18 +301,30 @@ export async function updateLicenciaPermisoService(id: number, data: UpdateLicen
         return [null, "Las fechas se solapan con otra licencia o permiso ya aprobado"];
       }
 
-      // Actualizar el estado en la ficha de empresa
+      // Actualizar solo las fechas y motivo de licencia en la ficha de empresa
+      // El estado se cambiará automáticamente cuando llegue la fecha de inicio
       const fichaRepo = queryRunner.manager.getRepository(FichaEmpresa);
       const fichaEmpresa = licencia.trabajador.fichaEmpresa;
       
-      // Actualizar el estado, fechas y motivo de licencia
-      fichaEmpresa.estado = estadoLaboral;
+      // Solo guardar las fechas y motivo, NO cambiar el estado inmediatamente
       fichaEmpresa.fechaInicioLicencia = licencia.fechaInicio;
       fichaEmpresa.fechaFinLicencia = licencia.fechaFin;
       fichaEmpresa.motivoLicencia = licencia.motivoSolicitud;
       
       // Guardar los cambios en la ficha
       await fichaRepo.save(fichaEmpresa);
+      
+      // Procesar inmediatamente si la fecha de inicio es hoy
+      const hoy = new Date();
+      hoy.setHours(0, 0, 0, 0);
+      const fechaInicio = new Date(licencia.fechaInicio);
+      fechaInicio.setHours(0, 0, 0, 0);
+      
+      if (fechaInicio.getTime() === hoy.getTime()) {
+        // Si la fecha de inicio es hoy, cambiar el estado inmediatamente
+        fichaEmpresa.estado = estadoLaboral;
+        await fichaRepo.save(fichaEmpresa);
+      }
     }
 
     // Guardar los cambios de la licencia
@@ -363,18 +375,44 @@ export async function updateLicenciaPermisoService(id: number, data: UpdateLicen
 
 
 
-export async function verificarLicenciasVencidasService(): Promise<ServiceResponse<number>> {
+export async function procesarEstadosLicenciasService(): Promise<ServiceResponse<{ activadas: number; desactivadas: number }>> {
     const queryRunner = AppDataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
 
     try {
         const licenciaRepo = queryRunner.manager.getRepository(LicenciaPermiso);
+        const fichaRepo = queryRunner.manager.getRepository(FichaEmpresa);
         const hoy = new Date();
         hoy.setHours(0, 0, 0, 0);
 
-        // Buscar licencias/permisos vencidos que aún no han sido procesados
-        const licenciasVencidas = await licenciaRepo.find({
+        let activadas = 0;
+        let desactivadas = 0;
+
+        // 1. ACTIVAR licencias/permisos que deben comenzar hoy
+        const licenciasParaActivar = await licenciaRepo.find({
+            where: {
+                estado: EstadoSolicitud.APROBADA,
+                fechaInicio: hoy
+            },
+            relations: ["trabajador", "trabajador.fichaEmpresa"]
+        });
+
+        for (const licencia of licenciasParaActivar) {
+            if (!licencia.trabajador?.fichaEmpresa?.id) continue;
+
+            const fichaEmpresa = licencia.trabajador.fichaEmpresa;
+            const estadoLaboral = licencia.tipo === TipoSolicitud.LICENCIA ? 
+                EstadoLaboral.LICENCIA : EstadoLaboral.PERMISO;
+
+            // Cambiar estado a licencia/permiso
+            fichaEmpresa.estado = estadoLaboral;
+            await fichaRepo.save(fichaEmpresa);
+            activadas++;
+        }
+
+        // 2. DESACTIVAR licencias/permisos que terminaron ayer
+        const licenciasParaDesactivar = await licenciaRepo.find({
             where: {
                 estado: EstadoSolicitud.APROBADA,
                 fechaFin: LessThan(hoy)
@@ -382,43 +420,37 @@ export async function verificarLicenciasVencidasService(): Promise<ServiceRespon
             relations: ["trabajador", "trabajador.fichaEmpresa"]
         });
 
-        let actualizaciones = 0;
-
-        for (const licencia of licenciasVencidas) {
+        for (const licencia of licenciasParaDesactivar) {
             if (!licencia.trabajador?.fichaEmpresa?.id) continue;
 
-            // Verificar si la ficha aún está en estado de licencia/permiso
             const fichaEmpresa = licencia.trabajador.fichaEmpresa;
             
-            // Verificar si hay alguna licencia vigente
+            // Verificar si hay alguna licencia vigente para este trabajador
             const licenciaVigente = await licenciaRepo.findOne({
                 where: {
                     trabajador: { id: licencia.trabajador.id },
                     estado: EstadoSolicitud.APROBADA,
-                    tipo: TipoSolicitud.LICENCIA,
-                    fechaFin: MoreThan(new Date())
+                    fechaFin: MoreThanOrEqual(hoy)
                 }
             });
 
             // Solo cambiar a ACTIVO si no hay licencias vigentes
             if (!licenciaVigente) {
-                // Actualizar la ficha de empresa a estado ACTIVO y limpiar fechas de licencia
-                const fichaRepo = queryRunner.manager.getRepository(FichaEmpresa);
                 fichaEmpresa.estado = EstadoLaboral.ACTIVO;
                 fichaEmpresa.fechaInicioLicencia = null;
                 fichaEmpresa.fechaFinLicencia = null;
                 fichaEmpresa.motivoLicencia = null;
                 
                 await fichaRepo.save(fichaEmpresa);
-                actualizaciones++;
+                desactivadas++;
             }
         }
 
         await queryRunner.commitTransaction();
-        return [actualizaciones, null];
+        return [{ activadas, desactivadas }, null];
     } catch (error) {
         await queryRunner.rollbackTransaction();
-        console.error("Error en verificarLicenciasVencidasService:", error);
+        console.error("Error en procesarEstadosLicenciasService:", error);
         return [null, "Error interno del servidor"];
     } finally {
         await queryRunner.release();
