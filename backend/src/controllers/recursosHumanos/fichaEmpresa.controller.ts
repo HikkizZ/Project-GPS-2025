@@ -13,23 +13,13 @@ import {
     updateFichaEmpresaService,
     descargarContratoService,
     uploadContratoService,
-    deleteContratoService
-} from "../../services/recursosHumanos/fichaEmpresa.service.js";
-import { 
-    CreateBonoValidation, 
-    UpdateBonoValidation, 
-    BonoQueryValidation ,
-    AsignarBonoValidation
-} from "../../validations/recursosHumanos/remuneraciones/bono.validation.js";
-import {
-    createBonoService,
-    getAllBonosService,
-    getBonoByIdService,
-    updateBonoService,
-    deleteBonoService,
+    deleteContratoService,
     assignBonoService,
     updateAssingBonoService
-} from "../../services/recursosHumanos/remuneraciones/bono.service.js";
+} from "../../services/recursosHumanos/fichaEmpresa.service.js";
+import { 
+    AsignarBonoValidation
+} from "../../validations/recursosHumanos/remuneraciones/bono.validation.js";
 import path from 'path';
 import fs from 'fs';
 
