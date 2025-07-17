@@ -43,7 +43,7 @@ export const PasswordInput: React.FC<{
         style={{ borderTopLeftRadius: 0, borderBottomLeftRadius: 0 }}
         aria-label={show ? 'Ocultar contraseña' : 'Mostrar contraseña'}
       >
-        <i className={`bi ${show ? 'bi-eye-slash' : 'bi-eye'}`}></i>
+        <i className={`bi ${show ? 'bi-eye' : 'bi-eye-slash'}`}></i>
       </button>
       {isInvalid && feedback && <div className="invalid-feedback d-block">{feedback}</div>}
     </div>
