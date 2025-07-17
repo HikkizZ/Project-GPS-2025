@@ -1,7 +1,7 @@
 import { User } from "../entity/user.entity.js";
 import { AppDataSource } from "../config/configDB.js";
 import { comparePassword, encryptPassword } from "../utils/encrypt.js";
-import { ServiceResponse, QueryParams, UpdateUserData, SafeUser, userRole } from '../../types.d.js';
+import { ServiceResponse, UserQueryParams, UpdateUserData, SafeUser, userRole } from '../../types.d.js';
 import { Not, ILike, FindOptionsWhere } from "typeorm";
 
 /* Validar formato de RUT */
@@ -24,7 +24,7 @@ function isValidRole(role: string): boolean {
 }
 
 /* Buscar usuarios con filtros */
-export async function getUsersService(query: QueryParams): Promise<ServiceResponse<SafeUser[]>> {
+export async function getUsersService(query: UserQueryParams): Promise<ServiceResponse<SafeUser[]>> {
     try {
         if (query.rut && !isValidRut(query.rut)) {
             return [null, "Debe ingresar el RUT en formato xx.xxx.xxx-x"];

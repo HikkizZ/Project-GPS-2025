@@ -42,6 +42,14 @@ export type QueryParams = {
     name?: string;
 }
 
+export type UserQueryParams = {
+    id?: number;
+    corporateEmail?: string;
+    rut?: string;
+    role?: userRole;
+    name?: string;
+}
+
 export type UpdateUserData = {
     name?: string;
     corporateEmail?: string;
