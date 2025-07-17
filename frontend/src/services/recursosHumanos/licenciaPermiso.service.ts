@@ -320,11 +320,11 @@ export class LicenciaPermisoService {
   // ==============================
 
   /**
-   * Procesar estados de licencias - solo RRHH
+   * Verificar estados de licencias - solo RRHH
    */
-  async procesarEstadosLicencias(): Promise<ApiResponse<{ activadas: number; desactivadas: number }>> {
+  async verificarEstadosLicencias(): Promise<ApiResponse<{ activadas: number; desactivadas: number }>> {
     try {
-      const response = await fetch(`${import.meta.env.VITE_BASE_URL || 'http://localhost:3000/api'}${this.baseURL}/procesar-estados`, {
+      const response = await fetch(`${import.meta.env.VITE_BASE_URL || 'http://localhost:3000/api'}${this.baseURL}/verificar-estados`, {
         method: 'POST',
         headers: this.getHeaders()
       });
@@ -341,13 +341,13 @@ export class LicenciaPermisoService {
 
       return {
         success: false,
-        message: responseData.message || 'Error al procesar estados de licencias'
+        message: responseData.message || 'Error al verificar estados de licencias'
       };
     } catch (error: any) {
-      console.error('Error al procesar estados de licencias:', error);
+      console.error('Error al verificar estados de licencias:', error);
       return {
         success: false,
-        message: error.message || 'Error al procesar estados de licencias'
+        message: error.message || 'Error al verificar estados de licencias'
       };
     }
   }

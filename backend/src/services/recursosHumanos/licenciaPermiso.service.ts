@@ -375,7 +375,7 @@ export async function updateLicenciaPermisoService(id: number, data: UpdateLicen
 
 
 
-export async function procesarEstadosLicenciasService(): Promise<ServiceResponse<{ activadas: number; desactivadas: number }>> {
+export async function verificarEstadosLicenciasService(): Promise<ServiceResponse<{ activadas: number; desactivadas: number }>> {
     const queryRunner = AppDataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -452,7 +452,7 @@ export async function procesarEstadosLicenciasService(): Promise<ServiceResponse
         return [{ activadas, desactivadas }, null];
     } catch (error) {
         await queryRunner.rollbackTransaction();
-        console.error("Error en procesarEstadosLicenciasService:", error);
+        console.error("Error en verificarEstadosLicenciasService:", error);
         return [null, "Error interno del servidor"];
     } finally {
         await queryRunner.release();

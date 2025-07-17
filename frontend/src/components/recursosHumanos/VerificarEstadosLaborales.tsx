@@ -33,7 +33,7 @@ const VerificarEstadosLaborales: React.FC<VerificarEstadosLaboralesProps> = ({
   const ejecutarVerificacion = async () => {
     setProcesando(true);
     try {
-      const result = await licenciaPermisoService.procesarEstadosLicencias();
+      const result = await licenciaPermisoService.verificarEstadosLicencias();
       
       if (result.success) {
         const { activadas, desactivadas } = result.data || { activadas: 0, desactivadas: 0 };
@@ -54,21 +54,21 @@ const VerificarEstadosLaborales: React.FC<VerificarEstadosLaboralesProps> = ({
             mensajeDetallado = `${desactivadas} licencias/permisos desactivadas`;
           }
           showSuccess(
-            'Procesamiento Completado',
-            `Se procesaron: ${mensajeDetallado}`
+            'Verificación Completada',
+            `Se verificaron: ${mensajeDetallado}`
           );
         } else {
           showInfo(
-            'Procesamiento Completado',
+            'Verificación Completada',
             'Todos los estados laborales están actualizados. No se realizaron cambios.'
           );
         }
       } else {
-        showError('Error en el Procesamiento', result.message || 'Error al procesar estados laborales');
+        showError('Error en la Verificación', result.message || 'Error al verificar estados laborales');
       }
     } catch (error: any) {
-      console.error('Error al procesar estados:', error);
-      showError('Error Inesperado', 'Error inesperado al procesar estados laborales');
+      console.error('Error al verificar estados:', error);
+      showError('Error Inesperado', 'Error inesperado al verificar estados laborales');
     } finally {
       setProcesando(false);
       setShowModal(false);
@@ -98,7 +98,7 @@ const VerificarEstadosLaborales: React.FC<VerificarEstadosLaboralesProps> = ({
           className={`bi bi-arrow-clockwise me-2 ${procesando ? 'rotating' : ''}`}
           style={{ fontSize: '1.1rem' }}
         ></i>
-                    {procesando ? 'Procesando...' : 'Procesar Estados'}
+                    {procesando ? 'Verificando...' : 'Verificar Estados'}
       </Button>
 
       {/* Modal de Confirmación */}
@@ -111,7 +111,7 @@ const VerificarEstadosLaborales: React.FC<VerificarEstadosLaboralesProps> = ({
         <Modal.Header closeButton className="border-0 pb-0">
                       <Modal.Title className="d-flex align-items-center">
               <i className="bi bi-arrow-clockwise text-primary me-2"></i>
-              Procesar Estados Laborales
+              Verificar Estados Laborales
             </Modal.Title>
         </Modal.Header>
         
@@ -170,7 +170,7 @@ const VerificarEstadosLaborales: React.FC<VerificarEstadosLaboralesProps> = ({
             <small className="text-warning-emphasis">
               <i className="bi bi-exclamation-triangle me-2"></i>
               <strong>Nota:</strong> Esta acción se ejecuta automáticamente todos los días a las 00:01. 
-              Solo úsala si necesitas procesar estados de manera inmediata.
+              Solo úsala si necesitas verificar estados de manera inmediata.
             </small>
           </div>
         </Modal.Body>
@@ -192,12 +192,12 @@ const VerificarEstadosLaborales: React.FC<VerificarEstadosLaboralesProps> = ({
             {procesando ? (
               <>
                 <Spinner size="sm" className="me-2" />
-                Procesando...
+                Verificando...
               </>
             ) : (
               <>
                 <i className="bi bi-play-fill me-2"></i>
-                Ejecutar Procesamiento
+                Ejecutar Verificación
               </>
             )}
           </Button>

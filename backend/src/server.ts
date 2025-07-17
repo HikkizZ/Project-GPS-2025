@@ -20,7 +20,7 @@ import { authenticateJWT } from "./middlewares/authentication.middleware.js";
 import { FileManagementService } from "./services/fileManagement.service.js";
 import { FileUploadService } from "./services/fileUpload.service.js";
 import userRoutes from "./routes/user.routes.js";
-import { procesarEstadosLicenciasService } from "./services/recursosHumanos/licenciaPermiso.service.js";
+import { verificarEstadosLicenciasService } from "./services/recursosHumanos/licenciaPermiso.service.js";
 import cron from "node-cron";
 
 // --- Definición de Rutas para ES Modules ---
@@ -54,14 +54,14 @@ function initializeAutomaticLicenseVerification(): void {
     
     cron.schedule(cronSchedule, async () => {
         try {
-            const [resultado, error] = await procesarEstadosLicenciasService();
+            const [resultado, error] = await verificarEstadosLicenciasService();
             
             if (error) {
-                console.error("❌ Error al procesar estados de licencias:", error);
+                console.error("❌ Error al verificar estados de licencias:", error);
                 return;
             }
         } catch (error) {
-            console.error("❌ Error inesperado durante el procesamiento de licencias:", error);
+            console.error("❌ Error inesperado durante la verificación de licencias:", error);
         }
     });
     
@@ -69,14 +69,14 @@ function initializeAutomaticLicenseVerification(): void {
     if (isDevelopment) {
         setTimeout(async () => {
             try {
-                const [resultado, error] = await procesarEstadosLicenciasService();
+                const [resultado, error] = await verificarEstadosLicenciasService();
                 
                 if (error) {
-                    console.error("❌ Error en procesamiento inicial:", error);
+                    console.error("❌ Error en verificación inicial:", error);
                     return;
                 }
             } catch (error) {
-                console.error("❌ Error en procesamiento inicial:", error);
+                console.error("❌ Error en verificación inicial:", error);
             }
         }, 3000); // Esperar 3 segundos después del inicio
     }

@@ -8,7 +8,7 @@ import {
     createLicenciaPermiso,
     updateLicenciaPermiso,
     descargarArchivoLicencia,
-    procesarEstadosLicencias
+    verificarEstadosLicencias
 } from "../../controllers/recursosHumanos/licenciaPermiso.controller.js";
 
 const router: Router = Router();
@@ -25,6 +25,6 @@ router.get("/", verifyRole(["RecursosHumanos", "Administrador", "SuperAdministra
 router.put("/:id", verifyRole(["RecursosHumanos", "Administrador", "SuperAdministrador"]), updateLicenciaPermiso); // Aprobar/Rechazar solicitud
 
 router.get("/:id/archivo", descargarArchivoLicencia);
-router.post("/procesar-estados", verifyRole(["RecursosHumanos", "Administrador", "SuperAdministrador"]), procesarEstadosLicencias);
+router.post("/verificar-estados", verifyRole(["RecursosHumanos", "Administrador", "SuperAdministrador"]), verificarEstadosLicencias);
 
 export default router; 
