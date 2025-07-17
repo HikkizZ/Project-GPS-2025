@@ -1,12 +1,12 @@
 import { apiClient } from "@/config/api.config";
 import { ApiResponse } from "@/types";
-import { Supplier, CreateSupplierData, UpdateSupplierData, SupplierSearchQuery } from "@/types/stakeholders/supplier.types";
+import { Customer, CreateCustomerData, UpdateCustomerData, CustomerSearchQuery } from "@/types/stakeholders/customer.types";
 
-export class SupplierService {
-    private baseURL = '/suppliers';
+export class CustomerService {
+    private baseURL = '/customers';
 
-    //? Obtener todos los proveedores o buscar con filtros
-    async getSuppliers(query: SupplierSearchQuery = {}): Promise<ApiResponse<Supplier[]>> {
+    //? Obtener todos los clientes o buscar con filtros
+    async getCustomers(query: CustomerSearchQuery = {}): Promise<ApiResponse<Customer[]>> {
         // Limpiar campos undefined antes de construir los parámetros
         const cleanQuery = Object.fromEntries(
             Object.entries(query).filter(([_, value]) => value !== undefined && value !== null && value !== '')
@@ -16,43 +16,43 @@ export class SupplierService {
         const url = params ? `${this.baseURL}?${params}` : this.baseURL;
 
         try {
-            const response = await apiClient.get<{ data: Supplier[]; message: string }>(url);
+            const response = await apiClient.get<{ data: Customer[]; message: string }>(url);
             return {
                 success: true,
                 data: response.data,
-                message: response.message || 'Proveedores obtenidos exitosamente',
+                message: response.message || 'Clientes obtenidos exitosamente',
             };
         } catch (error) {
             throw error;
         }
     }
 
-    //? Crear nuevo proveedor
-    async createSupplier(supplierData: CreateSupplierData): Promise<ApiResponse<Supplier>> {
-        const response = await apiClient.post<{ data: Supplier; message: string }>(`${this.baseURL}/`, supplierData);
+    //? Crear nuevo cliente
+    async createCustomer(customerData: CreateCustomerData): Promise<ApiResponse<Customer>> {
+        const response = await apiClient.post<{ data: Customer; message: string }>(`${this.baseURL}/`, customerData);
         return {
             success: true,
             data: response.data,
-            message: response.message || 'Proveedor creado exitosamente',
+            message: response.message || 'Cliente creado exitosamente',
         };
     }
 
-    //? Actualizar proveedor
-    async updateSupplier(id: number, supplierData: UpdateSupplierData): Promise<ApiResponse<Supplier>> {
-        const response = await apiClient.put<{ data: Supplier; message: string }>(`${this.baseURL}/${id}`, supplierData);
+    //? Actualizar cliente
+    async updateCustomer(id: number, customerData: UpdateCustomerData): Promise<ApiResponse<Customer>> {
+        const response = await apiClient.put<{ data: Customer; message: string }>(`${this.baseURL}/${id}`, customerData);
         return {
             success: true,
             data: response.data,
-            message: response.message || 'Proveedor actualizado exitosamente',
+            message: response.message || 'Cliente actualizado exitosamente',
         };
     }
 
-    //? Eliminar proveedor (soft delete)
-    async deleteSupplier(id: number): Promise<ApiResponse<void>> {
+    //? Eliminar cliente (soft delete)
+    async deleteCustomer(id: number): Promise<ApiResponse<void>> {
         const response = await apiClient.delete<{ message: string }>(`${this.baseURL}/${id}`);
         return {
             success: true,
-            message: response.message || 'Proveedor eliminado exitosamente',
+            message: response.message || 'Cliente eliminado exitosamente',
         };
     }
 
@@ -117,4 +117,4 @@ export class SupplierService {
     }
 }
 
-export const supplierService = new SupplierService();
+export const customerService = new CustomerService();
