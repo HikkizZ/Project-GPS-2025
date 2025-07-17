@@ -47,7 +47,7 @@ describe("👥 Users API", () => {
                 .send({
                     name: "Usuario Test Users",
                     rut: "14.567.890-1",
-                    email: "usuario.test.users@gmail.com",
+                    corporateEmail: "usuario.test.users@gmail.com",
                     password: "Usuario2024",
                     role: "Usuario"
                 });
@@ -55,7 +55,7 @@ describe("👥 Users API", () => {
             const regularLogin = await request(app)
                 .post("/api/auth/login")
                 .send({
-                    email: "usuario.test.users@gmail.com",
+                    corporateEmail: "usuario.test.users@gmail.com",
                     password: "Usuario2024"
                 });
             regularUserToken = regularLogin.body.data.token;
@@ -115,7 +115,7 @@ describe("👥 Users API", () => {
             const [emailSearch, rutSearch, roleSearch] = await Promise.all([
                 request(app)
                     .get("/api/user/detail/")
-                    .query({ email: "usuario.test.users@gmail.com" })
+                    .query({ corporateEmail: "usuario.test.users@gmail.com" })
                     .set("Authorization", `Bearer ${adminToken}`),
                 request(app)
                     .get("/api/user/detail/")
@@ -129,7 +129,7 @@ describe("👥 Users API", () => {
 
             // Verificar búsqueda por email
             expect(emailSearch.status).to.equal(200);
-            expect(emailSearch.body.data[0].email).to.equal("usuario.test.users@gmail.com");
+            expect(emailSearch.body.data[0].corporateEmail).to.equal("usuario.test.users@gmail.com");
 
             // Verificar búsqueda por RUT
             expect(rutSearch.status).to.equal(200);
@@ -143,7 +143,7 @@ describe("👥 Users API", () => {
         it("debe manejar búsquedas sin resultados correctamente", async () => {
             const response = await request(app)
                 .get("/api/user/detail/")
-                .query({ email: "noexiste@gmail.com" })
+                .query({ corporateEmail: "noexiste@gmail.com" })
                 .set("Authorization", `Bearer ${adminToken}`);
 
             expect(response.status).to.equal(200);
@@ -159,7 +159,7 @@ describe("👥 Users API", () => {
                     .set("Authorization", `Bearer ${adminToken}`),
                 request(app)
                     .get("/api/user/detail/")
-                    .query({ email: "not-an-email" })
+                    .query({ corporateEmail: "not-an-email" })
                     .set("Authorization", `Bearer ${adminToken}`),
                 request(app)
                     .get("/api/user/detail/")
@@ -173,7 +173,7 @@ describe("👥 Users API", () => {
             
             expect(invalidEmail.status).to.equal(400);
             expect(invalidEmail.body.status).to.equal("error");
-            expect(invalidEmail.body.message).to.equal("Formato de email inválido");
+            expect(invalidEmail.body.message).to.equal("Formato de correo corporativo inválido");
 
             expect(invalidRole.status).to.equal(400);
             expect(invalidRole.body.status).to.equal("error");
@@ -185,14 +185,14 @@ describe("👥 Users API", () => {
                 .get("/api/user/detail/")
                 .query({ 
                     role: "Usuario",
-                    email: "usuario.test.users@gmail.com"
+                    corporateEmail: "usuario.test.users@gmail.com"
                 })
                 .set("Authorization", `Bearer ${adminToken}`);
 
             expect(response.status).to.equal(200);
             expect(response.body.data).to.be.an("array");
             expect(response.body.data[0].role).to.equal("Usuario");
-            expect(response.body.data[0].email).to.equal("usuario.test.users@gmail.com");
+            expect(response.body.data[0].corporateEmail).to.equal("usuario.test.users@gmail.com");
         });
     });
 
@@ -258,7 +258,7 @@ describe("👥 Users API", () => {
 
             const response = await request(app)
                 .put("/api/user/update/")
-                .query({ email: superAdmin?.email })
+                .query({ corporateEmail: superAdmin?.corporateEmail })
                 .send({ role: "Usuario" })
                 .set("Authorization", `Bearer ${adminToken}`);
 

@@ -20,7 +20,7 @@ import { authenticateJWT } from "./middlewares/authentication.middleware.js";
 import { FileManagementService } from "./services/fileManagement.service.js";
 import { FileUploadService } from "./services/fileUpload.service.js";
 import userRoutes from "./routes/user.routes.js";
-import { verificarLicenciasVencidasService } from "./services/recursosHumanos/licenciaPermiso.service.js";
+import { verificarEstadosLicenciasService } from "./services/recursosHumanos/licenciaPermiso.service.js";
 import cron from "node-cron";
 
 // --- Definición de Rutas para ES Modules ---
@@ -49,18 +49,16 @@ const SERVER_HOST = HOST || DEFAULT_HOST;
 
 // Función para inicializar la verificación automática de licencias vencidas
 function initializeAutomaticLicenseVerification(): void {
-    // Programar la tarea para que se ejecute todos los días a las 00:01
-    cron.schedule("1 0 * * *", async () => {
+    // Programar la tarea para que se ejecute diariamente a las 00:01 en todos los entornos
+    const cronSchedule = "1 0 * * *"; // Diario a las 00:01
+    
+    cron.schedule(cronSchedule, async () => {
         try {
-            const [actualizaciones, error] = await verificarLicenciasVencidasService();
+            const [resultado, error] = await verificarEstadosLicenciasService();
             
             if (error) {
-                console.error("❌ Error al verificar licencias vencidas:", error);
+                console.error("❌ Error al verificar estados de licencias:", error);
                 return;
-            }
-
-            if (actualizaciones && actualizaciones > 0) {
-                console.log(`✅ Verificación completada. ${actualizaciones} estados actualizados a Activo`);
             }
         } catch (error) {
             console.error("❌ Error inesperado durante la verificación de licencias:", error);
@@ -71,15 +69,11 @@ function initializeAutomaticLicenseVerification(): void {
     if (isDevelopment) {
         setTimeout(async () => {
             try {
-                const [actualizaciones, error] = await verificarLicenciasVencidasService();
+                const [resultado, error] = await verificarEstadosLicenciasService();
                 
                 if (error) {
                     console.error("❌ Error en verificación inicial:", error);
                     return;
-                }
-
-                if (actualizaciones && actualizaciones > 0) {
-                    console.log(`✅ Verificación inicial completada. ${actualizaciones} estados actualizados`);
                 }
             } catch (error) {
                 console.error("❌ Error en verificación inicial:", error);

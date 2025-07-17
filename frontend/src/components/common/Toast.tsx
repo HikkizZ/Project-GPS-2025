@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, createContext, useContext } from 'react';
 import { Toast as BootstrapToast, ToastContainer } from 'react-bootstrap';
 
 export interface ToastMessage {
@@ -59,8 +59,10 @@ const getIconForType = (type: ToastMessage['type']): string => {
   }
 };
 
-// Hook para manejar toasts
-export const useToast = () => {
+// CONTEXTO GLOBAL DE TOASTS
+const ToastContext = createContext<any>(null);
+
+export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
   const addToast = (toast: Omit<ToastMessage, 'id'>) => {
@@ -93,6 +95,52 @@ export const useToast = () => {
     setToasts([]);
   };
 
+  return (
+    <ToastContext.Provider value={{
+      toasts,
+      addToast,
+      removeToast,
+      showSuccess,
+      showError,
+      showWarning,
+      showInfo,
+      clearAllToasts
+    }}>
+      {children}
+      <Toast toasts={toasts} removeToast={removeToast} />
+    </ToastContext.Provider>
+  );
+};
+
+// Hook para usar el contexto global de Toasts
+export const useToast = () => {
+  const context = useContext(ToastContext);
+  if (context) return context;
+  // fallback local (por compatibilidad, pero se recomienda usar el provider global)
+  const [toasts, setToasts] = useState<ToastMessage[]>([]);
+  const addToast = (toast: Omit<ToastMessage, 'id'>) => {
+    const id = Date.now().toString() + Math.random().toString(36).substr(2, 9);
+    const newToast: ToastMessage = { ...toast, id };
+    setToasts(prev => [...prev, newToast]);
+  };
+  const removeToast = (id: string) => {
+    setToasts(prev => prev.filter(toast => toast.id !== id));
+  };
+  const showSuccess = (title: string, message: string, duration?: number) => {
+    addToast({ type: 'success', title, message, duration: 3000 });
+  };
+  const showError = (title: string, message: string, duration?: number) => {
+    addToast({ type: 'error', title, message, duration: 3000 });
+  };
+  const showWarning = (title: string, message: string, duration?: number) => {
+    addToast({ type: 'warning', title, message, duration: 3000 });
+  };
+  const showInfo = (title: string, message: string, duration?: number) => {
+    addToast({ type: 'info', title, message, duration: 3000 });
+  };
+  const clearAllToasts = () => {
+    setToasts([]);
+  };
   return {
     toasts,
     addToast,

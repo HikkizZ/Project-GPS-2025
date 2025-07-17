@@ -63,9 +63,9 @@ const RegistrarTrabajadorPage: React.FC<{
       errors.apellidoMaterno = 'Apellido materno debe tener al menos 2 caracteres';
     }
     
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(formData.correoPersonal)) {
-      errors.correoPersonal = 'Email inválido';
+    const correoPersonalRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!correoPersonalRegex.test(formData.correoPersonal)) {
+      errors.correoPersonal = 'Correo personal inválido';
     }
     
     if (formData.telefono.length < 9) {
@@ -220,7 +220,7 @@ const RegistrarTrabajadorPage: React.FC<{
 
                 <div className="row">
                   <div className="col-md-6 mb-3">
-                    <label className="form-label">Email: <span className="text-danger">*</span></label>
+                    <label className="form-label">Correo Personal: <span className="text-danger">*</span></label>
                     <input
                       type="email"
                       className={`form-control ${validationErrors.correoPersonal ? 'is-invalid' : ''}`}
@@ -632,8 +632,13 @@ function App() {
                 <Route path="dashboard" element={<Dashboard user={safeUser} />} />
                 <Route path="recursos-humanos" element={<DashboardRecursosHumanos />} />
                 <Route path="trabajadores" element={<TrabajadoresPage />} />
+<<<<<<< HEAD
                 <Route path="ficha-empresa" element={<FichasEmpresaPage />} />
                 <Route path="ficha-empresa/mi-ficha" element={<FichasEmpresaPage />} />
+=======
+                <Route path="fichas-empresa" element={<FichasEmpresaPage />} />
+                <Route path="fichas-empresa/mi-ficha" element={<FichasEmpresaPage />} />
+>>>>>>> 5a76102136aecf8799c9ad67a20d880d78bcc0fd
                 <Route path="bonos" element={<BonosPage />} />
                 <Route path="usuarios" element={<UsersPage />} />
                 <Route path="gestion-personal" element={<GestionPersonalPage />} />

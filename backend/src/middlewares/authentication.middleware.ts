@@ -24,10 +24,10 @@ export const verifyToken = async (req: Request, res: Response, next: NextFunctio
             return;
         }
 
-        const decoded = jwt.verify(token, ACCESS_TOKEN_SECRET as string) as { rut: string; email: string };
+        const decoded = jwt.verify(token, ACCESS_TOKEN_SECRET as string) as { rut: string; corporateEmail: string };
         const userRepository = AppDataSource.getRepository(User);
         const user = await userRepository.findOne({ 
-            where: { rut: decoded.rut, email: decoded.email },
+            where: { rut: decoded.rut, corporateEmail: decoded.corporateEmail },
             relations: ["trabajador"]
         });
 

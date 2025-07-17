@@ -53,7 +53,7 @@ async function limpiarBaseDatos() {
         const superAdmin = await userRepo.findOne({
             where: { role: "SuperAdministrador" }
         });
-        console.log(`📋 Usuario preservado: SuperAdministrador (${superAdmin?.email})`);
+        console.log(`📋 Usuario preservado: SuperAdministrador (${superAdmin?.corporateEmail})`);
 
         console.log("✅ Base de datos limpiada exitosamente");
     } catch (error) {

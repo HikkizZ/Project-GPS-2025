@@ -58,7 +58,7 @@ async function generateCorporateEmail(primerNombre: string, apellidoPaterno: str
     const baseEmail = `${primerNombre}.${apellidoPaterno}@lamas.com`;
     
     // Verificar si el correo base ya existe
-    let existingUser = await userRepo.findOne({ where: { email: baseEmail } });
+    let existingUser = await userRepo.findOne({ where: { corporateEmail: baseEmail } });
     if (!existingUser) {
         return baseEmail;
     }
@@ -67,7 +67,7 @@ async function generateCorporateEmail(primerNombre: string, apellidoPaterno: str
     let counter = 1;
     let newEmail = `${primerNombre}.${apellidoPaterno}${counter}@lamas.com`;
     
-    while (await userRepo.findOne({ where: { email: newEmail } })) {
+    while (await userRepo.findOne({ where: { corporateEmail: newEmail } })) {
         counter++;
         newEmail = `${primerNombre}.${apellidoPaterno}${counter}@lamas.com`;
     }
@@ -183,7 +183,7 @@ export async function createTrabajadorService(trabajadorData: Partial<Trabajador
             const hashedPassword = await encryptPassword(randomPassword);
             const newUser = queryRunner.manager.create(User, {
                 name: `${trabajador.nombres} ${trabajador.apellidoPaterno} ${trabajador.apellidoMaterno}`,
-                email: correoUsuario,
+                corporateEmail: correoUsuario,
                 password: hashedPassword,
                 role: "Usuario" as userRole,
                 rut: trabajador.rut,
@@ -383,8 +383,8 @@ export async function updateTrabajadorService(id: number, data: any): Promise<Se
         data = limpiarCamposTexto(data);
 
         let updated = false;
-        let correoUsuarioAnterior = trabajador.usuario.email;
-        let correoPersonalAnterior = trabajador.correo;
+        let correoUsuarioAnterior = trabajador.usuario.corporateEmail;
+        let correoPersonalAnterior = trabajador.correoPersonal;
 
         // Actualizar campos permitidos del trabajador
         const camposPermitidos = [
@@ -404,7 +404,7 @@ export async function updateTrabajadorService(id: number, data: any): Promise<Se
             const primerNombre = (data.nombres || trabajador.nombres).split(' ')[0].toLowerCase().normalize('NFD').replace(/[^a-zA-Z]/g, '');
             const apellidoPaterno = (data.apellidoPaterno || trabajador.apellidoPaterno).toLowerCase().normalize('NFD').replace(/[^a-zA-Z]/g, '');
             const nuevoCorreoUsuario = await generateCorporateEmail(primerNombre, apellidoPaterno);
-            trabajador.usuario.email = nuevoCorreoUsuario;
+            trabajador.usuario.corporateEmail = nuevoCorreoUsuario;
             updated = true;
         }
 

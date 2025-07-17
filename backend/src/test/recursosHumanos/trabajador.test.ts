@@ -83,7 +83,7 @@ describe('👥 Pruebas de Trabajadores', () => {
                     rut: validRut,
                     fechaNacimiento: "1990-01-01",
                     telefono: "+56912345678",
-                    correo: uniqueEmail,
+                    correoPersonal: uniqueEmail,
                     numeroEmergencia: "+56987654321",
                     direccion: "Av. Principal 123",
                     fechaIngreso: "2024-01-01",
@@ -123,7 +123,7 @@ describe('👥 Pruebas de Trabajadores', () => {
                     rut: "123456789", // RUT inválido
                     fechaNacimiento: "1995-05-15",
                     telefono: "+56912345678",
-                    correo: "maria.lopez@gmail.com",
+                    correoPersonal: "maria.lopez@gmail.com",
                     numeroEmergencia: "+56987654321",
                     direccion: "Calle Secundaria 456",
                     fechaIngreso: "2024-01-01"
@@ -134,7 +134,7 @@ describe('👥 Pruebas de Trabajadores', () => {
             expect(response.body.message).to.include("RUT");
         });
 
-        it('no debe permitir crear un trabajador con correo duplicado', async () => {
+        it('no debe permitir crear un trabajador con correo personal duplicado', async () => {
             const response = await request(app)
                 .post('/api/trabajador')
                 .set('Authorization', `Bearer ${rrhToken}`)
@@ -145,7 +145,7 @@ describe('👥 Pruebas de Trabajadores', () => {
                     rut: "44.444.444-4",
                     fechaNacimiento: "1992-05-15",
                     telefono: "+56912345678",
-                    correo: uniqueEmail,
+                    correoPersonal: uniqueEmail,
                     numeroEmergencia: "+56987654321",
                     direccion: "Calle Nueva 789",
                     fechaIngreso: "2024-01-01",
@@ -161,7 +161,7 @@ describe('👥 Pruebas de Trabajadores', () => {
             expect(response.status).to.equal(400);
             expect(response.body.status).to.equal("error");
             expect(response.body.message.toLowerCase()).to.satisfy((msg: string) => 
-                msg.includes('rut') || msg.includes('correo') || msg.includes('duplicado')
+                msg.includes('rut') || msg.includes('correoPersonal') || msg.includes('duplicado')
             );
         });
 
@@ -236,7 +236,7 @@ describe('👥 Pruebas de Trabajadores', () => {
                 .set('Authorization', `Bearer ${rrhToken}`)
                 .send({
                     rut: "44.444.444-4",
-                    correo: "nuevo@correo.com",
+                    correoPersonal: "nuevo@correo.com",
                     fechaIngreso: "2023-01-01"
                 });
 

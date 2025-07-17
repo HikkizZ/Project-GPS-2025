@@ -584,16 +584,16 @@ export const ListaGestionSolicitudes: React.FC = () => {
                         <div className="mt-1 font-monospace">{solicitudSeleccionada.trabajador.rut}</div>
                       </div>
                       <div className="mb-3">
-                        <strong className="text-primary">Email Corporativo:</strong>
+                        <strong className="text-primary">Correo Corporativo:</strong>
                         <div className="mt-1">
-                          <a href={`mailto:${solicitudSeleccionada.trabajador.usuario?.email || 'No disponible'}`} className="text-decoration-none">
+                          <a href={`mailto:${solicitudSeleccionada.trabajador.usuario?.corporateEmail || 'No disponible'}`} className="text-decoration-none">
                             <i className="bi bi-building me-1"></i>
-                            {solicitudSeleccionada.trabajador.usuario?.email || 'No disponible'}
+                            {solicitudSeleccionada.trabajador.usuario?.corporateEmail || 'No disponible'}
                           </a>
                         </div>
                       </div>
                       <div className="mb-3">
-                        <strong className="text-primary">Email Personal:</strong>
+                        <strong className="text-primary">Correo Personal:</strong>
                         <div className="mt-1">
                           <a href={`mailto:${solicitudSeleccionada.trabajador.correoPersonal}`} className="text-decoration-none">
                             <i className="bi bi-envelope me-1"></i>
@@ -889,11 +889,11 @@ export const ListaGestionSolicitudes: React.FC = () => {
                 </div>
               </div>
               <div>
-                <div className="text-secondary mb-1">Correo electrónico</div>
+                <div className="text-secondary mb-1">Correo Corporativo</div>
                 <div className="d-flex align-items-center">
                   <i className="bi bi-envelope text-primary me-2"></i>
-                  <a href={`mailto:${revisorSeleccionado.email}`} className="text-decoration-none text-primary">
-                    {revisorSeleccionado.email}
+                  <a href={`mailto:${revisorSeleccionado.corporateEmail}`} className="text-decoration-none text-primary">
+                    {revisorSeleccionado.corporateEmail}
                   </a>
                 </div>
               </div>

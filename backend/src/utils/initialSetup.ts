@@ -35,7 +35,7 @@ export async function initialSetup(): Promise<void> {
             
             const superAdminUser = userRepo.create({
                 name: "Super Administrador Sistema",
-                email: "super.administrador@lamas.com",
+                corporateEmail: "super.administrador@lamas.com",
                 password: superAdminHashedPassword,
                 role: 'SuperAdministrador' as userRole,
                 rut: null,
