@@ -320,7 +320,7 @@ export class LicenciaPermisoService {
   // ==============================
 
   /**
-   * Verificar estados de licencias - solo RRHH
+   * Verificar estados de licencias - SuperAdministrador, Administrador, RecursosHumanos
    */
   async verificarEstadosLicencias(): Promise<ApiResponse<{ activadas: number; desactivadas: number }>> {
     try {
@@ -414,5 +414,4 @@ export const obtenerSolicitudesConFiltros = (filtros: Record<string, any> = {}) 
 export const obtenerSolicitudPorId = (id: number) => licenciaPermisoService.obtenerSolicitudPorId(id);
 export const actualizarSolicitud = (id: number, data: UpdateLicenciaPermisoDTO) => licenciaPermisoService.actualizarSolicitud(id, data);
 
-export const descargarArchivo = (id: number) => licenciaPermisoService.descargarArchivo(id);
-export const verificarLicenciasVencidas = () => licenciaPermisoService.verificarLicenciasVencidas(); 
+export const descargarArchivo = (id: number) => licenciaPermisoService.descargarArchivo(id); 
