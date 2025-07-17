@@ -632,13 +632,8 @@ function App() {
                 <Route path="dashboard" element={<Dashboard user={safeUser} />} />
                 <Route path="recursos-humanos" element={<DashboardRecursosHumanos />} />
                 <Route path="trabajadores" element={<TrabajadoresPage />} />
-<<<<<<< HEAD
-                <Route path="ficha-empresa" element={<FichasEmpresaPage />} />
-                <Route path="ficha-empresa/mi-ficha" element={<FichasEmpresaPage />} />
-=======
                 <Route path="fichas-empresa" element={<FichasEmpresaPage />} />
                 <Route path="fichas-empresa/mi-ficha" element={<FichasEmpresaPage />} />
->>>>>>> 5a76102136aecf8799c9ad67a20d880d78bcc0fd
                 <Route path="bonos" element={<BonosPage />} />
                 <Route path="usuarios" element={<UsersPage />} />
                 <Route path="gestion-personal" element={<GestionPersonalPage />} />
