@@ -322,8 +322,13 @@ export async function updateLicenciaPermisoService(id: number, data: UpdateLicen
       
       if (fechaInicio.getTime() === hoy.getTime()) {
         // Si la fecha de inicio es hoy, cambiar el estado inmediatamente
-        fichaEmpresa.estado = estadoLaboral;
-        await fichaRepo.save(fichaEmpresa);
+        const estadoLaboral = licencia.tipo === TipoSolicitud.LICENCIA ? 
+          EstadoLaboral.LICENCIA : EstadoLaboral.PERMISO;
+        // Antes de cambiar el estado laboral, verificar si la ficha ya está desvinculada
+        if (fichaEmpresa.estado !== EstadoLaboral.DESVINCULADO) {
+          fichaEmpresa.estado = estadoLaboral;
+          await fichaRepo.save(fichaEmpresa);
+        }
       }
     }
 
@@ -405,8 +410,8 @@ export async function verificarEstadosLicenciasService(): Promise<ServiceRespons
             const estadoLaboral = licencia.tipo === TipoSolicitud.LICENCIA ? 
                 EstadoLaboral.LICENCIA : EstadoLaboral.PERMISO;
 
-            // Cambiar estado a licencia/permiso SOLO si es diferente
-            if (fichaEmpresa.estado !== estadoLaboral) {
+            // Cambiar estado a licencia/permiso SOLO si es diferente y NO está desvinculado
+            if (fichaEmpresa.estado !== estadoLaboral && fichaEmpresa.estado !== EstadoLaboral.DESVINCULADO) {
                 fichaEmpresa.estado = estadoLaboral;
                 await fichaRepo.save(fichaEmpresa);
                 activadas++;
@@ -436,8 +441,8 @@ export async function verificarEstadosLicenciasService(): Promise<ServiceRespons
                 }
             });
 
-            // Solo cambiar a ACTIVO si no hay licencias vigentes Y el estado es distinto
-            if (!licenciaVigente && fichaEmpresa.estado !== EstadoLaboral.ACTIVO) {
+            // Solo cambiar a ACTIVO si no hay licencias vigentes Y el estado es distinto y NO está desvinculado
+            if (!licenciaVigente && fichaEmpresa.estado !== EstadoLaboral.ACTIVO && fichaEmpresa.estado !== EstadoLaboral.DESVINCULADO) {
                 fichaEmpresa.estado = EstadoLaboral.ACTIVO;
                 fichaEmpresa.fechaInicioLicencia = null;
                 fichaEmpresa.fechaFinLicencia = null;
