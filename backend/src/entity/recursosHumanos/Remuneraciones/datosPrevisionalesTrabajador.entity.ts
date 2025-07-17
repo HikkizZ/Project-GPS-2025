@@ -14,7 +14,8 @@ export class DatosPrevisionalesTrabajador {
     @PrimaryGeneratedColumn()
     id!: number;
 
-    @ManyToOne(() => Trabajador, trabajador => trabajador.datosPrevisionales, { nullable: false })
+    // @ManyToOne(() => Trabajador, trabajador => trabajador.datosPrevisionales, { nullable: false })
+    @ManyToOne(() => Trabajador, { nullable: false })
     trabajador!: Trabajador;
 
     @ManyToOne(() => PrevisionAFP, afp => afp.asignacionesA, { nullable: false })

@@ -13,7 +13,8 @@ export class AsignarBono {
         id!: number;
 
     //Relación con el trabajador al que se le asigna el bono
-    @ManyToOne(() => Trabajador, trabajador => trabajador.asignaciones, { nullable: true })
+    // @ManyToOne(() => Trabajador, trabajador => trabajador.asignaciones, { nullable: true })
+    @ManyToOne(() => Trabajador, { nullable: true })
         trabajador!: Trabajador;
     // Relación con el bono asignado
     @ManyToOne(() => Bono, bono => bono.asignaciones, { nullable: false })
