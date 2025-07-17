@@ -36,7 +36,7 @@ export type ServiceResponse<T> = [T | null, string | { message: string} | null];
 
 export type QueryParams = {
     id?: number;
-    corporateEmail?: string;
+    email?: string;
     rut?: string;
     role?: userRole;
     name?: string;
