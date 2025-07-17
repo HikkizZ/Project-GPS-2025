@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Card, Row, Col, Container } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/useAuth';
@@ -36,9 +36,19 @@ const DashboardRecursosHumanos: React.FC = () => {
     if (!/(?=.*[a-z])/.test(password)) return 'Debe tener al menos una letra minúscula';
     if (!/(?=.*[A-Z])/.test(password)) return 'Debe tener al menos una letra mayúscula';
     if (!/(?=.*\d)/.test(password)) return 'Debe tener al menos un número';
-    if (!/(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?])/.test(password)) return 'Debe tener al menos un carácter especial';
+    if (!/(?=.*[!@#$%^&*()_\-=[\]{};':"\\|,.<>\/?]).*/.test(password)) return 'Debe tener al menos un carácter especial';
     return null;
   };
+
+  // Validar contraseña en tiempo real
+  useEffect(() => {
+    if (newPassword) {
+      const validation = validatePassword(newPassword);
+      setPasswordError(validation);
+    } else {
+      setPasswordError(null);
+    }
+  }, [newPassword]);
 
   const handleChangePassword = async () => {
     setErrorMsg('');
