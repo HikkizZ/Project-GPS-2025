@@ -18,7 +18,7 @@ export interface ApiResponse<T = any> {
 }
 
 export interface LoginData {
-  email: string;
+  corporateEmail: string;
   password: string;
 }
 
@@ -34,7 +34,7 @@ export interface AuthResponse {
 export interface User {
   id: number;
   name: string;
-  email: string;
+  corporateEmail: string;
   role: UserRole;
   rut: string;
 }
@@ -42,7 +42,7 @@ export interface User {
 export interface SafeUser {
   id: number;
   name: string;
-  email: string;
+  corporateEmail: string;
   role: UserRole;
   rut: string | null;
   estadoCuenta: string;
@@ -52,7 +52,7 @@ export interface SafeUser {
 
 export interface UpdateUserData {
   name?: string;
-  email?: string;
+  corporateEmail?: string;
   role?: UserRole;
   password?: string;
 }
@@ -61,7 +61,7 @@ export interface UpdateUserData {
 export interface CustomJwtPayload {
   id: number;
   name: string;
-  email: string;
+  corporateEmail: string;
   role: UserRole;
   rut: string;
   exp?: number;

@@ -56,7 +56,7 @@ const DashboardRecursosHumanos: React.FC = () => {
     }
     setIsUpdating(true);
     try {
-      // Asegurar que siempre se envía id, rut o email
+      // Asegurar que siempre se envía id, rut o corporateEmail
       let query: any = {};
       if (user.id) query.id = String(user.id);
       else if (user.rut) query.rut = user.rut;

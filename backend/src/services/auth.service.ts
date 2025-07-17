@@ -17,7 +17,7 @@ interface LoginData {
 /* Interface for JWT Payload */
 interface JWTPayload {
   name: string;
-  email: string;
+  corporateEmail: string;
   role: userRole;
   rut: string | null;
 }
@@ -120,7 +120,7 @@ function limpiarCamposTextoUsuario(data: any): any {
     
     // Aplicar trim y eliminar espacios dobles
     if (dataCopia.name) dataCopia.name = dataCopia.name.trim().replace(/\s+/g, ' ');
-    if (dataCopia.email) dataCopia.email = dataCopia.email.trim();
+    if (dataCopia.corporateEmail) dataCopia.corporateEmail = dataCopia.corporateEmail.trim();
     if (dataCopia.rut) dataCopia.rut = dataCopia.rut.trim();
     
     return dataCopia;
@@ -131,12 +131,12 @@ export const createUserService = async (userData: UserData): Promise<[UserRespon
         // LIMPIEZA AUTOMÁTICA: Eliminar espacios extra de todos los campos de texto
         userData = limpiarCamposTextoUsuario(userData);
         
-        const { name, email, password, role, rut } = userData;
+        const { name, corporateEmail, password, role, rut } = userData;
 
         // Verificar si el usuario ya existe
         const existingUser = await AppDataSource.getRepository(User).findOne({
             where: [
-                { email },
+                { corporateEmail },
                 { rut }
             ]
         });
@@ -148,7 +148,7 @@ export const createUserService = async (userData: UserData): Promise<[UserRespon
         // Crear nuevo usuario
         const newUser = new User();
         newUser.name = name;
-        newUser.email = email;
+        newUser.corporateEmail = corporateEmail;
         newUser.password = await encryptPassword(password);
         newUser.role = role;
         newUser.rut = rut;
@@ -161,7 +161,7 @@ export const createUserService = async (userData: UserData): Promise<[UserRespon
         const userResponse: UserResponse = {
             id: savedUser.id,
             name: savedUser.name,
-            email: savedUser.email,
+            corporateEmail: savedUser.corporateEmail,
             role: savedUser.role,
             rut: savedUser.rut,
             estadoCuenta: savedUser.estadoCuenta,

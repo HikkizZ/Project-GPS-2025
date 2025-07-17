@@ -41,7 +41,7 @@ export interface AuthResponse {
 
 export interface JWTPayload {
   name: string;
-  email: string;
+  corporateEmail: string;
   role: UserRole;
   rut: string;
 }
@@ -50,7 +50,7 @@ export interface SafeUser {
     id: number;
     name: string;
     rut: string;
-    email: string;
+    corporateEmail: string;
     role: UserRole;
     estadoCuenta: string;
     createAt: string;

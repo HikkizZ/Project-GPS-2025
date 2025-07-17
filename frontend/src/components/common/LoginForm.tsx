@@ -53,7 +53,7 @@ export const PasswordInput: React.FC<{
 export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, error, setError }) => {
   const { login, isLoading } = useAuth();
   const [formData, setFormData] = useState<LoginData>({
-    email: '',
+    corporateEmail: '',
     password: ''
   });
   const navigate = useNavigate();
