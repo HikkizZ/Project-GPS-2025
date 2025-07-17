@@ -21,13 +21,13 @@ let server: any;
 
 // Credenciales del SuperAdmin para tests
 export const SUPER_ADMIN_CREDENTIALS = {
-    email: "super.administrador@lamas.com",
+    corporateEmail: "super.administrador@lamas.com",
     password: "204_M1n8"
 };
 
 // Credenciales de RRHH para tests
 export const RRHH_CREDENTIALS = {
-    email: "recursoshumanos@gmail.com",
+    corporateEmail: "recursoshumanos@gmail.com",
     password: "RRHH2024"
 };
 

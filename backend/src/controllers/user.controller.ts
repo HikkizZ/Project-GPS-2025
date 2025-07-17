@@ -36,15 +36,15 @@ export const getUsers = async (req: Request, res: Response) => {
 export const updateUser = async (req: Request, res: Response) => {
     try {
         const requester = req.user as User;
-        // Permitir buscar por id, rut o email
-        const { id, rut, email } = req.query;
-        if (!id && !rut && !email) {
-            return res.status(400).json({ message: "Se requiere id, rut o email para identificar el usuario." });
+        // Permitir buscar por id, rut o corporateEmail
+        const { id, rut, corporateEmail } = req.query;
+        if (!id && !rut && !corporateEmail) {
+            return res.status(400).json({ message: "Se requiere id, rut o corporateEmail para identificar el usuario." });
         }
         const query: any = {};
         if (id) query.id = Number(id);
         if (rut) query.rut = String(rut);
-        if (email) query.email = String(email);
+        if (corporateEmail) query.corporateEmail = String(corporateEmail);
         const user = await updateUserService(query, req.body, requester);
         if (!user) {
             return res.status(404).json({ message: "Usuario no encontrado" });

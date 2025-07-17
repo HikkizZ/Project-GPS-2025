@@ -593,7 +593,7 @@ export const ListaGestionSolicitudes: React.FC = () => {
                         </div>
                       </div>
                       <div className="mb-3">
-                        <strong className="text-primary">Email Personal:</strong>
+                        <strong className="text-primary">Correo Personal:</strong>
                         <div className="mt-1">
                           <a href={`mailto:${solicitudSeleccionada.trabajador.correoPersonal}`} className="text-decoration-none">
                             <i className="bi bi-envelope me-1"></i>

@@ -37,7 +37,7 @@ export interface LicenciaPermiso {
   revisadoPor?: {
     id: number;
     name: string;
-    email: string;
+    corporateEmail: string;
     role: string;
     rut: string;
   };

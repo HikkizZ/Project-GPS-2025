@@ -66,7 +66,7 @@ describe('📋 Historial Laboral API', () => {
                 .set('Authorization', `Bearer ${adminToken}`)
                 .send({
                     name: "Test Historial",
-                    email: "test.historial.1@gmail.com",
+                    corporateEmail: "test.historial.1@gmail.com",
                     password: "Test2024",
                     rut: "35.678.901-6",
                     role: "Usuario"
@@ -81,7 +81,7 @@ describe('📋 Historial Laboral API', () => {
             const loginResponse = await request(app)
                 .post('/api/auth/login')
                 .send({
-                    email: "test.historial.1@gmail.com",
+                    corporateEmail: "test.historial.1@gmail.com",
                     password: "Test2024"
                 });
 
