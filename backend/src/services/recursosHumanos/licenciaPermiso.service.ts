@@ -9,6 +9,7 @@ import { LessThan, Not, LessThanOrEqual, MoreThanOrEqual, MoreThan } from "typeo
 import { FileManagementService } from "../fileManagement.service.js";
 import { FileUploadService } from "../fileUpload.service.js";
 import { sendLicenciaPermisoApprovedEmail, sendLicenciaPermisoRejectedEmail } from "../email.service.js";
+import { FichaEmpresa } from "../../entity/recursosHumanos/fichaEmpresa.entity.js";
 
 /**
  * Normaliza el tipo de solicitud - solo acepta valores exactos para mayor profesionalismo
@@ -301,22 +302,17 @@ export async function updateLicenciaPermisoService(id: number, data: UpdateLicen
       }
 
       // Actualizar el estado en la ficha de empresa
-      // Eliminar la importación de actualizarEstadoFichaService
-      // import { actualizarEstadoFichaService } from "./fichaEmpresa.service.js";
-      // Eliminar o adaptar el uso de actualizarEstadoFichaService en el archivo
-      // const [fichaActualizada, errorFicha] = await actualizarEstadoFichaService(
-      //   licencia.trabajador.fichaEmpresa.id,
-      //   estadoLaboral,
-      //   licencia.fechaInicio,
-      //   licencia.fechaFin,
-      //   licencia.motivoSolicitud
-      // );
-
-      // if (errorFicha) {
-      //   await queryRunner.rollbackTransaction();
-      //   await queryRunner.release();
-      //   return [null, errorFicha];
-      // }
+      const fichaRepo = queryRunner.manager.getRepository(FichaEmpresa);
+      const fichaEmpresa = licencia.trabajador.fichaEmpresa;
+      
+      // Actualizar el estado, fechas y motivo de licencia
+      fichaEmpresa.estado = estadoLaboral;
+      fichaEmpresa.fechaInicioLicencia = licencia.fechaInicio;
+      fichaEmpresa.fechaFinLicencia = licencia.fechaFin;
+      fichaEmpresa.motivoLicencia = licencia.motivoSolicitud;
+      
+      // Guardar los cambios en la ficha
+      await fichaRepo.save(fichaEmpresa);
     }
 
     // Guardar los cambios de la licencia
@@ -406,20 +402,15 @@ export async function verificarLicenciasVencidasService(): Promise<ServiceRespon
 
             // Solo cambiar a ACTIVO si no hay licencias vigentes
             if (!licenciaVigente) {
-                // Eliminar la importación de actualizarEstadoFichaService
-                // import { actualizarEstadoFichaService } from "./fichaEmpresa.service.js";
-                // Eliminar o adaptar el uso de actualizarEstadoFichaService en el archivo
-                // const [fichaActualizada, error] = await actualizarEstadoFichaService(
-                //     fichaEmpresa.id,
-                //     EstadoLaboral.ACTIVO,
-                //     new Date(),
-                //     undefined,
-                //     "Fin de licencia/permiso"
-                // );
-
-                // if (!error) {
-                //     actualizaciones++;
-                // }
+                // Actualizar la ficha de empresa a estado ACTIVO y limpiar fechas de licencia
+                const fichaRepo = queryRunner.manager.getRepository(FichaEmpresa);
+                fichaEmpresa.estado = EstadoLaboral.ACTIVO;
+                fichaEmpresa.fechaInicioLicencia = null;
+                fichaEmpresa.fechaFinLicencia = null;
+                fichaEmpresa.motivoLicencia = null;
+                
+                await fichaRepo.save(fichaEmpresa);
+                actualizaciones++;
             }
         }
 
