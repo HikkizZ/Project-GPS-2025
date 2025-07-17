@@ -1,7 +1,6 @@
 import { Request, Response } from "express";
 import { AppDataSource } from "../../config/configDB.js";
 import { FichaEmpresa, EstadoLaboral } from "../../entity/recursosHumanos/fichaEmpresa.entity.js";
-import { Trabajador } from "../../entity/recursosHumanos/trabajador.entity.js";
 import { User } from "../../entity/user.entity.js";
 import { handleSuccess, handleErrorClient, handleErrorServer } from "../../handlers/responseHandlers.js";
 import { FichaEmpresaBodyValidation, FichaEmpresaUpdateValidation, EstadoFichaValidation } from "../../validations/recursosHumanos/fichaEmpresa.validation.js";
@@ -14,8 +13,7 @@ import {
     descargarContratoService,
     uploadContratoService,
     deleteContratoService,
-    assignBonoService,
-    updateAssingBonoService
+    assignBonoService
 } from "../../services/recursosHumanos/fichaEmpresa.service.js";
 import { 
     AsignarBonoValidation
@@ -286,9 +284,10 @@ export async function asignarBono(req: Request, res: Response): Promise<void> {
             });
             return;
         }
-        
+              
         // Asignar el bono al trabajador
-        const [ asignacionBono, errorAsignacion ] = await assignBonoService( validationResult.value );
+        const id = parseInt(req.params.id);
+        const [ asignacionBono, errorAsignacion ] = await assignBonoService( id, validationResult.value );
         if (errorAsignacion) {
             handleErrorClient(res, 400, errorAsignacion as string);
             return;
@@ -300,47 +299,4 @@ export async function asignarBono(req: Request, res: Response): Promise<void> {
     }   
 }
 
-//Actualizar asignación de bono
-export async function updateAssignBono(req: Request, res: Response): Promise<void> {
-    try {
-        if (!req.user?.id) {
-            handleErrorClient(res, 401, "Usuario no autenticado");
-            return;
-        }
-        // Validar que el usuario sea RRHH o SuperAdministrador
-        if (req.user.role !== 'RecursosHumanos' && req.user.role !== 'SuperAdministrador') {
-            handleErrorClient(res, 403, "No tiene permisos para actualizar asignaciones de bonos");
-            return;
-        }
-        // Preparar los datos de la solicitud
-        const requestData = {
-            ...req.body,    
-        };
-        // Validar el cuerpo de la solicitud
-        const validationResult = AsignarBonoValidation.validate(requestData, { abortEarly: false });
-        if (validationResult.error) {
-            handleErrorClient(res, 400, "Error de validación", {
-                errors: validationResult.error.details.map(error => ({
-                    field: error.path.join('.'),
-                    message: error.message
-                }))
-            });
-            return;
-        }
-        // Actualizar la asignación del bono
-        const asignacionId = parseInt(req.params.id);
-        if (isNaN(asignacionId)) {
-            handleErrorClient(res, 400, "ID de asignación de bono inválido");
-            return;
-        }
-        const [ asignacionActualizada, errorActualizacion ] = await updateAssingBonoService( validationResult.value, asignacionId );
-        if (errorActualizacion) {
-            handleErrorClient(res, 400, errorActualizacion as string);
-            return;
-        }
-        handleSuccess(res, 200, "Asignación de bono actualizada exitosamente", asignacionActualizada || {});
-    } catch (error) {
-        console.error("Error al actualizar asignación de bono:", error);
-        handleErrorServer(res, 500, "Error interno del servidor al actualizar asignación de bono");
-    }
-}
+//Actualizar estado asignación de bono
