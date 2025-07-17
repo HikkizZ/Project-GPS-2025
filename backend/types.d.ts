@@ -16,7 +16,7 @@ export type userRole =
 export interface UserResponse {
     id: number;
     name: string;
-    email: string;
+    corporateEmail: string;
     role: userRole;
     rut: string | null;
     estadoCuenta: string;
@@ -36,7 +36,7 @@ export type ServiceResponse<T> = [T | null, string | { message: string} | null];
 
 export type QueryParams = {
     id?: number;
-    email?: string;
+    corporateEmail?: string;
     rut?: string;
     role?: userRole;
     name?: string;
@@ -44,7 +44,7 @@ export type QueryParams = {
 
 export type UpdateUserData = {
     name?: string;
-    email?: string;
+    corporateEmail?: string;
     password?: string;
     role?: userRole;
     rut?: string;
@@ -53,7 +53,7 @@ export type UpdateUserData = {
 
 export interface UserData {
     name: string;
-    email: string;
+    corporateEmail: string;
     password: string;
     role: userRole;
     rut: string;
@@ -61,7 +61,7 @@ export interface UserData {
 }
 
 export interface LoginData {
-    email: string;
+    corporateEmail: string;
     password: string;
 }
 
