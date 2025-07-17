@@ -99,8 +99,7 @@ export const BonosPage = () => {
     const listarBonos = Array.isArray(bonosData)? bonosData : [];
     console.log("typeof bonos:", typeof bonosData);
 
-
-    const bonosList = bonosData?.bonos ?? []; // si bonos o bonos.bonos es undefined, usamos array vacío
+    const bonosList = Array.isArray(bonosData) ? bonosData : []; // Usar directamente el array
 
 
     let groupedAndOrderedBonos: Record<string, Bono[]> = {

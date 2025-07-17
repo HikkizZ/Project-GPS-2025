@@ -222,7 +222,7 @@ export async function getAllLicenciasPermisosService(filtros: any = {}): Promise
       if (licencia.trabajador?.rut) {
         const usuario = await userRepo.findOne({
           where: { rut: licencia.trabajador.rut },
-          select: ['id', 'email', 'role']
+          select: ['id', 'corporateEmail', 'role']
         });
         if (usuario) {
           licencia.trabajador.usuario = usuario;

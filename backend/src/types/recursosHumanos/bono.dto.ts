@@ -95,7 +95,7 @@ export interface AsignarBonoResponseDTO {
     apellidoMaterno: string;
     fechaNacimiento: Date;
     telefono: string;
-    correo: string;
+    correoPersonal: string;
     numeroEmergencia: string;
     direccion: string;
     fechaIngreso: Date;

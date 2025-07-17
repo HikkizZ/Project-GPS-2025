@@ -63,9 +63,9 @@ const RegistrarTrabajadorPage: React.FC<{
       errors.apellidoMaterno = 'Apellido materno debe tener al menos 2 caracteres';
     }
     
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(formData.correoPersonal)) {
-      errors.correoPersonal = 'Email inválido';
+    const correoPersonalRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!correoPersonalRegex.test(formData.correoPersonal)) {
+      errors.correoPersonal = 'Correo personal inválido';
     }
     
     if (formData.telefono.length < 9) {
@@ -220,7 +220,7 @@ const RegistrarTrabajadorPage: React.FC<{
 
                 <div className="row">
                   <div className="col-md-6 mb-3">
-                    <label className="form-label">Email: <span className="text-danger">*</span></label>
+                    <label className="form-label">Correo Personal: <span className="text-danger">*</span></label>
                     <input
                       type="email"
                       className={`form-control ${validationErrors.correoPersonal ? 'is-invalid' : ''}`}

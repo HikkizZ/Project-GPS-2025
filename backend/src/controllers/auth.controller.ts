@@ -12,10 +12,10 @@ export async function login(req: Request, res: Response): Promise<void> {
         res.setHeader('Content-Type', 'application/json');
 
         // Validaciones básicas
-        if (!body.email || typeof body.email !== "string") {
+        if (!body.corporateEmail || typeof body.corporateEmail !== "string") {
             res.status(400).json({
                 status: "error",
-                message: "El email es requerido y debe ser de tipo texto."
+                message: "El correo corporativo es requerido y debe ser de tipo texto."
             });
             return;
         }
@@ -28,7 +28,10 @@ export async function login(req: Request, res: Response): Promise<void> {
             return;
         }
 
-        const [accessToken, error] = await loginService(body);
+        const [accessToken, error] = await loginService({
+            corporateEmail: body.corporateEmail,
+            password: body.password
+        });
 
         if (error) {
             const errorMessage = typeof error === "string" ? error : error.message;

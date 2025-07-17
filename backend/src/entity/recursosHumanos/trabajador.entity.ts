@@ -77,7 +77,7 @@ export class Trabajador {
   telefono!: string;
 
   @Column({ type: "varchar", length: 255, nullable: false })
-  correo!: string;
+  correoPersonal!: string;
 
   @Column({ type: "varchar", length: 12, nullable: true })
   numeroEmergencia!: string;
@@ -124,12 +124,12 @@ export class Trabajador {
   licenciasPermisos!: LicenciaPermiso[];
 
   // Relación 1:1 con usuario (por RUT)
-  @OneToOne("User", "trabajador", { 
+  @OneToOne(() => User, user => user.trabajador, { 
     eager: false,
     nullable: true,
     onDelete: 'SET NULL'
   })
-  usuario?: any;
+  usuario?: User;
 
   @CreateDateColumn({ type: "timestamp" })
   fechaRegistro!: Date;

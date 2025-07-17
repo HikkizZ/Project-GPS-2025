@@ -118,7 +118,7 @@ export const ModalDetallesSolicitud: React.FC<ModalDetallesSolicitudProps> = ({
                   <div className="mt-1 font-monospace">{solicitud.trabajador.rut}</div>
                 </div>
                 <div className="mb-3">
-                  <strong className="text-primary">Email:</strong>
+                  <strong className="text-primary">Correo Corporativo:</strong>
                   <div className="mt-1">
                     <a href={`mailto:${solicitud.trabajador.correo}`} className="text-decoration-none">
                       <i className="bi bi-envelope me-1"></i>

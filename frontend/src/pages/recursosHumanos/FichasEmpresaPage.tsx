@@ -427,11 +427,11 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                           <div className="value">{formatRUT(miFicha.trabajador.rut)}</div>
                         </div>
 
-                        {miFicha.trabajador.usuario?.email && (
+                        {miFicha.trabajador.usuario?.corporateEmail && (
                           <div className="info-field">
                             <i className="bi bi-envelope"></i>
                             <label>Correo Corporativo</label>
-                            <div className="value">{miFicha.trabajador.usuario.email}</div>
+                            <div className="value">{miFicha.trabajador.usuario.corporateEmail}</div>
                           </div>
                         )}
 

@@ -44,7 +44,7 @@ describe('📋 Historial Laboral API', () => {
                     rut: "35.678.901-6",
                     fechaNacimiento: "1990-01-01",
                     telefono: "+56912345678",
-                    correo: "test.historial.1@gmail.com",
+                    correoPersonal: "test.historial.1@gmail.com",
                     numeroEmergencia: "+56987654321",
                     direccion: "Av. Test 123",
                     fechaIngreso: "2024-01-01",
@@ -66,7 +66,7 @@ describe('📋 Historial Laboral API', () => {
                 .set('Authorization', `Bearer ${adminToken}`)
                 .send({
                     name: "Test Historial",
-                    email: "test.historial.1@gmail.com",
+                    corporateEmail: "test.historial.1@gmail.com",
                     password: "Test2024",
                     rut: "35.678.901-6",
                     role: "Usuario"
@@ -81,7 +81,7 @@ describe('📋 Historial Laboral API', () => {
             const loginResponse = await request(app)
                 .post('/api/auth/login')
                 .send({
-                    email: "test.historial.1@gmail.com",
+                    corporateEmail: "test.historial.1@gmail.com",
                     password: "Test2024"
                 });
 

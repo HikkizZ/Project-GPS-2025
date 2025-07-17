@@ -168,10 +168,11 @@ export const EditarTrabajadorModal: React.FC<EditarTrabajadorModalProps> = ({
             {/* Contacto */}
             <div className="col-md-4">
               <Form.Group>
-                <Form.Label className="fw-semibold">Correo de Usuario (Lamas)</Form.Label>
+                <Form.Label className="fw-semibold">Correo Corporativo</Form.Label>
                 <Form.Control
                   type="email"
-                  value={trabajador.usuario?.email || ''}
+                  name="corporateEmail"
+                  value={trabajador.usuario?.corporateEmail || ''}
                   disabled
                   className="bg-light"
                   style={{ borderRadius: '8px' }}
