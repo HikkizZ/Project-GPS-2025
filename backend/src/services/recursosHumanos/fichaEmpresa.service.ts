@@ -512,34 +512,49 @@ export async function assignBonoService (idFicha: number, data: AsignarBonoDTO):
         const hoy = new Date();
         const fechaHoyString = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
     
-        // Comparar directamente las cadenas de fecha en formato yyyy-mm-dd
-        if (data.fechaInicio < fechaHoyString) {
-            await queryRunner.rollbackTransaction();
-            await queryRunner.release();
-            return [null, "La fecha de inicio debe ser hoy o en el futuro"];
-        }
+        
     
         // Crear fechas locales correctamente manejando tanto strings como objetos Date
         let fechaInicio: Date;
-        let fechaFin: Date;
+        let fechaFin: Date | null = null;
         
-        if (typeof data.fechaInicio === 'string') {
-            fechaInicio = new Date(data.fechaInicio + 'T12:00:00');
-        } else {
-            // Si ya es un objeto Date, extraer solo la parte de fecha y crear nuevo Date al mediodía
-            const fechaString = (data.fechaInicio as Date).toISOString().split('T')[0];
-            fechaInicio = new Date(fechaString + 'T12:00:00');
+        fechaInicio = fechaHoyString ? new Date(fechaHoyString) : new Date();
+
+       // Determinar fechaFin según la temporalidad
+        switch (bono.temporalidad) {
+            case 'permanente':
+                // No tiene fecha fin
+                fechaFin = null;
+                break;
+
+            case 'puntual':
+                // Dura 1 mes desde la fecha de inicio como default
+                fechaFin = new Date(fechaInicio);
+                if (bono.duracionMes && bono.duracionMes > 0) {
+                    fechaFin.setMonth(fechaFin.getMonth() + bono.duracionMes);
+                } else {
+                    fechaFin.setMonth(fechaFin.getMonth() + 1);
+                }
+                break;
+
+            case 'recurrente':
+                if (bono.duracionMes && bono.duracionMes > 0) {
+                    fechaFin = new Date(fechaInicio);
+                    fechaFin.setMonth(fechaFin.getMonth() + bono.duracionMes);
+                } else {
+                    fechaFin = null;
+                }
+                break;
+
+            default:
+                // Si llega un tipo desconocido
+                await queryRunner.rollbackTransaction();
+                await queryRunner.release();
+                return [null, "Temporalidad desconocida"];
         }
-        
-        if (typeof data.fechaFin === 'string') {
-            fechaFin = new Date(data.fechaFin + 'T12:00:00');
-        } else {
-            // Si ya es un objeto Date, extraer solo la parte de fecha y crear nuevo Date al mediodía
-            const fechaString = (data.fechaFin as Date).toISOString().split('T')[0];
-            fechaFin = new Date(fechaString + 'T12:00:00');
-        }
-    
-        if (fechaFin <= fechaInicio) {
+
+        // Validar que fechaFin sea posterior a fechaInicio, solo si existe
+        if (fechaFin && fechaFin <= fechaInicio) {
             await queryRunner.rollbackTransaction();
             await queryRunner.release();
             return [null, "La fecha de fin debe ser posterior a la fecha de inicio"];
@@ -550,6 +565,7 @@ export async function assignBonoService (idFicha: number, data: AsignarBonoDTO):
             fichaEmpresa: fichaActual,
             bono: bono,
             fechaAsignacion: fechaHoyString,
+            fechaFinAsignacion: fechaFin === null ? undefined : fechaFin,
             activo: data.activo ?? true, // Por defecto es true si no se especifica
             observaciones: data.observaciones
         };
@@ -570,3 +586,5 @@ export async function assignBonoService (idFicha: number, data: AsignarBonoDTO):
 }
 
 // Actualizar estado Asignación de Bono
+
+// Obtener las asignaciones por fichaEmpresa
