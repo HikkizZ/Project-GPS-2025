@@ -67,7 +67,8 @@ export class MaintenanceRecordService {
 
   async update(id: number, data: UpdateMaintenanceRecordData): Promise<ApiResponse<MaintenanceRecord>> {
     try {
-      const response = await apiClient.put<{ data: MaintenanceRecord }>(`${this.baseURL}/${id}`, data);
+       const response = await apiClient.patch(`${this.baseURL}/${id}`, data); 
+    
       return {
         success: true,
         message: 'Mantención actualizada exitosamente',
