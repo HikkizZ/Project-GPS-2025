@@ -15,7 +15,11 @@ import inventoryExitRoutes from './inventory/inventoryExit.routes.js';
 import inventoryRoutes from './inventory/inventory.routes.js';
 import sparePartRoutes from "./MachineryMaintenance/sparePart.routes.js";
 import maintenanceRecordRoutes from "./MachineryMaintenance/maintenanceRecord.routes.js";
-import maintenanceSparePartRoutes from "./MachineryMaintenance/mainenanceSparePart.routes.js";
+import maintenanceSparePartRoutes from "./MachineryMaintenance/maintenanceSparePart.routes.js";
+import maquinariaRoutes from "./maquinaria/maquinaria.routes.js"
+import compraMaquinariaRoutes from "./maquinaria/compraMaquinaria.routes.js"
+import ventaMaquinariaRoutes from "./maquinaria/ventaMaquinaria.routes.js"
+import arriendoMaquinariaRoutes from "./maquinaria/arriendoMaquinaria.routes.js"
 
 const router: Router = Router();
 
@@ -47,8 +51,16 @@ router.use('/files', filesRoutes);
 router.use('/inventory-entry', inventoryEntryRoutes);
 router.use('/inventory-exit', inventoryExitRoutes);
 router.use('/inventory', inventoryRoutes);
+
+/* Mantención de Maquinaria */
 router.use("/spare-parts", sparePartRoutes);
 router.use("/maintenance-records", maintenanceRecordRoutes);
 router.use("/maintenance-spare-parts", maintenanceSparePartRoutes);
+
+/* Maquinaria routes */
+router.use("/maquinaria", maquinariaRoutes)
+router.use("/compra-maquinaria", compraMaquinariaRoutes)
+router.use("/ventas-maquinaria", ventaMaquinariaRoutes)
+router.use("/arriendos-maquinaria", arriendoMaquinariaRoutes)
 
 export default router;
