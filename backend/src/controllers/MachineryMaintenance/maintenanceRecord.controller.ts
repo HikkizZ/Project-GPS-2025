@@ -38,11 +38,11 @@ export async function getMaintenanceRecords(_req: Request, res: Response): Promi
 
 export async function getMaintenanceRecord(req: Request, res: Response): Promise<void> {
   try {
-    const { id } = req.query;
-    const parsedId = id ? Number(id) : undefined;
+    const { id } = req.params;
+    const parsedId = Number(id);
 
     const { error } = maintenanceRecordQueryValidation.validate({ id: parsedId });
-    if (error || parsedId === undefined) {
+    if (error || isNaN(parsedId)) {
       handleErrorClient(res, 400, error?.message ?? "El parámetro 'id' es obligatorio");
       return;
     }
@@ -60,6 +60,7 @@ export async function getMaintenanceRecord(req: Request, res: Response): Promise
     handleErrorServer(res, 500, (error as Error).message);
   }
 }
+
 
 
 export async function createMaintenance(req: Request, res: Response): Promise<void> {
@@ -87,11 +88,11 @@ export async function createMaintenance(req: Request, res: Response): Promise<vo
 
 export async function updateMaintenance(req: Request, res: Response): Promise<void> {
   try {
-    const { id } = req.query;
-    const parsedId = id ? Number(id) : undefined;
+    const { id } = req.params;
+    const parsedId = Number(id);
 
     const { error: queryError } = maintenanceRecordQueryValidation.validate({ id: parsedId });
-    if (queryError || parsedId === undefined) {
+    if (queryError || isNaN(parsedId)) {
       handleErrorClient(res, 400, queryError?.message ?? "El parámetro 'id' es obligatorio");
       return;
     }
@@ -117,9 +118,10 @@ export async function updateMaintenance(req: Request, res: Response): Promise<vo
 }
 
 
+
 export async function deleteMaintenance(req: Request, res: Response): Promise<void> {
   try {
-    const { id } = req.query;
+    const { id } = req.params;
     const parsedId = id ? Number(id) : undefined;
 
     const { error } = maintenanceRecordQueryValidation.validate({ id: parsedId });
