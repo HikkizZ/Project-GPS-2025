@@ -44,6 +44,9 @@ export class Bono {
     @Column({ type: "boolean", default: true })
     imponible!: boolean;
 
+    @Column({ type: "int", nullable: true })
+    duracionMes?: number;
+
     @OneToMany(() => AsignarBono, asignacion => asignacion.bono)
     asignaciones!: AsignarBono[];
 }
