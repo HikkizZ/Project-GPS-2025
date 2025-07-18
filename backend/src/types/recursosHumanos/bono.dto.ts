@@ -47,7 +47,7 @@ export interface AsignarBonoDTO {
 }
 
 export interface UpdateAsignarBonoDTO {
-    fechaAsignacion?: string | Date;
+    bonoId?: number;
     activo?: boolean;
     observaciones?: string;
 }
