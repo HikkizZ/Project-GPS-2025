@@ -1,0 +1,53 @@
+/* mantencionMaquinaria.css */
+/* Estilos específicos para la página de Mantención de Maquinaria */
+
+.mantencion-page {
+  padding: var(--spacing-xl);
+  background-color: var(--background-white);
+}
+
+.mantencion-page h2 {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-dark);
+  margin-bottom: var(--spacing-lg);
+}
+
+.mantencion-page .mantencion-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-md);
+}
+
+.mantencion-page .mantencion-header .btn {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  padding: 0.5rem 1.2rem;
+  background: var(--gradient-primary);
+  color: white;
+  border: none;
+  border-radius: var(--border-radius);
+  transition: background-color 0.2s ease;
+}
+
+.mantencion-page .mantencion-header .btn:hover {
+  background: var(--gradient-primary-hover);
+}
+
+.mantencion-page .mantencion-table {
+  border-radius: var(--border-radius-lg);
+  overflow: hidden;
+  box-shadow: var(--box-shadow-lg);
+}
+
+.mantencion-page .mantencion-table thead th {
+  background: var(--background-light);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-dark);
+  padding: var(--spacing-md);
+}
+
+.mantencion-page .mantencion-table tbody tr:hover {
+  background-color: #f1f5ff;
+}
