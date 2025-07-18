@@ -18,6 +18,10 @@ export function useUpdateMaintenanceRecord() {
     }
     setLoading(false);
   };
+  if (error) {
+      setError(error);
+      console.error("Error al actualizar:", error); // <- para depurar
+    }
 
   return { update, loading, error, updatedRecord };
 }
