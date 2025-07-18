@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { MaintenanceSparePart } from '../../types/machinaryMaintenance/maintenanceSparePart.types';
-import maintenanceSparePartService from '../../services/machinaryMaintenance/maintenanceSparePart.service';
+import { MaintenanceSparePart } from '../../../types/machinaryMaintenance/maintenanceSparePart.types';
+import maintenanceSparePartService from '../../../services/machinaryMaintenance/maintenanceSparePart.service';
 
 export function useMaintenanceSpareParts() {
   const [mspList, setMspList] = useState<MaintenanceSparePart[]>([]);
