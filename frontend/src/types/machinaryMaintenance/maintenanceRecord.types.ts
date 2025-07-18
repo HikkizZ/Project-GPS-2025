@@ -1,23 +1,42 @@
-import { GrupoMaquinaria } from '../maquinaria/grupoMaquinaria.types';
+export enum EstadoMantencion {
+  PENDIENTE = 'pendiente',
+  EN_PROCESO = 'en_proceso',
+  COMPLETADA = 'completada',
+  IRRECUPERABLE = 'irrecuperable',
+}
+
+export enum RazonMantencion {
+  KILOMETRAJE = 'kilometraje',
+  RUTINA = 'rutina',
+  FALLA = 'falla',
+}
 
 export interface MaintenanceRecord {
   id: number;
-  descripcion: string;
-  tipo: 'por_kilometraje' | 'por_rutina' | 'por_falla';
-  fechaEntrada: string;
-  fechaSalida: string;
-  estado: 'pendiente' | 'en_proceso' | 'completado';
-  maquina: {
+  razonMantencion: RazonMantencion;
+  descripcionEntrada: string;
+  descripcionSalida?: string;
+  fechaEntrada: Date; 
+  fechaSalida?: Date;
+  estado: EstadoMantencion;
+
+  maquinaria: {
     id: number;
     patente: string;
     modelo: string;
-    grupo: GrupoMaquinaria;
+    grupo: string;
   };
-  mecanico: {
+
+  mecanicoAsignado: {
     id: number;
-    nombre: string;
     rut: string;
+    trabajador?: {
+    nombres: string;
+    apellidoPaterno: string;
+    apellidoMaterno: string;
   };
+  };
+
   repuestosUtilizados: {
     id: number;
     nombre: string;
@@ -26,29 +45,34 @@ export interface MaintenanceRecord {
 }
 
 export interface CreateMaintenanceRecordData {
-  descripcion: string;
-  tipo: 'por_kilometraje' | 'por_rutina' | 'por_falla';
-  fechaEntrada: string;
-  fechaSalida?: string;
-  estado: 'pendiente' | 'en_proceso' | 'completado';
   maquinariaId: number;
-  mecanicoId: number;
-  repuestos: {
+  razonMantencion: RazonMantencion;
+  descripcionEntrada: string;
+  mecanicoId: number; 
+  repuestosUtilizados: {
     repuestoId: number;
     cantidad: number;
   }[];
 }
 
 export interface UpdateMaintenanceRecordData {
-  descripcion?: string;
-  tipo?: 'por_kilometraje' | 'por_rutina' | 'por_falla';
-  fechaEntrada?: string;
-  fechaSalida?: string;
-  estado?: 'pendiente' | 'en_proceso' | 'completado';
   maquinariaId?: number;
+  razonMantencion?: RazonMantencion;
+  descripcionEntrada?: string;
   mecanicoId?: number;
-  repuestos?: {
+  estado?: EstadoMantencion;
+  fechaSalida?: string;
+  descripcionSalida?: string;
+  repuestosUtilizados?: {
     repuestoId: number;
     cantidad: number;
   }[];
+}
+
+export interface PaginatedMaintenanceRecords {
+  data: MaintenanceRecord[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
 }
