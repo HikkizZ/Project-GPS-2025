@@ -80,7 +80,7 @@ export class AsignarBono {
         }
         }
     })
-    fechaFinAsignacion!: Date;
+    fechaFinAsignacion!: Date | null;
 
     // Estado de la asignación del bono, de no estar activa la asignación no se considerará para el cálculo de remuneraciones pero se considera para el historial del trabajador
     @Column({ type: "boolean", default: true })
