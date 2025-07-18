@@ -42,7 +42,6 @@ export interface BonoResponseDTO {
 export interface AsignarBonoDTO {
     fichaEmpresaId: number;
     bonoId: number;
-    fechaAsignacion?: string | Date;
     activo?: boolean;
     observaciones?: string;
 }
