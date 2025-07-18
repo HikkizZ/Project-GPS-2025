@@ -11,7 +11,8 @@ import { get } from "http";
 import { Bono } from "../../entity/recursosHumanos/Remuneraciones/Bono.entity.js";
 import { AsignarBono } from "entity/recursosHumanos/Remuneraciones/asignarBono.entity.js"; 
 import { 
-    AsignarBonoDTO 
+    AsignarBonoDTO,
+    UpdateAsignarBonoDTO, 
 } from "types/recursosHumanos/bono.dto.js";
 
 // Interfaz para los parámetros de búsqueda
@@ -565,7 +566,7 @@ export async function assignBonoService (idFicha: number, data: AsignarBonoDTO):
             fichaEmpresa: fichaActual,
             bono: bono,
             fechaAsignacion: fechaHoyString,
-            fechaFinAsignacion: fechaFin === null ? undefined : fechaFin,
+            fechaFinAsignacion: fechaFin === null ? null : fechaFin,
             activo: data.activo ?? true, // Por defecto es true si no se especifica
             observaciones: data.observaciones
         };
@@ -586,5 +587,127 @@ export async function assignBonoService (idFicha: number, data: AsignarBonoDTO):
 }
 
 // Actualizar estado Asignación de Bono
+export async function updateAsignarBonoService( id: number, idFichaActual: number, data: UpdateAsignarBonoDTO ): Promise<ServiceResponse<AsignarBono>> {
+    const queryRunner = AppDataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+    try {
+        const asignarBonoRepo = queryRunner.manager.getRepository(AsignarBono);
+        const fichaRepo = queryRunner.manager.getRepository(FichaEmpresa);
+        const bonoRepo = queryRunner.manager.getRepository(Bono);
+        // Obtener la asignación de bono, bono y la ficha actual
+        const asignacionBono = await asignarBonoRepo.findOne({ 
+            where: { id },
+            relations: ["fichaEmpresa", "fichaEmpresa.trabajador", "bono"]
+        });
+        const fichaActual = await fichaRepo.findOne({
+            where: { id: idFichaActual },
+            relations: ["trabajador", "trabajador.usuario", "asignacionesBonos", "asignacionesBonos.bono"]
+        });
+        const bono = await bonoRepo.findOneBy({ id: data.bonoId });
+        // Validar si la ficha existe
+        if (!fichaActual) {
+            await queryRunner.rollbackTransaction();
+            return [null, "Ficha no encontrada"];
+        }
+        // Validar si la asignación de bono existe
+        if (!asignacionBono) {
+            return [null, "Asignación de bono no encontrada"];
+        }
+        // Validar si el bono existe 
+        if (!bono) {
+            await queryRunner.rollbackTransaction();
+            return [null, "Bono no encontrado"];
+        }
+
+        // Revisar si hubo cambios de actividad, observaciones o bono
+        if (data.bonoId && data.bonoId !== asignacionBono.bono.id) {
+            // Validar si el nuevo bono ya está asignado al trabajador
+            const asignacionExistente = Array.isArray(fichaActual.asignacionesBonos)
+                ? fichaActual.asignacionesBonos.filter(ab => ab.bono.id === bono.id)
+                : [];
+            if (asignacionExistente.length > 0) {
+                await queryRunner.rollbackTransaction();
+                return [null, "El bono ya está asignado a esta ficha"];
+            }
+        }
+        
+        if (data.bonoId && data.bonoId !== asignacionBono.bono.id) {
+            // Actualizar los campos de la asignación de bono
+            asignacionBono.bono = bono;
+            // Esto implicaría  cambiar las fechas de asignación
+            // Validar fechas - usar comparación de strings y crear fechas locales correctamente
+            const hoy = new Date();
+            const fechaHoyString = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
+            // Crear fechas locales correctamente manejando tanto strings como objetos Date
+            let fechaInicio: Date;
+            let fechaFin: Date | null = null;
+            fechaInicio = fechaHoyString ? new Date(fechaHoyString) : new Date();
+            // Determinar fechaFin según la temporalidad
+            switch (bono.temporalidad) {
+                case 'permanente':
+                    // No tiene fecha fin
+                    fechaFin = null;
+                    break;
+
+                case 'puntual':
+                    // Dura 1 mes desde la fecha de inicio como default
+                    fechaFin = new Date(fechaInicio);
+                    if (bono.duracionMes && bono.duracionMes > 0) {
+                        fechaFin.setMonth(fechaFin.getMonth() + bono.duracionMes);
+                    } else {
+                        fechaFin.setMonth(fechaFin.getMonth() + 1);
+                    }
+                    break;
+
+                case 'recurrente':
+                    if (bono.duracionMes && bono.duracionMes > 0) {
+                        fechaFin = new Date(fechaInicio);
+                        fechaFin.setMonth(fechaFin.getMonth() + bono.duracionMes);
+                    } else {
+                        fechaFin = null;
+                    }
+                    break;
+
+                default:
+                    // Si llega un tipo desconocido
+                    await queryRunner.rollbackTransaction();
+                    await queryRunner.release();
+                    return [null, "Temporalidad desconocida"];
+            }
+            // Validar que fechaFin sea posterior a fechaInicio, solo si existe
+            if (fechaFin && fechaFin <= fechaInicio) {
+                await queryRunner.rollbackTransaction();
+                await queryRunner.release();
+                return [null, "La fecha de fin debe ser posterior a la fecha de inicio"];
+            }
+            asignacionBono.fechaAsignacion = fechaInicio;
+            asignacionBono.fechaFinAsignacion = fechaFin === null ? null : fechaFin;
+        }
+        asignacionBono.activo = data.activo ?? asignacionBono.activo;
+        asignacionBono.observaciones = data.observaciones ?? asignacionBono.observaciones;
+        await asignarBonoRepo.save(asignacionBono);
+        await queryRunner.commitTransaction();
+        await queryRunner.release();
+        // Devolver la asignación de bono actualizada
+        return [asignacionBono, null];
+    } catch (error) {
+        console.error("Error al actualizar asignación de bono:", error);
+        return [null, "Error interno del servidor"];
+    }
+}
 
 // Obtener las asignaciones por fichaEmpresa
+export async function getAsignacionesByFichaService(idFicha: number): Promise<ServiceResponse<AsignarBono[]>> {
+    try {
+        const asignarBonoRepo = AppDataSource.getRepository(AsignarBono);
+        const asignaciones = await asignarBonoRepo.find({
+            where: { fichaEmpresa: { id: idFicha } },
+            relations: ["fichaEmpresa", "fichaEmpresa.trabajador", "bono"]
+        });
+        return [asignaciones, null];
+    } catch (error) {
+        console.error("Error al obtener asignaciones:", error);
+        return [null, "Error interno del servidor"];
+    }   
+}
