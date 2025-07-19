@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { SparePart } from '../../types/machinaryMaintenance/sparePart.types';
-import sparePartService from '../../services/machinaryMaintenance/sparePart.service';
+import { SparePart } from '../../../types/machinaryMaintenance/sparePart.types';
+import sparePartService from '../../../services/machinaryMaintenance/sparePart.service';
 
 export function useSpareParts() {
   const [spareParts, setSpareParts] = useState<SparePart[]>([]);
