@@ -10,12 +10,13 @@ import { Trabajador } from '@/types/recursosHumanos/trabajador.types';
 interface RegisterTrabajadorFormProps {
   onSuccess: () => void;
   onCancel: () => void;
+  rutPrellenado?: string;
 }
 
 interface VerificarRUTModalProps {
   show: boolean;
   onHide: () => void;
-  onRegistroNormal: () => void;
+  onRegistroNormal: (rut: string) => void;
   onReactivacion: (trabajador: Trabajador) => void;
 }
 
@@ -64,7 +65,7 @@ export const VerificarRUTModal: React.FC<VerificarRUTModalProps> = ({
       if (!existe) {
         // RUT no existe - ir a registro normal
         onHide();
-        onRegistroNormal();
+        onRegistroNormal(rut);
       } else if (activo) {
         // RUT existe y está activo - mostrar error
         setError('Este trabajador ya existe y está activo en el sistema');
@@ -489,7 +490,8 @@ export const ReactivarTrabajadorModal: React.FC<ReactivarTrabajadorModalProps> =
 
 export const RegisterTrabajadorForm: React.FC<RegisterTrabajadorFormProps> = ({
   onSuccess,
-  onCancel
+  onCancel,
+  rutPrellenado
 }) => {
   const { createTrabajador } = useTrabajadores();
   const { formatRUT, validateRUT } = useRut();
@@ -500,7 +502,7 @@ export const RegisterTrabajadorForm: React.FC<RegisterTrabajadorFormProps> = ({
   const [validated, setValidated] = useState(false);
   
   const [formData, setFormData] = useState<CreateTrabajadorData>({
-    rut: '',
+    rut: rutPrellenado || '',
     nombres: '',
     apellidoPaterno: '',
     apellidoMaterno: '',
@@ -613,10 +615,18 @@ export const RegisterTrabajadorForm: React.FC<RegisterTrabajadorFormProps> = ({
                 required
                 style={{ borderRadius: '8px' }}
                 isInvalid={validated && !validateRUT(formData.rut)}
+                disabled={!!rutPrellenado}
+                className={rutPrellenado ? "bg-light" : ""}
               />
               <Form.Control.Feedback type="invalid">
                 {validated && !validateRUT(formData.rut) && 'RUT inválido'}
               </Form.Control.Feedback>
+              {rutPrellenado && (
+                <Form.Text className="text-muted small">
+                  <i className="bi bi-check-circle me-1 text-success"></i>
+                  RUT verificado automáticamente
+                </Form.Text>
+              )}
             </Form.Group>
           </div>
           <div className="col-md-4">
