@@ -35,6 +35,12 @@ export const CreateBonoValidation = Joi.object({
     imponible: Joi.boolean().default(true).messages({
         'boolean.base': 'El estado imponible debe ser un booleano',
         'any.default': 'El estado imponible es requerido'
+    }),
+
+    duracionMes: Joi.number().integer().min(1).optional().messages({
+        'number.base': 'La duración en meses debe ser un número entero',
+        'number.integer': 'La duración en meses debe ser un número entero',
+        'number.min': 'La duración en meses debe ser al menos 1'
     })
 });
 
@@ -44,25 +50,12 @@ export const CreateBonoValidation = Joi.object({
 //puede recibir bonos en diferentes momentos, por lo que no es necesario que exista una relación directa
 //entre un bono y un trabajador en la base de datos, sino que se puede asignar
 export const AsignarBonoValidation = Joi.object({
-    fichaEmpresaId: Joi.number().integer().positive().required().messages({
-        'number.base': 'El ID de la ficha de empresa debe ser un número',
-        'number.integer': 'El ID de la ficha de empresa debe ser un número entero',
-        'number.positive': 'El ID de la ficha de empresa debe ser positivo',
-        'any.required': 'El ID de la ficha de empresa es requerido'
-    }),
-    
+
     bonoId: Joi.number().integer().positive().required().messages({
         'number.base': 'El ID del bono debe ser un número',
         'number.integer': 'El ID del bono debe ser un número entero',
         'number.positive': 'El ID del bono debe ser positivo',
         'any.required': 'El ID del bono es requerido'
-    }),
-    
-    fechaAsignacion: Joi.date().iso().required().min('now').messages({
-        'date.base': 'La fecha de entrega debe ser una fecha válida',
-        'date.format': 'La fecha de entrega debe estar en formato ISO (YYYY-MM-DD)',
-        'date.min': 'La fecha de entrega debe ser una fecha actual o futura',
-        'any.required': 'La fecha de entrega es requerida'
     }),
     
     activo: Joi.boolean().optional(),
@@ -102,6 +95,11 @@ export const UpdateBonoValidation = Joi.object({
     }),
     imponible: Joi.boolean().optional().messages({
         'boolean.base': 'El estado imponible debe ser un booleano'
+    }),
+    duracionMes: Joi.number().integer().min(1).optional().messages({
+        'number.base': 'La duración en meses debe ser un número entero',
+        'number.integer': 'La duración en meses debe ser un número entero',
+        'number.min': 'La duración en meses debe ser al menos 1'
     })
 });
 
