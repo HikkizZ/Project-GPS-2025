@@ -102,8 +102,8 @@ export const VerificarRUTModal: React.FC<VerificarRUTModalProps> = ({
     <Modal show={show} onHide={handleClose} centered>
       <Modal.Header closeButton>
         <Modal.Title>
-          <i className="bi bi-person-plus me-2"></i>
-          Registrar Trabajador
+          <i className="bi bi-search me-2"></i>
+          Verificar Trabajador
         </Modal.Title>
       </Modal.Header>
       

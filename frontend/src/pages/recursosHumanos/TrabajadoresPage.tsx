@@ -164,7 +164,7 @@ export const TrabajadoresPage: React.FC = () => {
                     onClick={handleRegistrarClick}
                   >
                     <i className="bi bi-person-plus-fill me-2"></i>
-                    Registrar Trabajador
+                    Registrar o Reactivar Trabajador
                   </Button>
                 </div>
               </div>
