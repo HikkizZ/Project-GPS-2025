@@ -5,6 +5,7 @@ export interface CreateBonoDTO {
     temporalidad?: "permanente" | "recurrente" | "puntual";
     descripcion?: string;
     imponible?: boolean;
+    duracionMes?: number; // Duración en meses, opcional para bonos puntuales
 }
 
 export interface UpdateBonoDTO {
@@ -14,6 +15,7 @@ export interface UpdateBonoDTO {
     temporalidad?: "permanente" | "recurrente" | "puntual";
     descripcion?: string;
     imponible?: boolean;
+    duracionMes?: number; // Duración en meses, opcional para bonos puntuales
 }
 
 export interface BonoQueryDTO {
