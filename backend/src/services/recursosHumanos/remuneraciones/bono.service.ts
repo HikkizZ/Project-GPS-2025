@@ -14,7 +14,7 @@ import {
     UpdateAsignarBonoDTO } 
     from "types/recursosHumanos/bono.dto.js";
 import { ServiceResponse } from "../../../../types.js";
-import { Between, Like, FindManyOptions, DeepPartial } from "typeorm";
+import { Between, Like, FindManyOptions, DeepPartial, Not } from "typeorm";
 import { date } from "joi";
 
 export async function getAllBonosService(): Promise<ServiceResponse<{ bonos: Bono[]; total: number }>> {
@@ -65,6 +65,7 @@ export async function createBonoService(data: CreateBonoDTO): Promise<ServiceRes
             temporalidad: data.temporalidad as temporalidad,
             descripcion: data.descripcion,
             imponible: data.imponible ?? true, // Por defecto es true si no se especifica
+            duracionMes: data.duracionMes,
         }
 
         // Validar si el bono ya existe
@@ -109,6 +110,29 @@ try {
     if (!bono) {
         return [null, "Bono no encontrado"];
     }
+    //Validar que el nombre a actualizar no sea igual a uno existente en el repositorio actual
+    if (data.nombreBono !== undefined) {
+        // Validar que el nombre del bono no esté vacío
+        if (data.nombreBono.trim() === "") {
+            return [null, "El nombre del bono no puede estar vacío"];
+        }
+        // Validar que el nombre del bono no sea igual a uno existente en el repositorio actual
+        const existingBono = await bonosRep.findOne({
+            where: { nombreBono: data.nombreBono, id: Not(id) } // Excluir el bono actual
+        });
+        if (existingBono) {
+            return [null, "Ya existe un bono con el mismo nombre"];
+        }
+    }
+    // Validar que las caracteristicas del bono no sean iguales a las del bono actual
+    if (data.monto === bono.monto &&
+        data.tipoBono === bono.tipoBono &&
+        data.temporalidad === bono.temporalidad &&
+        data.imponible === bono.imponible &&
+        data.descripcion === bono.descripcion &&
+        data.duracionMes === bono.duracionMes) {
+        return [null, "No se han realizado cambios en el bono"];
+    }
     // Actualizar campos del bono
     if (data.nombreBono !== undefined) bono.nombreBono = data.nombreBono
     if (data.monto !== undefined) bono.monto = data.monto;
@@ -116,31 +140,7 @@ try {
     if (data.temporalidad !== undefined) bono.temporalidad = data.temporalidad as temporalidad;
     if (data.descripcion !== undefined) bono.descripcion = data.descripcion;
     if (data.imponible !== undefined) bono.imponible = data.imponible;
-    
-    // Validar si el bono con los nuevos datos choca con otro existente
-    
-    const existingBonoId = await bonosRep.findOne({
-        where: {
-            nombreBono: bono.nombreBono 
-        }
-    });
-
-    if (existingBonoId) {
-        return [null, "Ya existe un bono con el mismo nombre"];
-    }
-    
-    const existingBonoCar = await bonosRep.findOne({
-        where: {          
-            tipoBono: bono.tipoBono ,
-            temporalidad: bono.temporalidad,
-            monto: bono.monto,
-            imponible: bono.imponible
-        }
-    });
-
-    if (existingBonoCar) {
-        return [null, "Ya existe un bono con las mismas caracteristicas"];
-    }
+    if (data.duracionMes !== undefined) bono.duracionMes = data.duracionMes;
 
     // Guardar cambios
     await bonosRep.save(bono);
