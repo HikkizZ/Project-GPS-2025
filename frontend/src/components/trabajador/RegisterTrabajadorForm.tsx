@@ -129,12 +129,6 @@ export const VerificarRUTModal: React.FC<VerificarRUTModalProps> = ({
             </Col>
           </Row>
 
-          {error && (
-            <Alert variant="danger" className="mt-3">
-              <i className="bi bi-exclamation-triangle me-2"></i>
-              {error}
-            </Alert>
-          )}
         </Form>
       </Modal.Body>
 
