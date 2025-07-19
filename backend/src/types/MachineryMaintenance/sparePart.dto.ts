@@ -1,7 +1,7 @@
 import { GrupoMaquinaria } from "../../entity/maquinaria/maquinaria.entity.js";
 
 export type CreateSparePartDTO = {
-  nombre: string;
+  name: string;
   stock: number;
   marca: string;
   modelo: string;
