@@ -8,8 +8,30 @@ export async function createSparePart(data: CreateSparePartDTO): Promise<Service
   try {
     const repo = AppDataSource.getRepository(SparePart);
 
+    const existe = await repo.findOne({
+      where:{
+        name: data.name.trim(),
+        marca: data.marca.trim(),
+        modelo: data.modelo.trim(),
+        grupo: data.grupo,
+      }
+    })
+
+    if(existe){
+      return[null, "Ya existe un repuesto con ese nombre, marca, modelo y grupo de maquinaria"]
+    }
+
+    if (data.stock < 0) {
+    return [null, "El stock no puede ser negativo"];
+    }
+
+    if (data.anio < 2000 || data.anio > new Date().getFullYear()){
+    return [null, "El año no puede ser negativo"];
+    }
+
+
     const nuevo = repo.create({
-      name: data.nombre,
+      name: data.name,
       stock: data.stock,
       marca: data.marca,
       modelo: data.modelo,
@@ -71,8 +93,52 @@ export async function updateSparePart(id: number, data: UpdateSparePartDTO): Pro
     if (!existente) {
       return [null, "Repuesto no encontrado"];
     }
+    
+    const nombre = data.name?.trim() ?? existente.name;
+    const marca = data.marca?.trim() ?? existente.marca;
+    const modelo = data.modelo?.trim() ?? existente.modelo;
+    const grupo = data.grupo ?? existente.grupo;
 
-    if (data.nombre !== undefined) existente.name = data.nombre;
+    const duplicado = await repo.findOne({
+      where: {
+        name: nombre,
+        marca: marca,
+        modelo: modelo,
+        grupo: grupo,
+      },
+    });
+
+    if (duplicado && duplicado.id !== id) {
+      return [null, "Ya existe un repuesto con ese nombre, marca, modelo y grupo de maquinaria"];
+    }
+   
+    if (data.stock !== undefined && data.stock < 0) {
+      return [null, "El stock no puede ser negativo"];
+    }
+
+    
+    if (
+      data.anio !== undefined &&
+      (data.anio < 2000 || data.anio > new Date().getFullYear())
+    ) {
+      return [null, `El año debe estar entre 2000 y ${new Date().getFullYear()}`];
+    }
+
+   
+    if (data.name && data.grupo) {
+      const duplicado = await repo.findOne({
+        where: {
+          name: data.name.trim(),
+          grupo: data.grupo,
+        },
+      });
+
+      if (duplicado && duplicado.id !== id) {
+        return [null, "Ya existe un repuesto con ese nombre en ese grupo"];
+      }
+    }
+
+    if (data.name !== undefined) existente.name = data.name;
     if (data.stock !== undefined) existente.stock = data.stock;
     if (data.marca !== undefined) existente.marca = data.marca;
     if (data.modelo !== undefined) existente.modelo = data.modelo;
