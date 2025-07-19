@@ -34,9 +34,9 @@ router
     .delete("/:id/contrato", deleteContrato);
 
     // Asignación de bonos
-router.post("/:id/asignar", asignarBono); // Asignar bono a la ficha de empresa de un trabajador
-router.get("/:id/asignaciones", getAsignacionesByFicha); // Obtener asignaciones de bonos por ficha de empresa
-router.post("/:id/asignaciones/verificar", verifyRole(["RecursosHumanos", "Administrador", "SuperAdministrador"]), verificarEstadoAsignacionBono);
-router.put("/:id/asignaciones/:asignacionId", updateAsignacionBono); // Actualizar asignación de bono
+router.post("/:idFicha/asignar", asignarBono); // Asignar bono a la ficha de empresa de un trabajador
+router.get("/:idFicha/asignaciones", getAsignacionesByFicha); // Obtener asignaciones de bonos por ficha de empresa
+router.post("/:idFicha/asignaciones/verificar", verifyRole(["RecursosHumanos", "Administrador", "SuperAdministrador"]), verificarEstadoAsignacionBono);
+router.put("/:idFicha/asignaciones/:asignacionId", updateAsignacionBono); // Actualizar asignación de bono
 
 export default router; 
