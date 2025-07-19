@@ -39,7 +39,7 @@ export async function getSpareParts(_req: Request, res: Response): Promise<void>
 // GET ONE
 export async function getSparePartById(req: Request, res: Response): Promise<void> {
   try {
-    const { id } = req.query;
+    const { id } = req.params;
     const parsedId = id ? Number(id) : undefined;
 
     const { error } = sparePartQueryValidation.validate({ id: parsedId });
@@ -89,7 +89,7 @@ export async function createSpare(req: Request, res: Response): Promise<void> {
 // UPDATE
 export async function updateSpare(req: Request, res: Response): Promise<void> {
   try {
-    const { id } = req.query;
+    const { id } = req.params;
     const parsedId = id ? Number(id) : undefined;
 
     const { error: queryError } = sparePartQueryValidation.validate({ id: parsedId });
@@ -121,7 +121,7 @@ export async function updateSpare(req: Request, res: Response): Promise<void> {
 // DELETE
 export async function deleteSpare(req: Request, res: Response): Promise<void> {
   try {
-    const { id } = req.query;
+    const { id } = req.params;
     const parsedId = id ? Number(id) : undefined;
 
     const { error } = sparePartQueryValidation.validate({ id: parsedId });

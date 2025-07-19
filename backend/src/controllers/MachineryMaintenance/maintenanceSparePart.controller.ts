@@ -45,7 +45,7 @@ export async function createMaintenanceSpare(req: Request, res: Response): Promi
 
 export async function updateMaintenanceSpare(req: Request, res: Response): Promise<void> {
   try {
-    const { id } = req.query;
+    const { id } = req.params;
     const parsedId = id ? Number(id) : undefined;
 
     const { error: queryError } = maintenanceSparePartQueryValidation.validate({ id: parsedId });
@@ -92,7 +92,7 @@ export async function getMaintenanceSpareParts(_req: Request, res: Response): Pr
 
 export async function getMaintenanceSparePartById(req: Request, res: Response): Promise<void> {
   try {
-    const { id } = req.query;
+    const { id } = req.params;
     const parsedId = id ? Number(id) : undefined;
 
     const { error } = maintenanceSparePartQueryValidation.validate({ id: parsedId });
@@ -118,7 +118,7 @@ export async function getMaintenanceSparePartById(req: Request, res: Response): 
 
 export async function deleteMaintenanceSpare(req: Request, res: Response): Promise<void> {
   try {
-    const { id } = req.query;
+    const { id } = req.params;
     const parsedId = id ? Number(id) : undefined;
 
     const { error } = maintenanceSparePartQueryValidation.validate({ id: parsedId });
