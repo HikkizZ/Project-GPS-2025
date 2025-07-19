@@ -9,6 +9,9 @@ import {
     uploadContrato,
     deleteContrato,
     asignarBono,
+    verificarEstadoAsignacionBono,
+    updateAsignacionBono,
+    getAsignacionesByFicha
 } from "../../controllers/recursosHumanos/fichaEmpresa.controller.js";
 import { FileUploadService } from "../../services/fileUpload.service.js";
 
@@ -32,5 +35,8 @@ router
 
     // Asignación de bonos
 router.post("/:id/asignar", asignarBono); // Asignar bono a la ficha de empresa de un trabajador
+router.get("/:id/asignaciones", getAsignacionesByFicha); // Obtener asignaciones de bonos por ficha de empresa
+router.post("/:id/asignaciones/verificar", verifyRole(["RecursosHumanos", "Administrador", "SuperAdministrador"]), verificarEstadoAsignacionBono);
+router.put("/:id/asignaciones/:asignacionId", updateAsignacionBono); // Actualizar asignación de bono
 
 export default router; 
