@@ -317,11 +317,13 @@ export async function updateAsignacionBono(req: Request, res: Response): Promise
             handleErrorClient(res, 403, "No tiene permisos para actualizar asignaciones de bonos");
             return;
         }
+        const idFicha = parseInt(req.params.idFicha);
+        const asignacionId = parseInt(req.params.asignacionId);
 
         // Verificar si la asignación de bono existe
-        const AsignarId = parseInt(req.params.id);
+        const AsignarId = parseInt(req.params.asignacionId);
         if (isNaN(AsignarId)) {
-            handleErrorClient(res, 400, "ID inválido");
+            handleErrorClient(res, 400, "ID asignacion inválido");
             return;
         }
         // Preparar los datos de la solicitud
@@ -356,8 +358,7 @@ export async function updateAsignacionBono(req: Request, res: Response): Promise
             handleErrorClient(res, 400, "No se puede actualizar una asignación de bono inactiva");
             return;
         }
-        const idFichaEmpresa = asignacionBono.fichaEmpresa.id;
-        const [updatedAsignacionBono, error] = await updateAsignarBonoService(AsignarId, idFichaEmpresa, validationResult.value);
+        const [updatedAsignacionBono, error] = await updateAsignarBonoService(AsignarId, idFicha, validationResult.value);
         if (error) {
             handleErrorClient(res, 400, error as string);
             return;
@@ -403,13 +404,9 @@ export async function verificarEstadoAsignacionBono(req: Request, res: Response)
 // Obtener asignaciones de bonos por ficha de empresa
 export async function getAsignacionesByFicha(req: Request, res: Response): Promise<void> {
     try {
-        const fichaId = parseInt(req.query.fichaId as string);
-        if (isNaN(fichaId)) {
-            handleErrorClient(res, 400, "ID de ficha inválido");
-            return;
-        }
+        const idFicha = parseInt(req.params.idFicha);
 
-        const [asignaciones, error] = await getAsignacionesByFichaService(fichaId);
+        const [asignaciones, error] = await getAsignacionesByFichaService(idFicha);
         if (error) {
             handleErrorServer(res, 500, typeof error === 'string' ? error : error.message);
             return;
