@@ -67,7 +67,7 @@ class SparePartService {
 
   async update(id: number, data: UpdateSparePartData): Promise<ApiResponse<SparePart>> {
     try {
-      const response = await apiClient.put<{ data: SparePart }>(`${this.baseURL}/${id}`, data);
+      const response = await apiClient.patch<{ data: SparePart }>(`${this.baseURL}/${id}`, data);
       return {
         success: true,
         message: 'Repuesto actualizado exitosamente',
