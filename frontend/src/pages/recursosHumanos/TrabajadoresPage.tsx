@@ -4,7 +4,7 @@ import { useTrabajadores } from '@/hooks/recursosHumanos/useTrabajadores';
 import { Trabajador, TrabajadorSearchQuery } from '@/types/recursosHumanos/trabajador.types';
 import { useRut, usePhone } from '@/hooks/useRut';
 import { useUI, useAuth } from '@/context';
-import { RegisterTrabajadorForm } from '@/components/trabajador/RegisterTrabajadorForm';
+import { RegisterTrabajadorForm, VerificarRUTModal, ReactivarTrabajadorModal } from '@/components/trabajador/RegisterTrabajadorForm';
 import { EditarTrabajadorModal } from '@/components/trabajador/EditarTrabajadorModal';
 import { FiltrosBusquedaHeader } from '@/components/common/FiltrosBusquedaHeader';
 import { useToast, Toast } from '@/components/common/Toast';
@@ -19,7 +19,11 @@ export const TrabajadoresPage: React.FC = () => {
   const { user } = useAuth();
   
   // Estados para los modales y filtros
+  const [showVerificarRUTModal, setShowVerificarRUTModal] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showReactivarModal, setShowReactivarModal] = useState(false);
+  const [trabajadorDesvinculado, setTrabajadorDesvinculado] = useState<Trabajador | null>(null);
+  const [rutVerificado, setRutVerificado] = useState<string>('');
   const [showDesvincularModal, setShowDesvincularModal] = useState(false);
   const [trabajadorToEdit, setTrabajadorToEdit] = useState<Trabajador | null>(null);
   const [trabajadorToDesvincular, setTrabajadorToDesvincular] = useState<Trabajador | null>(null);
@@ -100,6 +104,35 @@ export const TrabajadoresPage: React.FC = () => {
     return user && trabajador.rut && user.rut && trabajador.rut.replace(/\.|-/g, '') === user.rut.replace(/\.|-/g, '');
   };
 
+  // Nuevas funciones para el flujo inteligente
+  const handleRegistrarClick = () => {
+    setRutVerificado(''); // Limpiar RUT anterior
+    setShowVerificarRUTModal(true);
+  };
+
+  const handleRegistroNormal = (rutFromVerification: string) => {
+    setRutVerificado(rutFromVerification);
+    setShowCreateModal(true);
+  };
+
+  const handleReactivacion = (trabajador: Trabajador) => {
+    setTrabajadorDesvinculado(trabajador);
+    setShowReactivarModal(true);
+  };
+
+  const handleRegistroSuccess = () => {
+    setShowCreateModal(false);
+    setRutVerificado(''); // Limpiar RUT después del registro exitoso
+    loadTrabajadores();
+    showSuccess('¡Trabajador registrado!', 'El trabajador se ha registrado exitosamente y se ha creado su ficha de empresa', 4000);
+  };
+
+  const handleReactivacionSuccess = () => {
+    setShowReactivarModal(false);
+    setTrabajadorDesvinculado(null);
+    loadTrabajadores();
+  };
+
   return (
     <Container fluid className="py-2">
       <Row>
@@ -128,7 +161,7 @@ export const TrabajadoresPage: React.FC = () => {
                   </Button>
                   <Button 
                     variant="light"
-                    onClick={() => setShowCreateModal(true)}
+                    onClick={handleRegistrarClick}
                   >
                     <i className="bi bi-person-plus-fill me-2"></i>
                     Registrar Trabajador
@@ -347,7 +380,7 @@ export const TrabajadoresPage: React.FC = () => {
                       <i className="bi bi-people fs-1 text-muted mb-3 d-block"></i>
                       <h5 className="text-muted">No hay trabajadores registrados</h5>
                       <p className="text-muted">Los trabajadores aparecerán aquí cuando sean registrados</p>
-                      <Button variant="primary" onClick={() => setShowCreateModal(true)}>
+                      <Button variant="primary" onClick={handleRegistrarClick}>
                         <i className="bi bi-person-plus me-2"></i>
                         Registrar Primer Trabajador
                       </Button>
@@ -440,8 +473,16 @@ export const TrabajadoresPage: React.FC = () => {
         </Col>
       </Row>
 
-      {/* Modal de registro */}
-      <Modal
+      {/* Modal de verificación de RUT */}
+      <VerificarRUTModal
+        show={showVerificarRUTModal}
+        onHide={() => setShowVerificarRUTModal(false)}
+        onRegistroNormal={handleRegistroNormal}
+        onReactivacion={handleReactivacion}
+      />
+
+      {/* Modal de registro normal */}
+      <Modal 
         show={showCreateModal}
         onHide={() => setShowCreateModal(false)}
         size="lg"
@@ -471,15 +512,25 @@ export const TrabajadoresPage: React.FC = () => {
             </div>
           </div>
           <RegisterTrabajadorForm
-            onSuccess={() => {
-              setShowCreateModal(false);
-              loadTrabajadores();
-              showSuccess('¡Trabajador registrado!', 'El trabajador se ha registrado exitosamente y se ha creado su ficha de empresa', 4000);
-            }}
+            onSuccess={handleRegistroSuccess}
             onCancel={() => setShowCreateModal(false)}
+            rutPrellenado={rutVerificado}
           />
         </Modal.Body>
       </Modal>
+
+      {/* Modal de reactivación */}
+      {trabajadorDesvinculado && (
+        <ReactivarTrabajadorModal
+          show={showReactivarModal}
+          onHide={() => {
+            setShowReactivarModal(false);
+            setTrabajadorDesvinculado(null);
+          }}
+          trabajador={trabajadorDesvinculado}
+          onSuccess={handleReactivacionSuccess}
+        />
+      )}
 
       {/* Modal de desvinculación */}
       <Modal
