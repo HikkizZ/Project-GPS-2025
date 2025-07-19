@@ -107,11 +107,6 @@ export const UpdateBonoValidation = Joi.object({
 
 // Validación para actualizar una asignación de bono
 export const UpdateAsignarBonoValidation = Joi.object({
-    trabajadorId: Joi.number().integer().positive().optional().messages({
-        'number.base': 'El ID del trabajador debe ser un número',
-        'number.integer': 'El ID del trabajador debe ser un número entero',
-        'number.positive': 'El ID del trabajador debe ser positivo'
-    }),
     
     bonoId: Joi.number().integer().positive().optional().messages({
         'number.base': 'El ID del bono debe ser un número',
