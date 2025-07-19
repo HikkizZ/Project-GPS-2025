@@ -2,14 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { Form, Button, Spinner } from 'react-bootstrap';
 import { CreateMaintenanceRecordData, RazonMantencion } from '@/types/machinaryMaintenance/maintenanceRecord.types';
 import { userService } from '@/services/user.service';
-import { maquinariaService } from '@/services/maquinaria/maquinaria.service'; // Asegúrate de tener este servicio
+import { maquinariaService } from '@/services/maquinaria/maquinaria.service';
 import { SafeUser } from '@/types';
-import { Maquinaria } from '@/types/maquinaria.types'; // Define este tipo si no existe
+import { Maquinaria } from '@/types/maquinaria.types';
 
 interface Props {
   initialData?: Partial<CreateMaintenanceRecordData>;
   onSubmit: (data: CreateMaintenanceRecordData) => void;
   loading?: boolean;
+   existingRecords?: any[];
 }
 
 const MaintenanceRecordForm: React.FC<Props> = ({ initialData = {}, onSubmit, loading }) => {
@@ -24,16 +25,50 @@ const MaintenanceRecordForm: React.FC<Props> = ({ initialData = {}, onSubmit, lo
 
   const [mecanicos, setMecanicos] = useState<SafeUser[]>([]);
   const [maquinarias, setMaquinarias] = useState<Maquinaria[]>([]);
+  const [grupoSeleccionado, setGrupoSeleccionado] = useState('');
+  const [patenteSeleccionada, setPatenteSeleccionada] = useState('');
+  const [modeloSeleccionado, setModeloSeleccionado] = useState('');
 
   useEffect(() => {
-    userService.getUsers({ role: 'Mecánico' }).then((res) => {
-      setMecanicos(res.data);
-    });
+    async function cargarDatos() {
+      try {
+        const [maquinariasRes, mecanicosRes] = await Promise.all([
+          maquinariaService.obtenerTodasLasMaquinarias(),
+          userService.getUsers({ role: 'Mecánico' }),
+        ]);
 
-    maquinariaService.obtenerTodasLasMaquinarias().then((res) => {
-      setMaquinarias(res.data);
-    });
+        const maquinarias = maquinariasRes.data || [];
+        const mecanicos = mecanicosRes.data || [];
+
+        setMaquinarias(maquinarias);
+        setMecanicos(mecanicos);
+
+        if (initialData) {
+          setForm((prev) => ({
+            ...prev,
+            maquinariaId: (initialData as any).maquinaria?.id ?? initialData.maquinariaId ?? 0,
+            mecanicoId: (initialData as any).mecanicoAsignado?.id ?? initialData.mecanicoId ?? 0,
+            razonMantencion: initialData.razonMantencion ?? RazonMantencion.RUTINA,
+            descripcionEntrada: initialData.descripcionEntrada ?? '',
+            repuestosUtilizados: initialData.repuestosUtilizados ?? [],
+          }));
+        }
+      } catch (error) {
+        console.error("Error cargando datos:", error);
+      }
+    }
+
+    cargarDatos();
   }, []);
+
+  useEffect(() => {
+    const modelos = maquinarias.filter(
+      (m) => m.grupo === grupoSeleccionado && m.patente === patenteSeleccionada
+    );
+    if (modelos.length === 1) {
+      setModeloSeleccionado(modelos[0].modelo);
+    }
+  }, [grupoSeleccionado, patenteSeleccionada, maquinarias]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
@@ -51,28 +86,87 @@ const MaintenanceRecordForm: React.FC<Props> = ({ initialData = {}, onSubmit, lo
       alert('La descripción debe tener al menos 5 caracteres.');
       return;
     }
-    onSubmit(form);
+
+    const maquinariaEncontrada = maquinarias.find(
+      (m) =>
+        m.grupo === grupoSeleccionado &&
+        m.patente === patenteSeleccionada &&
+        m.modelo === modeloSeleccionado
+    );
+
+    if (!maquinariaEncontrada) {
+      alert("Debe seleccionar una combinación válida de maquinaria.");
+      return;
+    }
+
+    const formToSend: CreateMaintenanceRecordData = {
+      maquinariaId: maquinariaEncontrada.id,
+      mecanicoId: form.mecanicoId,
+      razonMantencion: form.razonMantencion,
+      descripcionEntrada: form.descripcionEntrada,
+      repuestosUtilizados: form.repuestosUtilizados,
+    };
+
+    onSubmit(formToSend);
   };
 
   return (
     <Form onSubmit={handleSubmit}>
-      <Form.Group controlId="maquinariaId">
-        <Form.Label>Maquinaria</Form.Label>
-        <Form.Select
-          name="maquinariaId"
-          value={form.maquinariaId}
-          onChange={handleChange}
-          required
-        >
-          <option value="">Seleccione una maquinaria</option>
-          {maquinarias.map((maq) => (
-            <option key={maq.id} value={maq.id}>
-              {maq.patente} - {maq.marca} {maq.modelo}
-            </option>
-          ))}
-        </Form.Select>
-      </Form.Group>
-          <br></br>
+      <div className="container mt-4">
+        <div className="mb-3">
+          <label htmlFor="selectGrupo" className="form-label">Grupo de maquinaria</label>
+          <select
+            id="selectGrupo"
+            className="form-select form-select-lg"
+            value={grupoSeleccionado}
+            onChange={(e) => setGrupoSeleccionado(e.target.value)}
+          >
+            <option value="">Seleccione grupo</option>
+            {[...new Set(maquinarias.map(m => m.grupo))].map(grupo => (
+              <option key={grupo} value={grupo}>{grupo}</option>
+            ))}
+          </select>
+        </div>
+
+        <div className="d-flex gap-3">
+          <div className="flex-fill">
+            <label htmlFor="selectPatente" className="form-label">Patente</label>
+            <select
+              id="selectPatente"
+              className="form-select"
+              value={patenteSeleccionada}
+              onChange={(e) => setPatenteSeleccionada(e.target.value)}
+            >
+              <option value="">Seleccione patente</option>
+              {maquinarias
+                .filter(m => m.grupo === grupoSeleccionado)
+                .map(m => (
+                  <option key={m.id} value={m.patente}>{m.patente}</option>
+                ))}
+            </select>
+          </div>
+
+          <div className="flex-fill">
+            <label htmlFor="selectModelo" className="form-label">Modelo</label>
+            <select
+              id="selectModelo"
+              className="form-select"
+              value={modeloSeleccionado}
+              onChange={(e) => setModeloSeleccionado(e.target.value)}
+            >
+              <option value="">Seleccione modelo</option>
+              {maquinarias
+                .filter(m => m.grupo === grupoSeleccionado && m.patente === patenteSeleccionada)
+                .map(m => (
+                  <option key={m.id} value={m.modelo}>{m.modelo}</option>
+                ))}
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <br />
+
       <Form.Group controlId="mecanicoId">
         <Form.Label>Mecánico</Form.Label>
         <Form.Select
@@ -89,7 +183,9 @@ const MaintenanceRecordForm: React.FC<Props> = ({ initialData = {}, onSubmit, lo
           ))}
         </Form.Select>
       </Form.Group>
-          <br></br>
+
+      <br />
+
       <Form.Group controlId="razonMantencion">
         <Form.Label>Razón de Mantención</Form.Label>
         <Form.Select
@@ -104,7 +200,9 @@ const MaintenanceRecordForm: React.FC<Props> = ({ initialData = {}, onSubmit, lo
           ))}
         </Form.Select>
       </Form.Group>
-          <br></br>
+
+      <br />
+
       <Form.Group controlId="descripcionEntrada">
         <Form.Label>Descripción</Form.Label>
         <Form.Control
