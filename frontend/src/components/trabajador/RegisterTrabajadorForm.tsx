@@ -287,7 +287,7 @@ export const ReactivarTrabajadorModal: React.FC<ReactivarTrabajadorModalProps> =
         <Form>
           {/* Campos deshabilitados */}
           <Row className="mb-3">
-            <Col md={6}>
+            <Col md={4}>
               <Form.Group>
                 <Form.Label>RUT</Form.Label>
                 <Form.Control
@@ -301,7 +301,7 @@ export const ReactivarTrabajadorModal: React.FC<ReactivarTrabajadorModalProps> =
                 </Form.Text>
               </Form.Group>
             </Col>
-            <Col md={6}>
+            <Col md={4}>
               <Form.Group>
                 <Form.Label>Fecha de Nacimiento</Form.Label>
                 <Form.Control
@@ -312,6 +312,27 @@ export const ReactivarTrabajadorModal: React.FC<ReactivarTrabajadorModalProps> =
                 />
                 <Form.Text className="text-muted">
                   No se puede modificar
+                </Form.Text>
+              </Form.Group>
+            </Col>
+            <Col md={4}>
+              <Form.Group>
+                <Form.Label>Fecha de Ingreso</Form.Label>
+                <Form.Control
+                  type="date"
+                  value={(() => {
+                    const now = new Date();
+                    const year = now.getFullYear();
+                    const month = String(now.getMonth() + 1).padStart(2, '0');
+                    const day = String(now.getDate()).padStart(2, '0');
+                    return `${year}-${month}-${day}`;
+                  })()}
+                  disabled
+                  className="bg-light"
+                />
+                <Form.Text className="text-muted">
+                  <i className="bi bi-info-circle me-1"></i>
+                  Automática (hoy)
                 </Form.Text>
               </Form.Group>
             </Col>
@@ -438,8 +459,7 @@ export const ReactivarTrabajadorModal: React.FC<ReactivarTrabajadorModalProps> =
             <strong>Al reactivar:</strong>
             <ul className="mb-0 mt-2">
               <li>Se generará un nuevo correo corporativo (nunca se reutilizan correos anteriores)</li>
-              <li>Se enviará una nueva contraseña al correo personal</li>
-              <li>La fecha de ingreso será la fecha actual</li>
+              <li>Se enviarán las nuevas credenciales al correo personal</li>
               <li>El rol será "Usuario" por defecto</li>
             </ul>
           </Alert>
