@@ -1,65 +1,95 @@
 import React, { useState } from 'react';
-import { useSpareParts } from '@/hooks/machinaryMaintenance/useSpareParts';
+import { Button, Spinner } from 'react-bootstrap';
 import { SparePart } from '@/types/machinaryMaintenance/sparePart.types';
-import ListaSpareParts from '@/components/machinaryMaintenance/ListaSpareParts';
-import RegisterSparePartForm from '@/components/machinaryMaintenance/RegisterSparePartForm';
-import EditarSparePartModal from '@/components/machinaryMaintenance/EditarSparePartModal';
-import { Toast } from '@/components/common/Toast';
+import { useSpareParts } from '@/hooks/MachinaryMaintenance/SparePart/useSpareParts';
+import { useCreateSparePart } from '@/hooks/MachinaryMaintenance/SparePart/useCreateSparePart';
+import { useUpdateSparePart } from '@/hooks/MachinaryMaintenance/SparePart/useUpdateSparePart';
+import { useDeleteSparePart } from '@/hooks/MachinaryMaintenance/SparePart/useDeleteSparePart';
+import ListSparePart from '@/components/MachineryMaintenance/SpareParts/ListSparePart';
+import SparePartModal from '@/components/MachineryMaintenance/SpareParts/SparePartModal';
+import { Toast, useToast } from '@/components/common/Toast';
 
-const SparePartsPage = () => {
+const SparePartsPage: React.FC = () => {
   const { spareParts, loading, error, reload } = useSpareParts();
-  const [selectedSparePart, setSelectedSparePart] = useState<SparePart | null>(null);
-  const [toast, setToast] = useState<{ show: boolean; message: string; type: 'success' | 'error' }>({
-    show: false,
-    message: '',
-    type: 'success'
-  });
+  const { create, loading: creating } = useCreateSparePart();
+  const { updateSparePart, loading: updating } = useUpdateSparePart();
+  const { deleteSparePart, loading: deleting } = useDeleteSparePart();
 
-  const handleEdit = (repuesto: SparePart) => {
-    setSelectedSparePart(repuesto);
+  const {
+    toasts,
+    removeToast,
+    showSuccess,
+    showError
+  } = useToast();
+
+  const [showModal, setShowModal] = useState(false);
+  const [editingPart, setEditingPart] = useState<SparePart | null>(null);
+
+  const handleOpenModal = (part?: SparePart) => {
+    setEditingPart(part || null);
+    setShowModal(true);
   };
 
   const handleCloseModal = () => {
-    setSelectedSparePart(null);
+    setEditingPart(null);
+    setShowModal(false);
   };
 
-  const handleSuccess = (message: string) => {
-    setToast({ show: true, message, type: 'success' });
-    reload();
-    handleCloseModal();
+  const handleCreateOrUpdate = async (data: any) => {
+    try {
+      if (editingPart) {
+        await updateSparePart(editingPart.id, data);
+        showSuccess('Repuesto actualizado', 'Los cambios han sido guardados');
+      } else {
+        await create(data);
+        showSuccess('Repuesto creado', 'Se registró correctamente');
+      }
+
+      handleCloseModal();
+      reload();
+    } catch (error) {
+      console.error(error);
+      showError('Error al guardar', 'Ocurrió un problema al registrar el repuesto');
+    }
+  };
+
+  const handleDelete = async (id: number) => {
+    if (confirm('¿Estás seguro de eliminar este repuesto?')) {
+      try {
+        await deleteSparePart(id);
+        showSuccess('Repuesto eliminado', 'Se eliminó correctamente');
+        reload();
+      } catch (error) {
+        console.error(error);
+        showError('Error al eliminar', 'No se pudo eliminar el repuesto');
+      }
+    }
   };
 
   return (
     <div className="container mt-4">
-      <h2>Gestión de Repuestos</h2>
-
-      {toast.show && (
-        <Toast
-          message={toast.message}
-          type={toast.type}
-          onClose={() => setToast({ ...toast, show: false })}
-        />
-      )}
-
-      {error && <div className="alert alert-danger">{error}</div>}
-
-      <div className="my-4">
-        <RegisterSparePartForm onSuccess={(msg) => handleSuccess(msg)} />
+      <div className="d-flex justify-content-between align-items-center mb-3">
+        <h2>Repuestos</h2>
+        <Button onClick={() => handleOpenModal()}>+ Registrar Repuesto</Button>
       </div>
 
       {loading ? (
-        <p>Cargando repuestos...</p>
+        <div className="text-center"><Spinner animation="border" /></div>
+      ) : error ? (
+        <div className="text-danger">Error: {error}</div>
       ) : (
-        <ListaSpareParts data={spareParts} onEdit={handleEdit} onReload={reload} />
+        <ListSparePart data={spareParts} onEdit={handleOpenModal} onDelete={handleDelete} onReload={reload} />
       )}
 
-      {selectedSparePart && (
-        <EditarSparePartModal
-          repuesto={selectedSparePart}
-          onClose={handleCloseModal}
-          onSuccess={(msg) => handleSuccess(msg)}
-        />
-      )}
+      <SparePartModal
+        show={showModal}
+        onHide={handleCloseModal}
+        onSubmit={handleCreateOrUpdate}
+        initialData={editingPart || undefined}
+        loading={creating || updating}
+      />
+
+      <Toast toasts={toasts} removeToast={removeToast} />
     </div>
   );
 };
