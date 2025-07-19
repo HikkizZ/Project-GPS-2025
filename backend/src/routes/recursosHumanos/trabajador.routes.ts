@@ -24,7 +24,7 @@ router.post("/", createTrabajador);
 router.put("/:id", updateTrabajador);
 
 // Reactivar trabajador desvinculado (revinculación)
-router.patch("/:rut", reactivarTrabajador);
+router.patch("/:id/reactivar", reactivarTrabajador);
 
 // Desvincular trabajador (soft delete)
 router.delete("/:id", desvincularTrabajador);

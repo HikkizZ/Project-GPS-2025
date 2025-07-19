@@ -150,11 +150,17 @@ export async function desvincularTrabajador(req: Request, res: Response): Promis
 
 export async function reactivarTrabajador(req: Request, res: Response): Promise<void> {
     try {
-        const { rut } = req.params;
+        const { id } = req.params;
         const userId = req.user?.id;
 
-        if (!rut) {
-            handleErrorClient(res, 400, "RUT es requerido");
+        if (!id) {
+            handleErrorClient(res, 400, "ID es requerido");
+            return;
+        }
+
+        const idNumber = parseInt(id);
+        if (isNaN(idNumber)) {
+            handleErrorClient(res, 400, "ID inválido");
             return;
         }
 
@@ -170,7 +176,7 @@ export async function reactivarTrabajador(req: Request, res: Response): Promise<
             return;
         }
 
-        const [result, serviceError] = await reactivarTrabajadorService(rut, req.body, userId);
+        const [result, serviceError] = await reactivarTrabajadorService(idNumber, req.body, userId);
         
         if (serviceError) {
             const errorMessage = typeof serviceError === 'string' ? serviceError : serviceError?.message || "No se pudo reactivar el trabajador";

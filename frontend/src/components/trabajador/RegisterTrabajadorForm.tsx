@@ -224,7 +224,7 @@ export const ReactivarTrabajadorModal: React.FC<ReactivarTrabajadorModalProps> =
 
     setLoading(true);
     try {
-      const response = await trabajadorService.reactivarTrabajador(trabajador.rut, formData);
+      const response = await trabajadorService.reactivarTrabajador(trabajador.id, formData);
       
       if (response.success) {
         showSuccess(

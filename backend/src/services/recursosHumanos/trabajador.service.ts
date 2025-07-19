@@ -489,7 +489,7 @@ export async function updateTrabajadorService(id: number, data: any): Promise<Se
 
 // Servicio para reactivar trabajador desvinculado (revinculación)
 export async function reactivarTrabajadorService(
-    rut: string, 
+    trabajadorId: number, 
     data: {
         nombres: string;
         apellidoPaterno: string;
@@ -511,16 +511,16 @@ export async function reactivarTrabajadorService(
         const fichaRepo = queryRunner.manager.getRepository(FichaEmpresa);
         const historialRepo = queryRunner.manager.getRepository(HistorialLaboral);
 
-        // 1. Validar que el RUT existe y está desvinculado
+        // 1. Validar que el ID existe y está desvinculado
         const trabajador = await trabajadorRepo.findOne({
-            where: { rut: formatRut(rut) },
+            where: { id: trabajadorId },
             relations: ["usuario", "fichaEmpresa"]
         });
 
         if (!trabajador) {
             await queryRunner.rollbackTransaction();
             await queryRunner.release();
-            return [null, "No se encontró un trabajador con ese RUT"];
+            return [null, "No se encontró un trabajador con ese ID"];
         }
 
         if (trabajador.enSistema) {

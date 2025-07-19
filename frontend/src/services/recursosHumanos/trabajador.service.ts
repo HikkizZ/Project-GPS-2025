@@ -111,7 +111,7 @@ export class TrabajadorService {
   }
 
   // Reactivar trabajador desvinculado
-  async reactivarTrabajador(rut: string, data: {
+  async reactivarTrabajador(trabajadorId: number, data: {
     nombres: string;
     apellidoPaterno: string;
     apellidoMaterno: string;
@@ -125,7 +125,7 @@ export class TrabajadorService {
     credencialesEnviadas: boolean;
   }>> {
     try {
-      const response = await apiClient.patch(`${this.baseURL}/${rut}`, data);
+      const response = await apiClient.patch(`${this.baseURL}/${trabajadorId}/reactivar`, data);
       return {
         success: true,
         data: response.data,
