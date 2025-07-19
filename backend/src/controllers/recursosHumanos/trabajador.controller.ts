@@ -4,9 +4,10 @@ import {
     createTrabajadorService,
     getTrabajadoresService,
     updateTrabajadorService,
-    desvincularTrabajadorService
+    desvincularTrabajadorService,
+    reactivarTrabajadorService
 } from "../../services/recursosHumanos/trabajador.service.js";
-import { TrabajadorBodyValidation, TrabajadorQueryValidation, TrabajadorUpdateValidation } from "../../validations/recursosHumanos/trabajador.validation.js";
+import { TrabajadorBodyValidation, TrabajadorQueryValidation, TrabajadorUpdateValidation, TrabajadorReactivacionValidation } from "../../validations/recursosHumanos/trabajador.validation.js";
 
 export async function createTrabajador(req: Request, res: Response): Promise<void> {
     try {
@@ -144,5 +145,53 @@ export async function desvincularTrabajador(req: Request, res: Response): Promis
     } catch (error) {
         console.error("Error en desvincularTrabajador:", error);
         handleErrorServer(res, 500, "Error interno del servidor");
+    }
+} 
+
+export async function reactivarTrabajador(req: Request, res: Response): Promise<void> {
+    try {
+        const { rut } = req.params;
+        const userId = req.user?.id;
+
+        if (!rut) {
+            handleErrorClient(res, 400, "RUT es requerido");
+            return;
+        }
+
+        if (!userId) {
+            handleErrorClient(res, 401, "Usuario no autenticado");
+            return;
+        }
+
+        // Validar datos del body
+        const validationResult = TrabajadorReactivacionValidation.validate(req.body);
+        if (validationResult.error) {
+            handleErrorClient(res, 400, validationResult.error.message);
+            return;
+        }
+
+        const [result, serviceError] = await reactivarTrabajadorService(rut, req.body, userId);
+        
+        if (serviceError) {
+            const errorMessage = typeof serviceError === 'string' ? serviceError : serviceError?.message || "No se pudo reactivar el trabajador";
+            handleErrorClient(res, 400, errorMessage);
+            return;
+        }
+
+        if (!result) {
+            handleErrorClient(res, 400, "No se pudo reactivar el trabajador");
+            return;
+        }
+
+        handleSuccess(res, 200, "Trabajador reactivado exitosamente", {
+            trabajador: result.trabajador,
+            nuevoCorreoCorporativo: result.nuevoCorreoCorporativo,
+            credencialesEnviadas: result.credencialesEnviadas
+        });
+    } catch (error) {
+        console.error("Error al reactivar trabajador:", error);
+        if (!res.headersSent) {
+            handleErrorServer(res, 500, "Error interno del servidor");
+        }
     }
 } 

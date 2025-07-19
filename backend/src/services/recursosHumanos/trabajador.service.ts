@@ -52,27 +52,52 @@ function generateRandomPassword(): string {
     return password.join('');
 }
 
-// Función para generar correo corporativo y manejar duplicados
+// Función para generar correo corporativo y manejar duplicados - NUNCA reutilizar correos anteriores
 async function generateCorporateEmail(primerNombre: string, apellidoPaterno: string): Promise<string> {
     const userRepo = AppDataSource.getRepository(User);
     const baseEmail = `${primerNombre}.${apellidoPaterno}@lamas.com`;
     
-    // Verificar si el correo base ya existe
-    let existingUser = await userRepo.findOne({ where: { corporateEmail: baseEmail } });
-    if (!existingUser) {
+    // Buscar TODOS los correos que coincidan con el patrón base (incluyendo usuarios inactivos/desvinculados)
+    const pattern = `${primerNombre}.${apellidoPaterno}%@lamas.com`;
+    const existingEmails = await userRepo
+        .createQueryBuilder("user")
+        .select("user.corporateEmail")
+        .where("user.corporateEmail ILIKE :pattern", { pattern })
+        .getMany();
+    
+    if (existingEmails.length === 0) {
+        // No hay ningún correo con este patrón, usar el base
         return baseEmail;
     }
-
-    // Si existe, buscar el último número usado
-    let counter = 1;
-    let newEmail = `${primerNombre}.${apellidoPaterno}${counter}@lamas.com`;
     
-    while (await userRepo.findOne({ where: { corporateEmail: newEmail } })) {
-        counter++;
-        newEmail = `${primerNombre}.${apellidoPaterno}${counter}@lamas.com`;
+    // Extraer todos los números usados
+    const numbersUsed: number[] = [];
+    const baseEmailPattern = `${primerNombre}.${apellidoPaterno}`;
+    
+    existingEmails.forEach(user => {
+        const email = user.corporateEmail;
+        // Verificar si es el correo base sin número
+        if (email === baseEmail) {
+            numbersUsed.push(0); // Consideramos el base como "0"
+        } else {
+            // Extraer número del final del correo antes de @lamas.com
+            const match = email.match(new RegExp(`${baseEmailPattern}(\\d+)@lamas\\.com$`));
+            if (match) {
+                numbersUsed.push(parseInt(match[1]));
+            }
+        }
+    });
+    
+    // Encontrar el siguiente número disponible (siempre el mayor + 1)
+    const maxNumber = numbersUsed.length > 0 ? Math.max(...numbersUsed) : -1;
+    const nextNumber = maxNumber + 1;
+    
+    // Si el número es 0, significa que solo existe el base, entonces usar 1
+    if (nextNumber === 0) {
+        return `${primerNombre}.${apellidoPaterno}1@lamas.com`;
     }
     
-    return newEmail;
+    return `${primerNombre}.${apellidoPaterno}${nextNumber}@lamas.com`;
 }
 
 // Función auxiliar para limpiar automáticamente los campos de texto
@@ -459,5 +484,177 @@ export async function updateTrabajadorService(id: number, data: any): Promise<Se
     } catch (error) {
         console.error("Error en updateTrabajadorService:", error);
         return [null, "Error interno del servidor"];
+    }
+}
+
+// Servicio para reactivar trabajador desvinculado (revinculación)
+export async function reactivarTrabajadorService(
+    rut: string, 
+    data: {
+        nombres: string;
+        apellidoPaterno: string;
+        apellidoMaterno: string;
+        correoPersonal: string;
+        telefono?: string;
+        numeroEmergencia?: string;
+        direccion?: string;
+    },
+    userId: number
+): Promise<ServiceResponse<{ trabajador: Trabajador, nuevoCorreoCorporativo: string, credencialesEnviadas: boolean }>> {
+    const queryRunner = AppDataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+        const trabajadorRepo = queryRunner.manager.getRepository(Trabajador);
+        const userRepo = queryRunner.manager.getRepository(User);
+        const fichaRepo = queryRunner.manager.getRepository(FichaEmpresa);
+        const historialRepo = queryRunner.manager.getRepository(HistorialLaboral);
+
+        // 1. Validar que el RUT existe y está desvinculado
+        const trabajador = await trabajadorRepo.findOne({
+            where: { rut: formatRut(rut) },
+            relations: ["usuario", "fichaEmpresa"]
+        });
+
+        if (!trabajador) {
+            await queryRunner.rollbackTransaction();
+            await queryRunner.release();
+            return [null, "No se encontró un trabajador con ese RUT"];
+        }
+
+        if (trabajador.enSistema) {
+            await queryRunner.rollbackTransaction();
+            await queryRunner.release();
+            return [null, "Solo se pueden reactivar trabajadores desvinculados"];
+        }
+
+        if (!trabajador.usuario || !trabajador.fichaEmpresa) {
+            await queryRunner.rollbackTransaction();
+            await queryRunner.release();
+            return [null, "Error: Trabajador sin usuario o ficha de empresa asociada"];
+        }
+
+        // 2. Obtener usuario que registra la reactivación
+        const usuarioRegistra = await userRepo.findOne({ where: { id: userId } });
+        if (!usuarioRegistra) {
+            await queryRunner.rollbackTransaction();
+            await queryRunner.release();
+            return [null, "Usuario registrador no encontrado"];
+        }
+
+        // 3. Limpiar y validar datos
+        const datosLimpios = limpiarCamposTexto(data);
+        
+        if (!datosLimpios.nombres || !datosLimpios.apellidoPaterno || !datosLimpios.apellidoMaterno || !datosLimpios.correoPersonal) {
+            await queryRunner.rollbackTransaction();
+            await queryRunner.release();
+            return [null, "Faltan campos requeridos: nombres, apellidos y correo personal"];
+        }
+
+        // Validar formato de correo
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(datosLimpios.correoPersonal)) {
+            await queryRunner.rollbackTransaction();
+            await queryRunner.release();
+            return [null, "Formato de correo personal inválido"];
+        }
+
+        // 4. Generar nuevo correo corporativo (NUNCA reutilizar anteriores)
+        const primerNombre = datosLimpios.nombres.split(' ')[0].toLowerCase().normalize('NFD').replace(/[^a-zA-Z]/g, '');
+        const apellidoPaterno = datosLimpios.apellidoPaterno.toLowerCase().normalize('NFD').replace(/[^a-zA-Z]/g, '');
+        const nuevoCorreoCorporativo = await generateCorporateEmail(primerNombre, apellidoPaterno);
+
+        // 5. Generar nueva contraseña
+        const nuevaPassword = generateRandomPassword();
+        const hashedPassword = await encryptPassword(nuevaPassword);
+
+        // 6. Actualizar datos del trabajador
+        trabajador.nombres = datosLimpios.nombres;
+        trabajador.apellidoPaterno = datosLimpios.apellidoPaterno;
+        trabajador.apellidoMaterno = datosLimpios.apellidoMaterno;
+        trabajador.correoPersonal = datosLimpios.correoPersonal;
+        trabajador.telefono = datosLimpios.telefono || trabajador.telefono;
+        trabajador.numeroEmergencia = datosLimpios.numeroEmergencia || trabajador.numeroEmergencia;
+        trabajador.direccion = datosLimpios.direccion || trabajador.direccion;
+        trabajador.fechaIngreso = new Date(); // Nueva fecha de ingreso
+        trabajador.enSistema = true; // Reactivar
+
+        // 7. Actualizar usuario
+        trabajador.usuario.name = `${datosLimpios.nombres} ${datosLimpios.apellidoPaterno} ${datosLimpios.apellidoMaterno}`;
+        trabajador.usuario.corporateEmail = nuevoCorreoCorporativo;
+        trabajador.usuario.password = hashedPassword;
+        trabajador.usuario.role = "Usuario"; // Siempre rol "Usuario" al reactivar
+        trabajador.usuario.estadoCuenta = "Activa";
+        trabajador.usuario.updateAt = new Date();
+
+        // 8. Resetear ficha de empresa a estado activo con datos por defecto
+        trabajador.fichaEmpresa.estado = EstadoLaboral.ACTIVO;
+        trabajador.fichaEmpresa.cargo = "Por Definir";
+        trabajador.fichaEmpresa.area = "Por Definir";
+        trabajador.fichaEmpresa.tipoContrato = "Por Definir";
+        trabajador.fichaEmpresa.jornadaLaboral = "Por Definir";
+        trabajador.fichaEmpresa.sueldoBase = 0;
+        trabajador.fichaEmpresa.fechaInicioContrato = new Date();
+        trabajador.fichaEmpresa.fechaFinContrato = null;
+        trabajador.fichaEmpresa.motivoDesvinculacion = null;
+        trabajador.fichaEmpresa.fechaInicioLicencia = null;
+        trabajador.fichaEmpresa.fechaFinLicencia = null;
+        trabajador.fichaEmpresa.motivoLicencia = null;
+
+        // 9. Registrar reactivación en historial laboral
+        const historialReactivacion = historialRepo.create({
+            trabajador: trabajador,
+            cargo: trabajador.fichaEmpresa.cargo,
+            area: trabajador.fichaEmpresa.area,
+            departamento: 'N/A',
+            tipoContrato: trabajador.fichaEmpresa.tipoContrato,
+            sueldoBase: trabajador.fichaEmpresa.sueldoBase,
+            fechaInicio: new Date(),
+            observaciones: `Reactivación de trabajador. Nuevo correo corporativo: ${nuevoCorreoCorporativo}`,
+            registradoPor: usuarioRegistra
+        });
+
+        // 10. Guardar todos los cambios
+        await queryRunner.manager.save(Trabajador, trabajador);
+        await queryRunner.manager.save(User, trabajador.usuario);
+        await queryRunner.manager.save(FichaEmpresa, trabajador.fichaEmpresa);
+        await queryRunner.manager.save(HistorialLaboral, historialReactivacion);
+
+        // 11. Enviar credenciales por correo
+        let credencialesEnviadas = false;
+        try {
+            await sendCredentialsEmail({
+                to: trabajador.correoPersonal,
+                nombre: trabajador.nombres,
+                correoUsuario: nuevoCorreoCorporativo,
+                passwordTemporal: nuevaPassword
+            });
+            credencialesEnviadas = true;
+        } catch (emailError) {
+            console.error("Error enviando correo de credenciales en reactivación:", emailError);
+            // No fallar la operación por el correo, pero registrar el error
+        }
+
+        await queryRunner.commitTransaction();
+
+        // Recargar el trabajador con sus relaciones
+        const trabajadorReactivado = await trabajadorRepo.findOne({
+            where: { id: trabajador.id },
+            relations: ["usuario", "fichaEmpresa"]
+        });
+
+        return [{
+            trabajador: trabajadorReactivado!,
+            nuevoCorreoCorporativo,
+            credencialesEnviadas
+        }, null];
+
+    } catch (error) {
+        await queryRunner.rollbackTransaction();
+        console.error("Error en reactivarTrabajadorService:", error);
+        return [null, "Error interno del servidor"];
+    } finally {
+        await queryRunner.release();
     }
 }

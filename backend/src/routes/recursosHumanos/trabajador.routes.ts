@@ -5,7 +5,8 @@ import {
   getTrabajadores,
   createTrabajador,
   updateTrabajador,
-  desvincularTrabajador
+  desvincularTrabajador,
+  reactivarTrabajador
 } from "../../controllers/recursosHumanos/trabajador.controller.js";
 
 const router = Router();
@@ -21,6 +22,9 @@ router.post("/", createTrabajador);
 
 // Actualizar trabajador
 router.put("/:id", updateTrabajador);
+
+// Reactivar trabajador desvinculado (revinculación)
+router.patch("/:rut", reactivarTrabajador);
 
 // Desvincular trabajador (soft delete)
 router.delete("/:id", desvincularTrabajador);
