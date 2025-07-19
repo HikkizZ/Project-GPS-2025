@@ -711,3 +711,38 @@ export async function getAsignacionesByFichaService(idFicha: number): Promise<Se
         return [null, "Error interno del servidor"];
     }   
 }
+
+export async function verificarEstadoAsignacionBonoService(id: number): Promise<ServiceResponse<{ activadas: number; desactivadas: number }>> {
+    
+    const queryRunner = AppDataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+    
+    try {
+        const asignarBonoRepo = queryRunner.manager.getRepository(AsignarBono);
+        const fichaRepo = queryRunner.manager.getRepository(FichaEmpresa);
+
+        const hoy = new Date();
+        hoy.setHours(0, 0, 0, 0);
+        let activadas = 0;
+        let desactivadas = 0;
+
+        const asignaciones = await asignarBonoRepo.find({
+            where: { fichaEmpresa: { id } },
+            relations: ["fichaEmpresa", "fichaEmpresa.trabajador", "bono"]
+        });
+
+        asignaciones.forEach(asignacion => {
+            if (asignacion.activo) {
+                activadas++;
+            } else {
+                desactivadas++;
+            }
+        });
+
+        return [{ activadas, desactivadas }, null];
+    } catch (error) {
+        console.error("Error al verificar estado de asignación de bono:", error);
+        return [null, "Error interno del servidor"];
+    }
+}
