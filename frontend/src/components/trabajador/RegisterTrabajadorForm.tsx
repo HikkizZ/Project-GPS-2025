@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Form, Button, Alert, Row, Col, Modal, Spinner } from 'react-bootstrap';
 import { useRut, usePhone } from '@/hooks/useRut';
 import { useTrabajadores } from '@/hooks/recursosHumanos/useTrabajadores';
@@ -31,6 +31,15 @@ export const VerificarRUTModal: React.FC<VerificarRUTModalProps> = ({
   const [error, setError] = useState<string | null>(null);
   const { showError } = useToast();
   const { formatRUT, validateRUT } = useRut();
+
+  // Resetear el estado cuando el modal se abre
+  useEffect(() => {
+    if (show) {
+      setRut('');
+      setError(null);
+      setLoading(false);
+    }
+  }, [show]);
 
   const handleRutChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const formattedRut = formatRUT(e.target.value);
