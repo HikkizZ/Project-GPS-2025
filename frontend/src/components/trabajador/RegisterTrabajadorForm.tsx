@@ -1,13 +1,477 @@
 import React, { useState } from 'react';
-import { Form, Button, Alert, Row, Col } from 'react-bootstrap';
+import { Form, Button, Alert, Row, Col, Modal, Spinner } from 'react-bootstrap';
 import { useRut, usePhone } from '@/hooks/useRut';
 import { useTrabajadores } from '@/hooks/recursosHumanos/useTrabajadores';
 import { CreateTrabajadorData } from '@/types/recursosHumanos/trabajador.types';
+import { trabajadorService, TrabajadorService } from '@/services/recursosHumanos/trabajador.service';
+import { useToast } from '@/components/common/Toast';
+import { Trabajador } from '@/types/recursosHumanos/trabajador.types';
 
 interface RegisterTrabajadorFormProps {
   onSuccess: () => void;
   onCancel: () => void;
 }
+
+interface VerificarRUTModalProps {
+  show: boolean;
+  onHide: () => void;
+  onRegistroNormal: () => void;
+  onReactivacion: (trabajador: Trabajador) => void;
+}
+
+export const VerificarRUTModal: React.FC<VerificarRUTModalProps> = ({
+  show,
+  onHide,
+  onRegistroNormal,
+  onReactivacion
+}) => {
+  const [rut, setRut] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const { showError } = useToast();
+  const { formatRUT, validateRUT } = useRut();
+
+  const handleRutChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formattedRut = formatRUT(e.target.value);
+    setRut(formattedRut);
+    setError(null);
+  };
+
+  const handleVerificar = async () => {
+    if (!rut.trim()) {
+      setError('El RUT es requerido');
+      return;
+    }
+
+    if (!validateRUT(rut)) {
+      setError('El RUT ingresado no es válido');
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await trabajadorService.verificarEstadoRUT(rut);
+      
+      if (!response.success) {
+        setError('Error al verificar el RUT');
+        return;
+      }
+
+      const { existe, activo, trabajador } = response.data;
+
+      if (!existe) {
+        // RUT no existe - ir a registro normal
+        onHide();
+        onRegistroNormal();
+      } else if (activo) {
+        // RUT existe y está activo - mostrar error
+        setError('Este trabajador ya existe y está activo en el sistema');
+      } else {
+        // RUT existe pero está desvinculado - ir a reactivación
+        onHide();
+        onReactivacion(trabajador!);
+      }
+    } catch (error: any) {
+      console.error('Error al verificar RUT:', error);
+      showError('Error', 'Error al verificar el RUT. Intente nuevamente.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleClose = () => {
+    setRut('');
+    setError(null);
+    setLoading(false);
+    onHide();
+  };
+
+  return (
+    <Modal show={show} onHide={handleClose} centered>
+      <Modal.Header closeButton>
+        <Modal.Title>
+          <i className="bi bi-person-plus me-2"></i>
+          Registrar Trabajador
+        </Modal.Title>
+      </Modal.Header>
+      
+      <Modal.Body>
+        <div className="text-center mb-4">
+          <p className="mb-0">Ingrese el RUT del trabajador para verificar su estado</p>
+          <small className="text-muted">
+            El sistema determinará automáticamente si es un nuevo registro o una reactivación
+          </small>
+        </div>
+
+        <Form>
+          <Row>
+            <Col>
+              <Form.Group>
+                <Form.Label>RUT del Trabajador</Form.Label>
+                <Form.Control
+                  type="text"
+                  placeholder="Ej: 12.345.678-9"
+                  value={rut}
+                  onChange={handleRutChange}
+                  isInvalid={!!error}
+                  disabled={loading}
+                  maxLength={12}
+                />
+                <Form.Control.Feedback type="invalid">
+                  {error}
+                </Form.Control.Feedback>
+                <Form.Text className="text-muted">
+                  Formato requerido: XX.XXX.XXX-X
+                </Form.Text>
+              </Form.Group>
+            </Col>
+          </Row>
+
+          {error && (
+            <Alert variant="danger" className="mt-3">
+              <i className="bi bi-exclamation-triangle me-2"></i>
+              {error}
+            </Alert>
+          )}
+        </Form>
+      </Modal.Body>
+
+      <Modal.Footer>
+        <Button variant="secondary" onClick={handleClose} disabled={loading}>
+          <i className="bi bi-x-circle me-2"></i>
+          Cancelar
+        </Button>
+        <Button 
+          variant="primary" 
+          onClick={handleVerificar} 
+          disabled={loading || !rut.trim()}
+        >
+          {loading ? (
+            <>
+              <Spinner size="sm" className="me-2" />
+              Verificando...
+            </>
+          ) : (
+            <>
+              <i className="bi bi-search me-2"></i>
+              Verificar RUT
+            </>
+          )}
+        </Button>
+      </Modal.Footer>
+    </Modal>
+  );
+};
+
+interface ReactivarTrabajadorModalProps {
+  show: boolean;
+  onHide: () => void;
+  trabajador: Trabajador;
+  onSuccess: () => void;
+}
+
+export const ReactivarTrabajadorModal: React.FC<ReactivarTrabajadorModalProps> = ({
+  show,
+  onHide,
+  trabajador,
+  onSuccess
+}) => {
+  const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    nombres: trabajador.nombres || '',
+    apellidoPaterno: trabajador.apellidoPaterno || '',
+    apellidoMaterno: trabajador.apellidoMaterno || '',
+    correoPersonal: trabajador.correoPersonal || '',
+    telefono: trabajador.telefono || '',
+    numeroEmergencia: trabajador.numeroEmergencia || '',
+    direccion: trabajador.direccion || ''
+  });
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const { showSuccess, showError } = useToast();
+  const { formatRUT } = useRut();
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+    
+    // Limpiar error del campo cuando se modifica
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: '' }));
+    }
+  };
+
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
+
+    if (!formData.nombres.trim()) {
+      newErrors.nombres = 'Los nombres son requeridos';
+    }
+    if (!formData.apellidoPaterno.trim()) {
+      newErrors.apellidoPaterno = 'El apellido paterno es requerido';
+    }
+    if (!formData.apellidoMaterno.trim()) {
+      newErrors.apellidoMaterno = 'El apellido materno es requerido';
+    }
+    if (!formData.correoPersonal.trim()) {
+      newErrors.correoPersonal = 'El correo personal es requerido';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.correoPersonal)) {
+      newErrors.correoPersonal = 'El formato del correo no es válido';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async () => {
+    if (!validateForm()) return;
+
+    setLoading(true);
+    try {
+      const response = await trabajadorService.reactivarTrabajador(trabajador.rut, formData);
+      
+      if (response.success) {
+        showSuccess(
+          '¡Trabajador reactivado!', 
+          `El trabajador se ha reactivado exitosamente. Nuevo correo corporativo: ${response.data.nuevoCorreoCorporativo}`
+        );
+        onSuccess();
+        onHide();
+      } else {
+        showError('Error', response.message || 'Error al reactivar el trabajador');
+      }
+    } catch (error: any) {
+      console.error('Error al reactivar trabajador:', error);
+      showError('Error', 'Error inesperado al reactivar el trabajador');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleClose = () => {
+    setFormData({
+      nombres: trabajador.nombres || '',
+      apellidoPaterno: trabajador.apellidoPaterno || '',
+      apellidoMaterno: trabajador.apellidoMaterno || '',
+      correoPersonal: trabajador.correoPersonal || '',
+      telefono: trabajador.telefono || '',
+      numeroEmergencia: trabajador.numeroEmergencia || '',
+      direccion: trabajador.direccion || ''
+    });
+    setErrors({});
+    setLoading(false);
+    onHide();
+  };
+
+  const formatFecha = (fecha: string | Date) => {
+    const date = typeof fecha === 'string' ? new Date(fecha) : fecha;
+    return date.toLocaleDateString('es-CL');
+  };
+
+  return (
+    <Modal show={show} onHide={handleClose} size="lg" centered>
+      <Modal.Header closeButton>
+        <Modal.Title>
+          <i className="bi bi-arrow-clockwise me-2 text-success"></i>
+          Reactivar Trabajador
+        </Modal.Title>
+      </Modal.Header>
+      
+      <Modal.Body>
+        <Alert variant="info" className="mb-4">
+          <i className="bi bi-info-circle me-2"></i>
+          <strong>Trabajador desvinculado encontrado.</strong> Puede modificar los datos antes de reactivarlo.
+        </Alert>
+
+        <Form>
+          {/* Campos deshabilitados */}
+          <Row className="mb-3">
+            <Col md={6}>
+              <Form.Group>
+                <Form.Label>RUT</Form.Label>
+                <Form.Control
+                  type="text"
+                  value={formatRUT(trabajador.rut)}
+                  disabled
+                  className="bg-light"
+                />
+                <Form.Text className="text-muted">
+                  No se puede modificar
+                </Form.Text>
+              </Form.Group>
+            </Col>
+            <Col md={6}>
+              <Form.Group>
+                <Form.Label>Fecha de Nacimiento</Form.Label>
+                <Form.Control
+                  type="text"
+                  value={formatFecha(trabajador.fechaNacimiento)}
+                  disabled
+                  className="bg-light"
+                />
+                <Form.Text className="text-muted">
+                  No se puede modificar
+                </Form.Text>
+              </Form.Group>
+            </Col>
+          </Row>
+
+          {/* Campos habilitados */}
+          <Row className="mb-3">
+            <Col md={6}>
+              <Form.Group>
+                <Form.Label>Nombres <span className="text-danger">*</span></Form.Label>
+                <Form.Control
+                  type="text"
+                  name="nombres"
+                  value={formData.nombres}
+                  onChange={handleInputChange}
+                  isInvalid={!!errors.nombres}
+                  disabled={loading}
+                />
+                <Form.Control.Feedback type="invalid">
+                  {errors.nombres}
+                </Form.Control.Feedback>
+              </Form.Group>
+            </Col>
+            <Col md={6}>
+              <Form.Group>
+                <Form.Label>Apellido Paterno <span className="text-danger">*</span></Form.Label>
+                <Form.Control
+                  type="text"
+                  name="apellidoPaterno"
+                  value={formData.apellidoPaterno}
+                  onChange={handleInputChange}
+                  isInvalid={!!errors.apellidoPaterno}
+                  disabled={loading}
+                />
+                <Form.Control.Feedback type="invalid">
+                  {errors.apellidoPaterno}
+                </Form.Control.Feedback>
+              </Form.Group>
+            </Col>
+          </Row>
+
+          <Row className="mb-3">
+            <Col md={6}>
+              <Form.Group>
+                <Form.Label>Apellido Materno <span className="text-danger">*</span></Form.Label>
+                <Form.Control
+                  type="text"
+                  name="apellidoMaterno"
+                  value={formData.apellidoMaterno}
+                  onChange={handleInputChange}
+                  isInvalid={!!errors.apellidoMaterno}
+                  disabled={loading}
+                />
+                <Form.Control.Feedback type="invalid">
+                  {errors.apellidoMaterno}
+                </Form.Control.Feedback>
+              </Form.Group>
+            </Col>
+            <Col md={6}>
+              <Form.Group>
+                <Form.Label>Correo Personal <span className="text-danger">*</span></Form.Label>
+                <Form.Control
+                  type="email"
+                  name="correoPersonal"
+                  value={formData.correoPersonal}
+                  onChange={handleInputChange}
+                  isInvalid={!!errors.correoPersonal}
+                  disabled={loading}
+                />
+                <Form.Control.Feedback type="invalid">
+                  {errors.correoPersonal}
+                </Form.Control.Feedback>
+              </Form.Group>
+            </Col>
+          </Row>
+
+          <Row className="mb-3">
+            <Col md={6}>
+              <Form.Group>
+                <Form.Label>Teléfono</Form.Label>
+                <Form.Control
+                  type="text"
+                  name="telefono"
+                  value={formData.telefono}
+                  onChange={handleInputChange}
+                  disabled={loading}
+                  placeholder="+56912345678"
+                />
+              </Form.Group>
+            </Col>
+            <Col md={6}>
+              <Form.Group>
+                <Form.Label>Número de Emergencia</Form.Label>
+                <Form.Control
+                  type="text"
+                  name="numeroEmergencia"
+                  value={formData.numeroEmergencia}
+                  onChange={handleInputChange}
+                  disabled={loading}
+                  placeholder="+56987654321"
+                />
+              </Form.Group>
+            </Col>
+          </Row>
+
+          <Row className="mb-3">
+            <Col>
+              <Form.Group>
+                <Form.Label>Dirección</Form.Label>
+                <Form.Control
+                  type="text"
+                  name="direccion"
+                  value={formData.direccion}
+                  onChange={handleInputChange}
+                  disabled={loading}
+                  placeholder="Calle, número, comuna, ciudad"
+                />
+              </Form.Group>
+            </Col>
+          </Row>
+
+          <Alert variant="success" className="mt-3">
+            <i className="bi bi-info-circle me-2"></i>
+            <strong>Al reactivar:</strong>
+            <ul className="mb-0 mt-2">
+              <li>Se generará un nuevo correo corporativo (nunca se reutilizan correos anteriores)</li>
+              <li>Se enviará una nueva contraseña al correo personal</li>
+              <li>La fecha de ingreso será la fecha actual</li>
+              <li>El rol será "Usuario" por defecto</li>
+            </ul>
+          </Alert>
+        </Form>
+      </Modal.Body>
+
+      <Modal.Footer>
+        <Button variant="secondary" onClick={handleClose} disabled={loading}>
+          <i className="bi bi-x-circle me-2"></i>
+          Cancelar
+        </Button>
+        <Button 
+          variant="success" 
+          onClick={handleSubmit} 
+          disabled={loading}
+        >
+          {loading ? (
+            <>
+              <Spinner size="sm" className="me-2" />
+              Reactivando...
+            </>
+          ) : (
+            <>
+              <i className="bi bi-arrow-clockwise me-2"></i>
+              Reactivar Trabajador
+            </>
+          )}
+        </Button>
+      </Modal.Footer>
+    </Modal>
+  );
+};
 
 export const RegisterTrabajadorForm: React.FC<RegisterTrabajadorFormProps> = ({
   onSuccess,

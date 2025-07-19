@@ -57,6 +57,85 @@ export class TrabajadorService {
     };
   }
 
+  // Verificar estado del RUT (para modal inteligente)
+  async verificarEstadoRUT(rut: string): Promise<ApiResponse<{ 
+    existe: boolean; 
+    activo: boolean; 
+    trabajador?: Trabajador;
+    mensaje: string;
+  }>> {
+    try {
+      // Buscar trabajador por RUT
+      const response = await this.getTrabajadores({ rut, todos: true });
+      
+      if (!response.success || !response.data || response.data.length === 0) {
+        return {
+          success: true,
+          data: {
+            existe: false,
+            activo: false,
+            mensaje: 'RUT no registrado en el sistema'
+          },
+          message: 'RUT no registrado en el sistema'
+        };
+      }
+
+      const trabajador = response.data[0];
+      
+      if (trabajador.enSistema) {
+        return {
+          success: true,
+          data: {
+            existe: true,
+            activo: true,
+            trabajador,
+            mensaje: 'Trabajador ya existe y está activo'
+          },
+          message: 'Trabajador ya existe y está activo'
+        };
+      } else {
+        return {
+          success: true,
+          data: {
+            existe: true,
+            activo: false,
+            trabajador,
+            mensaje: 'Trabajador desvinculado - puede ser reactivado'
+          },
+          message: 'Trabajador desvinculado - puede ser reactivado'
+        };
+      }
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // Reactivar trabajador desvinculado
+  async reactivarTrabajador(rut: string, data: {
+    nombres: string;
+    apellidoPaterno: string;
+    apellidoMaterno: string;
+    correoPersonal: string;
+    telefono?: string;
+    numeroEmergencia?: string;
+    direccion?: string;
+  }): Promise<ApiResponse<{
+    trabajador: Trabajador;
+    nuevoCorreoCorporativo: string;
+    credencialesEnviadas: boolean;
+  }>> {
+    try {
+      const response = await apiClient.patch(`${this.baseURL}/${rut}`, data);
+      return {
+        success: true,
+        data: response.data,
+        message: response.message || 'Trabajador reactivado exitosamente',
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
+
   // Alias para compatibilidad
   async deleteTrabajador(id: number, motivo: string = 'Eliminación'): Promise<ApiResponse> {
     return this.desvincularTrabajador(id, motivo);
