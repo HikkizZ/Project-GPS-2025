@@ -712,37 +712,40 @@ export async function getAsignacionesByFichaService(idFicha: number): Promise<Se
     }   
 }
 
-export async function verificarEstadoAsignacionBonoService(id: number): Promise<ServiceResponse<{ activadas: number; desactivadas: number }>> {
-    
+export async function verificarEstadoAsignacionBonoService(): Promise<ServiceResponse<{ desactivadas: number }>> {
     const queryRunner = AppDataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
     
     try {
         const asignarBonoRepo = queryRunner.manager.getRepository(AsignarBono);
-        const fichaRepo = queryRunner.manager.getRepository(FichaEmpresa);
 
         const hoy = new Date();
         hoy.setHours(0, 0, 0, 0);
-        let activadas = 0;
         let desactivadas = 0;
 
-        const asignaciones = await asignarBonoRepo.find({
-            where: { fichaEmpresa: { id } },
+        // Desactivar asignaciones que hayan expirado
+        const asignacionesExpiradas = await asignarBonoRepo.find({
+            where: {
+                fechaFinAsignacion: LessThanOrEqual(hoy),
+                activo: true
+            },
             relations: ["fichaEmpresa", "fichaEmpresa.trabajador", "bono"]
         });
 
-        asignaciones.forEach(asignacion => {
-            if (asignacion.activo) {
-                activadas++;
-            } else {
-                desactivadas++;
-            }
-        });
+        for (const asignacion of asignacionesExpiradas) {
+            asignacion.activo = false;
+            await asignarBonoRepo.save(asignacion);
+            desactivadas++;
+        }
 
-        return [{ activadas, desactivadas }, null];
+        await queryRunner.commitTransaction();
+        return [{ desactivadas }, null];
     } catch (error) {
+        await queryRunner.rollbackTransaction();
         console.error("Error al verificar estado de asignación de bono:", error);
         return [null, "Error interno del servidor"];
+    }finally {
+        await queryRunner.release();
     }
 }
