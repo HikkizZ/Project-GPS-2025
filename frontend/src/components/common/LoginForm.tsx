@@ -9,10 +9,51 @@ interface LoginFormProps {
   setError: (msg: string) => void;
 }
 
+// Componente reutilizable para input de contraseña con toggle de visibilidad
+export const PasswordInput: React.FC<{
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  placeholder?: string;
+  maxLength?: number;
+  isInvalid?: boolean;
+  feedback?: string;
+  disabled?: boolean;
+  name?: string;
+  autoComplete?: string;
+}> = ({ value, onChange, placeholder, maxLength, isInvalid, feedback, disabled, name, autoComplete }) => {
+  const [show, setShow] = useState(false);
+  return (
+    <div className="input-group">
+      <input
+        type={show ? 'text' : 'password'}
+        className={`form-control${isInvalid ? ' is-invalid' : ''}`}
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder}
+        maxLength={maxLength}
+        disabled={disabled}
+        name={name}
+        autoComplete={autoComplete}
+      />
+      <button
+        type="button"
+        className="btn btn-outline-secondary"
+        tabIndex={-1}
+        onClick={() => setShow(s => !s)}
+        style={{ borderTopLeftRadius: 0, borderBottomLeftRadius: 0 }}
+        aria-label={show ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+      >
+        <i className={`bi ${show ? 'bi-eye' : 'bi-eye-slash'}`}></i>
+      </button>
+      {isInvalid && feedback && <div className="invalid-feedback d-block">{feedback}</div>}
+    </div>
+  );
+};
+
 export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, error, setError }) => {
   const { login, isLoading } = useAuth();
   const [formData, setFormData] = useState<LoginData>({
-    email: '',
+    corporateEmail: '',
     password: ''
   });
   const navigate = useNavigate();
@@ -71,29 +112,27 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, error, setError
             )}
             <form onSubmit={handleSubmit}>
               <div className="mb-3">
-                <label className="form-label">Email:</label>
+                <label className="form-label">Correo Corporativo:</label>
                 <input
                   type="email"
                   className="form-control"
-                  name="email"
-                  value={formData.email}
+                  name="corporateEmail"
+                  value={formData.corporateEmail}
                   onChange={handleChange}
-                  placeholder="super.administrador@lamas.com"
                   required
                   disabled={isLoading}
+                  placeholder="Ingrese su correo corporativo"
                 />
               </div>
               <div className="mb-3">
                 <label className="form-label">Contraseña:</label>
-                <input
-                  type="password"
-                  className="form-control"
+                <PasswordInput
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
-                  placeholder="204_M1n8"
-                  required
+                  placeholder="Ingrese su contraseña"
                   disabled={isLoading}
+                  autoComplete="current-password"
                 />
               </div>
               <button type="submit" className="btn btn-primary w-100" disabled={isLoading}>
@@ -110,12 +149,6 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, error, setError
                 )}
               </button>
             </form>
-            <div className="mt-3">
-              <small className="text-muted">
-                <strong>Credenciales de prueba:</strong><br/>
-                <strong>Admin:</strong> super.administrador@lamas.com / 204_M1n8
-              </small>
-            </div>
           </div>
         </div>
       </div>

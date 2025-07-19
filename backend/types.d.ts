@@ -16,7 +16,7 @@ export type userRole =
 export interface UserResponse {
     id: number;
     name: string;
-    email: string;
+    corporateEmail: string;
     role: userRole;
     rut: string | null;
     estadoCuenta: string;
@@ -42,9 +42,17 @@ export type QueryParams = {
     name?: string;
 }
 
+export type UserQueryParams = {
+    id?: number;
+    corporateEmail?: string;
+    rut?: string;
+    role?: userRole;
+    name?: string;
+}
+
 export type UpdateUserData = {
     name?: string;
-    email?: string;
+    corporateEmail?: string;
     password?: string;
     role?: userRole;
     rut?: string;
@@ -53,7 +61,7 @@ export type UpdateUserData = {
 
 export interface UserData {
     name: string;
-    email: string;
+    corporateEmail: string;
     password: string;
     role: userRole;
     rut: string;
@@ -61,24 +69,13 @@ export interface UserData {
 }
 
 export interface LoginData {
-    email: string;
+    corporateEmail: string;
     password: string;
 }
 
 export interface LoginResponse {
     token: string;
     user: UserResponse;
-}
-
-/* userResponse Interface (legacy, keep for compatibility) */
-export interface LegacyUserResponse {
-    id: number;
-    name: string;
-    rut: string;
-    email: string;
-    role: string;
-    createAt: string;
-    updateAt: string;
 }
 
 export interface SafeUser extends Omit<User, 'password'> {

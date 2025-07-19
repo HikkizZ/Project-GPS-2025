@@ -13,8 +13,8 @@ router.get("/", authenticateJWT, verifyRole(allowedRoles), async (req: Request, 
     await getUsers(req, res);
 });
 
-// Actualizar usuario por ID
-router.put("/:id", authenticateJWT, verifyRole(allowedRoles), async (req: Request, res: Response) => {
+// Ruta única para actualizar usuario (por id, rut o corporateEmail)
+router.put("/update", authenticateJWT, async (req: Request, res: Response) => {
     await updateUser(req, res);
 });
 

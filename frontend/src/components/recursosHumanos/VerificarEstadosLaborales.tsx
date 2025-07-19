@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Modal, Button, Alert, Spinner } from 'react-bootstrap';
-import { verificarLicenciasVencidas } from '../../services/recursosHumanos/licenciaPermiso.service';
+import { licenciaPermisoService } from '../../services/recursosHumanos/licenciaPermiso.service';
 import { useToast, Toast } from '../common/Toast';
 
 interface VerificarEstadosLaboralesProps {
@@ -33,20 +33,29 @@ const VerificarEstadosLaborales: React.FC<VerificarEstadosLaboralesProps> = ({
   const ejecutarVerificacion = async () => {
     setProcesando(true);
     try {
-      const result = await verificarLicenciasVencidas();
+      const result = await licenciaPermisoService.verificarEstadosLicencias();
       
       if (result.success) {
-        const { actualizaciones } = result.data || { actualizaciones: 0 };
+        const { activadas, desactivadas } = result.data || { activadas: 0, desactivadas: 0 };
         const ahora = new Date().toISOString();
         
         // Guardar timestamp de última ejecución
         setUltimaEjecucion(ahora);
         localStorage.setItem('ultimaVerificacionEstados', ahora);
         
-        if (actualizaciones > 0) {
+        const totalCambios = activadas + desactivadas;
+        if (totalCambios > 0) {
+          let mensajeDetallado = '';
+          if (activadas > 0 && desactivadas > 0) {
+            mensajeDetallado = `${activadas} licencias/permisos activadas y ${desactivadas} desactivadas`;
+          } else if (activadas > 0) {
+            mensajeDetallado = `${activadas} licencias/permisos activadas`;
+          } else if (desactivadas > 0) {
+            mensajeDetallado = `${desactivadas} licencias/permisos desactivadas`;
+          }
           showSuccess(
             'Verificación Completada',
-            `Se actualizaron ${actualizaciones} empleado${actualizaciones === 1 ? '' : 's'} a estado 'Activo'`
+            `Se verificaron: ${mensajeDetallado}`
           );
         } else {
           showInfo(
@@ -89,7 +98,7 @@ const VerificarEstadosLaborales: React.FC<VerificarEstadosLaboralesProps> = ({
           className={`bi bi-arrow-clockwise me-2 ${procesando ? 'rotating' : ''}`}
           style={{ fontSize: '1.1rem' }}
         ></i>
-        {procesando ? 'Verificando...' : 'Verificar Estados'}
+                    {procesando ? 'Verificando...' : 'Verificar Estados'}
       </Button>
 
       {/* Modal de Confirmación */}
@@ -100,10 +109,10 @@ const VerificarEstadosLaborales: React.FC<VerificarEstadosLaboralesProps> = ({
         size="lg"
       >
         <Modal.Header closeButton className="border-0 pb-0">
-          <Modal.Title className="d-flex align-items-center">
-            <i className="bi bi-arrow-clockwise text-primary me-2"></i>
-            Verificar Estados Laborales
-          </Modal.Title>
+                      <Modal.Title className="d-flex align-items-center">
+              <i className="bi bi-arrow-clockwise text-primary me-2"></i>
+              Verificar Estados Laborales
+            </Modal.Title>
         </Modal.Header>
         
         <Modal.Body className="px-4 pb-4">
@@ -113,7 +122,7 @@ const VerificarEstadosLaborales: React.FC<VerificarEstadosLaboralesProps> = ({
               ¿Qué hace esta acción?
             </Alert.Heading>
             <p className="mb-0 small">
-              Busca empleados con licencias/permisos vencidos y los cambia automáticamente a estado 'Activo'. 
+              Procesa automáticamente todos los estados de licencias y permisos: activa las que deben comenzar hoy y desactiva las que ya terminaron. 
               Es completamente seguro ejecutarlo múltiples veces.
             </p>
           </Alert>

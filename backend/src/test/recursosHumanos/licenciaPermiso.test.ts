@@ -53,7 +53,7 @@ describe('📋 Licencias y Permisos API', () => {
                     rut: "28.123.456-0",
                     fechaNacimiento: "1987-03-10",
                     telefono: "+56966666666",
-                    correo: uniqueEmail,
+                    correoPersonal: uniqueEmail,
                     numeroEmergencia: "+56977777777",
                     direccion: "Av. Licencias 456",
                     fechaIngreso: "2024-01-01",
@@ -80,7 +80,7 @@ describe('📋 Licencias y Permisos API', () => {
                 .set('Authorization', `Bearer ${rrhToken}`)
                 .send({
                     name: "María José González",
-                    email: uniqueEmail,
+                    corporateEmail: uniqueEmail,
                     password: "Maria2024",
                     rut: "28.123.456-0",
                     role: "Usuario"
@@ -94,7 +94,7 @@ describe('📋 Licencias y Permisos API', () => {
             const userLogin = await request(app)
                 .post('/api/auth/login')
                 .send({
-                    email: uniqueEmail,
+                    corporateEmail: uniqueEmail,
                     password: "Maria2024"
                 });
 

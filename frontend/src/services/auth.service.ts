@@ -18,7 +18,7 @@ class AuthService {
           const user: User = {
             id: payload.id || 0,
             name: payload.name || 'Usuario',
-            email: payload.email || credentials.email,
+            corporateEmail: payload.corporateEmail || credentials.corporateEmail,
             role: payload.role || 'Usuario',
             rut: payload.rut || 'N/A'
           };
@@ -71,7 +71,7 @@ class AuthService {
       return {
         id: payload.id || 0,
         name: payload.name || 'Usuario',
-        email: payload.email || '',
+        corporateEmail: payload.corporateEmail || '',
         role: payload.role || 'Usuario',
         rut: payload.rut || 'N/A'
       };

@@ -3,6 +3,7 @@ import { useRut } from './hooks/useRut';
 import { useTrabajadores } from './hooks/recursosHumanos/useTrabajadores';
 import { type CreateTrabajadorData, type Trabajador } from './types/recursosHumanos/trabajador.types';
 import { FichasEmpresaPage } from './pages/recursosHumanos/FichasEmpresaPage';
+import { BonosPage } from './pages/recursosHumanos/bonosPage';
 import { UsersPage } from './pages/UsersPage';
 import { TrabajadoresPage } from './pages/recursosHumanos/TrabajadoresPage';
 import { authService } from './services/auth.service';
@@ -62,9 +63,9 @@ const RegistrarTrabajadorPage: React.FC<{
       errors.apellidoMaterno = 'Apellido materno debe tener al menos 2 caracteres';
     }
     
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(formData.correoPersonal)) {
-      errors.correoPersonal = 'Email inválido';
+    const correoPersonalRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!correoPersonalRegex.test(formData.correoPersonal)) {
+      errors.correoPersonal = 'Correo personal inválido';
     }
     
     if (formData.telefono.length < 9) {
@@ -219,7 +220,7 @@ const RegistrarTrabajadorPage: React.FC<{
 
                 <div className="row">
                   <div className="col-md-6 mb-3">
-                    <label className="form-label">Email: <span className="text-danger">*</span></label>
+                    <label className="form-label">Correo Personal: <span className="text-danger">*</span></label>
                     <input
                       type="email"
                       className={`form-control ${validationErrors.correoPersonal ? 'is-invalid' : ''}`}
@@ -633,6 +634,7 @@ function App() {
                 <Route path="trabajadores" element={<TrabajadoresPage />} />
                 <Route path="fichas-empresa" element={<FichasEmpresaPage />} />
                 <Route path="fichas-empresa/mi-ficha" element={<FichasEmpresaPage />} />
+                <Route path="bonos" element={<BonosPage />} />
                 <Route path="usuarios" element={<UsersPage />} />
                 <Route path="gestion-personal" element={<GestionPersonalPage />} />
                 <Route path="gestion-licencias-permisos" element={<GestionLicenciasPermisosPage />} />
