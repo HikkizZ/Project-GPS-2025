@@ -89,7 +89,7 @@ async function setupServer(): Promise<void> {
         app.use(cors({
             origin: true,
             credentials: true,
-            methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+            methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
             allowedHeaders: ['Content-Type', 'Authorization', 'Accept']
         }));
         
@@ -164,7 +164,7 @@ async function setupTestServer(): Promise<{ app: Application; server: any }> {
         app.use(cors({
             origin: ['http://localhost:5173', 'http://127.0.0.1:5173', 'https://hoppscotch.io'],
             credentials: true,
-            methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+            methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
             allowedHeaders: ['Content-Type', 'Authorization', 'Accept']
         }));
 
@@ -230,7 +230,7 @@ const startServer = async () => {
     app.use(cors({
       origin: true,
       credentials: true,
-      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+      methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
       allowedHeaders: ['Content-Type', 'Authorization', 'Accept']
     }));
     
