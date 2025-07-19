@@ -16,10 +16,10 @@ router.use(verifyRole(["Administrador", "SuperAdministrador", "Mecánico", "Mant
 
 
 router
-  .get("/all", getMaintenanceRecords)
-  .get("/", getMaintenanceRecord)
+  .get("/", getMaintenanceRecords)
+  .get("/:id", getMaintenanceRecord)
   .post("/", createMaintenance)
-  .patch("/", updateMaintenance)
-  .delete("/", deleteMaintenance);
+  .patch("/:id", updateMaintenance)
+  .delete("/:id", deleteMaintenance);
 
 export default router;

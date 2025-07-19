@@ -15,10 +15,10 @@ router.use(authenticateJWT);
 router.use(verifyRole(["Administrador", "SuperAdministrador", "Mecánico", "Mantenciones de Maquinaria"]));
 
 router
-  .get("/all", getSpareParts)
-  .get("/", getSparePartById)
+  .get("/", getSpareParts)
+  .get("/:id", getSparePartById)
   .post("/", createSpare)
-  .patch("/", updateSpare)
-  .delete("/", deleteSpare);
+  .patch("/:id", updateSpare)
+  .delete("/:id", deleteSpare);
 
 export default router;
