@@ -175,10 +175,10 @@ export const BonoQueryValidation = Joi.object({
 // page y limit aún lo tengo en opcional porque no estoy seguro de como hacer que se vean en frontend
 export const AsignarBonoQueryValidation = Joi.object({
     
-    trabajadorId: Joi.number().integer().positive().optional().messages({
-        'number.base': 'El ID del trabajador debe ser un número',
-        'number.integer': 'El ID del trabajador debe ser un número entero',
-        'number.positive': 'El ID del trabajador debe ser positivo'
+    fichaId: Joi.number().integer().positive().optional().messages({
+        'number.base': 'El ID de la ficha debe ser un número',
+        'number.integer': 'El ID de la ficha debe ser un número entero',
+        'number.positive': 'El ID de la ficha debe ser positivo'
     }),
     
     bonoId: Joi.number().integer().positive().optional().messages({
