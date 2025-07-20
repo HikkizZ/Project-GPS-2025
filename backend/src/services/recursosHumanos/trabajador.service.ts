@@ -84,7 +84,7 @@ function limpiarCamposTexto(data: Partial<Trabajador>): Partial<Trabajador> {
     if (dataCopia.apellidoPaterno) dataCopia.apellidoPaterno = dataCopia.apellidoPaterno.trim().replace(/\s+/g, ' ');
     if (dataCopia.apellidoMaterno) dataCopia.apellidoMaterno = dataCopia.apellidoMaterno.trim().replace(/\s+/g, ' ');
     if (dataCopia.telefono) dataCopia.telefono = dataCopia.telefono.trim();
-    if (dataCopia.correo) dataCopia.correo = dataCopia.correo.trim();
+    if (dataCopia.correoPersonal) dataCopia.correoPersonal = dataCopia.correoPersonal.trim();
     if (dataCopia.numeroEmergencia) dataCopia.numeroEmergencia = dataCopia.numeroEmergencia.trim();
     if (dataCopia.direccion) dataCopia.direccion = dataCopia.direccion.trim().replace(/\s+/g, ' ');
     if (dataCopia.rut) dataCopia.rut = dataCopia.rut.trim();
@@ -103,7 +103,7 @@ export async function createTrabajadorService(trabajadorData: Partial<Trabajador
 
         // Validar datos requeridos
         if (!trabajadorData.rut || !trabajadorData.nombres || !trabajadorData.apellidoPaterno || 
-            !trabajadorData.apellidoMaterno || !trabajadorData.telefono || !trabajadorData.correo || 
+            !trabajadorData.apellidoMaterno || !trabajadorData.telefono || !trabajadorData.correoPersonal || 
             !trabajadorData.direccion) {
             return [null, "Faltan campos requeridos"];
         }
@@ -128,7 +128,7 @@ export async function createTrabajadorService(trabajadorData: Partial<Trabajador
 
         // Validar formato de correo 
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        const emailPersonal = trabajadorData.correo ?? ""; // usa "" si es undefined o null
+        const emailPersonal = trabajadorData.correoPersonal ?? ""; // usa "" si es undefined o null
 
         if (!emailRegex.test(emailPersonal)) {
             return [null, "Formato de correo personal inválido"];
@@ -197,7 +197,7 @@ export async function createTrabajadorService(trabajadorData: Partial<Trabajador
             let advertencias: string[] = [];
             try {
                 await sendCredentialsEmail({
-                    to: trabajador.correo,
+                    to: trabajador.correoPersonal,
                     nombre: trabajador.nombres,
                     correoUsuario,
                     passwordTemporal: randomPassword
