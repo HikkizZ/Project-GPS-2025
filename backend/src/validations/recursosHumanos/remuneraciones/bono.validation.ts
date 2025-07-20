@@ -37,10 +37,16 @@ export const CreateBonoValidation = Joi.object({
         'any.default': 'El estado imponible es requerido'
     }),
 
-    duracionMes: Joi.number().integer().min(1).optional().messages({
-        'number.base': 'La duración en meses debe ser un número entero',
-        'number.integer': 'La duración en meses debe ser un número entero',
-        'number.min': 'La duración en meses debe ser al menos 1'
+    duracionMes: Joi.when('temporalidad', {
+        is: 'permanente',
+        then: Joi.any().forbidden().messages({
+            'any.unknown': 'No puede definir duración en meses para un bono permanente'
+        }),
+        otherwise: Joi.number().integer().min(1).optional().messages({
+            'number.base': 'La duración en meses debe ser un número entero',
+            'number.integer': 'La duración en meses debe ser un número entero',
+            'number.min': 'La duración en meses debe ser al menos 1'
+        })
     })
 });
 
@@ -94,10 +100,16 @@ export const UpdateBonoValidation = Joi.object({
     imponible: Joi.boolean().optional().messages({
         'boolean.base': 'El estado imponible debe ser un booleano'
     }),
-    duracionMes: Joi.number().integer().min(1).optional().messages({
-        'number.base': 'La duración en meses debe ser un número entero',
-        'number.integer': 'La duración en meses debe ser un número entero',
-        'number.min': 'La duración en meses debe ser al menos 1'
+    duracionMes: Joi.when('temporalidad', {
+        is: 'permanente',
+        then: Joi.any().forbidden().messages({
+            'any.unknown': 'No puede definir duración en meses para un bono permanente'
+        }),
+        otherwise: Joi.number().integer().min(1).optional().messages({
+            'number.base': 'La duración en meses debe ser un número entero',
+            'number.integer': 'La duración en meses debe ser un número entero',
+            'number.min': 'La duración en meses debe ser al menos 1'
+        })
     })
 });
 
