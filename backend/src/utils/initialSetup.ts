@@ -172,6 +172,7 @@ export async function initialSetup(): Promise<void> {
         console.log("✅ Configuración de previsión salud creada exitosamente");
          */
         
+        /*
         // Verificar si ya existe un Finanzas
         const existingFinanzas = await userRepo.findOne({
             where: { role: 'Finanzas' }
@@ -224,13 +225,16 @@ export async function initialSetup(): Promise<void> {
             });
 
             await fichasRepo.save(fichaEmpresaTest);
-
             console.log("✅ Configuración inicial completada - Trabajador de finanzas creado únicamente");
         } else {
-            console.log("✅ Configuración inicial completada - Trabajador finanzas ya existe");
-        } 
+              console.log("✅ Configuración inicial completada - Trabajador finanzas ya existe");
+        }
+        */
         
-        
+
+            
+          
+
     } catch (error) {
         console.error("❌ Error en la configuración inicial:", error);
         throw error;
