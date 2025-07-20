@@ -668,7 +668,7 @@ export async function assignBonoService (idFicha: number, data: AsignarBonoDTO):
             bono: bono,
             fechaAsignacion: fechaHoyString,
             fechaFinAsignacion: fechaFin === null ? null : fechaFin,
-            activo: data.activo ?? true, // Por defecto es true si no se especifica
+            activo: true, // Por defecto es true si no se especifica
             observaciones: data.observaciones
         };
 

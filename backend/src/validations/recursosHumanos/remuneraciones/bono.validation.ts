@@ -58,8 +58,6 @@ export const AsignarBonoValidation = Joi.object({
         'any.required': 'El ID del bono es requerido'
     }),
     
-    activo: Joi.boolean().optional(),
-    
     observaciones: Joi.string().trim().max(500).optional().allow('').messages({
         'string.max': 'Las observaciones no pueden superar los 500 caracteres'
     })
