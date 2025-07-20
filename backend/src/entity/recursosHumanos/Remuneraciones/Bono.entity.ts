@@ -29,10 +29,10 @@ export class Bono {
     @Column({ type: "varchar", length: 10, nullable: false })
     monto!: string;
 
-    @Column({ type: "enum", enum: tipoBono, default: tipoBono.empresarial })
+    @Column({ type: "enum", enum: tipoBono })
     tipoBono!: tipoBono;
 
-    @Column({ type: "enum", enum: temporalidad, default: temporalidad.puntual })
+    @Column({ type: "enum", enum: temporalidad })
     temporalidad!: temporalidad;
 
     @Column({ type: "text", nullable: true })
@@ -43,6 +43,9 @@ export class Bono {
 
     @Column({ type: "boolean", default: true })
     imponible!: boolean;
+
+    @Column({ type: "int", nullable: true })
+    duracionMes?: number;
 
     @OneToMany(() => AsignarBono, asignacion => asignacion.bono)
     asignaciones!: AsignarBono[];
