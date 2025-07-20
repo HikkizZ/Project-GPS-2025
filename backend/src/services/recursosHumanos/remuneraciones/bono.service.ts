@@ -156,6 +156,10 @@ try {
             return [null, "Ya existe un bono con las mismas características"];
         }
     }
+    // Validar cuerpo nuevo de bono
+    if (bono.temporalidad === "permanente" && bono.duracionMes != null){
+        return [null, "No puede definir duración en meses para un bono permanente"];
+    }
     // Actualizar asignaciones relacionadas al bono
     const asignacionesRep = AppDataSource.getRepository(AsignarBono);
     const asignaciones = await asignacionesRep.find({
