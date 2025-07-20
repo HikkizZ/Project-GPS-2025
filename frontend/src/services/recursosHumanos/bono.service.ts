@@ -1,4 +1,5 @@
 import { apiClient } from '@/config/api.config';
+import { ApiResponse } from '@/types';
 
 import type {
     BonoSearchQueryData,
@@ -8,13 +9,7 @@ import type {
     BonoSearchParamsData,
     Bono,
     BonoOperationResult
-} from '../../types/recursosHumanos/bono.types'; 
-
-export interface ApiResponse<T = any> {
-  success: boolean;
-  message: string;
-  data?: T;
-}
+} from '../../types/recursosHumanos/bono.types';
 
 export class BonoService {
     

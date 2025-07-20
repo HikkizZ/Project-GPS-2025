@@ -1,4 +1,5 @@
 import { apiClient } from '@/config/api.config';
+import { ApiResponse } from '@/types';
 import {
   LicenciaPermiso,
   CreateLicenciaPermisoDTO,
@@ -10,12 +11,6 @@ import {
   LicenciaPermisoOperationResult,
   LicenciasPermisosOperationResult
 } from '@/types/recursosHumanos/licenciaPermiso.types';
-
-export interface ApiResponse<T = any> {
-  success: boolean;
-  message: string;
-  data?: T;
-}
 
 // Clase principal del servicio
 export class LicenciaPermisoService {
