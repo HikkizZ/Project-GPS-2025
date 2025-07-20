@@ -292,7 +292,7 @@ export async function asignarBono(req: Request, res: Response): Promise<void> {
         }
               
         // Asignar el bono al trabajador
-        const id = parseInt(req.params.id);
+        const id = parseInt(req.params.idFicha);
         const [ asignacionBono, errorAsignacion ] = await assignBonoService( id, validationResult.value );
         if (errorAsignacion) {
             handleErrorClient(res, 400, errorAsignacion as string);
