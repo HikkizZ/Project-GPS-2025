@@ -1,47 +1,40 @@
 export interface Supplier {
-    id: number;
-    name: string;
-    rut: string;
-    address: string;
-    phone: string;
-    email: string;
+  id: number;
+  name: string;
+  rut: string;
+  address: string;
+  phone: string;
+  email: string;
 }
 
 export interface CreateSupplierData {
-    name: string;
-    rut: string;
-    address: string;
-    phone: string;
-    email: string;
+  name: string;
+  rut: string;
+  address: string;
+  phone: string;
+  email: string;
 }
 
-export interface UpdateSupplierData {
-    name?: string;
-    rut?: string;
-    address?: string;
-    phone?: string;
-    email?: string;
-}
+export type UpdateSupplierData = Partial<CreateSupplierData>;
 
 export interface SupplierSearchQuery {
-    rut?: string;
-    name?: string;
-    address?: string;
-    phone?: string;
-    email?: string;
-}
-
-export interface SupplierListResponse {
-    status: 'success' | 'error';
-    message?: string;
-    data?: Supplier | Supplier[];
-    advertencias?: string[];
+  rut?: string;
+  name?: string;
+  address?: string;
+  phone?: string;
+  email?: string;
 }
 
 export interface PaginatedSuppliers {
-    data: Supplier[];
-    total: number;
-    page: number;
-    limit: number;
-    totalPages: number;
+  data: Supplier[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+export interface ApiResponse<T = any> {
+  success: boolean;
+  message: string;
+  data?: T;
 }
