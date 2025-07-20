@@ -54,6 +54,105 @@ interface SearchFichaParams {
     bonoActivo?: boolean;
 }
 
+export function calcularFechaFin(temporalidad: string, fechaInicio: Date, duracionMes?: number): Date | null {
+    let fechaFin: Date | null = null;
+    switch (temporalidad) {
+        case 'permanente':
+            // No tiene fecha fin
+            fechaFin = null;
+            break;
+        case 'puntual':
+            // Dura 1 mes desde la fecha de inicio como default
+            fechaFin = new Date(fechaInicio);
+            if (duracionMes && duracionMes > 0) {
+                fechaFin.setMonth(fechaFin.getMonth() + duracionMes);
+            } else {
+                fechaFin.setMonth(fechaFin.getMonth() + 1);
+            }
+            break;
+        case 'recurrente':
+            if (duracionMes && duracionMes > 0) {
+                fechaFin = new Date(fechaInicio);
+                fechaFin.setMonth(fechaFin.getMonth() + duracionMes);
+            } else {
+                fechaFin = null;
+            }
+            break;
+        default:
+            console.error('Tipo de temporalidad desconocido:', temporalidad);
+    }
+    return fechaFin;
+}
+
+// Esta función se podría usar al calcular asignación, actualizar asignación, obtener datos de fichas, obtener datos de asignaciones, calcular remuneraciones
+function verificarCambiosBonos ( asignarBono: AsignarBono, newBono: Bono ): [AsignarBono, string] | [null , string] {
+    let errorMessage: string | null = null; 
+    let messageSuport: string | null = null;
+    // Verificar que la asignacion este activa, solo las activas se pueden editar, las inactivas no serán visibles en getMiFicha, getFichasEmpresa
+    if (asignarBono.activo === false) {
+        // Mensaje de que la asignacion esta inactiva, o la asignación se ha acabado en caso que simplemente se esté obteniendo en un get
+        // En caso de getMiFicha o getFichasEmpresa, no se mostrará la asignación inactiva
+        // En caso de updateAsignarBono, se mostrará un mensaje de error
+        errorMessage = "Asignacion de bono inactiva";
+        return [null, errorMessage];
+    }
+    const hoy = new Date();
+    const fechaHoyString = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
+    let fechaFin: Date | null = null;
+
+    // Verificar si hay un cambio en bono que afecte la asignación, actualizar asignacion, obtener asignaciones, obtener fichas y asignaciones, calcular remuneraciones
+    // Verificar cambio de bono
+    if (asignarBono.bono !== newBono) {
+        // Lógica para manejar el cambio de id
+        asignarBono.bono = newBono;
+        // Actualizar fecha de asignación
+        asignarBono.fechaAsignacion = new Date(fechaHoyString);
+        fechaFin = calcularFechaFin(newBono.temporalidad, asignarBono.fechaAsignacion, newBono.duracionMes);
+        asignarBono.fechaFinAsignacion = fechaFin;
+        messageSuport = "Cambio calculo de remumeraciones, cambio calculo de asignacion activa";
+        return [asignarBono, messageSuport];
+    }
+
+    // Verificar cambio de temporalidad, en caso de que pase esto se recalcula la fecha de fin, si este cambio fue en conjunto con una duracion mes, los calculos cambian
+    if (asignarBono.bono.temporalidad !== newBono.temporalidad) {
+        if (asignarBono.bono.duracionMes !== newBono.duracionMes) {
+            fechaFin = calcularFechaFin(newBono.temporalidad, asignarBono.fechaAsignacion, newBono.duracionMes);
+            asignarBono.fechaFinAsignacion = fechaFin;
+            asignarBono.bono.temporalidad = newBono.temporalidad;
+            asignarBono.bono.duracionMes = newBono.duracionMes;
+            messageSuport = "Cambio calculo de remumeraciones, cambio calculo de asignacion activa";
+            return [asignarBono, messageSuport];
+        } else {
+            // Solo importa el cambio de temporalidad
+            fechaFin = calcularFechaFin(newBono.temporalidad, asignarBono.fechaAsignacion, asignarBono.bono.duracionMes);
+            asignarBono.fechaFinAsignacion = fechaFin;
+            asignarBono.bono.temporalidad = newBono.temporalidad;
+            messageSuport = "Cambio calculo de remumeraciones, cambio calculo de asignacion activa";
+            return [asignarBono, messageSuport];
+        }
+    }
+    // Verificar cambio de duracionMes
+    if (asignarBono.bono.duracionMes !== newBono.duracionMes) {
+        fechaFin = calcularFechaFin(asignarBono.bono.temporalidad, asignarBono.fechaAsignacion, newBono.duracionMes);
+        asignarBono.fechaFinAsignacion = fechaFin;
+        asignarBono.bono.duracionMes = newBono.duracionMes;
+        messageSuport = "Cambio calculo de remumeraciones, cambio calculo de asignacion activa";
+        return [asignarBono, messageSuport];
+    }
+    // Verificar si hubo un cambio de imponibilidad
+    if (asignarBono.bono.imponible !== newBono.imponible) {
+        messageSuport = "Cambio calculo de remumeraciones";
+        return [null, messageSuport];
+    }
+    // Verificar si hubo un cambio de monto
+    if (asignarBono.bono.monto !== newBono.monto) {
+        messageSuport = "Cambio calculo de remumeraciones";
+        return [null, messageSuport];
+    }
+    // Si no hubo cambios relevantes, retornar null
+    return [null, "SIN CAMBIOS"];
+}
+
 export async function getFichasEmpresaService(params: SearchFichaParams): Promise<ServiceResponse<FichaEmpresa[]>> {
     try {
         const fichaRepo = AppDataSource.getRepository(FichaEmpresa);
@@ -62,7 +161,7 @@ export async function getFichasEmpresaService(params: SearchFichaParams): Promis
             .leftJoinAndSelect("trabajador.usuario", "usuario")
             .leftJoinAndSelect("ficha.asignacionesBonos", "asignacionesBonos")
             .leftJoinAndSelect("asignacionesBonos.bono", "bono");
-
+        
         // Filtros por trabajador
         if (params.rut) {
             // Limpiar el RUT de búsqueda (quitar puntos y guión)
@@ -188,6 +287,8 @@ export async function getFichasEmpresaService(params: SearchFichaParams): Promis
             }
         }
 
+
+
         // Ordenar por ID
         queryBuilder.orderBy("ficha.id", "ASC");
 
@@ -230,7 +331,7 @@ export async function getMiFichaService(userId: number): Promise<ServiceResponse
 }
 
 // Definir los campos que no se pueden modificar según el estado
-const CAMPOS_PROTEGIDOS = ['id', 'trabajador'] as const;
+const CAMPOS_PROTEGIDOS = ['id', 'trabajador', 'asignacionesBonos'] as const;
 const CAMPOS_ESTADO_DESVINCULADO = ['cargo', 'area', 'tipoContrato', 'jornadaLaboral', 'sueldoBase', 'afp', 'previsionSalud', 'seguroCesantia'] as const;
 
 export async function updateFichaEmpresaService(
@@ -632,63 +733,31 @@ export async function updateAsignarBonoService( id: number, idFichaActual: numbe
             }
         }
         
-        if (data.bonoId && data.bonoId !== asignacionBono.bono.id) {
-            // Actualizar los campos de la asignación de bono
+        // Verificar si hubo cambios en los campos de la asignación de bono
+        const [cambios, messageSuport] = verificarCambiosBonos(asignacionBono, bono);
+        if (cambios) {
+            // Si hubo cambios relevantes, actualizar la asignación de bono
             asignacionBono.bono = bono;
-            // Esto implicaría  cambiar las fechas de asignación
-            // Validar fechas - usar comparación de strings y crear fechas locales correctamente
-            const hoy = new Date();
-            const fechaHoyString = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
-            // Crear fechas locales correctamente manejando tanto strings como objetos Date
-            let fechaInicio: Date;
-            let fechaFin: Date | null = null;
-            fechaInicio = fechaHoyString ? new Date(fechaHoyString) : new Date();
-            // Determinar fechaFin según la temporalidad
-            switch (bono.temporalidad) {
-                case 'permanente':
-                    // No tiene fecha fin
-                    fechaFin = null;
-                    break;
-
-                case 'puntual':
-                    // Dura 1 mes desde la fecha de inicio como default
-                    fechaFin = new Date(fechaInicio);
-                    if (bono.duracionMes && bono.duracionMes > 0) {
-                        fechaFin.setMonth(fechaFin.getMonth() + bono.duracionMes);
-                    } else {
-                        fechaFin.setMonth(fechaFin.getMonth() + 1);
-                    }
-                    break;
-
-                case 'recurrente':
-                    if (bono.duracionMes && bono.duracionMes > 0) {
-                        fechaFin = new Date(fechaInicio);
-                        fechaFin.setMonth(fechaFin.getMonth() + bono.duracionMes);
-                    } else {
-                        fechaFin = null;
-                    }
-                    break;
-
-                default:
-                    // Si llega un tipo desconocido
-                    await queryRunner.rollbackTransaction();
-                    await queryRunner.release();
-                    return [null, "Temporalidad desconocida"];
-            }
-            // Validar que fechaFin sea posterior a fechaInicio, solo si existe
-            if (fechaFin && fechaFin <= fechaInicio) {
-                await queryRunner.rollbackTransaction();
-                await queryRunner.release();
-                return [null, "La fecha de fin debe ser posterior a la fecha de inicio"];
-            }
-            asignacionBono.fechaAsignacion = fechaInicio;
-            asignacionBono.fechaFinAsignacion = fechaFin === null ? null : fechaFin;
+            asignacionBono.fechaAsignacion = cambios.fechaAsignacion;
+            asignacionBono.fechaFinAsignacion = cambios.fechaFinAsignacion;
+            asignacionBono.activo = data.activo ?? asignacionBono.activo;
+            asignacionBono.observaciones = data.observaciones ?? asignacionBono.observaciones;
+            await asignarBonoRepo.save(asignacionBono);
+            await queryRunner.commitTransaction();
+            // Devolver la asignación de bono actualizada
+            return [asignacionBono, null];
+        } else if (messageSuport === "asignacion de bono inactiva") {
+            // no se puede actualizar una asignación de bono inactiva
+            await queryRunner.rollbackTransaction();
+            return [null, messageSuport];
+        } else if (messageSuport === "SIN CAMBIOS") {
+            // Si no hubo cambios relevantes, simplemente devolver la asignación de bono sin modificar
+            asignacionBono.activo = data.activo ?? asignacionBono.activo;
+            asignacionBono.observaciones = data.observaciones ?? asignacionBono.observaciones;
+            await asignarBonoRepo.save(asignacionBono);
+            await queryRunner.commitTransaction();
+            return [asignacionBono, null];
         }
-        asignacionBono.activo = data.activo ?? asignacionBono.activo;
-        asignacionBono.observaciones = data.observaciones ?? asignacionBono.observaciones;
-        await asignarBonoRepo.save(asignacionBono);
-        await queryRunner.commitTransaction();
-        await queryRunner.release();
         // Devolver la asignación de bono actualizada
         return [asignacionBono, null];
     } catch (error) {
