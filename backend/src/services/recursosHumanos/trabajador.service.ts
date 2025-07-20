@@ -427,6 +427,28 @@ export async function updateTrabajadorService(id: number, data: any): Promise<Se
             const primerNombre = (data.nombres || trabajador.nombres).split(' ')[0].toLowerCase().normalize('NFD').replace(/[^a-zA-Z]/g, '');
             const apellidoPaterno = (data.apellidoPaterno || trabajador.apellidoPaterno).toLowerCase().normalize('NFD').replace(/[^a-zA-Z]/g, '');
             const nuevoCorreoUsuario = await generateCorporateEmail(primerNombre, apellidoPaterno);
+            
+            // Solo generar nueva contraseña si el correo corporativo cambió
+            if (nuevoCorreoUsuario !== trabajador.usuario.corporateEmail) {
+                // Generar nueva contraseña y encriptarla
+                const nuevaPassword = generateRandomPassword();
+                const hashedPassword = await encryptPassword(nuevaPassword);
+                trabajador.usuario.password = hashedPassword;
+                
+                // Enviar correo con nuevas credenciales
+                try {
+                    await sendCredentialsEmail({
+                        to: trabajador.correoPersonal,
+                        nombre: trabajador.nombres,
+                        correoUsuario: nuevoCorreoUsuario,
+                        passwordTemporal: nuevaPassword
+                    });
+                } catch (emailError) {
+                    console.error("Error enviando correo de credenciales actualizadas:", emailError);
+                    // No fallar la operación por el correo, pero registrar el error
+                }
+            }
+            
             trabajador.usuario.corporateEmail = nuevoCorreoUsuario;
             updated = true;
         }
