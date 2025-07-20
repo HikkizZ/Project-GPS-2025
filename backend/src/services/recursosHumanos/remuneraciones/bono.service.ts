@@ -16,6 +16,7 @@ import {
 import { ServiceResponse } from "../../../../types.js";
 import { Between, Like, FindManyOptions, DeepPartial, Not } from "typeorm";
 import { date } from "joi";
+import { calcularFechaFin } from "../fichaEmpresa.service.js"; 
 
 export async function getAllBonosService(): Promise<ServiceResponse<{ bonos: Bono[]; total: number }>> {
     try {
@@ -69,22 +70,25 @@ export async function createBonoService(data: CreateBonoDTO): Promise<ServiceRes
         }
 
         // Validar si el bono ya existe
-
-        const existingBono = await bonosRep.findOne({
-            where: [
-                { nombreBono: bonoData.nombreBono },
-                {
-                tipoBono: bonoData.tipoBono,
+        const existingBonoNombre = await bonosRep.findOne({
+            where: { nombreBono: bonoData.nombreBono }
+        });
+        if (existingBonoNombre) {
+            await queryRunner.rollbackTransaction();
+            return [null, "Ya existe un bono con el mismo nombre"];
+        }
+        const existingBonoCaracteristicas = await bonosRep.findOne({
+            where: {
                 temporalidad: bonoData.temporalidad,
                 monto: bonoData.monto,
-                imponible: bonoData.imponible
-                }
-            ]
+                imponible: bonoData.imponible,
+                duracionMes: bonoData.duracionMes,
+            }
         });
 
-        if (existingBono) {
+        if (existingBonoCaracteristicas) {
             await queryRunner.rollbackTransaction();
-            return [null, "Ya existe un bono con los mismos parámetros. Mismo nombre o mismas caracteristicas."];
+            return [null, "Ya existe un bono con las mismas características"];
         }
 
         const nuevoBono = bonosRep.create(bonoData);
@@ -110,20 +114,6 @@ try {
     if (!bono) {
         return [null, "Bono no encontrado"];
     }
-    //Validar que el nombre a actualizar no sea igual a uno existente en el repositorio actual
-    if (data.nombreBono !== undefined) {
-        // Validar que el nombre del bono no esté vacío
-        if (data.nombreBono.trim() === "") {
-            return [null, "El nombre del bono no puede estar vacío"];
-        }
-        // Validar que el nombre del bono no sea igual a uno existente en el repositorio actual
-        const existingBono = await bonosRep.findOne({
-            where: { nombreBono: data.nombreBono, id: Not(id) } // Excluir el bono actual
-        });
-        if (existingBono) {
-            return [null, "Ya existe un bono con el mismo nombre"];
-        }
-    }
     // Validar que las caracteristicas del bono no sean iguales a las del bono actual
     if (data.monto === bono.monto &&
         data.tipoBono === bono.tipoBono &&
@@ -141,7 +131,48 @@ try {
     if (data.descripcion !== undefined) bono.descripcion = data.descripcion;
     if (data.imponible !== undefined) bono.imponible = data.imponible;
     if (data.duracionMes !== undefined) bono.duracionMes = data.duracionMes;
+    
+    // Validar si el nombre del bono ya existe
+    if (data.nombreBono) {
+        const existingBonoNombre = await bonosRep.findOne({
+            where: { nombreBono: data.nombreBono, id: Not(id) } // Excluir el bono actual
+        });
+        if (existingBonoNombre) {
+            return [null, "Ya existe un bono con el mismo nombre"];
+        }
+    }
+    // Validar si las caracteristicas del bono ya existen
+    if (data.temporalidad || data.monto || data.imponible || data.duracionMes) {
 
+        const existingBonoCaracteristicas = await bonosRep.findOne({
+            where: {
+                temporalidad: bono.temporalidad,
+                monto: bono.monto,
+                imponible: bono.imponible,
+                duracionMes: bono.duracionMes,
+            }
+        });
+        if (existingBonoCaracteristicas) {
+            return [null, "Ya existe un bono con las mismas características"];
+        }
+    }
+    // Actualizar asignaciones relacionadas al bono
+    const asignacionesRep = AppDataSource.getRepository(AsignarBono);
+    const asignaciones = await asignacionesRep.find({
+        where: { bono: { id } },
+        relations: ["bono", "fichaEmpresa"]
+    });
+
+    for (const asignacion of asignaciones) {
+        if (data.temporalidad || data.duracionMes) {
+            asignacion.fechaFinAsignacion = calcularFechaFin(
+                bono.temporalidad,
+                asignacion.fechaAsignacion,
+                bono.duracionMes
+            );
+        }
+        await asignacionesRep.save(asignacion);
+    }
     // Guardar cambios
     await bonosRep.save(bono);
     return [bono, null];
