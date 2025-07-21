@@ -328,6 +328,30 @@ export async function updateLicenciaPermisoService(id: number, data: UpdateLicen
         if (fichaEmpresa.estado !== EstadoLaboral.DESVINCULADO) {
           fichaEmpresa.estado = estadoLaboral;
           await fichaRepo.save(fichaEmpresa);
+
+          // Crear snapshot en historial laboral
+          const historialRepo = queryRunner.manager.getRepository('HistorialLaboral');
+          await historialRepo.save(historialRepo.create({
+            trabajador: fichaEmpresa.trabajador,
+            cargo: fichaEmpresa.cargo,
+            area: fichaEmpresa.area,
+            tipoContrato: fichaEmpresa.tipoContrato,
+            jornadaLaboral: fichaEmpresa.jornadaLaboral,
+            sueldoBase: fichaEmpresa.sueldoBase,
+            fechaInicio: fichaEmpresa.fechaInicioContrato,
+            fechaFin: fichaEmpresa.fechaFinContrato,
+            motivoTermino: fichaEmpresa.motivoDesvinculacion,
+            observaciones: `Cambio de estado a ${estadoLaboral}. Motivo: ${licencia.motivoSolicitud}`,
+            contratoURL: fichaEmpresa.contratoURL,
+            afp: fichaEmpresa.afp,
+            previsionSalud: fichaEmpresa.previsionSalud,
+            seguroCesantia: fichaEmpresa.seguroCesantia,
+            estado: fichaEmpresa.estado,
+            fechaInicioLicencia: fichaEmpresa.fechaInicioLicencia,
+            fechaFinLicencia: fichaEmpresa.fechaFinLicencia,
+            motivoLicencia: fichaEmpresa.motivoLicencia,
+            registradoPor: data.revisadoPor || null
+          }));
         }
       }
     }
