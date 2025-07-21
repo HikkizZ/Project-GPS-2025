@@ -22,25 +22,39 @@ export const useSuppliers = () => {
   const [lastQuery, setLastQuery] = useState<SupplierSearchQuery>({});
 
   //? Cargar proveedores con filtros
-  const loadSuppliers = async (query: SupplierSearchQuery = {}) => {
+  const loadSuppliers = async (query?: SupplierSearchQuery) => {
     setIsLoading(true);
     setError(null);
-    setLastQuery(query);
+
+    const useQuery = query || lastQuery || {};
+    setLastQuery(useQuery); // Guardamos la última query utilizada
 
     try {
-      const response = await supplierService.getSuppliers(query);
-      if (response.success) {
-        setSuppliers(response.data || []);
-        setTotalSuppliers(response.data?.length || 0);
+      if (useQuery.rut || useQuery.email) {
+        const response = await supplierService.searchSupplier(useQuery);
+        if (response.success && response.data) {
+          setSuppliers([response.data]);
+          setTotalSuppliers(1);
+        } else {
+          setSuppliers([]);
+          setTotalSuppliers(0);
+          setError("Proveedor no encontrado");
+        }
       } else {
-        setError(response.message);
-        setSuppliers([]);
-        setTotalSuppliers(0);
+        const response = await supplierService.getSuppliers();
+        if (response.success) {
+          setSuppliers(response.data || []);
+          setTotalSuppliers(response.data?.length || 0);
+        } else {
+          setSuppliers([]);
+          setTotalSuppliers(0);
+          setError(response.message);
+        }
       }
     } catch (err: any) {
-      setError(err.message || "Error al cargar proveedores.");
       setSuppliers([]);
       setTotalSuppliers(0);
+      setError(err.message || "Error al cargar proveedores.");
     } finally {
       setIsLoading(false);
     }
