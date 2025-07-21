@@ -20,7 +20,7 @@ const MaintenanceSparePartForm: React.FC<Props> = ({ mantencionId }) => {
       const res = await getSpareParts();
       if (res.success && res.data) {
         setRepuestos(res.data);
-        setRepuestoId(res.data[0]?.id || 0); // por defecto el primero
+        setRepuestoId(res.data[0]?.id || 0); 
       }
     };
     fetchRepuestos();
@@ -31,7 +31,7 @@ const MaintenanceSparePartForm: React.FC<Props> = ({ mantencionId }) => {
     setLoading(true);
     setMensaje(null);
 
-    const res = await createMaintenanceSparePart({ repuestoId, cantidad, maintenanceRecordId: mantencionId });
+    const res = await createMaintenanceSparePart({ repuestoId, cantidadUtilizada: cantidad, mantencionId: mantencionId });
 
     if (res.success) {
       setMensaje({ tipo: 'success', texto: res.message });
