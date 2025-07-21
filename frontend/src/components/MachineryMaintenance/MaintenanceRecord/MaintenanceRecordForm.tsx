@@ -27,7 +27,7 @@ const MaintenanceRecordForm: React.FC<Props> = ({ initialData = {}, onSubmit, lo
   const [maquinarias, setMaquinarias] = useState<Maquinaria[]>([]);
   const [grupoSeleccionado, setGrupoSeleccionado] = useState('');
   const [patenteSeleccionada, setPatenteSeleccionada] = useState('');
-  const [modeloSeleccionado, setModeloSeleccionado] = useState('');
+  const [numeroChasisSelecionado, setnumeroChasisSelecionado] = useState('');
 
   useEffect(() => {
     async function cargarDatos() {
@@ -62,13 +62,13 @@ const MaintenanceRecordForm: React.FC<Props> = ({ initialData = {}, onSubmit, lo
   }, []);
 
   useEffect(() => {
-    const modelos = maquinarias.filter(
-      (m) => m.grupo === grupoSeleccionado && m.patente === patenteSeleccionada
+    const numeroChasis = maquinarias.filter(
+      (m) => m.numeroChasis === numeroChasisSelecionado && m.patente === patenteSeleccionada
     );
-    if (modelos.length === 1) {
-      setModeloSeleccionado(modelos[0].modelo);
+    if (numeroChasis.length === 1) {
+      setnumeroChasisSelecionado(numeroChasis[0].numeroChasis);
     }
-  }, [grupoSeleccionado, patenteSeleccionada, maquinarias]);
+  }, [numeroChasisSelecionado, patenteSeleccionada, maquinarias]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
@@ -91,7 +91,7 @@ const MaintenanceRecordForm: React.FC<Props> = ({ initialData = {}, onSubmit, lo
       (m) =>
         m.grupo === grupoSeleccionado &&
         m.patente === patenteSeleccionada &&
-        m.modelo === modeloSeleccionado
+        m.numeroChasis === numeroChasisSelecionado
     );
 
     if (!maquinariaEncontrada) {
@@ -151,8 +151,8 @@ const MaintenanceRecordForm: React.FC<Props> = ({ initialData = {}, onSubmit, lo
             <select
               id="selectModelo"
               className="form-select"
-              value={modeloSeleccionado}
-              onChange={(e) => setModeloSeleccionado(e.target.value)}
+              value={numeroChasisSelecionado}
+              onChange={(e) => setnumeroChasisSelecionado(e.target.value)}
             >
               <option value="">Seleccione un número de chasis</option>
               {maquinarias
