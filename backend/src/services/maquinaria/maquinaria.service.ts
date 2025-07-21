@@ -52,7 +52,7 @@ export class MaquinariaService {
 
   async update(id: number, maquinariaData: Partial<Maquinaria>): Promise<Maquinaria> {
     const maquinaria = await this.findOne(id)
-    this.maquinariaRepository.merge(maquinaria, maquinariaData)
+    Object.assign(maquinaria, maquinariaData)
     return this.maquinariaRepository.save(maquinaria)
   }
 
@@ -63,17 +63,7 @@ export class MaquinariaService {
 
   async obtenerMaquinariaDisponible(): Promise<Maquinaria[]> {
     return this.maquinariaRepository.find({
-      where: {
-        estado: EstadoMaquinaria.DISPONIBLE,
-      },
-      relations: ["compras", "ventas"],
-    })
-  }
-
-  async obtenerMaquinariaPorGrupo(grupo: string): Promise<Maquinaria[]> {
-    return this.maquinariaRepository.find({
-      where: { grupo: grupo as any },
-      relations: ["compras", "ventas"],
+      where: { estado: EstadoMaquinaria.DISPONIBLE },
     })
   }
 

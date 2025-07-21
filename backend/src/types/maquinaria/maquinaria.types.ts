@@ -15,13 +15,6 @@ export enum EstadoMaquinaria {
   FUERA_SERVICIO = "fuera_servicio",
 }
 
-export enum EstadoPago {
-  PENDIENTE = "pendiente",
-  PAGADO = "pagado",
-  VENCIDO = "vencido",
-  PARCIAL = "parcial",
-}
-
 // Interfaces base
 export interface Maquinaria {
   id: number
@@ -78,21 +71,6 @@ export interface VentaMaquinaria {
   maquinaria_id?: number
 }
 
-export interface ArriendoMaquinaria {
-  id: number
-  fechaInicio: string
-  fechaFin: string
-  valorDiario: number
-  valorTotal: number
-  estadoPago: EstadoPago
-  observaciones?: string
-  fechaCreacion: Date
-  fechaActualizacion: Date
-  maquinaria: Maquinaria
-  maquinaria_id: number
-  conductor?: Conductor
-  conductor_id?: number
-}
 
 export interface Conductor {
   id: number
@@ -199,26 +177,6 @@ export interface UpdateVentaMaquinaria {
   valorVenta?: number
   comprador?: string
   observaciones?: string
-}
-
-export interface CreateArriendoMaquinaria {
-  fechaInicio: string
-  fechaFin: string
-  valorDiario: number
-  estadoPago?: EstadoPago
-  observaciones?: string
-  maquinaria_id: number
-  conductor_id?: number
-}
-
-export interface UpdateArriendoMaquinaria {
-  fechaInicio?: string
-  fechaFin?: string
-  valorDiario?: number
-  estadoPago?: EstadoPago
-  observaciones?: string
-  maquinaria_id?: number
-  conductor_id?: number
 }
 
 export interface CreateConductor {

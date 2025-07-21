@@ -167,51 +167,6 @@ export const VentaMaquinariaPage: React.FC = () => {
             </Card.Header>
           </Card>
 
-          {/* Resumen de ventas */}
-          {ventas.length > 0 && (
-            <Row className="mb-4">
-              <Col md={4}>
-                <Card className="bg-primary text-white">
-                  <Card.Body>
-                    <div className="d-flex align-items-center">
-                      <div className="flex-grow-1">
-                        <h6 className="card-title mb-1">Total Ventas</h6>
-                        <h4 className="mb-0">{formatCurrency(totalVentas)}</h4>
-                      </div>
-                      <i className="bi bi-currency-dollar fs-1 opacity-50"></i>
-                    </div>
-                  </Card.Body>
-                </Card>
-              </Col>
-              <Col md={4}>
-                <Card className={`text-white ${totalGanancias >= 0 ? "bg-success" : "bg-danger"}`}>
-                  <Card.Body>
-                    <div className="d-flex align-items-center">
-                      <div className="flex-grow-1">
-                        <h6 className="card-title mb-1">Ganancias Totales</h6>
-                        <h4 className="mb-0">{formatCurrency(totalGanancias)}</h4>
-                      </div>
-                      <i className={`bi ${totalGanancias >= 0 ? "bi-graph-up" : "bi-graph-down"} fs-1 opacity-50`}></i>
-                    </div>
-                  </Card.Body>
-                </Card>
-              </Col>
-              <Col md={4}>
-                <Card className="bg-info text-white">
-                  <Card.Body>
-                    <div className="d-flex align-items-center">
-                      <div className="flex-grow-1">
-                        <h6 className="card-title mb-1">Maquinarias Vendidas</h6>
-                        <h4 className="mb-0">{ventas.length}</h4>
-                      </div>
-                      <i className="bi bi-truck fs-1 opacity-50"></i>
-                    </div>
-                  </Card.Body>
-                </Card>
-              </Col>
-            </Row>
-          )}
-
           {/* Mensajes de error */}
           {error && (
             <Alert variant="danger" className="mb-3">
@@ -245,7 +200,7 @@ export const VentaMaquinariaPage: React.FC = () => {
                     <i className="bi bi-cash-coin fs-1 text-muted mb-3 d-block"></i>
                     <h5 className="text-muted">No hay ventas registradas</h5>
                     <p className="text-muted mb-4">Comienza registrando tu primera venta de maquinaria</p>
-                    <Button variant="success" onClick={() => setShowCreateModal(true)}>
+                    <Button variant="success" onClick={() => setShowCreateModal(true )}>
                       <i className="bi bi-plus-circle me-2"></i>
                       Registrar Venta
                     </Button>
@@ -287,20 +242,8 @@ export const VentaMaquinariaPage: React.FC = () => {
                               <td>{venta.comprador || "-"}</td>
                               <td>
                                 <div className="btn-group btn-group-sm">
-                                  <Button
-                                    variant="outline-primary"
-                                    onClick={() => setEditingVenta(venta)}
-                                    title="Ver detalles"
-                                  >
-                                    <i className="bi bi-eye"></i>
-                                  </Button>
-                                  <Button
-                                    variant="outline-danger"
-                                    onClick={() => handleDelete(venta.id)}
-                                    title="Eliminar"
-                                  >
-                                    <i className="bi bi-trash"></i>
-                                  </Button>
+                                  
+                                  
                                 </div>
                               </td>
                             </tr>

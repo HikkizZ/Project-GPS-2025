@@ -14,7 +14,6 @@ export enum GrupoMaquinaria {
 
 export enum EstadoMaquinaria {
   DISPONIBLE = "disponible",
-  EN_USO = "en_uso",
   MANTENIMIENTO = "mantenimiento",
   VENDIDA = "vendida",
   FUERA_SERVICIO = "fuera_servicio",

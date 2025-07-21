@@ -8,13 +8,14 @@ import {
   UpdateDateColumn,
 } from "typeorm"
 import { Maquinaria } from "./maquinaria.entity.js"
-import { Customer } from "../stakeholders/customer.entity.js"
-import { User } from "../user.entity.js"
 
 @Entity("arriendos_maquinaria")
 export class ArriendoMaquinaria {
   @PrimaryGeneratedColumn()
   id!: number
+
+  @Column({ type: "varchar", length: 50, nullable: false, unique: true })
+  numeroReporte!: string
 
   // Relación con Maquinaria
   @ManyToOne(() => Maquinaria, { nullable: false })
@@ -24,7 +25,7 @@ export class ArriendoMaquinaria {
   @Column({ type: "int", name: "maquinaria_id" })
   maquinariaId!: number
 
-  // Campos de maquinaria desnormalizados para consultas rápidas
+  // Campos del reporte físico (copiados tal como vienen)
   @Column({ type: "varchar", length: 20, nullable: false })
   patente!: string
 
@@ -34,61 +35,31 @@ export class ArriendoMaquinaria {
   @Column({ type: "varchar", length: 100, nullable: false })
   modelo!: string
 
-  // Relación con Cliente
-  @ManyToOne(() => Customer, { nullable: false })
-  @JoinColumn({ name: "customer_id" })
-  cliente!: Customer
-
-  @Column({ type: "int", name: "customer_id" })
-  clienteId!: number
-
-  // Campos de cliente desnormalizados
+  // Datos del cliente (del reporte físico)
   @Column({ type: "varchar", length: 12, nullable: false })
   rutCliente!: string
 
   @Column({ type: "varchar", length: 255, nullable: false })
   nombreCliente!: string
 
-  // Relación con Conductor (User con rol Conductor)
-  @ManyToOne(() => User, { nullable: false })
-  @JoinColumn({ name: "conductor_id" })
-  conductor!: User
-
-  @Column({ type: "int", name: "conductor_id" })
-  conductorId!: number
-
-  // Campos de conductor desnormalizados
-  @Column({ type: "varchar", length: 20, nullable: false })
-  rutConductor!: string
-
-  @Column({ type: "varchar", length: 100, nullable: false })
-  nombreConductor!: string
-
-  // Datos del arriendo diario
-  @Column({ type: "date", nullable: false })
-  fecha!: Date
-
-  @Column({ type: "decimal", precision: 12, scale: 2, nullable: false })
-  montoTotal!: number
-
-  // Kilometraje
-  @Column({ type: "int", nullable: false })
-  kilometrajeInicial!: number
-
-  @Column({ type: "int", nullable: true })
-  kilometrajeFinal!: number
-
-  // Obra donde se realizará el trabajo
+  // Datos del trabajo realizado
   @Column({ type: "varchar", length: 500, nullable: false })
   obra!: string
 
-  // Observaciones y condiciones
   @Column({ type: "text", nullable: true })
-  observaciones!: string
+  detalle!: string
 
-  // Datos de contacto de emergencia
-  @Column({ type: "varchar", length: 15, nullable: true })
-  telefonoEmergencia!: string
+  // Kilometraje final del día (actualiza kilometrajeActual en maquinaria)
+  @Column({ type: "int", nullable: false })
+  kmFinal!: number
+
+  // Valor del servicio realizado
+  @Column({ type: "decimal", precision: 12, scale: 2, nullable: false })
+  valorServicio!: number
+
+  // Fecha del trabajo (se puede inferir de la fecha de creación o ingresar manualmente)
+  @Column({ type: "date", nullable: false })
+  fechaTrabajo!: Date
 
   @CreateDateColumn()
   createdAt!: Date

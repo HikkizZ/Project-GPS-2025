@@ -24,6 +24,8 @@ import type { UserRole } from "./types/auth.types"
 import { CompraMaquinariaPage } from "./pages/maquinaria/compraMaquinariaPage"
 import { VentaMaquinariaPage } from "./pages/maquinaria/ventaMaquinariaPage"
 import { MaquinariaPage } from "./pages/maquinaria/maquinariaPage"
+import { ArriendoMaquinariaPage} from "./pages/maquinaria/arriendoMaquinariaPage"
+import { ClienteMaquinariaPage } from "./pages/maquinaria/clienteMaquinariaPage"
 
 // Componente de Registro de Trabajadores (mantener igual)
 const RegistrarTrabajadorPage: React.FC<{
@@ -706,6 +708,8 @@ function App() {
                 <Route path="maquinaria" element={<MaquinariaPage />} />
                 <Route path="maquinaria/compras" element={<CompraMaquinariaPage />} />
                 <Route path="maquinaria/ventas" element={<VentaMaquinariaPage />} />
+                <Route path="maquinaria/arriendos" element={<ArriendoMaquinariaPage />} />
+                <Route path="maquinaria/clientes" element={<ClienteMaquinariaPage />} />
 
                 <Route path="*" element={<Navigate to="dashboard" replace />} />
               </Routes>

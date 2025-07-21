@@ -84,12 +84,6 @@ export class MaquinariaController {
 
   update = async (req: Request, res: Response): Promise<void> => {
     try {
-      const errors = validationResult(req)
-      if (!errors.isEmpty()) {
-        res.status(400).json({ errors: errors.array() })
-        return
-      }
-
       const { id } = req.params
       const maquinaria = await this.maquinariaService.update(Number(id), req.body)
       res.status(200).json({
@@ -139,23 +133,6 @@ export class MaquinariaController {
     }
   }
 
-  obtenerPorGrupo = async (req: Request, res: Response): Promise<void> => {
-    try {
-      const { grupo } = req.params
-      const maquinarias = await this.maquinariaService.obtenerMaquinariaPorGrupo(grupo)
-      res.status(200).json({
-        success: true,
-        data: maquinarias,
-      })
-    } catch (error) {
-      res.status(500).json({
-        success: false,
-        message: "Error al obtener maquinarias por grupo",
-        error: error instanceof Error ? error.message : "Error desconocido",
-      })
-    }
-  }
-
   actualizarKilometraje = async (req: Request, res: Response): Promise<void> => {
     try {
       const { id } = req.params
@@ -193,4 +170,6 @@ export class MaquinariaController {
       })
     }
   }
+
+  // MÉTODO obtenerPorGrupo() ELIMINADO - Funcionalidad redundante
 }
