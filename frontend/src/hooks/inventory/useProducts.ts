@@ -1,6 +1,4 @@
-"use client"
-
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { productService } from "@/services/inventario/product.service"
 import type { Product, CreateProductData, UpdateProductData, ApiResponse } from "@/types/inventory/product.types"
 
@@ -11,7 +9,7 @@ export function useProducts() {
   const [isUpdating, setIsUpdating] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
 
-  const loadProducts = async () => {
+  const loadProducts = useCallback(async () => {
     setIsLoading(true)
     try {
       const res: ApiResponse<Product[]> = await productService.getProducts()
@@ -25,9 +23,9 @@ export function useProducts() {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [])
 
-  const createProduct = async (data: CreateProductData): Promise<ApiResponse<Product>> => {
+  const createProduct = useCallback(async (data: CreateProductData): Promise<ApiResponse<Product>> => {
     setIsCreating(true)
     try {
       const res: ApiResponse<Product> = await productService.createProduct(data)
@@ -41,9 +39,9 @@ export function useProducts() {
     } finally {
       setIsCreating(false)
     }
-  }
+  }, [])
 
-  const updateProduct = async (id: number, data: UpdateProductData): Promise<ApiResponse<Product>> => {
+  const updateProduct = useCallback(async (id: number, data: UpdateProductData): Promise<ApiResponse<Product>> => {
     setIsUpdating(true)
     try {
       const res: ApiResponse<Product> = await productService.updateProduct(id, data)
@@ -57,9 +55,9 @@ export function useProducts() {
     } finally {
       setIsUpdating(false)
     }
-  }
+  }, [])
 
-  const deleteProduct = async (id: number): Promise<ApiResponse<any>> => {
+  const deleteProduct = useCallback(async (id: number): Promise<ApiResponse<any>> => {
     setIsDeleting(true)
     try {
       const res: ApiResponse<any> = await productService.deleteProduct(id)
@@ -73,11 +71,11 @@ export function useProducts() {
     } finally {
       setIsDeleting(false)
     }
-  }
+  }, [])
 
   useEffect(() => {
     loadProducts()
-  }, [])
+  }, [loadProducts])
 
   return {
     products,
