@@ -6,6 +6,10 @@ import { FichasEmpresaPage } from './pages/recursosHumanos/FichasEmpresaPage';
 import { BonosPage } from './pages/recursosHumanos/bonosPage';
 import { UsersPage } from './pages/UsersPage';
 import { TrabajadoresPage } from './pages/recursosHumanos/TrabajadoresPage';
+import { SupplierPage } from './pages/stakeholders/SupplierPage';
+import { CustomerPage } from './pages/stakeholders/CustomerPage';
+import { InventoryPage } from './pages/inventory/InventoryPage';
+import { ProductPage } from './pages/inventory/ProductPage';
 import { authService } from './services/auth.service';
 import { Card, Row, Col } from 'react-bootstrap';
 import { useNavigate, Routes, Route, Navigate, useLocation } from 'react-router-dom';
@@ -25,7 +29,7 @@ const RegistrarTrabajadorPage: React.FC<{
 }> = ({ onSuccess, onCancel }) => {
   const { createTrabajador: createTrabajadorService, isLoading: isCreating, error: createError, clearError } = useTrabajadores();
   const { validateRUT, formatRUT } = useRut();
-  
+
   const [formData, setFormData] = useState<CreateTrabajadorData>({
     rut: '',
     nombres: '',
@@ -43,42 +47,42 @@ const RegistrarTrabajadorPage: React.FC<{
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Validaciones del frontend
     const errors: Record<string, string> = {};
-    
+
     if (!validateRUT(formData.rut)) {
       errors.rut = 'RUT inválido';
     }
-    
+
     if (formData.nombres.length < 2) {
       errors.nombres = 'Nombres debe tener al menos 2 caracteres';
     }
-    
+
     if (formData.apellidoPaterno.length < 2) {
       errors.apellidoPaterno = 'Apellido paterno debe tener al menos 2 caracteres';
     }
-    
+
     if (formData.apellidoMaterno.length < 2) {
       errors.apellidoMaterno = 'Apellido materno debe tener al menos 2 caracteres';
     }
-    
+
     const correoPersonalRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!correoPersonalRegex.test(formData.correoPersonal)) {
       errors.correoPersonal = 'Correo personal inválido';
     }
-    
+
     if (formData.telefono.length < 9) {
       errors.telefono = 'Teléfono debe tener al menos 9 dígitos';
     }
-    
+
     if (Object.keys(errors).length > 0) {
       setValidationErrors(errors);
       return;
     }
-    
+
     setValidationErrors({});
-    
+
     try {
       const result = await createTrabajadorService(formData);
       if (result.success && result.trabajador) {
@@ -94,12 +98,12 @@ const RegistrarTrabajadorPage: React.FC<{
 
   const handleChange = (field: keyof CreateTrabajadorData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
-    
+
     // Limpiar error del campo específico
     if (validationErrors[field]) {
       setValidationErrors(prev => ({ ...prev, [field]: '' }));
     }
-    
+
     // Auto-formatear RUT
     if (field === 'rut') {
       const formattedRUT = formatRUT(value);
@@ -129,7 +133,7 @@ const RegistrarTrabajadorPage: React.FC<{
 
               <div className="alert alert-info">
                 <i className="bi bi-info-circle me-2"></i>
-                <strong>Nota:</strong> Al registrar un trabajador se creará automáticamente una ficha de empresa 
+                <strong>Nota:</strong> Al registrar un trabajador se creará automáticamente una ficha de empresa
                 con valores por defecto que podrás editar inmediatamente.
               </div>
 
@@ -313,7 +317,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
 
   // Roles que tienen acceso completo a todas las funcionalidades
   const rolesPrivilegiados: UserRole[] = ['SuperAdministrador', 'Administrador', 'RecursosHumanos'];
-  
+
   // Verificar si el usuario tiene permisos completos
   const tienePermisosCompletos = rolesPrivilegiados.includes(user.role as UserRole);
 
@@ -337,14 +341,14 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
         );
       case 'ficha-empresa':
         return (
-          <FichasEmpresaPage 
+          <FichasEmpresaPage
             trabajadorRecienRegistrado={recienRegistrado}
             onTrabajadorModalClosed={() => setRecienRegistrado(null)}
           />
         );
       case 'ficha-empresa/mi-ficha':
         return (
-          <FichasEmpresaPage 
+          <FichasEmpresaPage
             trabajadorRecienRegistrado={recienRegistrado}
             onTrabajadorModalClosed={() => setRecienRegistrado(null)}
           />
@@ -360,9 +364,9 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
                   <div className="alert alert-success alert-dismissible fade show">
                     <i className="bi bi-check-circle me-2"></i>
                     {successMessage}
-                    <button 
-                      type="button" 
-                      className="btn-close" 
+                    <button
+                      type="button"
+                      className="btn-close"
                       onClick={() => setSuccessMessage('')}
                     ></button>
                   </div>
@@ -391,7 +395,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
                         </span>
                       </div>
                     </div>
-                    
+
                     {/* Sección de Recursos Humanos */}
                     <div className="mb-3">
                       <div className="d-flex align-items-center mb-3">
@@ -406,15 +410,15 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
                     </div>
                     <Row>
                       <Col md={3} className="mb-4">
-                        <Card 
-                          className="h-100 border-0 shadow-lg" 
-                          style={{ 
-                            cursor: 'pointer', 
+                        <Card
+                          className="h-100 border-0 shadow-lg"
+                          style={{
+                            cursor: 'pointer',
                             borderRadius: '20px',
                             transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
                             background: 'white',
                             border: '1px solid #e3f2fd'
-                          }} 
+                          }}
                           onClick={() => navigate('/recursos-humanos')}
                           onMouseEnter={(e) => {
                             e.currentTarget.style.transform = 'translateY(-12px) scale(1.02)';
@@ -428,7 +432,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
                           }}
                         >
                           <Card.Body className="p-4 text-center">
-                            <div 
+                            <div
                               className="d-inline-flex align-items-center justify-content-center mb-4"
                               style={{
                                 width: '80px',
@@ -440,7 +444,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
                               }}
                             >
                               <i className="bi bi-people-fill text-white" style={{ fontSize: '2.5rem' }}></i>
-                              <div 
+                              <div
                                 style={{
                                   position: 'absolute',
                                   top: '-8px',
@@ -471,46 +475,76 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
                           </Card.Body>
                         </Card>
                       </Col>
-                      
+
                       <Col md={3} className="mb-4">
-                        <Card 
-                          className="h-100 border-0 shadow-sm" 
-                          style={{ 
+                        <Card
+                          className="h-100 border-0 shadow-sm"
+                          style={{
+                            cursor: 'pointer',
                             borderRadius: '20px',
+                            transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
                             background: 'white',
-                            border: '1px solid #f1f5f9',
-                            opacity: 0.8
+                            border: '1px solid #e3f2fd'
+                          }}
+                          onClick={() => navigate('/inventario')} // <-- CAMBIA ESTO
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.transform = 'translateY(-12px) scale(1.02)';
+                            e.currentTarget.style.boxShadow = '0 25px 50px rgba(13, 110, 253, 0.25)';
+                            e.currentTarget.style.borderColor = '#0d6efd';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.transform = 'translateY(0) scale(1)';
+                            e.currentTarget.style.boxShadow = '0 10px 30px rgba(0, 0, 0, 0.1)';
+                            e.currentTarget.style.borderColor = '#e3f2fd';
                           }}
                         >
                           <Card.Body className="p-4 text-center">
-                            <div 
+                            <div
                               className="d-inline-flex align-items-center justify-content-center mb-4"
                               style={{
                                 width: '80px',
                                 height: '80px',
                                 background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
                                 borderRadius: '24px',
+                                position: 'relative',
                                 boxShadow: '0 8px 32px rgba(16, 185, 129, 0.2)'
                               }}
                             >
                               <i className="bi bi-box-seam text-white" style={{ fontSize: '2.5rem' }}></i>
+                              <div
+                                style={{
+                                  position: 'absolute',
+                                  top: '-8px',
+                                  right: '-8px',
+                                  width: '24px',
+                                  height: '24px',
+                                  background: '#28a745',
+                                  borderRadius: '50%',
+                                  border: '3px solid white',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center'
+                                }}
+                              >
+                                <i className="bi bi-check text-white" style={{ fontSize: '0.7rem' }}></i>
+                              </div>
                             </div>
                             <Card.Title className="fw-bold text-dark mb-2 fs-5">Inventario</Card.Title>
                             <Card.Text className="text-muted small mb-3">Control de stock y productos</Card.Text>
                             <div className="d-flex align-items-center justify-content-center">
-                              <small className="text-muted">
-                                <i className="bi bi-clock me-1"></i>
-                                Próximamente
+                              <small className="text-primary fw-semibold">
+                                <i className="bi bi-arrow-right me-1"></i>
+                                Acceder
                               </small>
                             </div>
                           </Card.Body>
                         </Card>
                       </Col>
-                      
+
                       <Col md={3} className="mb-4">
-                        <Card 
-                          className="h-100 border-0 shadow-sm" 
-                          style={{ 
+                        <Card
+                          className="h-100 border-0 shadow-sm"
+                          style={{
                             borderRadius: '20px',
                             background: 'white',
                             border: '1px solid #f1f5f9',
@@ -518,7 +552,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
                           }}
                         >
                           <Card.Body className="p-4 text-center">
-                            <div 
+                            <div
                               className="d-inline-flex align-items-center justify-content-center mb-4"
                               style={{
                                 width: '80px',
@@ -541,11 +575,11 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
                           </Card.Body>
                         </Card>
                       </Col>
-                      
+
                       <Col md={3} className="mb-4">
-                        <Card 
-                          className="h-100 border-0 shadow-sm" 
-                          style={{ 
+                        <Card
+                          className="h-100 border-0 shadow-sm"
+                          style={{
                             borderRadius: '20px',
                             background: 'white',
                             border: '1px solid #f1f5f9',
@@ -553,7 +587,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
                           }}
                         >
                           <Card.Body className="p-4 text-center">
-                            <div 
+                            <div
                               className="d-inline-flex align-items-center justify-content-center mb-4"
                               style={{
                                 width: '80px',
@@ -615,13 +649,13 @@ function App() {
 
   return (
     <Routes>
-      <Route 
-        path="/login" 
+      <Route
+        path="/login"
         element={
           <PublicRoute>
             <LoginPage />
           </PublicRoute>
-        } 
+        }
       />
       <Route
         path="/*"
@@ -639,6 +673,10 @@ function App() {
                 <Route path="gestion-personal" element={<GestionPersonalPage />} />
                 <Route path="gestion-licencias-permisos" element={<GestionLicenciasPermisosPage />} />
                 <Route path="mis-licencias-permisos" element={<MisLicenciasPermisosPage />} />
+                <Route path="inventario/proveedores" element={<SupplierPage />} />
+                <Route path="inventario/clientes" element={<CustomerPage />} />
+                <Route path="inventario/productos" element={<ProductPage />} />
+                <Route path="inventario" element={<InventoryPage />} />
                 <Route path="/" element={<Navigate to="dashboard" replace />} />
                 <Route path="*" element={<div className="container py-4"><div className="alert alert-warning"><h4>Página no encontrada</h4><p>La página que buscas no existe. <a href="/dashboard">Volver al dashboard</a></p></div></div>} />
               </Routes>
