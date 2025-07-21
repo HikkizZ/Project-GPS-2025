@@ -16,7 +16,7 @@ router.use(authenticateJWT);
 router
     .post('/', createInventoryExit)
     .get('/all', getAllInventoryExits)
-    .get('/', getInventoryExitById)
-    .delete('/', deleteInventoryExit);
+    .get('/:id', getInventoryExitById)
+    .delete('/:id', deleteInventoryExit);
 
 export default router;

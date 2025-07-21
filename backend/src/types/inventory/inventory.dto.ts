@@ -17,6 +17,7 @@ export type InventoryEntryDetailDTO = {
 /* Header-level data for inventory exit */
 export type CreateInventoryExitDTO = {
   customerRut: string;
+  exitDate?: string;
   details: InventoryExitDetailDTO[];
 };
 

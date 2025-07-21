@@ -1,9 +1,9 @@
 import { Request, Response } from 'express';
 import {
-  createInventoryExitService,
-  getAllInventoryExitsService,
-  getInventoryExitByIdService,
-  deleteInventoryExitService
+    createInventoryExitService,
+    getAllInventoryExitsService,
+    getInventoryExitByIdService,
+    deleteInventoryExitService
 } from '../../services/inventory/inventoryExit.service.js';
 
 import { CreateInventoryExitDTO } from '../../types/inventory/inventory.dto.js';
@@ -61,18 +61,13 @@ export async function getAllInventoryExits(_req: Request, res: Response): Promis
 
 export async function getInventoryExitById(req: Request, res: Response): Promise<void> {
     try {
-        const { id } = req.query;
-
-        const parsedId = id ? Number(id) : undefined;
-
-        const { error } = inventoryQueryValidation.validate({ id: parsedId });
-
-        if (error || parsedId === undefined) {
-            handleErrorClient(res, 400, error?.message ?? "El parámetro 'id' es obligatorio");
+        const id = Number(req.params.id);
+        if (isNaN(id)) {
+            handleErrorClient(res, 400, "ID inválido.");
             return;
         }
 
-        const [exit, err] = await getInventoryExitByIdService(parsedId);
+        const [exit, err] = await getInventoryExitByIdService(id);
 
         if (err) {
             handleErrorClient(res, 404, typeof err === 'string' ? err : err.message);
@@ -92,18 +87,13 @@ export async function getInventoryExitById(req: Request, res: Response): Promise
 
 export async function deleteInventoryExit(req: Request, res: Response): Promise<void> {
     try {
-        const { id } = req.query;
-
-        const parsedId = id ? Number(id) : undefined;
-
-        const { error } = inventoryQueryValidation.validate({ id: parsedId });
-
-        if (error || parsedId === undefined) {
-            handleErrorClient(res, 400, error?.message ?? "El parámetro 'id' es obligatorio");
+        const id = Number(req.params.id);
+        if (isNaN(id)) {
+            handleErrorClient(res, 400, "ID inválido.");
             return;
         }
 
-        const [exit, err] = await deleteInventoryExitService(parsedId);
+        const [exit, err] = await deleteInventoryExitService(id);
 
         if (err) {
             handleErrorServer(res, 500, typeof err === 'string' ? err : err.message);

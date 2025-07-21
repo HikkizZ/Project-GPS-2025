@@ -19,6 +19,7 @@ export async function createInventoryExitService(exitData: CreateInventoryExitDT
 
         const exit = new InventoryExit();
         exit.customer = customer;
+        exit.exitDate = exitData.exitDate ? new Date(exitData.exitDate) : new Date();
 
         exit.details = [];
 
