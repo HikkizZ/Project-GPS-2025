@@ -61,18 +61,13 @@ export async function getAllInventoryEntries(_req: Request, res: Response): Prom
 
 export async function getInventoryEntryById(req: Request, res: Response): Promise<void> {
   try {
-    const { id } = req.query
-
-    const parsedId = id ? Number(id) : undefined;
-
-    const { error } = inventoryQueryValidation.validate({ id: parsedId });
-
-    if (error || parsedId === undefined) {
-      handleErrorClient(res, 400, error?.message ?? "El parámetro 'id' es obligatorio.");
+    const id = Number(req.params.id);
+    if (isNaN(id)) {
+      handleErrorClient(res, 400, "ID inválido.");
       return;
     }
 
-    const [entry, err] = await getInventoryEntryByIdService(parsedId);
+    const [entry, err] = await getInventoryEntryByIdService(id);
 
     if (err) {
       handleErrorClient(res, 404, typeof err === 'string' ? err : err.message);
@@ -92,19 +87,13 @@ export async function getInventoryEntryById(req: Request, res: Response): Promis
 
 export async function deleteInventoryEntry(req: Request, res: Response): Promise<void> {
   try {
-
-    const { id } = req.query;
-
-    const parsedId = id ? Number(id) : undefined;
-
-    const { error } = inventoryQueryValidation.validate({ id: parsedId });
-
-    if (error || parsedId === undefined) {
-      handleErrorClient(res, 400, error?.message ?? "El parámetro 'id' es obligatorio.");
+    const id = Number(req.params.id);
+    if (isNaN(id)) {
+      handleErrorClient(res, 400, "ID inválido.");
       return;
     }
 
-    const [entry, err] = await deleteInventoryEntryService(parsedId);
+    const [entry, err] = await deleteInventoryEntryService(id);
 
     if (err) {
       handleErrorClient(res, 404, typeof err === 'string' ? err : err.message);

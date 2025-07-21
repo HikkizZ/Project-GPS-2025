@@ -19,6 +19,7 @@ export async function createInventoryEntryService(entryData: CreateInventoryEntr
 
         const entry = new InventoryEntry();
         entry.supplier = supplier;
+        entry.entryDate = entryData.entryDate ? new Date(entryData.entryDate) : new Date();
 
         entry.details = [];
 
