@@ -149,3 +149,5 @@ export class BonoService {
 }
 
 export const bonoService = new BonoService();
+export const actualizarBono = (id: number, data: UpdateBonoData) => bonoService.actualizarBono(id, data);
+export const crearBono = (data: CreateBonoData) => bonoService.crearBono(data);
