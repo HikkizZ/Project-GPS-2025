@@ -167,7 +167,8 @@ function limpiarCamposTexto(data: Partial<Trabajador>): Partial<Trabajador> {
     return dataCopia;
 }
 
-export async function createTrabajadorService(trabajadorData: Partial<Trabajador>): Promise<ServiceResponse<{ trabajador: Trabajador, tempPassword: string, advertencias: string[], correoUsuario: string }>> {
+// Cambiar la firma para aceptar el usuario que registra
+export async function createTrabajadorService(trabajadorData: Partial<Trabajador>, registradoPorUser?: User): Promise<ServiceResponse<{ trabajador: Trabajador, tempPassword: string, advertencias: string[], correoUsuario: string }>> {
     try {
         const trabajadorRepo = AppDataSource.getRepository(Trabajador);
         const fichaRepo = AppDataSource.getRepository(FichaEmpresa);
@@ -307,7 +308,7 @@ export async function createTrabajadorService(trabajadorData: Partial<Trabajador
                 sueldoBase: fichaEmpresa.sueldoBase,
                 fechaInicio: trabajadorGuardado.fechaIngreso,
                 observaciones: `Registro inicial de trabajador. Cuenta de usuario: ${correoUsuario}, Rol: Usuario`,
-                registradoPor: newUser // El usuario creado
+                registradoPor: registradoPorUser || newUser // Usar el usuario que registra, o el nuevo usuario si no se pasa
             }));
 
             // Confirmar la transacción
