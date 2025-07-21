@@ -18,6 +18,16 @@ import { LoginPage } from './pages/LoginPage';
 import { useAuth } from './context';
 import { UserRole } from './types/auth.types';
 
+//Importaciones de Mantenciones
+import MantencionPage from './pages/machinaryMantenance/MantencionPage';
+import SparePartsPage from './pages/machinaryMantenance/SparePartsPage';
+import MantencionesCompletadasPage from '@/pages/machinaryMantenance/MantencionesCompletadasPage'
+
+// IMPORTACIONES PARA MAQUINARIA
+import { CompraMaquinariaPage } from "./pages/maquinaria/compraMaquinariaPage"
+import { VentaMaquinariaPage } from "./pages/maquinaria/ventaMaquinariaPage"
+import { MaquinariaPage } from "./pages/maquinaria/maquinariaPage"
+
 // Componente de Registro de Trabajadores
 const RegistrarTrabajadorPage: React.FC<{
   onSuccess: (trabajador: Trabajador) => void;
@@ -641,6 +651,19 @@ function App() {
                 <Route path="mis-licencias-permisos" element={<MisLicenciasPermisosPage />} />
                 <Route path="/" element={<Navigate to="dashboard" replace />} />
                 <Route path="*" element={<div className="container py-4"><div className="alert alert-warning"><h4>Página no encontrada</h4><p>La página que buscas no existe. <a href="/dashboard">Volver al dashboard</a></p></div></div>} />
+              
+
+              {/* Mantención maquinaria */ }
+                <Route path="spare-parts" element={<SparePartsPage />} />
+                <Route path="maintenance-records" element={<MantencionPage />} />
+                <Route path="maintenance-completed" element={<MantencionesCompletadasPage />} />
+              
+              {/* RUTAS DE MAQUINARIA ACTUALIZADAS */}
+                <Route path="maquinaria" element={<MaquinariaPage />} />
+                <Route path="maquinaria/compras" element={<CompraMaquinariaPage />} />
+                <Route path="maquinaria/ventas" element={<VentaMaquinariaPage />} />
+              
+              
               </Routes>
             </MainLayout>
           ) : (
