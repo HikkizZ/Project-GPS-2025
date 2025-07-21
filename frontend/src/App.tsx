@@ -17,6 +17,8 @@ import GestionPersonalPage from './pages/GestionPersonalPage';
 import { LoginPage } from './pages/LoginPage';
 import { useAuth } from './context';
 import { UserRole } from './types/auth.types';
+import MantencionPage from './pages/machinaryMantenance/MantencionPage';
+import SparePartsPage from './pages/machinaryMantenance/SparePartsPage';
 
 // Componente de Registro de Trabajadores
 const RegistrarTrabajadorPage: React.FC<{
@@ -641,6 +643,15 @@ function App() {
                 <Route path="mis-licencias-permisos" element={<MisLicenciasPermisosPage />} />
                 <Route path="/" element={<Navigate to="dashboard" replace />} />
                 <Route path="*" element={<div className="container py-4"><div className="alert alert-warning"><h4>Página no encontrada</h4><p>La página que buscas no existe. <a href="/dashboard">Volver al dashboard</a></p></div></div>} />
+              
+
+              {/* Mantención maquinaria */ }
+                <Route path="spare-parts" element={<SparePartsPage />} />
+                <Route path="maintenance-records" element={<MantencionPage />} />
+              
+
+              
+              
               </Routes>
             </MainLayout>
           ) : (
