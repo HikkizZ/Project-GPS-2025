@@ -9,8 +9,8 @@ import {
 } from "typeorm";
 import { HistorialLaboral } from "./historialLaboral.entity.js";
 import { LicenciaPermiso } from "./licenciaPermiso.entity.js";
-import { User } from "../user.entity.js";
 import { formatRut } from "../../helpers/rut.helper.js";
+import { User } from "../user.entity.js"
 
 @Entity("trabajadores")
 export class Trabajador {

@@ -201,9 +201,11 @@ export async function createTrabajadorService(trabajadorData: Partial<Trabajador
         // Formatear el RUT antes de guardarlo (con puntos y guión)
         trabajadorData.rut = formatRut(trabajadorData.rut);
 
-        // Validar formato de correo
+        // Validar formato de correo 
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(trabajadorData.correoPersonal)) {
+        const emailPersonal = trabajadorData.correoPersonal ?? ""; // usa "" si es undefined o null
+
+        if (!emailRegex.test(emailPersonal)) {
             return [null, "Formato de correo personal inválido"];
         }
 

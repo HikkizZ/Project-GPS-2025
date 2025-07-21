@@ -1,7 +1,6 @@
 import { Request, Response } from "express";
 import { AppDataSource } from "../../config/configDB.js";
 import { FichaEmpresa, EstadoLaboral } from "../../entity/recursosHumanos/fichaEmpresa.entity.js";
-import { Trabajador } from "../../entity/recursosHumanos/trabajador.entity.js";
 import { User } from "../../entity/user.entity.js";
 import { handleSuccess, handleErrorClient, handleErrorServer } from "../../handlers/responseHandlers.js";
 import { FichaEmpresaBodyValidation, FichaEmpresaUpdateValidation, EstadoFichaValidation } from "../../validations/recursosHumanos/fichaEmpresa.validation.js";
@@ -13,10 +12,20 @@ import {
     updateFichaEmpresaService,
     descargarContratoService,
     uploadContratoService,
-    deleteContratoService
+    deleteContratoService,
+    assignBonoService,
+    verificarEstadoAsignacionBonoService,
+    getAsignacionesByFichaService,
+    updateAsignarBonoService
 } from "../../services/recursosHumanos/fichaEmpresa.service.js";
+import { 
+    AsignarBonoValidation,
+    UpdateAsignarBonoValidation,
+    AsignarBonoQueryValidation
+} from "../../validations/recursosHumanos/remuneraciones/bono.validation.js";
 import path from 'path';
 import fs from 'fs';
+import { AsignarBono } from "entity/recursosHumanos/Remuneraciones/asignarBono.entity.js";
 
 export async function getFichasEmpresa(req: Request, res: Response) {
     try {
@@ -250,3 +259,167 @@ export async function searchFichas(req: Request, res: Response): Promise<void> {
         });
     }
 } 
+
+//Asignar bono
+export async function asignarBono(req: Request, res: Response): Promise<void> {
+    try {
+        if (!req.user?.id) {
+            handleErrorClient(res, 401, "Usuario no autenticado");
+            return;
+        }
+        // Validar que el usuario sea RRHH o SuperAdministrador
+        if (req.user.role !== 'RecursosHumanos' && req.user.role !== 'SuperAdministrador') {
+            handleErrorClient(res, 403, "No tiene permisos para asignar bonos");
+            return;
+        }
+
+        // Preparar los datos de la solicitud
+        const requestData = {
+            ...req.body,
+        };
+
+        // Validar el cuerpo de la solicitud
+        const validationResult = AsignarBonoValidation.validate(requestData, { abortEarly: false });
+        if (validationResult.error) {
+            
+            handleErrorClient(res, 400, "Error de validación", {
+                errors: validationResult.error.details.map(error => ({
+                    field: error.path.join('.'),
+                    message: error.message
+                }))
+            });
+            return;
+        }
+              
+        // Asignar el bono al trabajador
+        const id = parseInt(req.params.idFicha);
+        const [ asignacionBono, errorAsignacion ] = await assignBonoService( id, validationResult.value );
+        if (errorAsignacion) {
+            handleErrorClient(res, 400, errorAsignacion as string);
+            return;
+        }
+        handleSuccess(res, 201, "Bono asignado exitosamente", asignacionBono || {});
+    } catch (error) {
+        console.error("Error al asignar bono:", error);
+        handleErrorServer(res, 500, "Error interno del servidor al asignar bono");
+    }   
+}
+
+//Actualizar estado asignación de bono
+export async function updateAsignacionBono(req: Request, res: Response): Promise<void> {
+    try {
+        if (!req.user?.id) {
+            handleErrorClient(res, 401, "Usuario no autenticado");
+            return;
+        }
+        // Validar que el usuario sea RRHH o SuperAdministrador
+        if (req.user.role !== 'RecursosHumanos' && req.user.role !== 'SuperAdministrador') {
+            handleErrorClient(res, 403, "No tiene permisos para actualizar asignaciones de bonos");
+            return;
+        }
+        const idFicha = parseInt(req.params.idFicha);
+        const asignacionId = parseInt(req.params.asignacionId);
+
+        // Verificar si la asignación de bono existe
+        const AsignarId = parseInt(req.params.asignacionId);
+        if (isNaN(AsignarId)) {
+            handleErrorClient(res, 400, "ID asignacion inválido");
+            return;
+        }
+        // Preparar los datos de la solicitud
+        const requestData = {
+            ...req.body,
+        };
+
+        // Validar el cuerpo de la solicitud
+        const validationResult = UpdateAsignarBonoValidation.validate(requestData, { abortEarly: false });
+        if (validationResult.error) {
+            handleErrorClient(res, 400, "Error de validación", {
+                errors: validationResult.error.details.map(error => ({
+                    field: error.path.join('.'),
+                    message: error.message
+                }))
+            });
+            return;
+        }
+
+        const asignacionBonoRepo = AppDataSource.getRepository(AsignarBono);
+        const asignacionBono = await asignacionBonoRepo.findOne({
+            where: { id: AsignarId },
+            relations: ["fichaEmpresa", "bono"]
+        });
+        if (!asignacionBono) {
+            handleErrorClient(res, 404, "Asignación de bono no encontrada");
+            return;
+        }
+        // Verificar si la asignación de bono está activa
+        const isActive = asignacionBono.activo;
+        if (!isActive) {
+            handleErrorClient(res, 400, "No se puede actualizar una asignación de bono inactiva");
+            return;
+        }
+        const [updatedAsignacionBono, error] = await updateAsignarBonoService(AsignarId, idFicha, validationResult.value);
+        if (error) {
+            handleErrorClient(res, 400, error as string);
+            return;
+        }
+        handleSuccess(res, 200, "Asignación de bono actualizada exitosamente", updatedAsignacionBono || {});
+    } catch (error) {
+        console.error("Error al actualizar asignación de bono:", error);
+        handleErrorServer(res, 500, "Error interno del servidor al actualizar asignación de bono");
+    }
+}
+
+// Verificar estado de asignación de bono
+export async function verificarEstadoAsignacionBono(req: Request, res: Response): Promise<void> {
+    try {
+        if (!req.user?.id) {
+            handleErrorClient(res, 401, "Usuario no autenticado");
+            return;
+        }
+        // Validar que el usuario sea RRHH o SuperAdministrador
+        if (req.user.role !== 'RecursosHumanos' && req.user.role !== 'SuperAdministrador') {
+            handleErrorClient(res, 403, "No tiene permisos para verificar estado de asignaciones de bonos");
+            return;
+        }
+        
+        const [estado, error] = await verificarEstadoAsignacionBonoService();
+        if (error) {
+            handleErrorServer(res, 500, typeof error === 'string' ? error : error.message);
+            return;
+        }
+        if (!estado) {
+            handleErrorClient(res, 404, "Error verificando estado de asignaciones de bonos");
+            return;
+        }
+        const desactivadas = estado;
+        const mensaje = `Procesamiento completado: ${desactivadas} licencias/permisos desactivadas`;
+        handleSuccess(res, 200, mensaje, estado || {});
+    } catch (error) {
+        console.error("Error al verificar estado de asignación de bono:", error);
+        handleErrorServer(res, 500, "Error interno del servidor al verificar estado de asignación de bono");
+    }
+}
+
+// Obtener asignaciones de bonos por ficha de empresa
+export async function getAsignacionesByFicha(req: Request, res: Response): Promise<void> {
+    try {
+        const idFicha = parseInt(req.params.idFicha);
+
+        const [asignaciones, error] = await getAsignacionesByFichaService(idFicha);
+        if (error) {
+            handleErrorServer(res, 500, typeof error === 'string' ? error : error.message);
+            return;
+        }
+
+        if (!asignaciones) {
+            handleErrorClient(res, 404, "No se encontraron asignaciones de bonos");
+            return;
+        }
+
+        handleSuccess(res, 200, "Asignaciones de bonos obtenidas exitosamente", asignaciones);
+    } catch (error) {
+        console.error("Error al obtener asignaciones de bonos por ficha de empresa:", error);
+        handleErrorServer(res, 500, "Error interno del servidor al obtener asignaciones de bonos por ficha de empresa");
+    }
+}
