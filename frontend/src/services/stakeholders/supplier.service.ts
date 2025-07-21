@@ -6,21 +6,33 @@ export class SupplierService {
     private baseURL = '/suppliers';
 
     //? Obtener todos los proveedores o buscar con filtros
-    async getSuppliers(query: SupplierSearchQuery = {}): Promise<ApiResponse<Supplier[]>> {
-        // Limpiar campos undefined antes de construir los parámetros
-        const cleanQuery = Object.fromEntries(
-            Object.entries(query).filter(([_, value]) => value !== undefined && value !== null && value !== '')
-        );
-
-        const params = new URLSearchParams(cleanQuery as any).toString();
-        const url = params ? `${this.baseURL}?${params}` : this.baseURL;
-
+    async getSuppliers(): Promise<ApiResponse<Supplier[]>> {
         try {
-            const response = await apiClient.get<{ data: Supplier[]; message: string }>(url);
+            const response = await apiClient.get<{ data: Supplier[]; message: string }>(`${this.baseURL}/all`);
             return {
                 success: true,
                 data: response.data,
                 message: response.message || 'Proveedores obtenidos exitosamente',
+            };
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    //? Buscar proveedor por RUT o email
+    async searchSupplier(query: SupplierSearchQuery): Promise<ApiResponse<Supplier>> {
+        const cleanQuery = Object.fromEntries(
+            Object.entries(query).filter(([_, value]) => value !== undefined && value !== null && value !== '')
+        );
+        const params = new URLSearchParams(cleanQuery as any).toString();
+        const url = `${this.baseURL}?${params}`;
+
+        try {
+            const response = await apiClient.get<{ data: Supplier; message: string }>(url);
+            return {
+                success: true,
+                data: response.data,
+                message: response.message || 'Proveedor encontrado',
             };
         } catch (error) {
             throw error;
