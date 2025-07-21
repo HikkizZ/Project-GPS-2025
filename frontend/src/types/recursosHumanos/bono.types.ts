@@ -6,7 +6,7 @@ export interface Bono {
     temporalidad: "permanente" | "recurrente" | "puntual";
     descripcion?: string;
     imponible: boolean;
-    fechaCreacion: Date;
+    fechaCreacion: string; // Formato YYYY-MM-DD
     duracionMes?: string;
 }
 
@@ -18,6 +18,7 @@ export interface CreateBonoData {
     descripcion?: string;
     imponible: boolean;
     duracionMes?: string;
+    fechaCreacion?: string; // Formato YYYY-MM-DD
 }
 
 export interface UpdateBonoData {
@@ -31,14 +32,9 @@ export interface UpdateBonoData {
 }
 
 export interface BonoSearchQueryData {
-    id?: number;
     nombreBono?: string;
     tipoBono?: "estatal" | "empresarial";
     temporalidad?: "permanente" | "recurrente" | "puntual";
-    limit?: number;
-    offset?: number;
-    fechaCreacionDesde?: string | Date;
-    fechaCreacionHasta?: string | Date;
     imponible?: boolean;
     duracionMes?: string;
 }
