@@ -1,0 +1,93 @@
+/*
+  suppliers.css
+  Estilos específicos para la página de Proveedores.
+  Solo deben ir reglas bajo la clase raíz correspondiente.
+  NO agregar reglas globales ni utilidades aquí.
+*/
+
+/* ============================================
+   GRADIENTE PARA EL HEADER
+   ============================================ */
+.bg-gradient-primary {
+  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%) !important;
+}
+
+/* ============================================
+   TARJETAS DE PROVEEDORES
+   ============================================ */
+.proveedor-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  margin-bottom: 1rem;
+}
+
+.proveedor-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.proveedor-card .card-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 1rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.proveedor-card .card-body {
+  padding: 1.5rem;
+}
+
+.proveedor-card .card-actions {
+  padding: 1rem 1.5rem;
+  background-color: #f8f9fa;
+  border-top: 1px solid #e9ecef;
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+/* ============================================
+   TABLA DE PROVEEDORES
+   ============================================ */
+.proveedor-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+
+.proveedor-table th,
+.proveedor-table td {
+  padding: 0.75rem 1rem;
+  border: 1px solid #e5e7eb;
+}
+
+.proveedor-table thead {
+  background-color: #f1f5f9;
+}
+
+.proveedor-table tbody tr:hover {
+  background-color: #f9fafb;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 768px) {
+  .proveedor-card .card-actions {
+    flex-direction: column;
+  }
+
+  .proveedor-card .card-actions .btn {
+    width: 100%;
+    margin-bottom: 0.5rem;
+  }
+
+  .proveedor-table {
+    font-size: 0.9rem;
+  }
+}
