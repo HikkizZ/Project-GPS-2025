@@ -147,6 +147,88 @@
 }
 
 /* ============================================
+   SELECCIÓN DE MOVIMIENTO
+   ============================================ */
+.inventory-movement-button {
+  height: 180px;
+  font-size: 1.2rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.inventory-movement-button:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.inventory-movement-button .fs-1 {
+  font-size: 3.5rem !important;
+}
+
+.inventory-movement-button .text-white-75 {
+  color: rgba(255, 255, 255, 0.75) !important;
+}
+
+/* ============================================
+   FORMULARIO DE ENTRADA DE INVENTARIO
+   ============================================ */
+.inventory-detail-card {
+  border: 1px solid #e9ecef;
+  border-radius: 0.5rem;
+  background-color: #fdfdfd;
+}
+
+.inventory-detail-card .form-label {
+  font-weight: 500;
+  color: #495057;
+}
+
+/* ============================================
+   TABLA DE HISTORIAL DE INVENTARIO
+   ============================================ */
+.inventory-history-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 0;
+}
+
+.inventory-history-table th,
+.inventory-history-table td {
+  padding: 0.75rem 1rem;
+  border: 1px solid #e5e7eb;
+}
+
+.inventory-history-table thead {
+  background-color: #f1f5f9;
+}
+
+.inventory-history-table tbody tr:hover {
+  background-color: #f9fafb; 
+}
+
+/* Estilos para la subtabla de detalles */
+.inventory-history-subtable {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 0;
+}
+
+.inventory-history-subtable th,
+.inventory-history-subtable td {
+  padding: 0.6rem 0.8rem; 
+  border: 1px solid #d1d5db;
+}
+
+.inventory-history-subtable thead {
+  background-color: #e9ecef; 
+}
+
+.inventory-history-subtable tbody tr:hover {
+  background-color: #f0f2f5;
+}
+
+/* ============================================
    RESPONSIVE
    ============================================ */
 @media (max-width: 992px) {
@@ -228,7 +310,7 @@
 .inventory-metric-card,
 .inventory-chart-card,
 .inventory-history-card {
-  animation: fadeInUp 0.5s ease-out;
+  animation: fadeInUp 0.1s ease-out;
 }
 
 .inventory-metric-card:nth-child(1) {
@@ -238,14 +320,14 @@
   animation-delay: 0.2s;
 }
 .inventory-metric-card:nth-child(3) {
-  animation-delay: 0.3s;
+  animation-delay: 0.2s;
 }
 .inventory-metric-card:nth-child(4) {
-  animation-delay: 0.4s;
+  animation-delay: 0.2s;
 }
 .inventory-chart-card {
-  animation-delay: 0.5s;
+  animation-delay: 0.2s;
 }
 .inventory-history-card {
-  animation-delay: 0.6s;
+  animation-delay: 0.3s;
 }
