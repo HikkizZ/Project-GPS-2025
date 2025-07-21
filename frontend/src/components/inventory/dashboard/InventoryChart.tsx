@@ -1,46 +1,52 @@
-"use client"
-
 import type React from "react"
-import { useEffect, useRef, useMemo } from "react"
-import { Card, Button } from "react-bootstrap"
+import { useEffect, useRef, useMemo, useState } from "react"
+import { Card, Button, Dropdown, Form, Col } from "react-bootstrap"
 import { Chart, BarController, BarElement, CategoryScale, LinearScale, Tooltip, Legend } from "chart.js"
 
 Chart.register(BarController, BarElement, CategoryScale, LinearScale, Tooltip, Legend)
 
 interface InventoryChartProps {
   data?: { label: string; value: number }[]
-  onRefresh?: () => void // Nueva prop para refrescar datos
+  onRefresh?: () => void
+  activeProductTypesCount: number
+  inactiveProductTypesCount: number
 }
 
-const InventoryChart: React.FC<InventoryChartProps> = ({ data: propData, onRefresh }) => {
+const InventoryChart: React.FC<InventoryChartProps> = ({
+  data: propData,
+  onRefresh,
+  activeProductTypesCount,
+  inactiveProductTypesCount,
+}) => {
   const chartRef = useRef<HTMLCanvasElement | null>(null)
   const chartInstance = useRef<Chart | null>(null)
 
-  // 📊 Datos del gráfico, ahora siempre vienen de propData
-  const chartData = propData || [] // Si no hay propData, usar un array vacío
+  // Estado para controlar la visibilidad de cada métrica
+  const [metricVisibility, setMetricVisibility] = useState({
+    totalStock: true,
+    averagePerCategory: true,
+    topCategory: true,
+    registeredCategories: true,
+    unregisteredCategories: true,
+  })
 
-  // 🧮 Cálculos automáticos
+  const chartData = propData || []
+
   const calculations = useMemo(() => {
     const values = chartData.map((item) => item.value)
     const totalStock = values.reduce((sum, value) => sum + value, 0)
     const totalCategories = chartData.length
     const averagePerCategory = totalCategories > 0 ? Math.round(totalStock / totalCategories) : 0
 
-    // Categorías activas (con stock > 0)
-    const activeCategories = chartData.filter((item) => item.value > 0).length
-
-    // Categoría con mayor stock
     const maxStock = values.length > 0 ? Math.max(...values) : 0
     const topCategory = chartData.find((item) => item.value === maxStock)
 
-    // Categorías con stock bajo (menos del 20% del promedio)
     const lowStockThreshold = averagePerCategory * 0.2
     const lowStockCategories = chartData.filter((item) => item.value > 0 && item.value <= lowStockThreshold).length
 
     return {
       totalStock,
       totalCategories,
-      activeCategories,
       averagePerCategory,
       topCategory,
       lowStockCategories,
@@ -59,19 +65,8 @@ const InventoryChart: React.FC<InventoryChartProps> = ({ data: propData, onRefre
     const labels = chartData.map((item) => item.label)
     const data = chartData.map((item) => item.value)
 
-    // 🎨 Paleta de colores moderna y profesional
-    const modernColors = [
-      "#3B82F6", // Azul moderno
-      "#10B981", // Verde esmeralda
-      "#F59E0B", // Amarillo ámbar
-      "#EF4444", // Rojo coral
-      "#8B5CF6", // Púrpura
-      "#06B6D4", // Cian (para más categorías)
-      "#84CC16", // Lima
-      "#F97316", // Naranja
-    ]
+    const modernColors = ["#3B82F6", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6", "#06B6D4", "#84CC16", "#F97316"]
 
-    // Asegurar que tenemos suficientes colores
     const colors = labels.map((_, index) => modernColors[index % modernColors.length])
 
     chartInstance.current = new Chart(ctx, {
@@ -175,6 +170,11 @@ const InventoryChart: React.FC<InventoryChartProps> = ({ data: propData, onRefre
     }
   }, [chartData])
 
+  const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, checked } = e.target
+    setMetricVisibility((prev) => ({ ...prev, [name]: checked }))
+  }
+
   return (
     <Card className="inventory-chart-card shadow-sm">
       <Card.Header className="bg-light border-bottom">
@@ -191,10 +191,62 @@ const InventoryChart: React.FC<InventoryChartProps> = ({ data: propData, onRefre
               <i className="bi bi-arrow-clockwise me-1"></i>
               Actualizar
             </Button>
-            <Button variant="outline-secondary" size="sm">
-              <i className="bi bi-gear me-1"></i>
-              Configurar
-            </Button>
+            <Dropdown>
+              <Dropdown.Toggle variant="outline-secondary" size="sm" id="dropdown-basic">
+                <i className="bi bi-gear me-1"></i>
+                Configurar
+              </Dropdown.Toggle>
+
+              <Dropdown.Menu align="end" className="p-3">
+                <Dropdown.Header>Mostrar/Ocultar Métricas</Dropdown.Header>
+                <Dropdown.Divider />
+                <Form.Check
+                  type="checkbox"
+                  id="check-totalStock"
+                  label="Total Stock"
+                  name="totalStock"
+                  checked={metricVisibility.totalStock}
+                  onChange={handleCheckboxChange}
+                  className="mb-2"
+                />
+                <Form.Check
+                  type="checkbox"
+                  id="check-registeredCategories"
+                  label="Categorías Activas"
+                  name="registeredCategories"
+                  checked={metricVisibility.registeredCategories}
+                  onChange={handleCheckboxChange}
+                  className="mb-2"
+                />
+                <Form.Check
+                  type="checkbox"
+                  id="check-unregisteredCategories"
+                  label="Categorías Inactivas"
+                  name="unregisteredCategories"
+                  checked={metricVisibility.unregisteredCategories}
+                  onChange={handleCheckboxChange}
+                  className="mb-2"
+                />
+                <Form.Check
+                  type="checkbox"
+                  id="check-averagePerCategory"
+                  label="Promedio por Categoría"
+                  name="averagePerCategory"
+                  checked={metricVisibility.averagePerCategory}
+                  onChange={handleCheckboxChange}
+                  className="mb-2"
+                />
+                <Form.Check
+                  type="checkbox"
+                  id="check-topCategory"
+                  label="Categoría con Mayor Stock"
+                  name="topCategory"
+                  checked={metricVisibility.topCategory}
+                  onChange={handleCheckboxChange}
+                  className="mb-2"
+                />
+              </Dropdown.Menu>
+            </Dropdown>
           </div>
         </div>
       </Card.Header>
@@ -203,29 +255,43 @@ const InventoryChart: React.FC<InventoryChartProps> = ({ data: propData, onRefre
           <canvas ref={chartRef} />
         </div>
 
-        {/* 🧮 Información calculada automáticamente */}
-        <div className="row mt-3">
-          <div className="col-md-3 text-center">
-            <small className="text-muted">Total Stock</small>
-            <div className="fw-bold text-primary">{calculations.totalStock.toLocaleString()} unidades</div>
-          </div>
-          <div className="col-md-3 text-center">
-            <small className="text-muted">Categorías</small>
-            <div className="fw-bold text-success">{calculations.activeCategories} activas</div>
-          </div>
-          <div className="col-md-3 text-center">
-            <small className="text-muted">Promedio</small>
-            <div className="fw-bold text-info">{calculations.averagePerCategory} u/categoría</div>
-          </div>
-          <div className="col-md-3 text-center">
-            <small className="text-muted">Mayor Stock</small>
-            <div className="fw-bold text-warning">
-              {calculations.topCategory?.label} ({calculations.maxStock}u)
-            </div>
-          </div>
+        {/* 🧮 Información calculada automáticamente (basada en stock simulado) */}
+        <div className="row mt-3 justify-content-around">
+          {metricVisibility.totalStock && (
+            <Col className="text-center">
+              <small className="text-muted">Total Stock</small>
+              <div className="fw-bold text-primary">{calculations.totalStock.toLocaleString()} unidades</div>
+            </Col>
+          )}
+          {metricVisibility.registeredCategories && (
+            <Col className="text-center">
+              <small className="text-muted">Categorías activas</small>
+              <div className="fw-bold text-success">{activeProductTypesCount} activas</div>
+            </Col>
+          )}
+          {metricVisibility.unregisteredCategories && (
+            <Col className="text-center">
+              <small className="text-muted ">Categorías inactivas</small>
+              <div className="fw-bold text-danger">{inactiveProductTypesCount} inactivas</div>
+            </Col>
+          )}
+          {metricVisibility.averagePerCategory && (
+            <Col className="text-center">
+              <small className="text-muted">Promedio</small>
+              <div className="fw-bold text-info">{calculations.averagePerCategory} u/categoría</div>
+            </Col>
+          )}
+          {metricVisibility.topCategory && (
+            <Col className="text-center">
+              <small className="text-muted">Mayor Stock</small>
+              <div className="fw-bold text-warning">
+                {calculations.topCategory?.label} ({calculations.maxStock}u)
+              </div>
+            </Col>
+          )}
         </div>
 
-        {/* 📊 Información adicional */}
+        {/* 📊 Información adicional (basada en stock simulado) */}
         {calculations.lowStockCategories > 0 && (
           <div className="row mt-2">
             <div className="col-12 text-center">
