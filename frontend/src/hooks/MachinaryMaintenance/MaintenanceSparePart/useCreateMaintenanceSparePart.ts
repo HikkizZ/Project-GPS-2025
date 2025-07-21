@@ -11,7 +11,7 @@ export function useCreateMaintenanceSparePart() {
   const [success, setSuccess] = useState(false);
   const [createdSparePart, setCreatedSparePart] = useState<MaintenanceSparePart | null>(null);
 
-  const create = async (data: CreateMaintenanceSparePartData) => {
+  const create = async (data: CreateMaintenanceSparePartData): Promise<[MaintenanceSparePart | null, string | null]> => {
     setLoading(true);
     setError(null);
     setSuccess(false);
@@ -22,11 +22,14 @@ export function useCreateMaintenanceSparePart() {
     if (response.success && response.data) {
       setCreatedSparePart(response.data);
       setSuccess(true);
+      setLoading(false);
+      return [response.data, null];
     } else {
-      setError(response.message || 'Error al registrar repuesto en mantención');
+      const msg = response.message || 'Error al registrar repuesto en mantención';
+      setError(msg);
+      setLoading(false);
+      return [null, msg];
     }
-
-    setLoading(false);
   };
 
   const reset = () => {
