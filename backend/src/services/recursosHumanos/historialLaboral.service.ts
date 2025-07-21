@@ -17,7 +17,7 @@ export async function getHistorialLaboralByTrabajadorService(trabajadorId: numbe
         const historialRepo = AppDataSource.getRepository(HistorialLaboral);
         const historial = await historialRepo.find({
             where: { trabajador: { id: trabajadorId } },
-            relations: ["trabajador", "registradoPor"],
+            relations: ["trabajador", "trabajador.usuario", "registradoPor"],
             order: { fechaInicio: "DESC" }
         });
 

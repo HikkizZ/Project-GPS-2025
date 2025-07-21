@@ -52,7 +52,40 @@ export async function getHistorialLaboral(req: Request, res: Response): Promise<
             return;
         }
 
-        handleSuccess(res, 200, "Historial laboral obtenido exitosamente", historial || []);
+        // Formatear la respuesta para filtrar los campos de registradoPor y filtrar usuario dentro de trabajador
+        const historialFiltrado = (historial || []).map((item: any) => {
+            // Filtrar usuario dentro de trabajador
+            let trabajadorFiltrado = { ...item.trabajador };
+            if (item.trabajador && item.trabajador.usuario) {
+                trabajadorFiltrado = {
+                    ...trabajadorFiltrado,
+                    usuario: {
+                        id: item.trabajador.usuario.id,
+                        name: item.trabajador.usuario.name,
+                        corporateEmail: item.trabajador.usuario.corporateEmail,
+                        role: item.trabajador.usuario.role,
+                        rut: item.trabajador.usuario.rut,
+                        estadoCuenta: item.trabajador.usuario.estadoCuenta
+                    }
+                };
+            } else {
+                delete trabajadorFiltrado.usuario;
+            }
+            return {
+                ...item,
+                trabajador: trabajadorFiltrado,
+                registradoPor: item.registradoPor ? {
+                    id: item.registradoPor.id,
+                    name: item.registradoPor.name,
+                    corporateEmail: item.registradoPor.corporateEmail,
+                    role: item.registradoPor.role,
+                    rut: item.registradoPor.rut,
+                    estadoCuenta: item.registradoPor.estadoCuenta
+                } : null
+            };
+        });
+
+        handleSuccess(res, 200, "Historial laboral obtenido exitosamente", historialFiltrado || []);
     } catch (error) {
         console.error("Error al obtener historial laboral:", error);
         handleErrorServer(res, 500, "Error al obtener historial laboral.");
