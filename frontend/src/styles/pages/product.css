@@ -1,0 +1,147 @@
+/*
+  products.css
+  Estilos específicos para la página de Productos.
+  Solo deben ir reglas bajo la clase raíz correspondiente.
+  NO agregar reglas globales ni utilidades aquí.
+*/
+
+/* ============================================
+   GRADIENTE PARA EL HEADER
+   ============================================ */
+.bg-gradient-primary {
+  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%) !important;
+}
+
+/* ============================================
+   TARJETAS DE PRODUCTOS
+   ============================================ */
+.producto-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  margin-bottom: 1rem;
+}
+
+.producto-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.producto-card .card-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 1rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.producto-card .card-body {
+  padding: 1.5rem;
+}
+
+.producto-card .card-actions {
+  padding: 1rem 1.5rem;
+  background-color: #f8f9fa;
+  border-top: 1px solid #e9ecef;
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+/* ============================================
+   TABLA DE PRODUCTOS
+   ============================================ */
+.producto-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+
+.producto-table th,
+.producto-table td {
+  padding: 0.75rem 1rem;
+  border: 1px solid #e5e7eb;
+}
+
+.producto-table thead {
+  background-color: #f1f5f9;
+}
+
+.producto-table tbody tr:hover {
+  background-color: #f9fafb;
+}
+
+/* ============================================
+   FORMULARIO DE PRODUCTOS
+   ============================================ */
+.producto-form .form-group {
+  margin-bottom: 1.5rem;
+}
+
+.producto-form .input-group-text {
+  background-color: #f8f9fa;
+  border-color: #ced4da;
+  color: #495057;
+  font-weight: 500;
+}
+
+.producto-form .form-control:disabled {
+  background-color: #f8f9fa;
+  opacity: 0.8;
+}
+
+/* ============================================
+   PRECIOS Y VALORES MONETARIOS
+   ============================================ */
+.precio-display {
+  font-family: "Courier New", monospace;
+  font-weight: bold;
+  color: #28a745;
+}
+
+.precio-input {
+  text-align: right;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 768px) {
+  .producto-card .card-actions {
+    flex-direction: column;
+  }
+
+  .producto-card .card-actions .btn {
+    width: 100%;
+    margin-bottom: 0.5rem;
+  }
+
+  .producto-table {
+    font-size: 0.9rem;
+  }
+
+  .inventory-sidebar-wrapper {
+    width: 100%;
+    height: auto;
+    border-right: none;
+    border-bottom: 1px solid #e9ecef;
+  }
+}
+
+@media (max-width: 576px) {
+  .producto-form .input-group {
+    flex-direction: column;
+  }
+
+  .producto-form .input-group-text {
+    border-radius: 0.375rem 0.375rem 0 0;
+    border-bottom: none;
+  }
+
+  .producto-form .input-group .form-control {
+    border-radius: 0 0 0.375rem 0.375rem;
+  }
+}
