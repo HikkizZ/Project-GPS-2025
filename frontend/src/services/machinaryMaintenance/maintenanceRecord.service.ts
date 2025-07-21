@@ -1,9 +1,5 @@
 import { apiClient } from '@/config/api.config';
-import type {
-  MaintenanceRecord,
-  CreateMaintenanceRecordData,
-  UpdateMaintenanceRecordData
-} from '../../types/machinaryMaintenance/maintenanceRecord.types';
+import type {MaintenanceRecord, CreateMaintenanceRecordData, UpdateMaintenanceRecordData} from '@/types/machinaryMaintenance/maintenanceRecord.types';
 
 export interface ApiResponse<T = any> {
   success: boolean;
@@ -100,11 +96,11 @@ export class MaintenanceRecordService {
   }
 }
 
-// Instancia única para usar directamente
+
 const maintenanceRecordService = new MaintenanceRecordService();
 export default maintenanceRecordService;
 
-// Funciones de conveniencia
+
 export const getMaintenanceRecords = () => maintenanceRecordService.getAll();
 export const getMaintenanceRecord = (id: number) => maintenanceRecordService.getById(id);
 export const createMaintenance = (data: CreateMaintenanceRecordData) => maintenanceRecordService.create(data);

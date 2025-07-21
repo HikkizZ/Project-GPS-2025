@@ -1,9 +1,5 @@
 import { apiClient } from '@/config/api.config';
-import type {
-  SparePart,
-  CreateSparePartData,
-  UpdateSparePartData
-} from '../../types/machinaryMaintenance/sparePart.types';
+import type {SparePart,CreateSparePartData, UpdateSparePartData} from '@/types/machinaryMaintenance/sparePart.types';
 
 export interface ApiResponse<T = any> {
   success: boolean;
@@ -102,7 +98,7 @@ class SparePartService {
 const sparePartService = new SparePartService();
 export default sparePartService;
 
-// Atajos
+
 export const getSpareParts = () => sparePartService.getAll();
 export const getSparePart = (id: number) => sparePartService.getById(id);
 export const createSparePart = (data: CreateSparePartData) => sparePartService.create(data);

@@ -1,5 +1,3 @@
-// src/components/MachineryMaintenance/MaintenanceRecord/CompletedMaintenanceList.tsx
-
 import React from 'react';
 import { Table } from 'react-bootstrap';
 import type { MaintenanceRecord } from '@/types/machinaryMaintenance/maintenanceRecord.types';

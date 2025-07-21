@@ -1,9 +1,6 @@
 import { useState } from 'react';
-import {
-  CreateMaintenanceSparePartData,
-  MaintenanceSparePart
-} from '../../../types/machinaryMaintenance/maintenanceSparePart.types';
-import maintenanceSparePartService from '../../../services/machinaryMaintenance/maintenanceSparePart.service'
+import {CreateMaintenanceSparePartData, MaintenanceSparePart} from '@/types/machinaryMaintenance/maintenanceSparePart.types';
+import maintenanceSparePartService from '@/services/machinaryMaintenance/maintenanceSparePart.service'
 
 export function useCreateMaintenanceSparePart() {
   const [loading, setLoading] = useState(false);

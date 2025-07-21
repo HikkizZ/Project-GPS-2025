@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Form, Button, Spinner } from 'react-bootstrap';
 import { CreateSparePartData } from '@/types/machinaryMaintenance/sparePart.types';
 import { getSpareParts } from '@/services/machinaryMaintenance/sparePart.service';
-import {GrupoMaquinaria} from '@/types/maquinaria/maquinaria.types'
+import {GrupoMaquinaria} from '@/types/maquinaria.types'
 import { obtenerTodasLasMaquinarias } from '@/services/maquinaria/maquinaria.service'
 import { useToast } from '@/components/common/Toast';
 import { updateSparePart, createSparePart } from '@/services/machinaryMaintenance/sparePart.service';

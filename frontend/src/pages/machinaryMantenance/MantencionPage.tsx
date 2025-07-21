@@ -11,7 +11,7 @@ import { useUpdateMaintenanceRecord } from "@/hooks/MachinaryMaintenance/Mainten
 import { useDeleteMaintenanceRecord } from "@/hooks/MachinaryMaintenance/MaintenanceRecord/useDeleteMaintenanceRecord"
 import MaintenanceRecordList from "@/components/MachineryMaintenance/MaintenanceRecord/MaintenanceRecordList"
 import MaintenanceRecordModal from "@/components/MachineryMaintenance/MaintenanceRecord/MaintenanceRecordModal"
-import "../../styles/pages/mantencionMaquinaria.css"
+import "@/styles/pages/mantencionMaquinaria.css"
 import { Toast, useToast } from "@/components/common/Toast"
 import MaintenanceSparePartPanel from "@/components/MachineryMaintenance/MaintenanceSpareParts/MaintenanceSparePartPanel"
 import FinalizeMaintenanceModal from '@/components/MachineryMaintenance/MaintenanceRecord/FinalizeMaintenanceModal';

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { MaintenanceRecord } from '../../../types/machinaryMaintenance/maintenanceRecord.types';
-import maintenanceRecordService from '../../../services/machinaryMaintenance/maintenanceRecord.service';
+import { MaintenanceRecord } from '@/types/machinaryMaintenance/maintenanceRecord.types';
+import maintenanceRecordService from '@/services/machinaryMaintenance/maintenanceRecord.service';
 
 export function useGetMaintenanceRecord(id: number) {
   const [record, setRecord] = useState<MaintenanceRecord | null>(null);

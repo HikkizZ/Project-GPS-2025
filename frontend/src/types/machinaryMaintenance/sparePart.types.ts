@@ -1,4 +1,4 @@
-import { GrupoMaquinaria } from '../maquinaria/maquinaria.types';
+import { GrupoMaquinaria } from '@/types/maquinaria.types';
 
 export interface SparePart {
   id: number;
