@@ -10,6 +10,10 @@ import { FiltrosBusquedaHeader } from '@/components/common/FiltrosBusquedaHeader
 import { Toast, useToast } from '@/components/common/Toast';
 import { bonoService } from '../../services/recursosHumanos/bono.service';
 import "../../styles/pages/bonos.css";
+import trabajadorIcon from '../../../assets/iconSVG_2/trabajadorIcon.svg';
+import updateIcon from '../../../assets/iconSVG_2/updateIcon.svg';
+import configIcon from '../../../assets/iconSVG_2/configIcon.svg';
+
 enum TipoBono {
     estatal = "estatal",
     empresarial = "empresarial"
@@ -22,7 +26,7 @@ enum Temporalidad {
 }
 
 export const BonosPage: React.FC = () => {
-    const { bonos, isLoading, error, cargarBonos, updateBono, searchBonos } = useBono();
+    const { bonos, isLoading, error, cargarBonos, searchBonos, createBono, updateBono, clearError, totalBonos } = useBono();
     const [filter, setFilter] = useState("");// Toast notifications
     const { toasts, removeToast, showSuccess, showError } = useToast();
     const { setError: setUIError, setLoading } = useUI();
@@ -35,11 +39,16 @@ export const BonosPage: React.FC = () => {
     const [searchParams, setSearchParams] = useState<BonoSearchQueryData>({});
     const [searchNombre, setSearchNombre] = useState<string>('');
 
+    /*
+    
+    */
     useEffect(() => {
         // Cargar los bonos al montar el componente
+        
         cargarBonos();
-    }, [cargarBonos]);
+    }, []);
 
+    
     // Función para manejar la búsqueda
     const handleSearch = () => {
     
@@ -128,45 +137,25 @@ export const BonosPage: React.FC = () => {
                 >
                     <h1 
                         className="fw-bold display-4"
-                        style={{ color: "#1A5E63" }}
+                        style={{ color: "#283349" }}
                     >
                         Bonos
                     </h1>
                 </div>
-                <div className="controls-formBono">
-                    <div className="button-container">
-                        <button 
-                            style={{
-                                borderRadius: '10px', 
-                                background: ' #EDB65B',
-                                border: 'none',
-                                padding: '1rem 1.25rem'
-                            }}
-                            className="btn btn-outline-dark p-3"                            
-                            onClick={handleCreateClick}
-                        >
-                            Crear Bono
-                        </button>
-                        <input
-                            value={searchNombre}
-                            onChange={handleFilterChange}
-                            placeholder="Filtrar por nombre"
-                            className="search-input-table placeholder:text-[1A5E63]"
-                        />
-                    </div>
-                </div>
+                
             </div>
-
+            
             <Row>
                 <Col>
                     <Card className="shadow-sm mb-3">
-                        <Card.Header className="bg-gradient-primary text-white">
-                            <div className="d-flex align-items-center justify-content-between">
-                                <div className="d-flex align-items-center">
+                        <Card.Header className="text-white" style={{ backgroundColor: "#283349", color: "white" }}>
+                            
+                            <div className="d-flex align-items-center justify-content-between" >
+                                <div className="d-flex align-items-center text-white">
                                     <i className="bi bi-people-fill fs-4 me-3"></i>
                                     <div>
-                                        <h3 className="mb-1">Gestión de Bonos</h3>
-                                        <p className="mb-0 opacity-75">
+                                        <h3 className="mb-1 text-white">Gestión de Bonos</h3>
+                                        <p className="mb-0 opacity-75 text-white">
                                             Administrar información de bonos del sistema
                                         </p>
                                     </div>
@@ -175,7 +164,8 @@ export const BonosPage: React.FC = () => {
                                     <Button 
                                         variant={showFilters ? "outline-light" : "light"}
                                         className="me-2"
-                                        onClick={() => setShowFilters(!showFilters)}
+                                        onClick={() => setShowFilters(!showFilters)}                                      
+                                        style={{ backgroundColor: "#EDB65B" }}
                                     >
                                         <i className={`bi bi-funnel${showFilters ? '-fill' : ''} me-2`}></i>
                                         {showFilters ? 'Ocultar' : 'Mostrar'} Filtros
@@ -183,6 +173,7 @@ export const BonosPage: React.FC = () => {
                                     <Button 
                                         variant="light"
                                         onClick={handleCreateClick}
+                                        style={{ backgroundColor: "#EDB65B" }}
                                     >
                                         <i className="bi bi-person-plus-fill me-2"></i>
                                         Crear Bono
@@ -400,14 +391,13 @@ export const BonosPage: React.FC = () => {
                 onUpdate={handleUpdateSuccess}
             />
 
-            /*
             <CrearBonoModal
                 show={showCreateModal}
                 onHide={() => setShowCreateModal(false)}
                 onSuccess={handleCreateSuccess}
             />
-            */
-            
+
+
             <div className="footer-bonos">
                 <p className="text-center text-muted">
                     © 2025 Project GPS. Todos los derechos reservados.
