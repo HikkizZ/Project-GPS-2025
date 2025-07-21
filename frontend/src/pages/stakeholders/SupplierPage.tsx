@@ -1,5 +1,5 @@
 import type React from "react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Container, Row, Col, Button, Card, Table, Form, Spinner } from "react-bootstrap"
 import SupplierModal from "@/components/stakeholders/SupplierModal"
 import ConfirmModal from "@/components/stakeholders/ConfirmModal"
@@ -22,11 +22,60 @@ export const SupplierPage: React.FC = () => {
   } = useSuppliers()
 
   const { toasts, removeToast, showSuccess, showError } = useToast()
+
+  // Estados para filtrado local
+  const [allSuppliers, setAllSuppliers] = useState<Supplier[]>([])
+  const [filteredSuppliers, setFilteredSuppliers] = useState<Supplier[]>([])
+  const [localFilters, setLocalFilters] = useState({
+    name: "",
+    rut: "",
+    email: "",
+    address: "",
+    phone: "",
+  })
+
+  // Estados existentes
   const [showModal, setShowModal] = useState(false)
   const [editingSupplier, setEditingSupplier] = useState<Supplier | undefined>(undefined)
-  const [filters, setFilters] = useState({ name: "", rut: "", email: "" })
+  const [filters, setFilters] = useState({ rut: "", email: "" })
   const [showFilters, setShowFilters] = useState(false)
   const [supplierToDelete, setSupplierToDelete] = useState<Supplier | null>(null)
+
+  // Efecto para sincronizar suppliers del hook con el estado local
+  useEffect(() => {
+    setAllSuppliers(suppliers)
+    setFilteredSuppliers(suppliers)
+  }, [suppliers])
+
+  // Efecto para aplicar filtros locales
+  useEffect(() => {
+    let filtered = [...allSuppliers]
+
+    // Aplicar filtros locales
+    if (localFilters.name) {
+      filtered = filtered.filter((supplier) => supplier.name.toLowerCase().includes(localFilters.name.toLowerCase()))
+    }
+
+    if (localFilters.rut) {
+      filtered = filtered.filter((supplier) => supplier.rut.toLowerCase().includes(localFilters.rut.toLowerCase()))
+    }
+
+    if (localFilters.email) {
+      filtered = filtered.filter((supplier) => supplier.email.toLowerCase().includes(localFilters.email.toLowerCase()))
+    }
+
+    if (localFilters.address) {
+      filtered = filtered.filter((supplier) =>
+        supplier.address.toLowerCase().includes(localFilters.address.toLowerCase()),
+      )
+    }
+
+    if (localFilters.phone) {
+      filtered = filtered.filter((supplier) => supplier.phone.includes(localFilters.phone))
+    }
+
+    setFilteredSuppliers(filtered)
+  }, [allSuppliers, localFilters])
 
   const handleCreateClick = () => {
     setEditingSupplier(undefined)
@@ -51,10 +100,8 @@ export const SupplierPage: React.FC = () => {
     } else {
       showError("Error al eliminar", result.error || "Ocurrió un error al eliminar el proveedor.")
     }
-
     setSupplierToDelete(null)
   }
-
 
   const handleSubmit = async (data: CreateSupplierData | UpdateSupplierData) => {
     const isEdit = Boolean(editingSupplier)
@@ -70,6 +117,7 @@ export const SupplierPage: React.FC = () => {
     }
   }
 
+  // Manejo de filtros del servidor
   const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
     setFilters((prev) => ({ ...prev, [name]: value }))
@@ -81,11 +129,28 @@ export const SupplierPage: React.FC = () => {
   }
 
   const handleFilterReset = async () => {
-    setFilters({ name: "", rut: "", email: "" })
+    setFilters({ rut: "", email: "" })
     await loadSuppliers({})
   }
 
+  // Manejo de filtros locales
+  const handleLocalFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target
+    setLocalFilters((prev) => ({ ...prev, [name]: value }))
+  }
+
+  const handleLocalFilterReset = () => {
+    setLocalFilters({
+      name: "",
+      rut: "",
+      email: "",
+      address: "",
+      phone: "",
+    })
+  }
+
   const hasActiveFilters = Object.values(filters).some((value) => value.trim() !== "")
+  const hasActiveLocalFilters = Object.values(localFilters).some((value) => value.trim() !== "")
 
   return (
     <Container fluid className="py-2">
@@ -109,7 +174,7 @@ export const SupplierPage: React.FC = () => {
                     onClick={() => setShowFilters(!showFilters)}
                   >
                     <i className={`bi bi-funnel${showFilters ? "-fill" : ""} me-2`}></i>
-                    {showFilters ? "Ocultar" : "Mostrar"} Filtros
+                    {showFilters ? "Ocultar" : "Mostrar"} Panel de Filtros
                   </Button>
                   <Button variant="light" onClick={handleCreateClick}>
                     <i className="bi bi-plus-lg me-2"></i>
@@ -122,62 +187,145 @@ export const SupplierPage: React.FC = () => {
 
           {/* Panel de filtros */}
           {showFilters && (
-            <Card className="shadow-sm mb-3">
-              <Card.Body>
-                <Form onSubmit={handleFilterSubmit}>
+            <>
+              {/* Filtros del servidor */}
+              <Card className="shadow-sm mb-3">
+                <Card.Header className="bg-light">
+                  <h6 className="mb-0">
+                    <i className="bi bi-server me-2"></i>
+                    Filtros del Servidor
+                  </h6>
+                  <small className="text-muted">Estos filtros consultan la base de datos</small>
+                </Card.Header>
+                <Card.Body>
+                  <Form onSubmit={handleFilterSubmit}>
+                    <Row>
+                      <Col md={6}>
+                        <Form.Group className="mb-3">
+                          <Form.Label>RUT</Form.Label>
+                          <Form.Control
+                            type="text"
+                            name="rut"
+                            value={filters.rut}
+                            onChange={handleFilterChange}
+                            placeholder="Buscar por RUT"
+                          />
+                        </Form.Group>
+                      </Col>
+                      <Col md={6}>
+                        <Form.Group className="mb-3">
+                          <Form.Label>Correo Electrónico</Form.Label>
+                          <Form.Control
+                            type="text"
+                            name="email"
+                            value={filters.email}
+                            onChange={handleFilterChange}
+                            placeholder="Buscar por correo"
+                          />
+                        </Form.Group>
+                      </Col>
+                      <Col md={12} className="d-flex align-items-end">
+                        <div className="d-flex gap-2 mb-3">
+                          <Button variant="primary" type="submit">
+                            <i className="bi bi-search me-2"></i>
+                            Buscar en Servidor
+                          </Button>
+                          <Button variant="outline-secondary" type="button" onClick={handleFilterReset}>
+                            <i className="bi bi-x-circle me-2"></i>
+                            Limpiar
+                          </Button>
+                        </div>
+                      </Col>
+                    </Row>
+                  </Form>
+                </Card.Body>
+              </Card>
+
+              {/* Filtros locales */}
+              <Card className="shadow-sm mb-3">
+                <Card.Header className="bg-light">
+                  <div className="d-flex justify-content-between align-items-center">
+                    <div>
+                      <h6 className="mb-0">
+                        <i className="bi bi-funnel me-2"></i>
+                        Filtros Locales
+                      </h6>
+                      <small className="text-muted">Filtrado rápido en tiempo real</small>
+                    </div>
+                    {hasActiveLocalFilters && (
+                      <Button variant="outline-secondary" size="sm" onClick={handleLocalFilterReset}>
+                        <i className="bi bi-x-circle me-1"></i>
+                        Limpiar Filtros
+                      </Button>
+                    )}
+                  </div>
+                </Card.Header>
+                <Card.Body>
                   <Row>
-                    <Col md={4}>
+                    <Col md={2}>
                       <Form.Group className="mb-3">
                         <Form.Label>Nombre</Form.Label>
                         <Form.Control
                           type="text"
                           name="name"
-                          value={filters.name}
-                          onChange={handleFilterChange}
-                          placeholder="Buscar por nombre"
+                          value={localFilters.name}
+                          onChange={handleLocalFilterChange}
+                          placeholder="Filtrar por nombre"
                         />
                       </Form.Group>
                     </Col>
-                    <Col md={4}>
+                    <Col md={2}>
                       <Form.Group className="mb-3">
                         <Form.Label>RUT</Form.Label>
                         <Form.Control
                           type="text"
                           name="rut"
-                          value={filters.rut}
-                          onChange={handleFilterChange}
-                          placeholder="Buscar por RUT"
+                          value={localFilters.rut}
+                          onChange={handleLocalFilterChange}
+                          placeholder="Filtrar por RUT"
                         />
                       </Form.Group>
                     </Col>
-                    <Col md={4}>
+                    <Col md={3}>
                       <Form.Group className="mb-3">
-                        <Form.Label>Correo Electrónico</Form.Label>
+                        <Form.Label>Correo</Form.Label>
                         <Form.Control
                           type="text"
                           name="email"
-                          value={filters.email}
-                          onChange={handleFilterChange}
-                          placeholder="Buscar por correo"
+                          value={localFilters.email}
+                          onChange={handleLocalFilterChange}
+                          placeholder="Filtrar por correo"
                         />
                       </Form.Group>
                     </Col>
-                    <Col md={12} className="d-flex align-items-end">
-                      <div className="d-flex gap-2 mb-3">
-                        <Button variant="primary" type="submit">
-                          <i className="bi bi-search me-2"></i>
-                          Buscar
-                        </Button>
-                        <Button variant="outline-secondary" type="button" onClick={handleFilterReset}>
-                          <i className="bi bi-x-circle me-2"></i>
-                          Limpiar
-                        </Button>
-                      </div>
+                    <Col md={3}>
+                      <Form.Group className="mb-3">
+                        <Form.Label>Dirección</Form.Label>
+                        <Form.Control
+                          type="text"
+                          name="address"
+                          value={localFilters.address}
+                          onChange={handleLocalFilterChange}
+                          placeholder="Filtrar por dirección"
+                        />
+                      </Form.Group>
+                    </Col>
+                    <Col md={2}>
+                      <Form.Group className="mb-3">
+                        <Form.Label>Teléfono</Form.Label>
+                        <Form.Control
+                          type="text"
+                          name="phone"
+                          value={localFilters.phone}
+                          onChange={handleLocalFilterChange}
+                          placeholder="Filtrar por teléfono"
+                        />
+                      </Form.Group>
                     </Col>
                   </Row>
-                </Form>
-              </Card.Body>
-            </Card>
+                </Card.Body>
+              </Card>
+            </>
           )}
 
           {/* Loading spinner */}
@@ -192,15 +340,24 @@ export const SupplierPage: React.FC = () => {
           {!isLoading && (
             <Card className="shadow-sm">
               <Card.Body>
-                {suppliers.length === 0 ? (
-                  hasActiveFilters ? (
+                {filteredSuppliers.length === 0 ? (
+                  hasActiveFilters || hasActiveLocalFilters ? (
                     <div className="text-center py-5">
                       <i className="bi bi-building-x fs-1 text-muted mb-3 d-block"></i>
                       <h5 className="text-muted">No hay resultados que coincidan con tu búsqueda</h5>
                       <p className="text-muted">Intenta ajustar los filtros para obtener más resultados</p>
-                      <Button variant="outline-primary" onClick={handleFilterReset}>
-                        <i className="bi bi-arrow-clockwise me-2"></i> Mostrar Todos
-                      </Button>
+                      <div className="d-flex gap-2 justify-content-center">
+                        {hasActiveLocalFilters && (
+                          <Button variant="outline-secondary" onClick={handleLocalFilterReset}>
+                            <i className="bi bi-arrow-clockwise me-2"></i> Limpiar Filtros Locales
+                          </Button>
+                        )}
+                        {hasActiveFilters && (
+                          <Button variant="outline-primary" onClick={handleFilterReset}>
+                            <i className="bi bi-arrow-clockwise me-2"></i> Mostrar Todos
+                          </Button>
+                        )}
+                      </div>
                     </div>
                   ) : (
                     <div className="text-center py-5">
@@ -218,8 +375,14 @@ export const SupplierPage: React.FC = () => {
                     <div className="d-flex justify-content-between align-items-center mb-3">
                       <h6 className="mb-0">
                         <i className="bi bi-list-ul me-2"></i>
-                        Proveedores Registrados ({suppliers.length})
+                        Proveedores Registrados ({filteredSuppliers.length} de {allSuppliers.length})
                       </h6>
+                      {hasActiveLocalFilters && (
+                        <div className="d-flex align-items-center text-muted">
+                          <i className="bi bi-funnel-fill me-1"></i>
+                          <small>Filtros locales activos</small>
+                        </div>
+                      )}
                     </div>
                     <div className="table-responsive">
                       <Table hover>
@@ -234,7 +397,7 @@ export const SupplierPage: React.FC = () => {
                           </tr>
                         </thead>
                         <tbody>
-                          {suppliers.map((supplier) => (
+                          {filteredSuppliers.map((supplier) => (
                             <tr key={supplier.id}>
                               <td>
                                 <div className="fw-bold">{supplier.name}</div>
@@ -292,7 +455,6 @@ export const SupplierPage: React.FC = () => {
         confirmText="Eliminar"
         cancelText="Cancelar"
       />
-
 
       {/* Sistema de notificaciones */}
       <Toast toasts={toasts} removeToast={removeToast} />
