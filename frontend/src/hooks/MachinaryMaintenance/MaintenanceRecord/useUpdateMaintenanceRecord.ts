@@ -8,20 +8,20 @@ export function useUpdateMaintenanceRecord() {
   const [error, setError] = useState<string | null>(null);
 
   const update = async (id: number, data: UpdateMaintenanceRecordData) => {
+
     setLoading(true);
     const { data: updated, success, message } = await maintenanceRecordService.update(id, data);
+
     if (success && updated) {
       setUpdatedRecord(updated);
       setError(null);
     } else {
-      setError(message);
+      setError(error);
+      console.error("Error al actualizar:", error);
     }
     setLoading(false);
   };
-  if (error) {
-      setError(error);
-      console.error("Error al actualizar:", error); // <- para depurar
-    }
+ 
 
   return { update, loading, error, updatedRecord };
 }
