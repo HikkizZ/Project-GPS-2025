@@ -4,7 +4,7 @@ import { CreateMaintenanceRecordData, RazonMantencion } from '@/types/machinaryM
 import { userService } from '@/services/user.service';
 import { maquinariaService } from '@/services/maquinaria/maquinaria.service';
 import { SafeUser } from '@/types';
-import { Maquinaria } from '@/types/maquinaria/maquinaria.types';
+import { Maquinaria } from '@/types/maquinaria.types';
 
 interface Props {
   initialData?: Partial<CreateMaintenanceRecordData>;
