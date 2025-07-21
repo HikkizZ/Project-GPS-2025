@@ -7,7 +7,7 @@ export async function getAllProductsService(): Promise<ServiceResponse<Product[]
     try {
         const productRepository = AppDataSource.getRepository(Product);
 
-        const products = await productRepository.find();
+        const products = await productRepository.find({ where: { isActive: true } });
 
         if (!products || products.length === 0) {
             return [null, "No hay productos registrados."];
@@ -41,7 +41,7 @@ export async function createProductService(productData: CreateProductDTO): Promi
     try {
         const productRepository = AppDataSource.getRepository(Product);
 
-        const existingProduct = await productRepository.findOne({ where: { product: productData.product } });
+        const existingProduct = await productRepository.findOne({ where: { product: productData.product, isActive: true } });
         if (existingProduct) return [null, "El producto ya existe."];
 
         const newProduct = productRepository.create(productData);
@@ -81,9 +81,12 @@ export async function deleteProductService(id: number): Promise<ServiceResponse<
 
         if (!product) return [null, "Producto no encontrado."];
 
-        const deletedProduct = await productRepository.remove(product);
+        product.isActive = false;
+        
+        const updatedProduct = await productRepository.save(product);
+        
+        return [updatedProduct, null];
 
-        return [deletedProduct, null];
     } catch (error) {
         console.error("Error deleting product:", error);
         return [null, "Error interno del servidor"];
