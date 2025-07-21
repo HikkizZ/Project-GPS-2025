@@ -162,207 +162,211 @@ export const CrearBonoModal: React.FC<CrearBonoModalProps> = ({
     };
 
     return (
-        <div style={{ padding: '0.5rem 1rem' }}>
-            {error && (
-                <Alert variant="danger" className="border-0 mb-3" style={{ borderRadius: '12px' }}>
-                    <i className="bi bi-exclamation-circle me-2"></i>
-                    {error}
-                </Alert>
-            )}
-            {advertencias.length > 0 && (
-                <Alert variant="warning" className="border-0 mb-3" style={{ borderRadius: '12px' }}>
-                    <div className="d-flex align-items-start">
-                        <i className="bi bi-exclamation-triangle me-2 mt-1"></i>
-                        <div>
-                            <strong>Advertencias:</strong>
-                            <ul className="mb-0 mt-1">
-                                {advertencias.map((adv, index) => (
-                                <li key={index}>{adv}</li>
-                                ))}
-                            </ul>
+        <Modal show={show} onHide={onHide} centered size="lg" backdrop="static">
+            <Modal.Body>
+            <div style={{ padding: '0.5rem 1rem' }}>
+                {error && (
+                    <Alert variant="danger" className="border-0 mb-3" style={{ borderRadius: '12px' }}>
+                        <i className="bi bi-exclamation-circle me-2"></i>
+                        {error}
+                    </Alert>
+                )}
+                {advertencias.length > 0 && (
+                    <Alert variant="warning" className="border-0 mb-3" style={{ borderRadius: '12px' }}>
+                        <div className="d-flex align-items-start">
+                            <i className="bi bi-exclamation-triangle me-2 mt-1"></i>
+                            <div>
+                                <strong>Advertencias:</strong>
+                                <ul className="mb-0 mt-1">
+                                    {advertencias.map((adv, index) => (
+                                    <li key={index}>{adv}</li>
+                                    ))}
+                                </ul>
+                            </div>
                         </div>
+                    </Alert>
+                )}
+                <Form onSubmit={handleSubmit} noValidate validated={validated}>
+                    <Row
+                        closeButton={!closeW}
+                        style={{
+                            background: 'linear-gradient(135deg, #C9CCD3 0%, #78808D 100%)',
+                            border: 'none',
+                            padding: '1rem 1.25rem'
+                        }}
+                    >
+                        <Col className="text-white">
+                            <Modal.Title className="fw-semibold">
+                                <i className="bi bi-clipboard-data me-2"></i>
+                                Crear Bono
+                            </Modal.Title>
+                        </Col>
+                    </Row>
+                        {/* Nombre del Bono */}
+                    <div className="col-md-4">
+                        <Form.Group>
+                            <Form.Label className="fw-semibold">Nombre: <span className="text-danger">*</span></Form.Label>
+                            <Form.Control
+                            type="text"
+                            name="nombreBono"
+                            value={formData.nombreBono}
+                            onChange={handleInputChange}
+                            placeholder="Ej: Bono Producción Mensual"
+                            required
+                            style={{ borderRadius: '8px' }}
+                            isInvalid={validated && !formData.nombreBono.trim()}
+                            />
+                            <Form.Control.Feedback type="invalid">
+                            {validated && !formData.nombreBono.trim() && 'Nombre inválido'}
+                            </Form.Control.Feedback>
+                        </Form.Group>
                     </div>
-                </Alert>
-            )}
-            <Form onSubmit={handleSubmit} noValidate validated={validated}>
-                <Row
-                    closeButton={!closeW}
-                    style={{
-                        background: 'linear-gradient(135deg, #C9CCD3 0%, #78808D 100%)',
-                        border: 'none',
-                        padding: '1rem 1.25rem'
-                    }}
-                >
-                    <Col className="text-white">
-                        <Modal.Title className="fw-semibold">
-                            <i className="bi bi-clipboard-data me-2"></i>
-                            Crear Bono
-                        </Modal.Title>
-                    </Col>
-                </Row>
-                    {/* Nombre del Bono */}
-                <div className="col-md-4">
-                    <Form.Group>
-                        <Form.Label className="fw-semibold">Nombre: <span className="text-danger">*</span></Form.Label>
-                        <Form.Control
-                        type="text"
-                        name="nombreBono"
-                        value={formData.nombreBono}
-                        onChange={handleInputChange}
-                        placeholder="Ej: Bono Producción Mensual"
-                        required
-                        style={{ borderRadius: '8px' }}
-                        isInvalid={validated && !formData.nombreBono.trim()}
-                        />
-                        <Form.Control.Feedback type="invalid">
-                        {validated && !formData.nombreBono.trim() && 'Nombre inválido'}
-                        </Form.Control.Feedback>
-                    </Form.Group>
-                </div>
-                {/* Monto del Bono */}
-                <div className="col-md-4">
-                    <Form.Group>
-                        <Form.Label className="fw-semibold">Monto: <span className="text-danger">*</span></Form.Label>
-                        <Form.Control
-                        type="text"
-                        name="monto"
-                        value={formatMiles(formData.monto)}
-                        placeholder="Ej: 1.000.000"
-                        onChange={handleInputChange}
-                        inputMode="numeric"
-                        pattern="[0-9]*"
-                        required
-                        style={{ borderRadius: '8px' }}
-                        isInvalid={validated && !isValidMonto(formData.monto)}
-                        />
-                        <Form.Control.Feedback type="invalid">
-                        {validated && !isValidMonto(formData.monto) && 'Monto inválido'}
-                        </Form.Control.Feedback>
-                    </Form.Group>
-                </div>
-                {/* Tipo de Bono */}
-                <div className="col-md-4">
-                    <Form.Group>
-                        <Form.Label className="fw-semibold">Tipo de Bono: <span className="text-danger">*</span></Form.Label>
-                        <Form.Select
-                        name="tipoBono"
-                        value={formData.tipoBono}
-                        onChange={handleInputChange}
-                        required
-                        style={{ borderRadius: '8px' }}
-                        isInvalid={validated && !formData.tipoBono}
-                        >
-                        <option value="">Seleccione una opción</option>
-                        <option value={TipoBono.estatal}>Estatal</option>
-                        <option value={TipoBono.empresarial}>Empresarial</option>
-                        </Form.Select>
-                        <Form.Control.Feedback type="invalid">
-                        {validated && !formData.tipoBono && 'Seleccione un tipo de bono'}
-                        </Form.Control.Feedback>
-                    </Form.Group>
-                </div>
-                {/* Temporalidad del Bono */}
-                <div className="col-md-4">
-                    <Form.Group>
-                        <Form.Label className="fw-semibold">Temporalidad: <span className="text-danger">*</span></Form.Label>
-                        <Form.Select
-                            name="temporalidad"
-                            value={formData.temporalidad}
+                    {/* Monto del Bono */}
+                    <div className="col-md-4">
+                        <Form.Group>
+                            <Form.Label className="fw-semibold">Monto: <span className="text-danger">*</span></Form.Label>
+                            <Form.Control
+                            type="text"
+                            name="monto"
+                            value={formatMiles(formData.monto)}
+                            placeholder="Ej: 1.000.000"
+                            onChange={handleInputChange}
+                            inputMode="numeric"
+                            pattern="[0-9]*"
+                            required
+                            style={{ borderRadius: '8px' }}
+                            isInvalid={validated && !isValidMonto(formData.monto)}
+                            />
+                            <Form.Control.Feedback type="invalid">
+                            {validated && !isValidMonto(formData.monto) && 'Monto inválido'}
+                            </Form.Control.Feedback>
+                        </Form.Group>
+                    </div>
+                    {/* Tipo de Bono */}
+                    <div className="col-md-4">
+                        <Form.Group>
+                            <Form.Label className="fw-semibold">Tipo de Bono: <span className="text-danger">*</span></Form.Label>
+                            <Form.Select
+                            name="tipoBono"
+                            value={formData.tipoBono}
                             onChange={handleInputChange}
                             required
                             style={{ borderRadius: '8px' }}
-                            isInvalid={validated && !formData.temporalidad}
-                        >
+                            isInvalid={validated && !formData.tipoBono}
+                            >
                             <option value="">Seleccione una opción</option>
-                            <option value={Temporalidad.puntual}>Puntual</option>
-                            <option value={Temporalidad.recurrente}>Recurrente</option>
-                            <option value={Temporalidad.permanente}>Permanente</option>
-                        </Form.Select>
-                        <Form.Control.Feedback type="invalid">
-                            {validated && !formData.temporalidad && 'Seleccione una temporalidad'}
-                        </Form.Control.Feedback>
-                    </Form.Group>
-                </div>
-                {/* Descripción del Bono */}
-                <div className="col-md-4">
-                    <Form.Group>
-                        <Form.Label className="fw-semibold">Descripción:</Form.Label>
-                        <Form.Control
-                            as="textarea"
-                            name="descripcion"
-                            value={formData.descripcion}
-                            onChange={handleInputChange}
-                        />
-                    </Form.Group>
-                </div>
-                {/* Imponible */}
-                <div className="col-md-4">
-                    <Form.Group>
-                        <Form.Label className="fw-semibold">Imponible:</Form.Label>
-                        <Form.Check
-                            type="switch"
-                            id="imponibleSwitch"
-                            name="imponible"
-                            checked={formData.imponible}
-                            onChange={(e) => setFormData({ ...formData, imponible: e.target.checked })}
-                            style={{ borderRadius: '8px' }}
-                            className="form-switch"
-                        />
-                        <Form.Text className="text-muted">
-                            {formData.imponible ? 'Este bono será considerado imponible.' : 'Este bono no será considerado imponible.'}
-                        </Form.Text>
-                    </Form.Group>
-                </div>
-                {/* Duración en meses */}
-                <div className="col-md-4">
-                    <Form.Group>
-                        <Form.Label className="fw-semibold">Duración en meses:</Form.Label>
-                        <Form.Control
-                            type="number"
-                            name="duracion"
-                            value={formData.duracionMes}
-                            onChange={handleInputChange}
-                            min={1}
-                            style={{ borderRadius: '8px' }}
-                            isInvalid={validated && !formData.duracionMes}
-                        />
-                        <Form.Control.Feedback type="invalid">
-                            {validated && formData.temporalidad !== 'permanente' && 'Ingrese una duración válida en meses. La temporalidad permanente no tiene duración.'}
-                        </Form.Control.Feedback>
-                    </Form.Group>
-                </div>
-                {/* Botones */}
-                <div className="d-flex justify-content-end gap-2 pt-3 border-top mt-3">
-                    <Button
-                        variant="outline-secondary"
-                        onClick={onHide}
-                        disabled={loading}
-                        style={{ borderRadius: '20px', fontWeight: '500' }}
-                    >
-                        <i className="bi bi-x-circle me-2"></i>
-                        Cancelar
-                    </Button>
-                    <Button
-                        type="submit" 
-                        variant="primary" 
-                        disabled={loading || !hasChanges}
-                        style={{ borderRadius: '20px', fontWeight: '500' }}
-                    >
-                        {loading ? (
-                            <>
-                            <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                            Creando...
-                            </>
-                        ) : (
-                            <>
-                            <i className="bi bi-person-plus me-2"></i>
-                            Crear Bono
-                            </>
-                        )}
-                    </Button>
-                </div>
-            </Form>
-
-      </div>
+                            <option value={TipoBono.estatal}>Estatal</option>
+                            <option value={TipoBono.empresarial}>Empresarial</option>
+                            </Form.Select>
+                            <Form.Control.Feedback type="invalid">
+                            {validated && !formData.tipoBono && 'Seleccione un tipo de bono'}
+                            </Form.Control.Feedback>
+                        </Form.Group>
+                    </div>
+                    {/* Temporalidad del Bono */}
+                    <div className="col-md-4">
+                        <Form.Group>
+                            <Form.Label className="fw-semibold">Temporalidad: <span className="text-danger">*</span></Form.Label>
+                            <Form.Select
+                                name="temporalidad"
+                                value={formData.temporalidad}
+                                onChange={handleInputChange}
+                                required
+                                style={{ borderRadius: '8px' }}
+                                isInvalid={validated && !formData.temporalidad}
+                            >
+                                <option value="">Seleccione una opción</option>
+                                <option value={Temporalidad.puntual}>Puntual</option>
+                                <option value={Temporalidad.recurrente}>Recurrente</option>
+                                <option value={Temporalidad.permanente}>Permanente</option>
+                            </Form.Select>
+                            <Form.Control.Feedback type="invalid">
+                                {validated && !formData.temporalidad && 'Seleccione una temporalidad'}
+                            </Form.Control.Feedback>
+                        </Form.Group>
+                    </div>
+                    {/* Descripción del Bono */}
+                    <div className="col-md-4">
+                        <Form.Group>
+                            <Form.Label className="fw-semibold">Descripción:</Form.Label>
+                            <Form.Control
+                                as="textarea"
+                                name="descripcion"
+                                value={formData.descripcion}
+                                onChange={handleInputChange}
+                            />
+                        </Form.Group>
+                    </div>
+                    {/* Imponible */}
+                    <div className="col-md-4">
+                        <Form.Group>
+                            <Form.Label className="fw-semibold">Imponible:</Form.Label>
+                            <Form.Check
+                                type="switch"
+                                id="imponibleSwitch"
+                                name="imponible"
+                                checked={formData.imponible}
+                                onChange={(e) => setFormData({ ...formData, imponible: e.target.checked })}
+                                style={{ borderRadius: '8px' }}
+                                className="form-switch"
+                            />
+                            <Form.Text className="text-muted">
+                                {formData.imponible ? 'Este bono será considerado imponible.' : 'Este bono no será considerado imponible.'}
+                            </Form.Text>
+                        </Form.Group>
+                    </div>
+                    {/* Duración en meses */}
+                    <div className="col-md-4">
+                        <Form.Group>
+                            <Form.Label className="fw-semibold">Duración en meses:</Form.Label>
+                            <Form.Control
+                                type="number"
+                                name="duracion"
+                                value={formData.duracionMes}
+                                onChange={handleInputChange}
+                                min={1}
+                                style={{ borderRadius: '8px' }}
+                                isInvalid={validated && !formData.duracionMes}
+                            />
+                            <Form.Control.Feedback type="invalid">
+                                {validated && formData.temporalidad !== 'permanente' && 'Ingrese una duración válida en meses. La temporalidad permanente no tiene duración.'}
+                            </Form.Control.Feedback>
+                        </Form.Group>
+                    </div>
+                    {/* Botones */}
+                    <div className="d-flex justify-content-end gap-2 pt-3 border-top mt-3">
+                        <Button
+                            variant="outline-secondary"
+                            onClick={onHide}
+                            disabled={loading}
+                            style={{ borderRadius: '20px', fontWeight: '500' }}
+                        >
+                            <i className="bi bi-x-circle me-2"></i>
+                            Cancelar
+                        </Button>
+                        <Button
+                            type="submit" 
+                            variant="primary" 
+                            disabled={loading || !hasChanges}
+                            style={{ borderRadius: '20px', fontWeight: '500' }}
+                        >
+                            {loading ? (
+                                <>
+                                <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                Creando...
+                                </>
+                            ) : (
+                                <>
+                                <i className="bi bi-person-plus me-2"></i>
+                                Crear Bono
+                                </>
+                            )}
+                        </Button>
+                    </div>
+                </Form>
+            </div>
+            </Modal.Body>
+        </Modal>
+        
     );
 };
