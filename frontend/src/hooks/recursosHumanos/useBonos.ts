@@ -21,18 +21,31 @@ export const useBono = () => {
     setError('');
     try {
       const result = await bonoService.getAllBonos();
+      console.log("Cargando bonos...");
+      console.log('URL:', `${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}/bonos`);
+      console.log('Token:', localStorage.getItem('auth_token'));
+      console.log('Response data:', result.data);
+      console.log('Resultado success: ', result.success);
+      console.log('Data Result: ', result.data);
+      console.log('Data Result N[1]: ', result.data[0]);
+      console.log('Es ARRAY?: ', Array.isArray(result.data));
+      console.log('BONOS BONOS BONOS: ', result.data);
+      console.log(result.data.values);
       if (result.success) {
-        setBonos(result.data || []);
-        setTotalBonos((result.data || []).length);
+          setBonos(result.data.bonos || []);
+          setTotalBonos((result.data.total || 0));
+          console.log('BONOSSS: ', bonos);
+          console.log('TOTALBONOS: ', totalBonos);
+        
       } else {
-        setError(result.message || 'Error al cargar bonos');
-        setTotalBonos(0);
+          setError(result.message || 'Error al cargar bonos');
+          setTotalBonos(0);
       }
     } catch (error) {
-      setError('Error de conexión');
-      setTotalBonos(0);
+        setError('Error de conexión');
+        setTotalBonos(0);
     } finally {
-      setIsLoading(false);
+        setIsLoading(false);
     }
   };
 
