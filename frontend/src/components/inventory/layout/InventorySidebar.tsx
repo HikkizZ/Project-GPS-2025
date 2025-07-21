@@ -4,7 +4,7 @@ import { NavLink } from "react-router-dom"
 
 const InventorySidebar: React.FC = () => {
   return (
-    <div className="d-flex flex-column p-3 bg-light" style={{ minHeight: "100vh", width: "250px" }}>
+    <div className="d-flex flex-column p-3 bg-light" style={{ height: "100%", width: "250px" }}>
       <h5 className="mb-4">Inventario</h5>
       <Nav className="flex-column" variant="pills">
         <Nav.Link as={NavLink} to="/inventario" end>

@@ -9,13 +9,13 @@
    LAYOUT PRINCIPAL
    ============================================ */
 .inventory-page {
-  min-height: 100vh;
+  height: 100%;
   background-color: #f8f9fa;
 }
 
 .inventory-sidebar-wrapper {
   width: 250px;
-  min-height: 100vh;
+  height: 100%;
   background: white;
   border-right: 1px solid #e9ecef;
   box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
@@ -23,7 +23,8 @@
 
 .inventory-main-content {
   background-color: #f8f9fa;
-  min-height: 100vh;
+  padding-bottom: 2rem;
+  overflow-x: hidden;
 }
 
 /* ============================================

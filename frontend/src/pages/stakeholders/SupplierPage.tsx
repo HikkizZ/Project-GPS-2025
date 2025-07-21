@@ -244,6 +244,18 @@ export const SupplierPage: React.FC = () => {
               message={`¿Estás seguro que deseas eliminar al proveedor "${supplierToDelete?.name}"?`}
               confirmText="Eliminar"
               cancelText="Cancelar"
+              headerVariant="danger" // Encabezado rojo
+              warningContent={
+                // Contenido de advertencia personalizable
+                <>
+                  <p className="mb-0">Esta acción:</p>
+                  <ul>
+                    <li>Marcará el proveedor como eliminado en el sistema.</li>
+                    <li>Desactivará su ficha de empresa.</li>
+                    <li>Registrará el motivo de eliminación en el historial.</li>
+                  </ul>
+                </>
+              }
             />
 
             {/* Sistema de notificaciones */}

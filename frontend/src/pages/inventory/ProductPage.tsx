@@ -127,93 +127,106 @@ export const ProductPage: React.FC = () => {
   const existingProductTypes: ProductType[] = allProducts.map((p) => p.product)
 
   return (
-    <div className="d-flex" style={{ height: "100vh", overflow: "hidden" }}>
-      {/* Sidebar lateral */}
-      <div className="inventory-sidebar-wrapper" style={{ flexShrink: 0 }}>
-        <InventorySidebar />
-      </div>
+    <Container fluid className="inventory-page p-0">
+      <div className="d-flex">
+        {/* Sidebar lateral */}
+        <div className="inventory-sidebar-wrapper">
+          <InventorySidebar />
+        </div>
 
-      {/* Contenido principal */}
-      <div className="inventory-main-content flex-grow-1" style={{ height: "100vh", overflowY: "auto" }}>
-        <Container fluid className="py-2 h-100">
-          <Row className="h-100">
-            <Col>
-              {/* Encabezado de página */}
-              <Card className="shadow-sm mb-3">
-                <Card.Header className="bg-gradient-primary text-white">
-                  <div className="d-flex align-items-center justify-content-between">
-                    <div className="d-flex align-items-center">
-                      <i className="bi bi-boxes fs-4 me-3"></i>
+        {/* Contenido principal */}
+        <div className="inventory-main-content flex-grow-1">
+          <Container fluid className="py-2 h-100">
+            <Row className="h-100">
+              <Col>
+                {/* Encabezado de página */}
+                <Card className="shadow-sm mb-3">
+                  <Card.Header className="bg-gradient-primary text-white">
+                    <div className="d-flex align-items-center justify-content-between">
+                      <div className="d-flex align-items-center">
+                        <i className="bi bi-boxes fs-4 me-3"></i>
+                        <div>
+                          <h3 className="mb-1">Gestión de Productos</h3>
+                          <p className="mb-0 opacity-75">Administrar catálogo de productos del sistema</p>
+                        </div>
+                      </div>
                       <div>
-                        <h3 className="mb-1">Gestión de Productos</h3>
-                        <p className="mb-0 opacity-75">Administrar catálogo de productos del sistema</p>
+                        <Button
+                          variant={showFilters ? "outline-light" : "light"}
+                          className="me-2"
+                          onClick={() => setShowFilters(!showFilters)}
+                        >
+                          <i className={`bi bi-funnel${showFilters ? "-fill" : ""} me-2`}></i>
+                          {showFilters ? "Ocultar" : "Mostrar"} Filtros
+                        </Button>
+                        <Button variant="light" onClick={handleCreateClick}>
+                          <i className="bi bi-plus-lg me-2"></i>
+                          Nuevo Producto
+                        </Button>
                       </div>
                     </div>
-                    <div>
-                      <Button
-                        variant={showFilters ? "outline-light" : "light"}
-                        className="me-2"
-                        onClick={() => setShowFilters(!showFilters)}
-                      >
-                        <i className={`bi bi-funnel${showFilters ? "-fill" : ""} me-2`}></i>
-                        {showFilters ? "Ocultar" : "Mostrar"} Filtros
-                      </Button>
-                      <Button variant="light" onClick={handleCreateClick}>
-                        <i className="bi bi-plus-lg me-2"></i>
-                        Nuevo Producto
-                      </Button>
-                    </div>
-                  </div>
-                </Card.Header>
-              </Card>
+                  </Card.Header>
+                </Card>
 
-              {/* Panel de filtros */}
-              {showFilters && (
-                <LocalFilters
-                  filters={localFilters}
-                  onFilterChange={handleLocalFilterChange}
-                  onReset={handleLocalFilterReset}
-                  hasActiveFilters={hasActiveLocalFilters}
+                {/* Panel de filtros */}
+                {showFilters && (
+                  <LocalFilters
+                    filters={localFilters}
+                    onFilterChange={handleLocalFilterChange}
+                    onReset={handleLocalFilterReset}
+                    hasActiveFilters={hasActiveLocalFilters}
+                  />
+                )}
+
+                {/* Tabla de productos */}
+                <ProductTable
+                  products={filteredProducts}
+                  allProductsCount={allProducts.length}
+                  isLoading={isLoading}
+                  hasActiveLocalFilters={hasActiveLocalFilters}
+                  onEdit={handleEditClick}
+                  onDelete={handleDeleteClick}
+                  onCreateClick={handleCreateClick}
+                  onLocalFilterReset={handleLocalFilterReset}
                 />
-              )}
+              </Col>
+            </Row>
 
-              {/* Tabla de productos */}
-              <ProductTable
-                products={filteredProducts}
-                allProductsCount={allProducts.length}
-                isLoading={isLoading}
-                hasActiveLocalFilters={hasActiveLocalFilters}
-                onEdit={handleEditClick}
-                onDelete={handleDeleteClick}
-                onCreateClick={handleCreateClick}
-                onLocalFilterReset={handleLocalFilterReset}
-              />
-            </Col>
-          </Row>
+            <ProductModal
+              show={showModal}
+              onClose={() => setShowModal(false)}
+              onSubmit={handleSubmit}
+              isSubmitting={isCreating || isUpdating}
+              initialData={editingProduct}
+              existingProductTypes={existingProductTypes}
+            />
 
-          <ProductModal
-            show={showModal}
-            onClose={() => setShowModal(false)}
-            onSubmit={handleSubmit}
-            isSubmitting={isCreating || isUpdating}
-            initialData={editingProduct}
-            existingProductTypes={existingProductTypes}
-          />
+            <ConfirmModal
+              show={!!productToDelete}
+              onClose={() => setProductToDelete(null)}
+              onConfirm={confirmDeleteProduct}
+              title="Eliminar producto"
+              message={`¿Estás seguro que deseas eliminar el producto "${productToDelete?.product}"?`}
+              confirmText="Eliminar"
+              cancelText="Cancelar"
+              headerVariant="danger" // Encabezado rojo
+              warningContent={ // Contenido de advertencia personalizable
+                <>
+                  <p className="mb-0">Esta acción:</p>
+                  <ul>
+                    <li>Marcará el producto como eliminado en el sistema.</li>
+                    <li>Desactivará su disponibilidad en el inventario.</li>
+                    <li>Registrará el motivo de eliminación en el historial.</li>
+                  </ul>
+                </>
+              }
+            />
 
-          <ConfirmModal
-            show={!!productToDelete}
-            onClose={() => setProductToDelete(null)}
-            onConfirm={confirmDeleteProduct}
-            title="Eliminar producto"
-            message={`¿Estás seguro que deseas eliminar el producto "${productToDelete?.product}"?`}
-            confirmText="Eliminar"
-            cancelText="Cancelar"
-          />
-
-          {/* Sistema de notificaciones */}
-          <Toast toasts={toasts} removeToast={removeToast} />
-        </Container>
+            {/* Sistema de notificaciones */}
+            <Toast toasts={toasts} removeToast={removeToast} />
+          </Container>
+        </div>
       </div>
-    </div>
+    </Container>
   )
 }

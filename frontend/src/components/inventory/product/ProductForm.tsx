@@ -1,6 +1,6 @@
 import type React from "react"
 import { useState, useEffect } from "react"
-import { Button, Form, Spinner } from "react-bootstrap"
+import { Button, Form, Spinner, Row, Col } from "react-bootstrap" // Importar Row y Col
 import {
   ProductType,
   type CreateProductData,
@@ -13,7 +13,7 @@ interface ProductFormProps {
   onSubmit: (data: CreateProductData | UpdateProductData) => void
   onCancel?: () => void
   isSubmitting?: boolean
-  existingProductTypes: ProductType[] // Añade esta prop
+  existingProductTypes: ProductType[]
 }
 
 const ProductForm: React.FC<ProductFormProps> = ({
@@ -21,7 +21,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
   onSubmit,
   onCancel,
   isSubmitting = false,
-  existingProductTypes, // Recibe la prop
+  existingProductTypes,
 }) => {
   const [formData, setFormData] = useState<CreateProductData>({
     product: ProductType.ARENA,
@@ -91,14 +91,10 @@ const ProductForm: React.FC<ProductFormProps> = ({
 
   const isEditing = Boolean(initialData)
 
-  // Lógica para filtrar los tipos de producto disponibles
   const getAvailableProductTypes = () => {
     if (isEditing) {
-      // Si estamos editando, el tipo de producto actual está deshabilitado y pre-seleccionado.
-      // No necesitamos filtrar las opciones, ya que el usuario no puede cambiarlo.
       return Object.values(ProductType)
     } else {
-      // Si estamos creando un nuevo producto, filtramos los tipos que ya existen.
       return Object.values(ProductType).filter((type) => !existingProductTypes.includes(type))
     }
   }
@@ -107,44 +103,64 @@ const ProductForm: React.FC<ProductFormProps> = ({
 
   return (
     <Form onSubmit={handleSubmit}>
-      <Form.Group className="mb-3" controlId="productType">
-        <Form.Label>Tipo de Producto</Form.Label>
-        <Form.Control
-          as="select"
-          name="product"
-          value={formData.product}
-          onChange={handleChange}
-          isInvalid={!!errors.product}
-          disabled={isEditing} // Si estamos editando, el campo está deshabilitado
-        >
-          <option value="">Selecciona un tipo</option>
-          {availableProductTypes.map((type) => (
-            <option key={type} value={type}>
-              {type}
-            </option>
-          ))}
-        </Form.Control>
-        <Form.Control.Feedback type="invalid">{errors.product}</Form.Control.Feedback>
-        {isEditing && <Form.Text className="text-muted">El tipo de producto no se puede modificar</Form.Text>}
-      </Form.Group>
-
-      <Form.Group className="mb-3" controlId="salePrice">
-        <Form.Label>Precio de Venta</Form.Label>
-        <div className="input-group">
-          <span className="input-group-text">$</span>
-          <Form.Control
-            type="number"
-            name="salePrice"
-            placeholder="0"
-            value={displaySalePrice}
-            onChange={handleChange}
-            isInvalid={!!errors.salePrice}
-            min="0"
-            step="0.01"
-          />
+      {/* Nota Importante */}
+      <div className={`${isEditing ? "modal-warning-alert" : "modal-info-alert"} d-flex align-items-start`}>
+        <i className="bi bi-info-circle-fill"></i>
+        <div>
+          <strong>{isEditing ? "Nota de Cuidado:" : "Nota Importante:"}</strong>
+          <p className="mb-0">
+            {isEditing ? (
+              "Estás editando un producto existente. El tipo de producto no puede modificarse, solo el precio de venta puede ser actualizado."
+            ) : (
+              "Solo se pueden registrar productos del tipo predefinido en el sistema. Este tipo determina la categoría del producto y no puede modificarse una vez creado. En caso de necesitar un tipo diferente, por favor contacta al administrador del sistema."
+            )}
+          </p>
         </div>
-        <Form.Control.Feedback type="invalid">{errors.salePrice}</Form.Control.Feedback>
-      </Form.Group>
+      </div>
+
+      <Row>
+        <Col md={6}>
+          <Form.Group className="mb-3" controlId="productType">
+            <Form.Label>Tipo de Producto</Form.Label>
+            <Form.Control
+              as="select"
+              name="product"
+              value={formData.product}
+              onChange={handleChange}
+              isInvalid={!!errors.product}
+              disabled={isEditing}
+            >
+              <option value="">Selecciona un tipo</option>
+              {availableProductTypes.map((type) => (
+                <option key={type} value={type}>
+                  {type}
+                </option>
+              ))}
+            </Form.Control>
+            <Form.Control.Feedback type="invalid">{errors.product}</Form.Control.Feedback>
+            {isEditing && <Form.Text className="text-muted">El tipo de producto no se puede modificar</Form.Text>}
+          </Form.Group>
+        </Col>
+        <Col md={6}>
+          <Form.Group className="mb-3" controlId="salePrice">
+            <Form.Label>Precio de Venta</Form.Label>
+            <div className="input-group">
+              <span className="input-group-text">$</span>
+              <Form.Control
+                type="number"
+                name="salePrice"
+                placeholder="0"
+                value={displaySalePrice}
+                onChange={handleChange}
+                isInvalid={!!errors.salePrice}
+                min="0"
+                step="0.01"
+              />
+            </div>
+            <Form.Control.Feedback type="invalid">{errors.salePrice}</Form.Control.Feedback>
+          </Form.Group>
+        </Col>
+      </Row>
 
       <div className="d-flex justify-content-end">
         {onCancel && (

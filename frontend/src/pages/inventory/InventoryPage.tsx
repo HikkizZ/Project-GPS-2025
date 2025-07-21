@@ -134,6 +134,7 @@ export const InventoryPage: React.FC = () => {
           </Container>
         </div>
       </div>
+      <div style={{ height: "1rem" }}></div>
     </Container>
   )
 }
