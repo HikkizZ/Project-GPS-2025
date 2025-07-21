@@ -336,7 +336,8 @@ const CAMPOS_ESTADO_DESVINCULADO = ['cargo', 'area', 'tipoContrato', 'jornadaLab
 
 export async function updateFichaEmpresaService(
     id: number, 
-    fichaData: Partial<FichaEmpresa>
+    fichaData: Partial<FichaEmpresa>,
+    usuarioAutenticado?: User
 ): Promise<ServiceResponse<FichaEmpresa>> {
     const queryRunner = AppDataSource.createQueryRunner();
     await queryRunner.connect();
@@ -421,6 +422,31 @@ export async function updateFichaEmpresaService(
 
         // 7. Guardar los cambios
         const fichaActualizada = await fichaRepo.save(fichaActual);
+
+        // 8. Crear snapshot en historial laboral
+        const historialRepo = queryRunner.manager.getRepository('HistorialLaboral');
+        await historialRepo.save(historialRepo.create({
+            trabajador: fichaActualizada.trabajador,
+            cargo: fichaActualizada.cargo,
+            area: fichaActualizada.area,
+            tipoContrato: fichaActualizada.tipoContrato,
+            jornadaLaboral: fichaActualizada.jornadaLaboral,
+            sueldoBase: fichaActualizada.sueldoBase,
+            fechaInicio: fichaActualizada.fechaInicioContrato,
+            fechaFin: fichaActualizada.fechaFinContrato,
+            motivoTermino: fichaActualizada.motivoDesvinculacion,
+            observaciones: 'Actualización de ficha de empresa',
+            contratoURL: fichaActualizada.contratoURL,
+            afp: fichaActualizada.afp,
+            previsionSalud: fichaActualizada.previsionSalud,
+            seguroCesantia: fichaActualizada.seguroCesantia,
+            estado: fichaActualizada.estado,
+            fechaInicioLicencia: fichaActualizada.fechaInicioLicencia,
+            fechaFinLicencia: fichaActualizada.fechaFinLicencia,
+            motivoLicencia: fichaActualizada.motivoLicencia,
+            registradoPor: usuarioAutenticado || fichaActualizada.trabajador?.usuario || null
+        }));
+
         await queryRunner.commitTransaction();
 
         return [fichaActualizada, null];

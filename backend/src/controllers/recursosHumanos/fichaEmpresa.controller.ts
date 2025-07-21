@@ -91,7 +91,7 @@ export async function updateFichaEmpresa(req: Request, res: Response) {
         }
 
         console.log('Datos a actualizar:', validationResult.value);
-        const [ficha, error] = await updateFichaEmpresaService(id, validationResult.value);
+        const [ficha, error] = await updateFichaEmpresaService(id, validationResult.value, req.user);
 
         if (error) {
             console.log('Error al actualizar:', error);
