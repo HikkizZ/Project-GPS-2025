@@ -19,11 +19,11 @@ export class HistorialLaboral {
   @Column({ type: "varchar", length: 100, nullable: false })
   area!: string;
 
-  @Column({ type: "varchar", length: 100, nullable: false })
-  departamento!: string;
-
   @Column({ type: "varchar", length: 50, nullable: false })
   tipoContrato!: string;
+
+  @Column({ type: "varchar", length: 50, nullable: false })
+  jornadaLaboral!: string;
 
   @Column({ type: "decimal", precision: 10, scale: 2, nullable: false })
   sueldoBase!: number;

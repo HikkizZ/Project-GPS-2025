@@ -296,6 +296,20 @@ export async function createTrabajadorService(trabajadorData: Partial<Trabajador
             });
             await queryRunner.manager.save(FichaEmpresa, fichaEmpresa);
 
+            // Crear historial laboral inicial
+            const historialRepo = queryRunner.manager.getRepository(HistorialLaboral);
+            await historialRepo.save(historialRepo.create({
+                trabajador: trabajadorGuardado,
+                cargo: fichaEmpresa.cargo,
+                area: fichaEmpresa.area,
+                tipoContrato: fichaEmpresa.tipoContrato,
+                jornadaLaboral: fichaEmpresa.jornadaLaboral,
+                sueldoBase: fichaEmpresa.sueldoBase,
+                fechaInicio: trabajadorGuardado.fechaIngreso,
+                observaciones: `Registro inicial de trabajador. Cuenta de usuario: ${correoUsuario}, Rol: Usuario`,
+                registradoPor: newUser // El usuario creado
+            }));
+
             // Confirmar la transacción
             await queryRunner.commitTransaction();
 
@@ -560,7 +574,6 @@ export async function updateTrabajadorService(id: number, data: any): Promise<Se
                 trabajador: trabajador,
                 cargo: 'Actualización de datos personales',
                 area: 'N/A',
-                departamento: 'N/A',
                 tipoContrato: 'N/A',
                 sueldoBase: 0,
                 fechaInicio: new Date(),
@@ -714,7 +727,6 @@ export async function reactivarTrabajadorService(
             trabajador: trabajador,
             cargo: trabajador.fichaEmpresa.cargo,
             area: trabajador.fichaEmpresa.area,
-            departamento: 'N/A',
             tipoContrato: trabajador.fichaEmpresa.tipoContrato,
             sueldoBase: trabajador.fichaEmpresa.sueldoBase,
             fechaInicio: new Date(),

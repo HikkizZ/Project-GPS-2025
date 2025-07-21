@@ -52,7 +52,7 @@ describe('📋 Ficha Empresa API', () => {
                     telefono: '+56912345678',
                     correoPersonal: 'juan.perez@test.com',
                     cargo: 'Desarrollador',
-                    departamento: 'TI',
+                    area : 'TI',
                     fechaIngreso: '2023-01-01',
                     sueldoBase: 1000000
                 });

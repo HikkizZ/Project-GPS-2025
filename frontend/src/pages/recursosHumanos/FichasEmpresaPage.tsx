@@ -598,7 +598,7 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                       <Form.Label className="fw-semibold">Área:</Form.Label>
                       <Form.Control
                         type="text"
-                        placeholder="Departamento o área"
+                        placeholder="Área"
                         value={searchQuery.area || ''}
                         onChange={(e) => setSearchQuery({ ...searchQuery, area: e.target.value })}
                         style={{ borderRadius: '8px' }}
