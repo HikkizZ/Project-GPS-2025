@@ -308,6 +308,7 @@ export async function createTrabajadorService(trabajadorData: Partial<Trabajador
                 sueldoBase: fichaEmpresa.sueldoBase,
                 fechaInicio: trabajadorGuardado.fechaIngreso,
                 observaciones: `Registro inicial de trabajador. Cuenta de usuario: ${correoUsuario}, Rol: Usuario`,
+                estado: fichaEmpresa.estado,
                 registradoPor: registradoPorUser || newUser // Usar el usuario que registra, o el nuevo usuario si no se pasa
             }));
 
