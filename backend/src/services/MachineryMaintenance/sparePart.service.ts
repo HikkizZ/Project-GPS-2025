@@ -57,7 +57,6 @@ export async function getAllSpareParts(): Promise<ServiceResponse<SparePart[]>> 
     if (!repuestos.length) {
       return [null, "No hay repuestos registrados"];
     }
-
     return [repuestos, null];
 
   } catch (error) {
