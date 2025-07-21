@@ -18,7 +18,7 @@ router
     .get("/all", getCustomers)
     .get("/", getCustomer)
     .post("/", createCustomer)
-    .patch("/", updateCustomer)
-    .delete("/", deleteCustomer);
+    .put("/:id", updateCustomer)
+    .delete("/:id", deleteCustomer);
 
 export default router;
