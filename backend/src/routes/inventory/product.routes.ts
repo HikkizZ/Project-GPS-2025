@@ -18,7 +18,7 @@ router
     .get("/all", getProducts)
     .get("/", getProduct)
     .post("/", createProduct)
-    .patch("/", updateProduct)
-    .delete("/", deleteProduct);
+    .put("/:id", updateProduct)
+    .delete("/:id", deleteProduct);
 
 export default router;
