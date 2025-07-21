@@ -37,6 +37,10 @@ export async function getSupplier(req: Request, res: Response): Promise<void> {
         const email = req.query.email as string | undefined;
         const id = req.query.id ? Number(req.query.id) : undefined;
 
+        if (email) {
+            console.log("Searching supplier by email:", email);
+        }
+
         const { error } = personQueryValidation.validate({ rut, email, id });
 
         if (error) {
@@ -92,32 +96,20 @@ export const createSupplier = async (req: Request, res: Response): Promise<void>
 
 export async function updateSupplier(req: Request, res: Response): Promise<void> {
     try {
-        const id = req.query.id ? Number(req.query.id) : undefined;
-        const rut = req.query.rut as string | undefined;
-        const email = req.query.email as string | undefined;
-
-        const { error: queryError } = personQueryValidation.validate({ id, rut, email });
-
-        if (queryError) {
-            handleErrorClient(res, 400, queryError.message);
+        const id = Number(req.params.id);
+        if (isNaN(id)) {
+            handleErrorClient(res, 400, "ID inválido.");
             return;
         }
 
         const { error: bodyError } = personBodyValidation.validate(req.body);
-
         if (bodyError) {
             handleErrorClient(res, 400, bodyError.message);
             return;
         }
 
-        const [supplier, errorSupplier] = await updateSupplierService({ id, rut, email }, req.body);
-
-        if (errorSupplier) {
-            handleErrorClient(res, 404, typeof errorSupplier === 'string' ? errorSupplier : errorSupplier.message);
-            return;
-        }
-
-        if (!supplier) {
+        const [supplier, errorSupplier] = await updateSupplierService({ id }, req.body);
+        if (errorSupplier || !supplier) {
             handleErrorClient(res, 404, "No se encontró el proveedor.");
             return;
         }
@@ -130,25 +122,14 @@ export async function updateSupplier(req: Request, res: Response): Promise<void>
 
 export async function deleteSupplier(req: Request, res: Response): Promise<void> {
     try {
-        const id = req.query.id ? Number(req.query.id) : undefined;
-        const rut = req.query.rut as string | undefined;
-        const email = req.query.email as string | undefined;
-
-        const { error } = personQueryValidation.validate({ id, rut, email });
-
-        if (error) {
-            handleErrorClient(res, 400, error.message);
+        const id = Number(req.params.id);
+        if (isNaN(id)) {
+            handleErrorClient(res, 400, "ID inválido.");
             return;
         }
 
-        const [deletedSupplier, errorSupplier] = await deleteSupplierService({ id, rut, email });
-
-        if (errorSupplier) {
-            handleErrorClient(res, 404, typeof errorSupplier === 'string' ? errorSupplier : errorSupplier.message);
-            return;
-        }
-
-        if (!deletedSupplier) {
+        const [deletedSupplier, errorSupplier] = await deleteSupplierService({ id });
+        if (errorSupplier || !deletedSupplier) {
             handleErrorClient(res, 404, "No se encontró el proveedor.");
             return;
         }
