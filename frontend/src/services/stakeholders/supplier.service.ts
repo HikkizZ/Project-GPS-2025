@@ -42,6 +42,14 @@ export class SupplierService {
     //? Crear nuevo proveedor
     async createSupplier(supplierData: CreateSupplierData): Promise<ApiResponse<Supplier>> {
         try {
+            if (!supplierData.phone.startsWith('+')) {
+                if (supplierData.phone.startsWith('9')) {
+                    supplierData.phone = `+56${supplierData.phone}`;
+                } else {
+                    supplierData.phone = `+56${supplierData.phone}`;
+                }
+            }
+
             const response = await apiClient.post<{ data: Supplier; message: string }>(`${this.baseURL}/`, supplierData);
             return {
                 success: true,
@@ -56,6 +64,13 @@ export class SupplierService {
     //? Actualizar proveedor
     async updateSupplier(id: number, supplierData: UpdateSupplierData): Promise<ApiResponse<Supplier>> {
         try {
+            if (!supplierData.phone.startsWith('+')) {
+                if (supplierData.phone.startsWith('9')) {
+                    supplierData.phone = `+56${supplierData.phone}`;
+                } else {
+                    supplierData.phone = `+56${supplierData.phone}`;
+                }
+            }
             const response = await apiClient.put<{ data: Supplier; message: string }>(`${this.baseURL}/${id}`, supplierData);
             return {
                 success: true,
@@ -127,17 +142,6 @@ export class SupplierService {
         const dvCalculado = resto === 0 ? '0' : resto === 1 ? 'k' : (11 - resto).toString();
 
         return dv === dvCalculado;
-    }
-
-    static formatPhone(phone: string): string {
-        // Agregar +56 si no tiene código de país
-        if (!phone.startsWith('+')) {
-            if (phone.startsWith('9')) {
-                return `+56${phone}`;
-            }
-            return `+56${phone}`;
-        }
-        return phone;
     }
 }
 
