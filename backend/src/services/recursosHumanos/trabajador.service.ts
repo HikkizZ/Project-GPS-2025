@@ -753,9 +753,18 @@ export async function reactivarTrabajadorService(
             cargo: trabajador.fichaEmpresa.cargo,
             area: trabajador.fichaEmpresa.area,
             tipoContrato: trabajador.fichaEmpresa.tipoContrato,
+            jornadaLaboral: trabajador.fichaEmpresa.jornadaLaboral,
             sueldoBase: trabajador.fichaEmpresa.sueldoBase,
             fechaInicio: new Date(),
             observaciones: `Reactivación de trabajador. Nuevo correo corporativo: ${nuevoCorreoCorporativo}`,
+            contratoURL: trabajador.fichaEmpresa.contratoURL,
+            afp: trabajador.fichaEmpresa.afp,
+            previsionSalud: trabajador.fichaEmpresa.previsionSalud,
+            seguroCesantia: trabajador.fichaEmpresa.seguroCesantia,
+            estado: trabajador.fichaEmpresa.estado,
+            fechaInicioLicencia: trabajador.fichaEmpresa.fechaInicioLicencia,
+            fechaFinLicencia: trabajador.fichaEmpresa.fechaFinLicencia,
+            motivoLicencia: trabajador.fichaEmpresa.motivoLicencia,
             registradoPor: usuarioRegistra
         });
 
