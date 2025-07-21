@@ -52,24 +52,28 @@ export async function getHistorialLaboral(req: Request, res: Response): Promise<
             return;
         }
 
-        // Formatear la respuesta para filtrar los campos de registradoPor y filtrar usuario dentro de trabajador
+        // Formatear la respuesta para filtrar los campos de registradoPor y filtrar trabajador (con usuario)
         const historialFiltrado = (historial || []).map((item: any) => {
-            // Filtrar usuario dentro de trabajador
-            let trabajadorFiltrado = { ...item.trabajador };
-            if (item.trabajador && item.trabajador.usuario) {
+            // Filtrar trabajador y su usuario
+            let trabajadorFiltrado = null;
+            if (item.trabajador) {
                 trabajadorFiltrado = {
-                    ...trabajadorFiltrado,
-                    usuario: {
+                    id: item.trabajador.id,
+                    rut: item.trabajador.rut,
+                    nombres: item.trabajador.nombres,
+                    apellidoPaterno: item.trabajador.apellidoPaterno,
+                    apellidoMaterno: item.trabajador.apellidoMaterno,
+                    correoPersonal: item.trabajador.correoPersonal,
+                    fechaIngreso: item.trabajador.fechaIngreso,
+                    usuario: item.trabajador.usuario ? {
                         id: item.trabajador.usuario.id,
                         name: item.trabajador.usuario.name,
                         corporateEmail: item.trabajador.usuario.corporateEmail,
                         role: item.trabajador.usuario.role,
                         rut: item.trabajador.usuario.rut,
                         estadoCuenta: item.trabajador.usuario.estadoCuenta
-                    }
+                    } : null
                 };
-            } else {
-                delete trabajadorFiltrado.usuario;
             }
             return {
                 ...item,
