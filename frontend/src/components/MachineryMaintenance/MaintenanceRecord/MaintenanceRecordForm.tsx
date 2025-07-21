@@ -4,7 +4,7 @@ import { CreateMaintenanceRecordData, RazonMantencion } from '@/types/machinaryM
 import { userService } from '@/services/user.service';
 import { maquinariaService } from '@/services/maquinaria/maquinaria.service';
 import { SafeUser } from '@/types';
-import { Maquinaria } from '@/types/maquinaria.types';
+import { Maquinaria } from '@/types/maquinaria/maquinaria.types';
 
 interface Props {
   initialData?: Partial<CreateMaintenanceRecordData>;
@@ -147,18 +147,18 @@ const MaintenanceRecordForm: React.FC<Props> = ({ initialData = {}, onSubmit, lo
           </div>
 
           <div className="flex-fill">
-            <label htmlFor="selectModelo" className="form-label">Modelo</label>
+            <label htmlFor="selectModelo" className="form-label">Número de Chasis</label>
             <select
               id="selectModelo"
               className="form-select"
               value={modeloSeleccionado}
               onChange={(e) => setModeloSeleccionado(e.target.value)}
             >
-              <option value="">Seleccione modelo</option>
+              <option value="">Seleccione un número de chasis</option>
               {maquinarias
                 .filter(m => m.grupo === grupoSeleccionado && m.patente === patenteSeleccionada)
                 .map(m => (
-                  <option key={m.id} value={m.modelo}>{m.modelo}</option>
+                  <option key={m.id} value={m.numeroChasis}>{m.numeroChasis}</option>
                 ))}
             </select>
           </div>
