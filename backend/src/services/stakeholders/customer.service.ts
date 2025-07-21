@@ -66,13 +66,11 @@ export async function createCustomerService(customerData: CreateCustomerDTO): Pr
 
 export async function updateCustomerService(query: QueryParams, customerData: UpdateCustomerDTO): Promise<ServiceResponse<Customer>> {
     try {
-        const { id, rut, email } = query;
-
-        const rutFormatted = rut ? formatRut(rut) : undefined;
+        const { id } = query;
 
         const customerRepository = AppDataSource.getRepository(Customer);
 
-        const customerFound = await customerRepository.findOne({ where: [{ id }, { rut: rutFormatted }, { email }] });
+        const customerFound = await customerRepository.findOne({ where: { id } });
 
         if (!customerFound) return [null, "El cliente no existe."];
 
@@ -93,13 +91,11 @@ export async function updateCustomerService(query: QueryParams, customerData: Up
 
 export async function deleteCustomerService(query: QueryParams): Promise<ServiceResponse<Customer>> {
     try {
-        const { id, rut, email } = query;
-
-        const rutFormatted = rut ? formatRut(rut) : undefined;
+        const { id } = query;
 
         const customerRepository = AppDataSource.getRepository(Customer);
 
-        const customerFound = await customerRepository.findOne({ where: [{ id }, { rut: rutFormatted }, { email }] });
+        const customerFound = await customerRepository.findOne({ where: { id } });
 
         if (!customerFound) return [null, "El cliente no existe."];
 
