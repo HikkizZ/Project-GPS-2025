@@ -37,10 +37,6 @@ export async function getSupplier(req: Request, res: Response): Promise<void> {
         const email = req.query.email as string | undefined;
         const id = req.query.id ? Number(req.query.id) : undefined;
 
-        if (email) {
-            console.log("Searching supplier by email:", email);
-        }
-
         const { error } = personQueryValidation.validate({ rut, email, id });
 
         if (error) {
