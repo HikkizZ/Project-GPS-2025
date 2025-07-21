@@ -1,6 +1,9 @@
+"use client"
+
 import type React from "react"
 import { useState, useEffect } from "react"
 import { Container, Row, Col, Button, Card } from "react-bootstrap"
+import InventorySidebar from "@/components/inventory/layout/InventorySidebar"
 import SupplierModal from "@/components/stakeholders/SupplierModal"
 import ConfirmModal from "@/components/stakeholders/ConfirmModal"
 import { FiltersPanel } from "@/components/stakeholders/filters/FiltersPanel"
@@ -155,87 +158,99 @@ export const SupplierPage: React.FC = () => {
   const hasActiveLocalFilters = Object.values(localFilters).some((value) => value.trim() !== "")
 
   return (
-    <Container fluid className="py-2">
-      <Row>
-        <Col>
-          {/* Encabezado de página */}
-          <Card className="shadow-sm mb-3">
-            <Card.Header className="bg-gradient-primary text-white">
-              <div className="d-flex align-items-center justify-content-between">
-                <div className="d-flex align-items-center">
-                  <i className="bi bi-building fs-4 me-3"></i>
-                  <div>
-                    <h3 className="mb-1">Gestión de Proveedores</h3>
-                    <p className="mb-0 opacity-75">Administrar información de proveedores del sistema</p>
-                  </div>
-                </div>
-                <div>
-                  <Button
-                    variant={showFilters ? "outline-light" : "light"}
-                    className="me-2"
-                    onClick={() => setShowFilters(!showFilters)}
-                  >
-                    <i className={`bi bi-funnel${showFilters ? "-fill" : ""} me-2`}></i>
-                    {showFilters ? "Ocultar" : "Mostrar"} Panel de Filtros
-                  </Button>
-                  <Button variant="light" onClick={handleCreateClick}>
-                    <i className="bi bi-plus-lg me-2"></i>
-                    Nuevo Proveedor
-                  </Button>
-                </div>
-              </div>
-            </Card.Header>
-          </Card>
+    <Container fluid className="inventory-page p-0">
+      <div className="d-flex">
+        {/* Sidebar lateral */}
+        <div className="inventory-sidebar-wrapper">
+          <InventorySidebar />
+        </div>
 
-          {/* Panel de filtros */}
-          <FiltersPanel
-            showFilters={showFilters}
-            serverFilters={filters}
-            onServerFilterChange={handleFilterChange}
-            onServerFilterSubmit={handleFilterSubmit}
-            onServerFilterReset={handleFilterReset}
-            localFilters={localFilters}
-            onLocalFilterChange={handleLocalFilterChange}
-            onLocalFilterReset={handleLocalFilterReset}
-            hasActiveLocalFilters={hasActiveLocalFilters}
-          />
+        {/* Contenido principal */}
+        <div className="inventory-main-content flex-grow-1">
+          <Container fluid className="py-2">
+            <Row>
+              <Col>
+                {/* Encabezado de página */}
+                <Card className="shadow-sm mb-3">
+                  <Card.Header className="bg-gradient-primary text-white">
+                    <div className="d-flex align-items-center justify-content-between">
+                      <div className="d-flex align-items-center">
+                        <i className="bi bi-truck fs-4 me-3"></i>
+                        <div>
+                          <h3 className="mb-1">Gestión de Proveedores</h3>
+                          <p className="mb-0 opacity-75">Administrar información de proveedores del sistema</p>
+                        </div>
+                      </div>
+                      <div>
+                        <Button
+                          variant={showFilters ? "outline-light" : "light"}
+                          className="me-2"
+                          onClick={() => setShowFilters(!showFilters)}
+                        >
+                          <i className={`bi bi-funnel${showFilters ? "-fill" : ""} me-2`}></i>
+                          {showFilters ? "Ocultar" : "Mostrar"} Panel de Filtros
+                        </Button>
+                        <Button variant="light" onClick={handleCreateClick}>
+                          <i className="bi bi-plus-lg me-2"></i>
+                          Nuevo Proveedor
+                        </Button>
+                      </div>
+                    </div>
+                  </Card.Header>
+                </Card>
 
-          {/* Tabla de proveedores */}
-          <SupplierTable
-            suppliers={filteredSuppliers}
-            allSuppliersCount={allSuppliers.length}
-            isLoading={isLoading}
-            hasActiveFilters={hasActiveFilters}
-            hasActiveLocalFilters={hasActiveLocalFilters}
-            onEdit={handleEditClick}
-            onDelete={handleDeleteClick}
-            onCreateClick={handleCreateClick}
-            onFilterReset={handleFilterReset}
-            onLocalFilterReset={handleLocalFilterReset}
-          />
-        </Col>
-      </Row>
+                {/* Panel de filtros */}
+                <FiltersPanel
+                  showFilters={showFilters}
+                  serverFilters={filters}
+                  onServerFilterChange={handleFilterChange}
+                  onServerFilterSubmit={handleFilterSubmit}
+                  onServerFilterReset={handleFilterReset}
+                  localFilters={localFilters}
+                  onLocalFilterChange={handleLocalFilterChange}
+                  onLocalFilterReset={handleLocalFilterReset}
+                  hasActiveLocalFilters={hasActiveLocalFilters}
+                />
 
-      <SupplierModal
-        show={showModal}
-        onClose={() => setShowModal(false)}
-        onSubmit={handleSubmit}
-        isSubmitting={isCreating || isUpdating}
-        initialData={editingSupplier}
-      />
+                {/* Tabla de proveedores */}
+                <SupplierTable
+                  suppliers={filteredSuppliers}
+                  allSuppliersCount={allSuppliers.length}
+                  isLoading={isLoading}
+                  hasActiveFilters={hasActiveFilters}
+                  hasActiveLocalFilters={hasActiveLocalFilters}
+                  onEdit={handleEditClick}
+                  onDelete={handleDeleteClick}
+                  onCreateClick={handleCreateClick}
+                  onFilterReset={handleFilterReset}
+                  onLocalFilterReset={handleLocalFilterReset}
+                />
+              </Col>
+            </Row>
 
-      <ConfirmModal
-        show={!!supplierToDelete}
-        onClose={() => setSupplierToDelete(null)}
-        onConfirm={confirmDeleteSupplier}
-        title="Eliminar proveedor"
-        message={`¿Estás seguro que deseas eliminar al proveedor "${supplierToDelete?.name}"?`}
-        confirmText="Eliminar"
-        cancelText="Cancelar"
-      />
+            <SupplierModal
+              show={showModal}
+              onClose={() => setShowModal(false)}
+              onSubmit={handleSubmit}
+              isSubmitting={isCreating || isUpdating}
+              initialData={editingSupplier}
+            />
 
-      {/* Sistema de notificaciones */}
-      <Toast toasts={toasts} removeToast={removeToast} />
+            <ConfirmModal
+              show={!!supplierToDelete}
+              onClose={() => setSupplierToDelete(null)}
+              onConfirm={confirmDeleteSupplier}
+              title="Eliminar proveedor"
+              message={`¿Estás seguro que deseas eliminar al proveedor "${supplierToDelete?.name}"?`}
+              confirmText="Eliminar"
+              cancelText="Cancelar"
+            />
+
+            {/* Sistema de notificaciones */}
+            <Toast toasts={toasts} removeToast={removeToast} />
+          </Container>
+        </div>
+      </div>
     </Container>
   )
 }
