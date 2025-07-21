@@ -15,13 +15,13 @@ export const CreateBonoValidation = Joi.object({
         'string.max': 'El monto no puede superar los 10 caracteres',
         'any.required': 'El monto es requerido'
     }),
-    tipoBono: Joi.string().valid('estatal', 'empresarial').default('empresarial').messages({
+    tipoBono: Joi.string().valid('estatal', 'empresarial').required().messages({
         'any.only': 'El tipo de bono debe ser "estatal" o "empresarial"',
-        'any.default': 'El tipo de bono es requerido'
+        'any.required': 'El tipo de bono es requerido'
     }),
-    temporalidad: Joi.string().valid('permanente', 'recurrente', 'puntual').default('puntual').messages({
+    temporalidad: Joi.string().valid('permanente', 'recurrente', 'puntual').required().messages({
         'any.only': 'La temporalidad debe ser "permanente", "recurrente" o "puntual"',
-        'any.default': 'La temporalidad es requerida'
+        'any.required': 'La temporalidad es requerida'
     }),
     descripcion: Joi.string().trim().max(500).optional().allow('').messages({
         'string.max': 'La descripción no puede superar los 500 caracteres'
@@ -32,9 +32,21 @@ export const CreateBonoValidation = Joi.object({
         'date.format': 'La fecha de creación debe estar en formato ISO (YYYY-MM-DD)',
         'any.default': 'La fecha de creación es requerida'
     }),
-    imponible: Joi.boolean().default(true).messages({
+    imponible: Joi.boolean().required().messages({
         'boolean.base': 'El estado imponible debe ser un booleano',
-        'any.default': 'El estado imponible es requerido'
+        'any.required': 'El estado imponible es requerido'
+    }),
+
+    duracionMes: Joi.when('temporalidad', {
+        is: 'permanente',
+        then: Joi.any().forbidden().messages({
+            'any.unknown': 'No puede definir duración en meses para un bono permanente'
+        }),
+        otherwise: Joi.number().integer().min(1).optional().messages({
+            'number.base': 'La duración en meses debe ser un número entero',
+            'number.integer': 'La duración en meses debe ser un número entero',
+            'number.min': 'La duración en meses debe ser al menos 1'
+        })
     })
 });
 
@@ -44,28 +56,13 @@ export const CreateBonoValidation = Joi.object({
 //puede recibir bonos en diferentes momentos, por lo que no es necesario que exista una relación directa
 //entre un bono y un trabajador en la base de datos, sino que se puede asignar
 export const AsignarBonoValidation = Joi.object({
-    trabajadorId: Joi.number().integer().positive().required().messages({
-        'number.base': 'El ID del trabajador debe ser un número',
-        'number.integer': 'El ID del trabajador debe ser un número entero',
-        'number.positive': 'El ID del trabajador debe ser positivo',
-        'any.required': 'El ID del trabajador es requerido'
-    }),
-    
+
     bonoId: Joi.number().integer().positive().required().messages({
         'number.base': 'El ID del bono debe ser un número',
         'number.integer': 'El ID del bono debe ser un número entero',
         'number.positive': 'El ID del bono debe ser positivo',
         'any.required': 'El ID del bono es requerido'
     }),
-    
-    fechaAsignacion: Joi.date().iso().required().min('now').messages({
-        'date.base': 'La fecha de entrega debe ser una fecha válida',
-        'date.format': 'La fecha de entrega debe estar en formato ISO (YYYY-MM-DD)',
-        'date.min': 'La fecha de entrega debe ser una fecha actual o futura',
-        'any.required': 'La fecha de entrega es requerida'
-    }),
-    
-    activo: Joi.boolean().optional(),
     
     observaciones: Joi.string().trim().max(500).optional().allow('').messages({
         'string.max': 'Las observaciones no pueden superar los 500 caracteres'
@@ -85,13 +82,11 @@ export const UpdateBonoValidation = Joi.object({
         'string.min': 'El monto debe tener al menos 5 caracteres',
         'string.max': 'El monto no puede superar los 10 caracteres'
     }),
-    tipoBono: Joi.string().valid('estatal', 'empresarial').default('empresarial').messages({
+    tipoBono: Joi.string().valid('estatal', 'empresarial').messages({
         'any.only': 'El tipo de bono debe ser "estatal" o "empresarial"',
-        'any.default': 'El tipo de bono es requerido'
     }),
-    temporalidad: Joi.string().valid('permanente', 'recurrente', 'puntual').default('puntual').messages({
+    temporalidad: Joi.string().valid('permanente', 'recurrente', 'puntual').messages({
         'any.only': 'La temporalidad debe ser "permanente", "recurrente" o "puntual"',
-        'any.default': 'La temporalidad es requerida'
     }),
     descripcion: Joi.string().trim().max(500).optional().allow('').messages({
         'string.max': 'La descripción no puede superar los 500 caracteres'
@@ -102,16 +97,22 @@ export const UpdateBonoValidation = Joi.object({
     }),
     imponible: Joi.boolean().optional().messages({
         'boolean.base': 'El estado imponible debe ser un booleano'
+    }),
+    duracionMes: Joi.when('temporalidad', {
+        is: 'permanente',
+        then: Joi.any().forbidden().messages({
+            'any.unknown': 'No puede definir duración en meses para un bono permanente'
+        }),
+        otherwise: Joi.number().integer().min(1).optional().messages({
+            'number.base': 'La duración en meses debe ser un número entero',
+            'number.integer': 'La duración en meses debe ser un número entero',
+            'number.min': 'La duración en meses debe ser al menos 1'
+        })
     })
 });
 
 // Validación para actualizar una asignación de bono
 export const UpdateAsignarBonoValidation = Joi.object({
-    trabajadorId: Joi.number().integer().positive().optional().messages({
-        'number.base': 'El ID del trabajador debe ser un número',
-        'number.integer': 'El ID del trabajador debe ser un número entero',
-        'number.positive': 'El ID del trabajador debe ser positivo'
-    }),
     
     bonoId: Joi.number().integer().positive().optional().messages({
         'number.base': 'El ID del bono debe ser un número',
@@ -180,10 +181,10 @@ export const BonoQueryValidation = Joi.object({
 // page y limit aún lo tengo en opcional porque no estoy seguro de como hacer que se vean en frontend
 export const AsignarBonoQueryValidation = Joi.object({
     
-    trabajadorId: Joi.number().integer().positive().optional().messages({
-        'number.base': 'El ID del trabajador debe ser un número',
-        'number.integer': 'El ID del trabajador debe ser un número entero',
-        'number.positive': 'El ID del trabajador debe ser positivo'
+    fichaId: Joi.number().integer().positive().optional().messages({
+        'number.base': 'El ID de la ficha debe ser un número',
+        'number.integer': 'El ID de la ficha debe ser un número entero',
+        'number.positive': 'El ID de la ficha debe ser positivo'
     }),
     
     bonoId: Joi.number().integer().positive().optional().messages({

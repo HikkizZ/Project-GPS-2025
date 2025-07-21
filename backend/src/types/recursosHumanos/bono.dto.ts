@@ -5,6 +5,7 @@ export interface CreateBonoDTO {
     temporalidad?: "permanente" | "recurrente" | "puntual";
     descripcion?: string;
     imponible?: boolean;
+    duracionMes?: number; // Duración en meses, opcional para bonos puntuales
 }
 
 export interface UpdateBonoDTO {
@@ -14,6 +15,7 @@ export interface UpdateBonoDTO {
     temporalidad?: "permanente" | "recurrente" | "puntual";
     descripcion?: string;
     imponible?: boolean;
+    duracionMes?: number; // Duración en meses, opcional para bonos puntuales
 }
 
 export interface BonoQueryDTO {
@@ -40,15 +42,13 @@ export interface BonoResponseDTO {
 }
 
 export interface AsignarBonoDTO {
-    trabajadorId: number;
+    fichaEmpresaId: number;
     bonoId: number;
-    fechaAsignacion?: string | Date;
-    activo?: boolean;
     observaciones?: string;
 }
 
 export interface UpdateAsignarBonoDTO {
-    fechaAsignacion?: string | Date;
+    bonoId?: number;
     activo?: boolean;
     observaciones?: string;
 }
