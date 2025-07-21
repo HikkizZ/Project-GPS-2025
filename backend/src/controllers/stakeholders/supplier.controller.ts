@@ -99,6 +99,7 @@ export async function updateSupplier(req: Request, res: Response): Promise<void>
         }
 
         const { error: bodyError } = personBodyValidation.validate(req.body);
+        
         if (bodyError) {
             handleErrorClient(res, 400, bodyError.message);
             return;
