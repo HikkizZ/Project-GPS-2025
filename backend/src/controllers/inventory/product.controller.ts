@@ -91,14 +91,9 @@ export async function createProduct(req: Request, res: Response): Promise<void> 
 export async function updateProduct(req: Request, res: Response): Promise<void> {
     try {
 
-        const { id } = req.query;
-
-        const parsedId = id ? Number(id) : undefined;
-
-        const { error: queryError } = productQueryValidation.validate({ id: parsedId });
-
-        if (queryError || parsedId === undefined) {
-            handleErrorClient(res, 400, queryError?.message ?? "El parámetro 'id' es obligatorio");
+        const id = Number(req.params.id);
+        if (isNaN(id)) {
+            handleErrorClient(res, 400, "ID inválido.");
             return;
         }
 
@@ -109,7 +104,7 @@ export async function updateProduct(req: Request, res: Response): Promise<void> 
             return;
         }
 
-        const [updatedProduct, errorProduct] = await updateProductService(parsedId, req.body);
+        const [updatedProduct, errorProduct] = await updateProductService(id, req.body);
 
         if (errorProduct) {
             handleErrorServer(res, 404, typeof errorProduct === 'string' ? errorProduct : errorProduct.message);
@@ -129,18 +124,13 @@ export async function updateProduct(req: Request, res: Response): Promise<void> 
 
 export async function deleteProduct(req: Request, res: Response): Promise<void> {
     try {
-        const { id } = req.query;
-
-        const parsedId = id ? Number(id) : undefined;
-
-        const { error } = productQueryValidation.validate({ id: parsedId });
-
-        if (error || parsedId === undefined) {
-            handleErrorClient(res, 400, error?.message ?? "El parámetro 'id' es obligatorio");
+        const id = Number(req.params.id);
+        if (isNaN(id)) {
+            handleErrorClient(res, 400, "ID inválido.");
             return;
         }
 
-        const [deletedProduct, errorProduct] = await deleteProductService(parsedId);
+        const [deletedProduct, errorProduct] = await deleteProductService(id);
 
         if (errorProduct) {
             handleErrorServer(res, 404, typeof errorProduct === 'string' ? errorProduct : errorProduct.message);
