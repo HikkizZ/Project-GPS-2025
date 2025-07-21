@@ -4,12 +4,29 @@ import InventorySidebar from "@/components/inventory/layout/InventorySidebar"
 import InventoryChart from "@/components/inventory/dashboard/InventoryChart"
 import InventoryHistoryTable from "@/components/inventory/dashboard/InventoryHistoryTable"
 import { useProducts } from "@/hooks/inventory/useProducts"
+import { useSuppliers } from "@/hooks/stakeholders/useSuppliers"
 import { ProductType } from "@/types/inventory/product.types"
-import { useMemo } from "react"
+import InventoryEntryModal from "@/components/inventory/dashboard/InventoryEntryModal"
+import { useInventoryEntries } from "@/hooks/inventory/useInventoryEntry"
+import type { CreateInventoryEntryData, InventoryEntry } from "@/types/inventory/inventory.types"
+import { useMemo, useState, useCallback } from "react"
+import { useToast, Toast } from "@/components/common/Toast"
+
 import "../../styles/pages/inventory.css"
+import { InventoryMovementSelectionModal } from "@/components/inventory/dashboard/InventoryMovementSelectionModal"
+import ConfirmModal from "@/components/stakeholders/ConfirmModal"
 
 export const InventoryPage: React.FC = () => {
-  const { products, loadProducts, isLoading } = useProducts()
+  const { products, loadProducts, isLoading: isLoadingProducts } = useProducts()
+  const { suppliers, isLoading: isLoadingSuppliers } = useSuppliers()
+  const { entries, loadEntries, createEntry, deleteEntry, isLoadingEntries, isCreatingEntry, isDeletingEntry } = useInventoryEntries()
+
+  const { toasts, removeToast, showSuccess, showError } = useToast()
+
+  const [showMovementSelectionModal, setShowMovementSelectionModal] = useState(false)
+  const [showPurchaseEntryModal, setShowPurchaseEntryModal] = useState(false)
+  const [entryToDelete, setEntryToDelete] = useState<InventoryEntry | null>(null) // Para confirmar eliminación
+  const [entryToViewDetails, setEntryToViewDetails] = useState<InventoryEntry | null>(null) // Para ver detalles
 
   // Transforma los datos de productos en el formato que necesita el gráfico
   const chartData = useMemo(() => {
@@ -63,6 +80,61 @@ export const InventoryPage: React.FC = () => {
     }
   }, [products, chartData])
 
+  const handleNewMovementClick = useCallback(() => {
+    setShowMovementSelectionModal(true)
+  }, [])
+
+  const handleSelectPurchase = useCallback(() => {
+    setShowMovementSelectionModal(false)
+    setShowPurchaseEntryModal(true)
+  }, [])
+
+  const handleSelectSale = useCallback(() => {
+    setShowMovementSelectionModal(false)
+    alert("Funcionalidad de Vender Materiales no implementada aún.")
+  }, [])
+
+  const handleCreateEntry = useCallback(
+    async (data: CreateInventoryEntryData) => {
+      const result = await createEntry(data)
+      if (result.success) {
+        showSuccess("¡Entrada registrada!", result.message, 4000)
+        setShowPurchaseEntryModal(false)
+        loadProducts() // Recargar productos para actualizar el gráfico y métricas
+        loadEntries() // Recargar entradas para actualizar la tabla de historial
+      } else {
+        showError("Error al registrar entrada", result.message || "Ocurrió un error inesperado.")
+      }
+    },
+    [createEntry, loadProducts, loadEntries, showSuccess, showError],
+  )
+
+  const handleViewEntryDetails = useCallback((entry: InventoryEntry) => {
+    setEntryToViewDetails(entry)
+    // Aquí podrías abrir un modal de detalles de entrada
+    alert(`Ver detalles de la entrada ID: ${entry.id}`)
+  }, [])
+
+  const handleDeleteEntry = useCallback((entry: InventoryEntry) => {
+    setEntryToDelete(entry)
+  }, [])
+
+  const confirmDeleteEntry = useCallback(async () => {
+    if (!entryToDelete) return
+
+    const result = await deleteEntry(entryToDelete.id)
+    if (result.success) {
+      showSuccess("¡Movimiento eliminado!", "El movimiento se ha eliminado exitosamente.", 4000)
+      loadProducts() // Recargar productos por si el stock cambió
+      loadEntries() // Recargar entradas para actualizar la tabla
+    } else {
+      showError("Error al eliminar", result.message || "Ocurrió un error al eliminar el movimiento.")
+    }
+    setEntryToDelete(null)
+  }, [entryToDelete, deleteEntry, loadProducts, loadEntries, showSuccess, showError])
+
+  const isLoadingPage = isLoadingProducts || isLoadingSuppliers || isLoadingEntries
+
   return (
     <Container fluid className="inventory-page p-0">
       <div className="d-flex">
@@ -92,7 +164,7 @@ export const InventoryPage: React.FC = () => {
                           <i className="bi bi-download me-2"></i>
                           Exportar
                         </Button>
-                        <Button variant="light">
+                        <Button variant="light" onClick={handleNewMovementClick}>
                           <i className="bi bi-plus-lg me-2"></i>
                           Nuevo Movimiento
                         </Button>
@@ -225,7 +297,14 @@ export const InventoryPage: React.FC = () => {
                         </div>
                       </Card.Header>
                       <Card.Body>
-                        <InventoryHistoryTable />
+                        <InventoryHistoryTable
+                          entries={entries}
+                          products={products}
+                          suppliers={suppliers}
+                          isLoading={isLoadingPage}
+                          onViewDetails={handleViewEntryDetails}
+                          onDeleteEntry={handleDeleteEntry}
+                        />
                       </Card.Body>
                     </Card>
                   </Col>
@@ -235,6 +314,35 @@ export const InventoryPage: React.FC = () => {
           </Container>
         </div>
       </div>
+
+      {/* Modal de selección de tipo de movimiento */}
+      <InventoryMovementSelectionModal
+        show={showMovementSelectionModal}
+        onClose={() => setShowMovementSelectionModal(false)}
+        onSelectPurchase={handleSelectPurchase}
+        onSelectSale={handleSelectSale}
+      />
+
+      {/* Modal para la entrada de compra */}
+      <InventoryEntryModal
+        show={showPurchaseEntryModal}
+        onClose={() => setShowPurchaseEntryModal(false)}
+        onSubmit={handleCreateEntry}
+        isSubmitting={isCreatingEntry}
+      />
+      {/* Modal de confirmación para eliminar movimiento */}
+      <ConfirmModal
+        show={!!entryToDelete}
+        onClose={() => setEntryToDelete(null)}
+        onConfirm={confirmDeleteEntry}
+        title="Eliminar Movimiento"
+        message={`¿Estás seguro que deseas eliminar el movimiento con fecha ${entryToDelete ? new Date(entryToDelete.entryDate).toLocaleDateString() : ""}? Esta acción no se puede deshacer.`}
+        confirmText="Eliminar"
+        cancelText="Cancelar"
+        headerVariant="danger"
+      />
+      {/* Sistema de notificaciones */}
+      <Toast toasts={toasts} removeToast={removeToast} />
     </Container>
   )
 }
