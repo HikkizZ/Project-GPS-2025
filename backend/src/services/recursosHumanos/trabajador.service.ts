@@ -444,6 +444,30 @@ export async function desvincularTrabajadorService(id: number, motivo: string, u
             trabajador.fichaEmpresa.fechaFinContrato = new Date();
             trabajador.fichaEmpresa.motivoDesvinculacion = motivo;
             await queryRunner.manager.save(FichaEmpresa, trabajador.fichaEmpresa);
+
+            // Crear snapshot en historial laboral con estado Desvinculado
+            const historialRepo = queryRunner.manager.getRepository(HistorialLaboral);
+            await historialRepo.save(historialRepo.create({
+                trabajador: trabajador,
+                cargo: trabajador.fichaEmpresa.cargo,
+                area: trabajador.fichaEmpresa.area,
+                tipoContrato: trabajador.fichaEmpresa.tipoContrato,
+                jornadaLaboral: trabajador.fichaEmpresa.jornadaLaboral,
+                sueldoBase: trabajador.fichaEmpresa.sueldoBase,
+                fechaInicio: trabajador.fichaEmpresa.fechaInicioContrato,
+                fechaFin: trabajador.fichaEmpresa.fechaFinContrato,
+                motivoTermino: trabajador.fichaEmpresa.motivoDesvinculacion,
+                observaciones: 'Desvinculación de trabajador',
+                contratoURL: trabajador.fichaEmpresa.contratoURL,
+                afp: trabajador.fichaEmpresa.afp,
+                previsionSalud: trabajador.fichaEmpresa.previsionSalud,
+                seguroCesantia: trabajador.fichaEmpresa.seguroCesantia,
+                estado: trabajador.fichaEmpresa.estado,
+                fechaInicioLicencia: trabajador.fichaEmpresa.fechaInicioLicencia,
+                fechaFinLicencia: trabajador.fichaEmpresa.fechaFinLicencia,
+                motivoLicencia: trabajador.fichaEmpresa.motivoLicencia,
+                registradoPor: userId ? await queryRunner.manager.findOne(User, { where: { id: userId } }) : null
+            }));
         }
 
         await queryRunner.commitTransaction();
