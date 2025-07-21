@@ -1,0 +1,219 @@
+"use client"
+
+import type React from "react"
+import { useState, useEffect } from "react"
+import { Container, Row, Col, Button, Card } from "react-bootstrap"
+import InventorySidebar from "@/components/inventory/layout/InventorySidebar"
+import ProductModal from "@/components/inventory/product/ProductModal"
+import ConfirmModal from "@/components/stakeholders/ConfirmModal"
+import { LocalFilters } from "@/components/inventory/product/LocalFilters"
+import { ProductTable } from "@/components/inventory/product/ProductTable"
+import { useProducts } from "@/hooks/inventory/useProducts"
+import type { Product, CreateProductData, UpdateProductData, ProductType } from "@/types/inventory/product.types"
+import { useToast, Toast } from "@/components/common/Toast"
+import "../../styles/pages/product.css"
+
+export const ProductPage: React.FC = () => {
+  const {
+    products,
+    loadProducts,
+    createProduct,
+    updateProduct,
+    deleteProduct,
+    isLoading,
+    isCreating,
+    isUpdating,
+    isDeleting,
+  } = useProducts()
+
+  const { toasts, removeToast, showSuccess, showError } = useToast()
+
+  // Estados para filtrado local
+  const [allProducts, setAllProducts] = useState<Product[]>([])
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([])
+  const [localFilters, setLocalFilters] = useState({
+    product: "",
+    salePrice: "",
+  })
+
+  // Estados existentes
+  const [showModal, setShowModal] = useState(false)
+  const [editingProduct, setEditingProduct] = useState<Product | undefined>(undefined)
+  const [showFilters, setShowFilters] = useState(false)
+  const [productToDelete, setProductToDelete] = useState<Product | null>(null)
+
+  // Efecto para sincronizar products del hook con el estado local
+  useEffect(() => {
+    setAllProducts(products)
+    setFilteredProducts(products)
+  }, [products])
+
+  // Efecto para aplicar filtros locales
+  useEffect(() => {
+    let filtered = [...allProducts]
+
+    // Aplicar filtros locales por tipo de producto
+    if (localFilters.product) {
+      filtered = filtered.filter((product) =>
+        product.product.toLowerCase().includes(localFilters.product.toLowerCase()),
+      )
+    }
+
+    if (localFilters.salePrice) {
+      filtered = filtered.filter((product) => product.salePrice?.toString().includes(localFilters.salePrice))
+    }
+
+    setFilteredProducts(filtered)
+  }, [allProducts, localFilters])
+
+  const handleCreateClick = () => {
+    setEditingProduct(undefined)
+    setShowModal(true)
+  }
+
+  const handleEditClick = (product: Product) => {
+    setEditingProduct(product)
+    setShowModal(true)
+  }
+
+  const handleDeleteClick = (product: Product) => {
+    setProductToDelete(product)
+  }
+
+  const confirmDeleteProduct = async () => {
+    if (!productToDelete) return
+
+    const result = await deleteProduct(productToDelete.id)
+    if (result.success) {
+      showSuccess("¡Producto eliminado!", "El producto se ha eliminado exitosamente del sistema", 4000)
+    } else {
+      showError("Error al eliminar", result.message || "Ocurrió un error al eliminar el producto.")
+    }
+    setProductToDelete(null)
+  }
+
+  const handleSubmit = async (data: CreateProductData | UpdateProductData) => {
+    const isEdit = Boolean(editingProduct)
+    const result = isEdit
+      ? await updateProduct(editingProduct!.id, data as UpdateProductData)
+      : await createProduct(data as CreateProductData)
+
+    if (result.success) {
+      showSuccess(isEdit ? "¡Producto actualizado!" : "¡Producto creado!", result.message, 4000)
+      setShowModal(false)
+    } else {
+      showError("Error", result.message || "Ocurrió un error inesperado")
+    }
+  }
+
+  // Manejo de filtros locales
+  const handleLocalFilterChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>,
+  ) => {
+    const { name, value } = e.target
+    setLocalFilters((prev) => ({ ...prev, [name]: value }))
+  }
+
+  const handleLocalFilterReset = () => {
+    setLocalFilters({
+      product: "",
+      salePrice: "",
+    })
+  }
+
+  const hasActiveLocalFilters = Object.values(localFilters).some((value) => value.trim() !== "")
+
+  // Obtener los tipos de producto ya existentes para pasarlos al formulario
+  const existingProductTypes: ProductType[] = allProducts.map((p) => p.product)
+
+  return (
+    <div className="d-flex" style={{ height: "100vh", overflow: "hidden" }}>
+      {/* Sidebar lateral */}
+      <div className="inventory-sidebar-wrapper" style={{ flexShrink: 0 }}>
+        <InventorySidebar />
+      </div>
+
+      {/* Contenido principal */}
+      <div className="inventory-main-content flex-grow-1" style={{ height: "100vh", overflowY: "auto" }}>
+        <Container fluid className="py-2 h-100">
+          <Row className="h-100">
+            <Col>
+              {/* Encabezado de página */}
+              <Card className="shadow-sm mb-3">
+                <Card.Header className="bg-gradient-primary text-white">
+                  <div className="d-flex align-items-center justify-content-between">
+                    <div className="d-flex align-items-center">
+                      <i className="bi bi-boxes fs-4 me-3"></i>
+                      <div>
+                        <h3 className="mb-1">Gestión de Productos</h3>
+                        <p className="mb-0 opacity-75">Administrar catálogo de productos del sistema</p>
+                      </div>
+                    </div>
+                    <div>
+                      <Button
+                        variant={showFilters ? "outline-light" : "light"}
+                        className="me-2"
+                        onClick={() => setShowFilters(!showFilters)}
+                      >
+                        <i className={`bi bi-funnel${showFilters ? "-fill" : ""} me-2`}></i>
+                        {showFilters ? "Ocultar" : "Mostrar"} Filtros
+                      </Button>
+                      <Button variant="light" onClick={handleCreateClick}>
+                        <i className="bi bi-plus-lg me-2"></i>
+                        Nuevo Producto
+                      </Button>
+                    </div>
+                  </div>
+                </Card.Header>
+              </Card>
+
+              {/* Panel de filtros */}
+              {showFilters && (
+                <LocalFilters
+                  filters={localFilters}
+                  onFilterChange={handleLocalFilterChange}
+                  onReset={handleLocalFilterReset}
+                  hasActiveFilters={hasActiveLocalFilters}
+                />
+              )}
+
+              {/* Tabla de productos */}
+              <ProductTable
+                products={filteredProducts}
+                allProductsCount={allProducts.length}
+                isLoading={isLoading}
+                hasActiveLocalFilters={hasActiveLocalFilters}
+                onEdit={handleEditClick}
+                onDelete={handleDeleteClick}
+                onCreateClick={handleCreateClick}
+                onLocalFilterReset={handleLocalFilterReset}
+              />
+            </Col>
+          </Row>
+
+          <ProductModal
+            show={showModal}
+            onClose={() => setShowModal(false)}
+            onSubmit={handleSubmit}
+            isSubmitting={isCreating || isUpdating}
+            initialData={editingProduct}
+            existingProductTypes={existingProductTypes}
+          />
+
+          <ConfirmModal
+            show={!!productToDelete}
+            onClose={() => setProductToDelete(null)}
+            onConfirm={confirmDeleteProduct}
+            title="Eliminar producto"
+            message={`¿Estás seguro que deseas eliminar el producto "${productToDelete?.product}"?`}
+            confirmText="Eliminar"
+            cancelText="Cancelar"
+          />
+
+          {/* Sistema de notificaciones */}
+          <Toast toasts={toasts} removeToast={removeToast} />
+        </Container>
+      </div>
+    </div>
+  )
+}
