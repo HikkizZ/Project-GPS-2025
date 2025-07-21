@@ -20,6 +20,7 @@ import { authenticateJWT } from "./middlewares/authentication.middleware.js";
 import { FileManagementService } from "./services/fileManagement.service.js";
 import { FileUploadService } from "./services/fileUpload.service.js";
 import userRoutes from "./routes/user.routes.js";
+import fileRoutes from "./routes/files.routes.js";
 import { verificarLicenciasVencidasService } from "./services/recursosHumanos/licenciaPermiso.service.js";
 import cron from "node-cron";
 
@@ -93,7 +94,7 @@ async function setupServer(): Promise<void> {
         app.disable("x-powered-by");
 
         app.use(cors({
-            origin: true,
+            origin: ['http://localhost:5173', 'http://127.0.0.1:5173', 'https://hoppscotch.io'],
             credentials: true,
             methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
             allowedHeaders: ['Content-Type', 'Authorization', 'Accept']
@@ -150,8 +151,9 @@ async function setupServer(): Promise<void> {
         // Configurar todas las rutas bajo /api
         app.use("/api", indexRoutes);
         app.use("/api/users", userRoutes);
+        app.use("/api/files", fileRoutes);
 
-        server = app.listen(PORT, () => {
+        server = app.listen(SERVER_PORT, SERVER_HOST, () => {
             console.log("✅ API started successfully.");
             console.log(`✅ Servidor iniciado en http://${SERVER_HOST}:${SERVER_PORT}/api`);
             
@@ -205,6 +207,7 @@ async function setupTestServer(): Promise<{ app: Application; server: any }> {
         // Configurar todas las rutas bajo /api
         app.use("/api", indexRoutes);
         app.use("/api/users", userRoutes);
+        app.use("/api/files", fileRoutes);
 
         await initializeDatabase();
         await initialSetup();
@@ -234,7 +237,7 @@ const startServer = async () => {
     app.disable("x-powered-by");
 
     app.use(cors({
-      origin: true,
+      origin: ['http://localhost:5173', 'http://127.0.0.1:5173', 'https://hoppscotch.io'],
       credentials: true,
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
       allowedHeaders: ['Content-Type', 'Authorization', 'Accept']
@@ -291,8 +294,9 @@ const startServer = async () => {
     // Configurar todas las rutas bajo /api
     app.use("/api", indexRoutes);
     app.use("/api/users", userRoutes);
+    app.use("/api/files", fileRoutes);
 
-    server = app.listen(PORT, () => {
+    server = app.listen(SERVER_PORT, SERVER_HOST, () => {
       console.log("✅ API started successfully.");
       console.log(`✅ Servidor iniciado en http://${SERVER_HOST}:${SERVER_PORT}/api`);
       
