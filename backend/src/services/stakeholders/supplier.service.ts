@@ -23,7 +23,6 @@ export async function getAllSuppliersService(): Promise<ServiceResponse<Supplier
 export async function getSupplierService(query: QueryParams): Promise<ServiceResponse<Supplier>> {
     try {
         const { id, rut, email } = query;
-        console.log("Query parameters for supplier search:", query);
 
         const rutFormatted = rut ? formatRut(rut) : undefined;
 
@@ -70,6 +69,7 @@ export async function updateSupplierService(query: { id: number }, supplierData:
         const { id } = query;
 
         const supplierRepository = AppDataSource.getRepository(Supplier);
+
         const supplierFound = await supplierRepository.findOne({ where: { id } });
 
         if (!supplierFound) return [null, "El proveedor no existe."];
@@ -89,12 +89,12 @@ export async function updateSupplierService(query: { id: number }, supplierData:
     }
 }
 
-
 export async function deleteSupplierService(query: { id: number }): Promise<ServiceResponse<Supplier>> {
     try {
         const { id } = query;
 
         const supplierRepository = AppDataSource.getRepository(Supplier);
+
         const supplierFound = await supplierRepository.findOne({ where: { id } });
 
         if (!supplierFound) return [null, "El proveedor no existe."];
