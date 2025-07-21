@@ -6,6 +6,7 @@ import { SparePart } from "../../entity/MachineryMaintenance/SparePart.entity.js
 import { MaintenanceSparePart } from "../../entity/MachineryMaintenance/maintenanceSparePart.entity.js";
 import { CreateMaintenanceRecordDTO, UpdateMaintenanceRecordDTO } from "../../types/MachineryMaintenance/maintenanceRecord.dto.js"
 import { ServiceResponse } from "../../../types.js";
+import { EstadoMaquinaria } from "../../entity/maquinaria/maquinaria.entity.js";
 
 export async function createMaintenanceRecord(data: CreateMaintenanceRecordDTO): Promise<ServiceResponse<MaintenanceRecord>> {
   try {
@@ -34,6 +35,9 @@ export async function createMaintenanceRecord(data: CreateMaintenanceRecordDTO):
       }
     });
     if (existente) return [null, "Esta máquina ya tiene una mantención pendiente"];
+
+    maquinaria.estado = EstadoMaquinaria.MANTENIMIENTO;
+    await maquinariaRepo.save(maquinaria);
 
     const record = recordRepo.create({
       maquinaria,
@@ -197,15 +201,25 @@ export async function getAllMaintenanceRecords(): Promise<ServiceResponse<Mainte
 }
 
 
-
 export async function deleteMaintenanceRecord(id: number): Promise<ServiceResponse<MaintenanceRecord>> {
   try {
     const repo = AppDataSource.getRepository(MaintenanceRecord);
-    const record = await repo.findOneBy({ id });
+    const maquinariaRepo = AppDataSource.getRepository(Maquinaria);
+
+    const record = await repo.findOne({
+      where: { id },
+      relations: ["maquinaria"]
+    });
 
     if (!record) return [null, "Mantención no encontrada"];
 
+    if (record.estado === EstadoMantencion.PENDIENTE) {
+      record.maquinaria.estado = EstadoMaquinaria.DISPONIBLE;
+      await maquinariaRepo.save(record.maquinaria);
+    }
+
     await repo.remove(record);
+
     return [record, null];
   } catch (error) {
     console.error("Error al eliminar mantención:", error);
