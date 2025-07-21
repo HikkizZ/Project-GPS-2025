@@ -1,130 +1,149 @@
-import React, { useEffect, useState } from 'react';
-import { Table, Form, Row, Col } from 'react-bootstrap';
-import { format } from 'date-fns';
+import React, { useState } from "react"
+import { Table, Button, Spinner } from "react-bootstrap"
+import type { InventoryEntry } from "@/types/inventory/inventory.types"
+import type { Product } from "@/types/inventory/product.types"
+import type { Supplier } from "@/types/stakeholders/supplier.types"
 
-interface InventoryHistoryItem {
-  id: number;
-  date: string;
-  type: 'Entrada' | 'Salida';
-  item: string;
-  quantity: number;
-  entity: string;
-  price: number;
+interface InventoryHistoryTableProps {
+  entries: InventoryEntry[]
+  products: Product[]
+  suppliers: Supplier[]
+  isLoading: boolean
+  onViewDetails: (entry: InventoryEntry) => void
+  onDeleteEntry: (entry: InventoryEntry) => void
 }
 
-const mockData: InventoryHistoryItem[] = [
-  {
-    id: 1,
-    date: '2025-07-19',
-    type: 'Entrada',
-    item: 'Tornillos',
-    quantity: 100,
-    entity: 'Proveedor A',
-    price: 50,
-  },
-  {
-    id: 2,
-    date: '2025-07-18',
-    type: 'Salida',
-    item: 'Clavos',
-    quantity: 60,
-    entity: 'Cliente B',
-    price: 30,
-  },
-  // Más registros...
-];
+const InventoryHistoryTable: React.FC<InventoryHistoryTableProps> = ({
+  entries,
+  products,
+  suppliers,
+  isLoading,
+  onViewDetails,
+  onDeleteEntry,
+}) => {
+  const [expandedEntryId, setExpandedEntryId] = useState<number | null>(null)
 
-const InventoryHistoryTable: React.FC = () => {
-  const [typeFilter, setTypeFilter] = useState<'Todos' | 'Entrada' | 'Salida'>('Todos');
-  const [fromDate, setFromDate] = useState('');
-  const [toDate, setToDate] = useState('');
-  const [filteredData, setFilteredData] = useState<InventoryHistoryItem[]>([]);
+  const getProductNameFromDetail = (detailProduct: { id: number; product: string; salePrice: number }): string => {
+    return detailProduct.product
+  }
 
-  useEffect(() => {
-    let filtered = [...mockData];
+  const getSupplierName = (entrySupplier: { rut: string; name: string }): string => {
+    return entrySupplier.name
+  }
 
-    if (typeFilter !== 'Todos') {
-      filtered = filtered.filter(item => item.type === typeFilter);
-    }
+  const calculateEntryGrandTotal = (entry: InventoryEntry): number => {
+    return entry.details.reduce((sum, detail) => sum + detail.totalPrice, 0)
+  }
 
-    if (fromDate) {
-      filtered = filtered.filter(item => item.date >= fromDate);
-    }
+  const toggleDetails = (entryId: number) => {
+    setExpandedEntryId(expandedEntryId === entryId ? null : entryId)
+  }
 
-    if (toDate) {
-      filtered = filtered.filter(item => item.date <= toDate);
-    }
+  if (isLoading) {
+    return (
+      <div className="text-center py-5">
+        <Spinner animation="border" role="status">
+          <span className="visually-hidden">Cargando movimientos...</span>
+        </Spinner>
+        <p className="mt-3 text-muted">Cargando historial de movimientos...</p>
+      </div>
+    )
+  }
 
-    setFilteredData(filtered);
-  }, [typeFilter, fromDate, toDate]);
+  if (entries.length === 0) {
+    return (
+      <div className="text-center py-5">
+        <i className="bi bi-journal-text fs-1 text-muted mb-3 d-block"></i>
+        <h5 className="text-muted">No hay movimientos de inventario registrados</h5>
+        <p className="text-muted">Los movimientos de entrada y salida aparecerán aquí.</p>
+      </div>
+    )
+  }
 
   return (
-    <div>
-      <h4 className="mb-3">Historial de Inventario</h4>
-
-      <Row className="mb-3">
-        <Col md={3}>
-          <Form.Label>Tipo de movimiento</Form.Label>
-          <Form.Select value={typeFilter} onChange={e => setTypeFilter(e.target.value as any)}>
-            <option value="Todos">Todos</option>
-            <option value="Entrada">Entradas</option>
-            <option value="Salida">Salidas</option>
-          </Form.Select>
-        </Col>
-        <Col md={3}>
-          <Form.Label>Desde</Form.Label>
-          <Form.Control
-            type="date"
-            value={fromDate}
-            onChange={e => setFromDate(e.target.value)}
-          />
-        </Col>
-        <Col md={3}>
-          <Form.Label>Hasta</Form.Label>
-          <Form.Control
-            type="date"
-            value={toDate}
-            onChange={e => setToDate(e.target.value)}
-          />
-        </Col>
-      </Row>
-
-      <div className="table-responsive">
-        <Table striped bordered hover>
-          <thead>
-            <tr>
-              <th>Fecha</th>
-              <th>Tipo</th>
-              <th>Material</th>
-              <th>Cantidad</th>
-              <th>Entidad</th>
-              <th>Precio total</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredData.length === 0 ? (
+    <div className="table-responsive">
+      <Table hover className="inventory-history-table">
+        {" "}
+        {/* Added class for main table */}
+        <thead className="table-light">
+          <tr>
+            <th>Tipo de Movimiento</th>
+            <th>Fecha</th>
+            <th>Proveedor/Cliente</th>
+            <th>Total</th>
+            <th className="text-center">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {entries.map((entry) => (
+            <React.Fragment key={entry.id}>
               <tr>
-                <td colSpan={6} className="text-center">
-                  No se encontraron registros.
+                <td>
+                  <span className="badge bg-success">Entrada (Compra)</span>
+                </td>
+                <td>{new Date(entry.entryDate || "").toLocaleDateString()}</td>
+                <td>{getSupplierName(entry.supplier)}</td>
+                <td>
+                  <span className="fw-bold text-success">${calculateEntryGrandTotal(entry).toLocaleString()}</span>
+                </td>
+                <td className="text-center">
+                  <div className="btn-group">
+                    <Button
+                      variant="outline-info"
+                      size="sm"
+                      className="me-2"
+                      onClick={() => toggleDetails(entry.id)}
+                      title={expandedEntryId === entry.id ? "Ocultar detalles" : "Ver detalles"}
+                    >
+                      <i className={`bi ${expandedEntryId === entry.id ? "bi-eye-slash" : "bi-eye"}`}></i>
+                    </Button>
+                    <Button
+                      variant="outline-danger"
+                      size="sm"
+                      onClick={() => onDeleteEntry(entry)}
+                      title="Eliminar movimiento"
+                    >
+                      <i className="bi bi-trash"></i>
+                    </Button>
+                  </div>
                 </td>
               </tr>
-            ) : (
-              filteredData.map((item) => (
-                <tr key={item.id}>
-                  <td>{format(new Date(item.date), 'dd/MM/yyyy')}</td>
-                  <td>{item.type}</td>
-                  <td>{item.item}</td>
-                  <td>{item.quantity}</td>
-                  <td>{item.entity}</td>
-                  <td>${item.price.toFixed(2)}</td>
+              {expandedEntryId === entry.id && (
+                <tr>
+                  <td colSpan={5} className="p-0">
+                    <div className="bg-light p-3 border-top">
+                      <Table striped bordered size="sm" className="mb-0 inventory-history-subtable">
+                        {" "}
+                        {/* Added class for subtable */}
+                        <thead>
+                          <tr>
+                            <th>Producto</th>
+                            <th>Cantidad (m³)</th>
+                            <th>Precio Compra (m³)</th>
+                            <th>Total por Producto</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {entry.details.map((detail) => (
+                            <tr key={detail.id}>
+                              <td>{getProductNameFromDetail(detail.product)}</td>
+                              <td>{detail.quantity}</td>
+                              <td>${detail.purchasePrice.toLocaleString()}</td>
+                              <td>${detail.totalPrice.toLocaleString()}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </Table>
+                    </div>
+                  </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </Table>
-      </div>
+              )}
+            </React.Fragment>
+          ))}
+        </tbody>
+      </Table>
     </div>
-  );
-};
+  )
+}
 
-export default InventoryHistoryTable;
+export default InventoryHistoryTable
