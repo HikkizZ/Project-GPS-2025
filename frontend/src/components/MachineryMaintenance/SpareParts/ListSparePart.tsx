@@ -13,7 +13,10 @@ const ListSparePart: React.FC<Props> = ({ data, onEdit, onDelete }) => {
   const sortedData = [...data].sort((a, b) => a.name.localeCompare(b.name));
 
   return (
+
+    
     <Table striped bordered hover responsive>
+      
       <thead>
         <tr>
           <th>Nombre</th>
