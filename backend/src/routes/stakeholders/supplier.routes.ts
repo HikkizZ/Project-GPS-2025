@@ -18,7 +18,7 @@ router
     .get("/all", getSuppliers)
     .get("/", getSupplier)
     .post("/", createSupplier)
-    .patch("/", updateSupplier)
-    .delete("/", deleteSupplier);
+    .put("/:id", updateSupplier)
+    .delete("/:id", deleteSupplier);
 
 export default router;
