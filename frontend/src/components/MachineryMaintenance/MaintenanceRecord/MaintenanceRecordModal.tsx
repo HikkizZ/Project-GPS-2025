@@ -1,4 +1,3 @@
-// src/components/mantencionMaquinaria/MaintenanceRecordModal.tsx
 import React from 'react';
 import { Modal } from 'react-bootstrap';
 import MaintenanceRecordForm from './MaintenanceRecordForm';
