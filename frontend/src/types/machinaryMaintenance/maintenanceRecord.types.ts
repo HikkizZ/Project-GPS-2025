@@ -25,6 +25,7 @@ export interface MaintenanceRecord {
     patente: string;
     modelo: string;
     grupo: string;
+    numeroChasis: string;
   };
 
   mecanicoAsignado: {
