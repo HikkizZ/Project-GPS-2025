@@ -1,0 +1,250 @@
+/*
+  inventory.css
+  Estilos específicos para la página de Inventario.
+  Solo deben ir reglas bajo la clase raíz correspondiente.
+  NO agregar reglas globales ni utilidades aquí.
+*/
+
+/* ============================================
+   LAYOUT PRINCIPAL
+   ============================================ */
+.inventory-page {
+  min-height: 100vh;
+  background-color: #f8f9fa;
+}
+
+.inventory-sidebar-wrapper {
+  width: 250px;
+  min-height: 100vh;
+  background: white;
+  border-right: 1px solid #e9ecef;
+  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
+}
+
+.inventory-main-content {
+  background-color: #f8f9fa;
+  min-height: 100vh;
+}
+
+/* ============================================
+   GRADIENTE PARA EL HEADER
+   ============================================ */
+.bg-gradient-primary {
+  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%) !important;
+}
+
+/* ============================================
+   TARJETAS DE MÉTRICAS
+   ============================================ */
+.inventory-metric-card {
+  border: none;
+  border-radius: 12px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.inventory-metric-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15) !important;
+}
+
+.inventory-metric-card .metric-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+}
+
+.inventory-metric-card .metric-value {
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.inventory-metric-card .metric-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ============================================
+   TARJETA DE GRÁFICO
+   ============================================ */
+.inventory-chart-card {
+  border: none;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.inventory-chart-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15) !important;
+}
+
+.inventory-chart-card .card-header {
+  background-color: #f8f9fa !important;
+  border-bottom: 1px solid #e9ecef !important;
+  padding: 1rem 1.5rem;
+}
+
+.inventory-chart-card .card-body {
+  padding: 1.5rem;
+}
+
+/* ============================================
+   TARJETA DE HISTORIAL
+   ============================================ */
+.inventory-history-card {
+  border: none;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.inventory-history-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15) !important;
+}
+
+.inventory-history-card .card-header {
+  background-color: #f8f9fa !important;
+  border-bottom: 1px solid #e9ecef !important;
+  padding: 1rem 1.5rem;
+}
+
+.inventory-history-card .card-body {
+  padding: 1.5rem;
+}
+
+/* ============================================
+   EFECTOS HOVER PARA BOTONES
+   ============================================ */
+.inventory-page .btn {
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.inventory-page .btn:hover {
+  transform: translateY(-1px);
+}
+
+.inventory-page .btn-outline-primary:hover {
+  background-color: #007bff;
+  border-color: #007bff;
+  color: white;
+}
+
+.inventory-page .btn-outline-secondary:hover {
+  background-color: #6c757d;
+  border-color: #6c757d;
+  color: white;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 992px) {
+  .inventory-sidebar-wrapper {
+    width: 200px;
+  }
+
+  .inventory-metric-card .metric-icon {
+    width: 50px;
+    height: 50px;
+  }
+
+  .inventory-metric-card .metric-value {
+    font-size: 1.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .inventory-page {
+    flex-direction: column;
+  }
+
+  .inventory-sidebar-wrapper {
+    width: 100%;
+    min-height: auto;
+    border-right: none;
+    border-bottom: 1px solid #e9ecef;
+  }
+
+  .inventory-main-content {
+    padding: 1rem;
+  }
+
+  .inventory-metric-card {
+    margin-bottom: 1rem;
+  }
+
+  .inventory-chart-card .card-header,
+  .inventory-history-card .card-header {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .inventory-chart-card .card-header .d-flex,
+  .inventory-history-card .card-header .d-flex {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 576px) {
+  .inventory-metric-card .metric-value {
+    font-size: 1.25rem;
+  }
+
+  .inventory-metric-card .metric-label {
+    font-size: 0.75rem;
+  }
+
+  .inventory-chart-card .card-body,
+  .inventory-history-card .card-body {
+    padding: 1rem;
+  }
+}
+
+/* ============================================
+   ANIMACIONES
+   ============================================ */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.inventory-metric-card,
+.inventory-chart-card,
+.inventory-history-card {
+  animation: fadeInUp 0.5s ease-out;
+}
+
+.inventory-metric-card:nth-child(1) {
+  animation-delay: 0.1s;
+}
+.inventory-metric-card:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.inventory-metric-card:nth-child(3) {
+  animation-delay: 0.3s;
+}
+.inventory-metric-card:nth-child(4) {
+  animation-delay: 0.4s;
+}
+.inventory-chart-card {
+  animation-delay: 0.5s;
+}
+.inventory-history-card {
+  animation-delay: 0.6s;
+}
