@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button, Spinner } from 'react-bootstrap';
 import { MaintenanceRecord } from '@/types/machinaryMaintenance/maintenanceRecord.types';
+import { getMaintenanceRecords } from '@/services/machinaryMaintenance/maintenanceRecord.service'; 
 import {UpdateMaintenanceRecordData} from '@/types/machinaryMaintenance/maintenanceRecord.types'
 import { useMaintenanceRecords } from '@/hooks/MachinaryMaintenance/MaintenanceRecord/useMaintenanceRecords';
 import { useCreateMaintenanceRecord } from '@/hooks/MachinaryMaintenance/MaintenanceRecord/useCreateMaintenanceRecord';
@@ -8,10 +9,10 @@ import { useUpdateMaintenanceRecord } from '@/hooks/MachinaryMaintenance/Mainten
 import { useDeleteMaintenanceRecord } from '@/hooks/MachinaryMaintenance/MaintenanceRecord/useDeleteMaintenanceRecord';
 import MaintenanceRecordList from '@/components/MachineryMaintenance/MaintenanceRecord/MaintenanceRecordList';
 import MaintenanceRecordModal from '@/components/MachineryMaintenance/MaintenanceRecord/MaintenanceRecordModal';
-import FinalizeMaintenanceModal from '@/components/MachineryMaintenance/MaintenanceRecord/FinalizeMaintenanceModal';
 import '../../styles/pages/mantencionMaquinaria.css';
 import { Toast, useToast } from '@/components/common/Toast';
 import { updateMaintenance } from '@/services/machinaryMaintenance/maintenanceRecord.service';
+import MaintenanceSparePartPanel from '@/components/MachineryMaintenance/MaintenanceSpareParts/MaintenanceSparePartPanel';
 
 const MantencionPage: React.FC = () => {
   const { records, loading, error, reload } = useMaintenanceRecords();
@@ -29,6 +30,17 @@ const MantencionPage: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
   const [editingRecord, setEditingRecord] = useState<MaintenanceRecord | null>(null);
 
+  const [showSparePartPanel, setShowSparePartPanel] = useState(false);
+  const [selectedMantencionId, setSelectedMantencionId] = useState<number | null>(null);
+  const [grupoMaquinariaSeleccionado, setGrupoMaquinariaSeleccionado] = useState<string>('');
+
+      
+
+  const handleOpenSpareParts = (mantencion: MaintenanceRecord) => {
+  setSelectedMantencionId(mantencion.id);
+  setGrupoMaquinariaSeleccionado(mantencion.maquinaria.grupo);
+  setShowSparePartPanel(true);
+  };
   const handleOpenModal = (record?: MaintenanceRecord) => {
     setEditingRecord(record || null);
     setShowModal(true);
@@ -129,7 +141,7 @@ const MantencionPage: React.FC = () => {
           <div className="text-danger">Error: {error}</div>
         ) : (
           <div className="mantencion-table">
-            <MaintenanceRecordList records={records} onEdit={handleOpenModal} onDelete={handleDelete} onFinish={handleOpenFinishModal}/>
+            <MaintenanceRecordList records={records} onEdit={handleOpenModal} onDelete={handleDelete} onFinish={handleOpenFinishModal} onSpareParts={handleOpenSpareParts}/>
           </div>
         )}
 
@@ -151,12 +163,15 @@ const MantencionPage: React.FC = () => {
           loading={creating || updating}
         />
 
-      <FinalizeMaintenanceModal
-        show={showFinishModal}
-        onHide={handleCloseFinishModal}
-        onSubmit={handleFinalize}
-        initialData={finishingRecord}
-      />
+              {selectedMantencionId !== null && (
+                <MaintenanceSparePartPanel
+                    mantencionId={selectedMantencionId}
+                    grupoMaquinaria={grupoMaquinariaSeleccionado}
+                    show={showSparePartPanel}
+                    onHide={() => setShowSparePartPanel(false)}
+                    onReload={reload}
+                />
+              )}
 
       <Toast toasts={toasts} removeToast={removeToast} />
     </div>
