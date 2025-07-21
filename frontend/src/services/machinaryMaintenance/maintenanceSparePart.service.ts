@@ -67,7 +67,7 @@ class MaintenanceSparePartService {
 
   async update(id: number, data: UpdateMaintenanceSparePartData): Promise<ApiResponse<MaintenanceSparePart>> {
     try {
-      const response = await apiClient.put<{ data: MaintenanceSparePart }>(`${this.baseURL}/${id}`, data);
+      const response = await apiClient.patch<{ data: MaintenanceSparePart }>(`${this.baseURL}/${id}`, data);
       return {
         success: true,
         message: 'Repuesto utilizado actualizado exitosamente',
