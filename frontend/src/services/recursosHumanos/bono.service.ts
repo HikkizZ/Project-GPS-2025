@@ -33,9 +33,13 @@ export class BonoService {
         try {
             // Usar get directamente para obtener la respuesta completa
             const response = await apiClient.get<{ data: Bono[]; message: string }>(url);
-            
+
+            console.log("Obteniendo bonos con query:", cleanQuery);
+            console.log('URL:', `${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}${url}`);
+            console.log('Token:', localStorage.getItem('auth_token'));
+            console.log('Response data:', response.data);
             return {
-                success: false,
+                success: true,
                 data: response.data,
                 message: response.message || 'Bonos obtenidos exitosamente',
             };
@@ -66,6 +70,7 @@ export class BonoService {
 
             const responseData = await response.json();
             
+            console.log("Creando bono con datos:", bonoData);
             console.log('URL:', `${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}${this.baseURL}/`);
             console.log('Token:', localStorage.getItem('auth_token'));
             console.log('Response data:', responseData);
@@ -96,7 +101,10 @@ export class BonoService {
         try {
 
             const response = await apiClient.put<{ data: Bono }>(`${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}${this.baseURL}/${bonoId}`, bonoData);
-            
+            console.log("Actualizando bono con ID:", bonoId);
+            console.log('URL:', `${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}${this.baseURL}/${bonoId}`);
+            console.log('Token:', localStorage.getItem('auth_token'));
+            console.log('Response data:', response.data);
             return {
                 success: true,
                 message: 'Bono actualizado exitosamente',
