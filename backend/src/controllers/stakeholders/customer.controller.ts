@@ -92,14 +92,9 @@ export const createCustomer = async (req: Request, res: Response): Promise<void>
 
 export async function updateCustomer(req: Request, res: Response): Promise<void> {
     try {
-        const id = req.query.id ? Number(req.query.id) : undefined;
-        const rut = req.query.rut as string | undefined;
-        const email = req.query.email as string | undefined;
-
-        const { error: queryError } = personQueryValidation.validate({ id, rut, email });
-
-        if (queryError) {
-            handleErrorClient(res, 400, queryError.message);
+        const id = Number(req.params.id);
+        if (isNaN(id)) {
+            handleErrorClient(res, 400, "ID inválido.");
             return;
         }
 
@@ -110,7 +105,7 @@ export async function updateCustomer(req: Request, res: Response): Promise<void>
             return;
         }
 
-        const [customer, errorCustomer] = await updateCustomerService({ id, rut, email }, req.body);
+        const [customer, errorCustomer] = await updateCustomerService({ id }, req.body);
 
         if (errorCustomer) {
             handleErrorClient(res, 404, typeof errorCustomer === 'string' ? errorCustomer : errorCustomer.message);
@@ -130,18 +125,13 @@ export async function updateCustomer(req: Request, res: Response): Promise<void>
 
 export async function deleteCustomer(req: Request, res: Response): Promise<void> {
     try {
-        const id = req.query.id ? Number(req.query.id) : undefined;
-        const rut = req.query.rut as string | undefined;
-        const email = req.query.email as string | undefined;
-
-        const { error } = personQueryValidation.validate({ id, rut, email });
-
-        if (error) {
-            handleErrorClient(res, 400, error.message);
+        const id = Number(req.params.id);
+        if (isNaN(id)) {
+            handleErrorClient(res, 400, "ID inválido.");
             return;
         }
 
-        const [deletedCustomer, errorCustomer] = await deleteCustomerService({ id, rut, email });
+        const [deletedCustomer, errorCustomer] = await deleteCustomerService({ id });
 
         if (errorCustomer) {
             handleErrorClient(res, 404, typeof errorCustomer === 'string' ? errorCustomer : errorCustomer.message);
