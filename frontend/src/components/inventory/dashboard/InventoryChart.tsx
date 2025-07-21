@@ -1,3 +1,5 @@
+"use client"
+
 import type React from "react"
 import { useEffect, useRef, useMemo } from "react"
 import { Card, Button } from "react-bootstrap"
@@ -7,22 +9,15 @@ Chart.register(BarController, BarElement, CategoryScale, LinearScale, Tooltip, L
 
 interface InventoryChartProps {
   data?: { label: string; value: number }[]
+  onRefresh?: () => void // Nueva prop para refrescar datos
 }
 
-const InventoryChart: React.FC<InventoryChartProps> = ({ data: propData }) => {
+const InventoryChart: React.FC<InventoryChartProps> = ({ data: propData, onRefresh }) => {
   const chartRef = useRef<HTMLCanvasElement | null>(null)
   const chartInstance = useRef<Chart | null>(null)
 
-  // 📊 Datos por defecto o desde props
-  const defaultData = [
-    { label: "Clavos", value: 120 },
-    { label: "Tablas", value: 75 },
-    { label: "Pernos", value: 200 },
-    { label: "Tornillos", value: 95 },
-    { label: "Adhesivos", value: 60 },
-  ]
-
-  const chartData = propData || defaultData
+  // 📊 Datos del gráfico, ahora siempre vienen de propData
+  const chartData = propData || [] // Si no hay propData, usar un array vacío
 
   // 🧮 Cálculos automáticos
   const calculations = useMemo(() => {
@@ -35,7 +30,7 @@ const InventoryChart: React.FC<InventoryChartProps> = ({ data: propData }) => {
     const activeCategories = chartData.filter((item) => item.value > 0).length
 
     // Categoría con mayor stock
-    const maxStock = Math.max(...values)
+    const maxStock = values.length > 0 ? Math.max(...values) : 0
     const topCategory = chartData.find((item) => item.value === maxStock)
 
     // Categorías con stock bajo (menos del 20% del promedio)
@@ -192,7 +187,7 @@ const InventoryChart: React.FC<InventoryChartProps> = ({ data: propData }) => {
             </div>
           </div>
           <div className="d-flex gap-2">
-            <Button variant="outline-primary" size="sm">
+            <Button variant="outline-primary" size="sm" onClick={onRefresh}>
               <i className="bi bi-arrow-clockwise me-1"></i>
               Actualizar
             </Button>
@@ -216,9 +211,7 @@ const InventoryChart: React.FC<InventoryChartProps> = ({ data: propData }) => {
           </div>
           <div className="col-md-3 text-center">
             <small className="text-muted">Categorías</small>
-            <div className="fw-bold text-success">
-              {calculations.activeCategories} activas
-            </div>
+            <div className="fw-bold text-success">{calculations.activeCategories} activas</div>
           </div>
           <div className="col-md-3 text-center">
             <small className="text-muted">Promedio</small>

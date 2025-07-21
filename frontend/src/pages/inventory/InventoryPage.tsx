@@ -5,9 +5,36 @@ import { Container, Row, Col, Card, Button } from "react-bootstrap"
 import InventorySidebar from "@/components/inventory/layout/InventorySidebar"
 import InventoryChart from "@/components/inventory/dashboard/InventoryChart"
 import InventoryHistoryTable from "@/components/inventory/dashboard/InventoryHistoryTable"
+import { useProducts } from "@/hooks/inventory/useProducts" // Importa el hook useProducts
+import type { ProductType } from "@/types/inventory/product.types" // Importa ProductType
+import { useMemo } from "react" // Importa useMemo
 import "../../styles/pages/inventory.css"
 
 export const InventoryPage: React.FC = () => {
+  const { products, loadProducts, isLoading } = useProducts() // Obtén los productos y la función de carga
+
+  // Transforma los datos de productos en el formato que necesita el gráfico
+  const chartData = useMemo(() => {
+    // Agrupa los productos por su tipo y simula una cantidad de stock.
+    // En una aplicación real, aquí integrarías la cantidad de stock real de tu DB.
+    const productTypeStockMap = new Map<ProductType, number>()
+
+    // Sumar el precio de venta como una simulación de stock, o asignar un valor fijo
+    // Para una simulación más visual, asignaremos un valor aleatorio o fijo.
+    // Ejemplo: Asignar un stock aleatorio para cada tipo de producto que existe.
+    const uniqueProductTypes = Array.from(new Set(products.map((p) => p.product)))
+    uniqueProductTypes.forEach((type) => {
+      // Simula un stock aleatorio entre 50 y 250 para cada tipo de producto.
+      // Reemplaza esto con tu lógica real de stock.
+      productTypeStockMap.set(type, Math.floor(Math.random() * 200) + 50)
+    })
+
+    return Array.from(productTypeStockMap.entries()).map(([type, stock]) => ({
+      label: type,
+      value: stock,
+    }))
+  }, [products]) // Dependencia: si `products` cambia, recalcula chartData
+
   return (
     <Container fluid className="inventory-page p-0">
       <div className="d-flex">
@@ -18,7 +45,7 @@ export const InventoryPage: React.FC = () => {
 
         {/* Contenido principal */}
         <div className="inventory-main-content flex-grow-1">
-          <Container fluid className="py-2">
+          <Container fluid className="py-2 pb-4">
             <Row>
               <Col>
                 {/* Encabezado de página */}
@@ -94,10 +121,10 @@ export const InventoryPage: React.FC = () => {
                   </Col>
                 </Row>
 
-                {/* Gráfico de inventario - SIN contenedor duplicado */}
+                {/* Gráfico de inventario */}
                 <Row className="mb-4">
                   <Col>
-                    <InventoryChart />
+                    <InventoryChart data={chartData} onRefresh={loadProducts} />
                   </Col>
                 </Row>
 
@@ -134,7 +161,6 @@ export const InventoryPage: React.FC = () => {
           </Container>
         </div>
       </div>
-      <div style={{ height: "1rem" }}></div>
     </Container>
   )
 }
