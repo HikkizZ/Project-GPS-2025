@@ -251,7 +251,7 @@ const InventoryChart: React.FC<InventoryChartProps> = ({
         </div>
       </Card.Header>
       <Card.Body>
-        <div style={{ height: "350px", position: "relative" }}>
+        <div style={{ height: "300px", position: "relative" }}>
           <canvas ref={chartRef} />
         </div>
 
