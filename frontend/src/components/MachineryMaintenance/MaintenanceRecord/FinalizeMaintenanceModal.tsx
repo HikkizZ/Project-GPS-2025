@@ -1,34 +1,40 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Modal, Button, Form } from 'react-bootstrap';
 import { UpdateMaintenanceRecordData } from '@/types/machinaryMaintenance/maintenanceRecord.types';
-
+import { Toast, useToast } from "@/components/common/Toast"
 interface Props {
   show: boolean;
   onHide: () => void;
   onSubmit: (data: UpdateMaintenanceRecordData) => void;
-  initialData?: any;
+  loading?: boolean;
+  fechaEntrada: string;
+  estadoActual: string;
 }
 
-const FinalizeMaintenanceModal: React.FC<Props> = ({ show, onHide, onSubmit, initialData }) => {
-  const [descripcionSalida, setDescripcionSalida] = React.useState('');
-  const [fechaSalida, setFechaSalida] = React.useState('');
-  const [loading, setLoading] = React.useState(false);
+const FinalizeMaintenanceModal: React.FC<Props> = ({ show, onHide, onSubmit, loading, estadoActual, fechaEntrada }) => {
+  const [fechaSalida, setFechaSalida] = useState('');
+  const [descripcionSalida, setDescripcionSalida] = useState('');
+  const { showError, showSuccess } = useToast();
 
-  React.useEffect(() => {
-    if (initialData) {
-      setDescripcionSalida(initialData.descripcionSalida || '');
-      setFechaSalida(initialData.fechaSalida ? initialData.fechaSalida.slice(0, 10) : '');
-    }
-  }, [initialData]);
+    const handleSubmit = () => {
 
-  const handleSubmit = async () => {
-    setLoading(true);
-    await onSubmit({
-      descripcionSalida,
-      fechaSalida: fechaSalida || new Date().toISOString().slice(0, 10),
-      estado: 'completada',
-    });
-    setLoading(false);
+      
+      if (!fechaSalida || !descripcionSalida.trim()) {
+        showError('Error',`Por favor completa todos los campos.`);
+        return;
+      }
+
+      const entrada = new Date(fechaEntrada).toISOString().split('T')[0];
+      const salida = new Date(fechaSalida).toISOString().split('T')[0];
+      if ( salida < entrada) {
+        showError('Error Fecha',`La fecha de salida no puede ser anterior a la fecha de entrada.`);
+        return;
+      }
+    
+    onSubmit({
+      fechaSalida,
+      descripcionSalida: descripcionSalida.trim(),
+    }); 
   };
 
   return (
@@ -38,7 +44,7 @@ const FinalizeMaintenanceModal: React.FC<Props> = ({ show, onHide, onSubmit, ini
       </Modal.Header>
       <Modal.Body>
         <Form>
-          <Form.Group controlId="fechaSalida">
+          <Form.Group className="mb-3">
             <Form.Label>Fecha de Salida</Form.Label>
             <Form.Control
               type="date"
@@ -46,22 +52,19 @@ const FinalizeMaintenanceModal: React.FC<Props> = ({ show, onHide, onSubmit, ini
               onChange={(e) => setFechaSalida(e.target.value)}
             />
           </Form.Group>
-          <Form.Group controlId="descripcionSalida" className="mt-3">
-            <Form.Label>Descripción de Salida</Form.Label>
+          <Form.Group className="mb-3">
+            <Form.Label>Descripción Final</Form.Label>
             <Form.Control
               as="textarea"
               rows={3}
               value={descripcionSalida}
               onChange={(e) => setDescripcionSalida(e.target.value)}
-              placeholder="Describe el estado final de la maquinaria..."
             />
           </Form.Group>
         </Form>
       </Modal.Body>
       <Modal.Footer>
-        <Button variant="secondary" onClick={onHide}>
-          Cancelar
-        </Button>
+        <Button variant="secondary" onClick={onHide}>Cancelar</Button>
         <Button variant="success" onClick={handleSubmit} disabled={loading}>
           {loading ? 'Guardando...' : 'Finalizar'}
         </Button>
