@@ -74,6 +74,7 @@ const SupplierForm: React.FC<SupplierFormProps> = ({
         <Form.Control
           type="text"
           name="name"
+          placeholder='"Juan Pérez" o "Construcciones S.A."'
           value={formData.name}
           onChange={handleChange}
           isInvalid={!!errors.name}
@@ -86,6 +87,7 @@ const SupplierForm: React.FC<SupplierFormProps> = ({
         <Form.Control
           type="text"
           name="rut"
+          placeholder="12.345.678-9 o 12345678-9"
           value={formData.rut}
           onChange={handleChange}
           isInvalid={!!errors.rut}
@@ -98,6 +100,7 @@ const SupplierForm: React.FC<SupplierFormProps> = ({
         <Form.Control
           type="text"
           name="address"
+          placeholder="Ej: Av. Libertador 1234, Santiago"
           value={formData.address}
           onChange={handleChange}
           isInvalid={!!errors.address}
@@ -110,6 +113,7 @@ const SupplierForm: React.FC<SupplierFormProps> = ({
         <Form.Control
           type="text"
           name="phone"
+          placeholder='+56912345678'
           value={formData.phone}
           onChange={handleChange}
           isInvalid={!!errors.phone}
@@ -122,6 +126,7 @@ const SupplierForm: React.FC<SupplierFormProps> = ({
         <Form.Control
           type="email"
           name="email"
+          placeholder="ejemplo@correo.com"
           value={formData.email}
           onChange={handleChange}
           isInvalid={!!errors.email}
