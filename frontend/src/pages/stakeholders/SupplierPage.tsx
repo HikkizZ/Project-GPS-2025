@@ -1,8 +1,10 @@
 import type React from "react"
 import { useState, useEffect } from "react"
-import { Container, Row, Col, Button, Card, Table, Form, Spinner } from "react-bootstrap"
+import { Container, Row, Col, Button, Card } from "react-bootstrap"
 import SupplierModal from "@/components/stakeholders/SupplierModal"
 import ConfirmModal from "@/components/stakeholders/ConfirmModal"
+import { FiltersPanel } from "@/components/stakeholders/filters/FiltersPanel"
+import { SupplierTable } from "@/components/stakeholders/SupplierTable"
 import { useSuppliers } from "@/hooks/stakeholders/useSuppliers"
 import type { Supplier, CreateSupplierData, UpdateSupplierData } from "@/types/stakeholders/supplier.types"
 import { useToast, Toast } from "@/components/common/Toast"
@@ -186,255 +188,31 @@ export const SupplierPage: React.FC = () => {
           </Card>
 
           {/* Panel de filtros */}
-          {showFilters && (
-            <>
-              {/* Filtros del servidor */}
-              <Card className="shadow-sm mb-3">
-                <Card.Header className="bg-light">
-                  <h6 className="mb-0">
-                    <i className="bi bi-server me-2"></i>
-                    Filtros del Servidor
-                  </h6>
-                  <small className="text-muted">Estos filtros consultan la base de datos</small>
-                </Card.Header>
-                <Card.Body>
-                  <Form onSubmit={handleFilterSubmit}>
-                    <Row>
-                      <Col md={6}>
-                        <Form.Group className="mb-3">
-                          <Form.Label>RUT</Form.Label>
-                          <Form.Control
-                            type="text"
-                            name="rut"
-                            value={filters.rut}
-                            onChange={handleFilterChange}
-                            placeholder="Buscar por RUT"
-                          />
-                        </Form.Group>
-                      </Col>
-                      <Col md={6}>
-                        <Form.Group className="mb-3">
-                          <Form.Label>Correo Electrónico</Form.Label>
-                          <Form.Control
-                            type="text"
-                            name="email"
-                            value={filters.email}
-                            onChange={handleFilterChange}
-                            placeholder="Buscar por correo"
-                          />
-                        </Form.Group>
-                      </Col>
-                      <Col md={12} className="d-flex align-items-end">
-                        <div className="d-flex gap-2 mb-3">
-                          <Button variant="primary" type="submit">
-                            <i className="bi bi-search me-2"></i>
-                            Buscar en Servidor
-                          </Button>
-                          <Button variant="outline-secondary" type="button" onClick={handleFilterReset}>
-                            <i className="bi bi-x-circle me-2"></i>
-                            Limpiar
-                          </Button>
-                        </div>
-                      </Col>
-                    </Row>
-                  </Form>
-                </Card.Body>
-              </Card>
-
-              {/* Filtros locales */}
-              <Card className="shadow-sm mb-3">
-                <Card.Header className="bg-light">
-                  <div className="d-flex justify-content-between align-items-center">
-                    <div>
-                      <h6 className="mb-0">
-                        <i className="bi bi-funnel me-2"></i>
-                        Filtros Locales
-                      </h6>
-                      <small className="text-muted">Filtrado rápido en tiempo real</small>
-                    </div>
-                    {hasActiveLocalFilters && (
-                      <Button variant="outline-secondary" size="sm" onClick={handleLocalFilterReset}>
-                        <i className="bi bi-x-circle me-1"></i>
-                        Limpiar Filtros
-                      </Button>
-                    )}
-                  </div>
-                </Card.Header>
-                <Card.Body>
-                  <Row>
-                    <Col md={2}>
-                      <Form.Group className="mb-3">
-                        <Form.Label>Nombre</Form.Label>
-                        <Form.Control
-                          type="text"
-                          name="name"
-                          value={localFilters.name}
-                          onChange={handleLocalFilterChange}
-                          placeholder="Filtrar por nombre"
-                        />
-                      </Form.Group>
-                    </Col>
-                    <Col md={2}>
-                      <Form.Group className="mb-3">
-                        <Form.Label>RUT</Form.Label>
-                        <Form.Control
-                          type="text"
-                          name="rut"
-                          value={localFilters.rut}
-                          onChange={handleLocalFilterChange}
-                          placeholder="Filtrar por RUT"
-                        />
-                      </Form.Group>
-                    </Col>
-                    <Col md={3}>
-                      <Form.Group className="mb-3">
-                        <Form.Label>Correo</Form.Label>
-                        <Form.Control
-                          type="text"
-                          name="email"
-                          value={localFilters.email}
-                          onChange={handleLocalFilterChange}
-                          placeholder="Filtrar por correo"
-                        />
-                      </Form.Group>
-                    </Col>
-                    <Col md={3}>
-                      <Form.Group className="mb-3">
-                        <Form.Label>Dirección</Form.Label>
-                        <Form.Control
-                          type="text"
-                          name="address"
-                          value={localFilters.address}
-                          onChange={handleLocalFilterChange}
-                          placeholder="Filtrar por dirección"
-                        />
-                      </Form.Group>
-                    </Col>
-                    <Col md={2}>
-                      <Form.Group className="mb-3">
-                        <Form.Label>Teléfono</Form.Label>
-                        <Form.Control
-                          type="text"
-                          name="phone"
-                          value={localFilters.phone}
-                          onChange={handleLocalFilterChange}
-                          placeholder="Filtrar por teléfono"
-                        />
-                      </Form.Group>
-                    </Col>
-                  </Row>
-                </Card.Body>
-              </Card>
-            </>
-          )}
-
-          {/* Loading spinner */}
-          {isLoading && (
-            <div className="text-center py-5">
-              <Spinner animation="border" variant="primary" />
-              <p className="mt-3 text-muted">Cargando proveedores...</p>
-            </div>
-          )}
+          <FiltersPanel
+            showFilters={showFilters}
+            serverFilters={filters}
+            onServerFilterChange={handleFilterChange}
+            onServerFilterSubmit={handleFilterSubmit}
+            onServerFilterReset={handleFilterReset}
+            localFilters={localFilters}
+            onLocalFilterChange={handleLocalFilterChange}
+            onLocalFilterReset={handleLocalFilterReset}
+            hasActiveLocalFilters={hasActiveLocalFilters}
+          />
 
           {/* Tabla de proveedores */}
-          {!isLoading && (
-            <Card className="shadow-sm">
-              <Card.Body>
-                {filteredSuppliers.length === 0 ? (
-                  hasActiveFilters || hasActiveLocalFilters ? (
-                    <div className="text-center py-5">
-                      <i className="bi bi-building-x fs-1 text-muted mb-3 d-block"></i>
-                      <h5 className="text-muted">No hay resultados que coincidan con tu búsqueda</h5>
-                      <p className="text-muted">Intenta ajustar los filtros para obtener más resultados</p>
-                      <div className="d-flex gap-2 justify-content-center">
-                        {hasActiveLocalFilters && (
-                          <Button variant="outline-secondary" onClick={handleLocalFilterReset}>
-                            <i className="bi bi-arrow-clockwise me-2"></i> Limpiar Filtros Locales
-                          </Button>
-                        )}
-                        {hasActiveFilters && (
-                          <Button variant="outline-primary" onClick={handleFilterReset}>
-                            <i className="bi bi-arrow-clockwise me-2"></i> Mostrar Todos
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="text-center py-5">
-                      <i className="bi bi-building fs-1 text-muted mb-3 d-block"></i>
-                      <h5 className="text-muted">No hay proveedores registrados</h5>
-                      <p className="text-muted">Los proveedores aparecerán aquí cuando sean registrados</p>
-                      <Button variant="primary" onClick={handleCreateClick}>
-                        <i className="bi bi-plus-lg me-2"></i>
-                        Registrar Primer Proveedor
-                      </Button>
-                    </div>
-                  )
-                ) : (
-                  <>
-                    <div className="d-flex justify-content-between align-items-center mb-3">
-                      <h6 className="mb-0">
-                        <i className="bi bi-list-ul me-2"></i>
-                        Proveedores Registrados ({filteredSuppliers.length} de {allSuppliers.length})
-                      </h6>
-                      {hasActiveLocalFilters && (
-                        <div className="d-flex align-items-center text-muted">
-                          <i className="bi bi-funnel-fill me-1"></i>
-                          <small>Filtros locales activos</small>
-                        </div>
-                      )}
-                    </div>
-                    <div className="table-responsive">
-                      <Table hover>
-                        <thead className="table-light">
-                          <tr>
-                            <th>Nombre</th>
-                            <th>RUT</th>
-                            <th>Dirección</th>
-                            <th>Teléfono</th>
-                            <th>Correo</th>
-                            <th className="text-center">Acciones</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {filteredSuppliers.map((supplier) => (
-                            <tr key={supplier.id}>
-                              <td>
-                                <div className="fw-bold">{supplier.name}</div>
-                              </td>
-                              <td>{supplier.rut}</td>
-                              <td>{supplier.address}</td>
-                              <td>{supplier.phone}</td>
-                              <td>{supplier.email}</td>
-                              <td className="text-center">
-                                <div className="btn-group">
-                                  <Button
-                                    variant="outline-primary"
-                                    className="me-2"
-                                    onClick={() => handleEditClick(supplier)}
-                                    title="Editar proveedor"
-                                  >
-                                    <i className="bi bi-pencil"></i>
-                                  </Button>
-                                  <Button
-                                    variant="outline-danger"
-                                    onClick={() => handleDeleteClick(supplier)}
-                                    title="Eliminar proveedor"
-                                  >
-                                    <i className="bi bi-trash"></i>
-                                  </Button>
-                                </div>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </Table>
-                    </div>
-                  </>
-                )}
-              </Card.Body>
-            </Card>
-          )}
+          <SupplierTable
+            suppliers={filteredSuppliers}
+            allSuppliersCount={allSuppliers.length}
+            isLoading={isLoading}
+            hasActiveFilters={hasActiveFilters}
+            hasActiveLocalFilters={hasActiveLocalFilters}
+            onEdit={handleEditClick}
+            onDelete={handleDeleteClick}
+            onCreateClick={handleCreateClick}
+            onFilterReset={handleFilterReset}
+            onLocalFilterReset={handleLocalFilterReset}
+          />
         </Col>
       </Row>
 
