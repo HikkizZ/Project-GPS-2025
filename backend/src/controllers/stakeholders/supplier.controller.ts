@@ -99,14 +99,20 @@ export async function updateSupplier(req: Request, res: Response): Promise<void>
         }
 
         const { error: bodyError } = personBodyValidation.validate(req.body);
-        
+
         if (bodyError) {
             handleErrorClient(res, 400, bodyError.message);
             return;
         }
 
         const [supplier, errorSupplier] = await updateSupplierService({ id }, req.body);
-        if (errorSupplier || !supplier) {
+        
+        if (errorSupplier) {
+            handleErrorClient(res, 404, typeof errorSupplier === 'string' ? errorSupplier : errorSupplier.message);
+            return;
+        }
+
+        if (!supplier) {
             handleErrorClient(res, 404, "No se encontró el proveedor.");
             return;
         }
@@ -126,7 +132,13 @@ export async function deleteSupplier(req: Request, res: Response): Promise<void>
         }
 
         const [deletedSupplier, errorSupplier] = await deleteSupplierService({ id });
-        if (errorSupplier || !deletedSupplier) {
+
+        if (errorSupplier) {
+            handleErrorClient(res, 404, typeof errorSupplier === 'string' ? errorSupplier : errorSupplier.message);
+            return;
+        }
+
+        if (!deletedSupplier) {
             handleErrorClient(res, 404, "No se encontró el proveedor.");
             return;
         }
