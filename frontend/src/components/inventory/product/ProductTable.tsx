@@ -79,7 +79,7 @@ export const ProductTable: React.FC<ProductTableProps> = ({
                 <thead className="table-light">
                   <tr>
                     <th>Tipo de Producto</th>
-                    <th>Precio de Venta</th>
+                    <th>Precio de Venta (por m³)</th>
                     <th className="text-center">Acciones</th>
                   </tr>
                 </thead>
