@@ -4,16 +4,32 @@ export interface MaintenanceSparePart {
     id: number;
     name: string;
   };
-  cantidad: number;
-  maintenanceRecordId: number;
+  cantidadUtilizada: number;
+  mantencion: {
+    id: number;
+    maquinaria?: {
+      patente: string;
+      modelo: string;
+      grupo: string;
+    };
+    mecanicoAsignado?: {
+      rut: string;
+      trabajador?: {
+        nombres: string;
+        apellidoPaterno: string;
+        apellidoMaterno: string;
+      };
+    };
+  };
 }
+
 
 export interface CreateMaintenanceSparePartData {
   repuestoId: number;
-  cantidad: number;
-  maintenanceRecordId: number;
+  mantencionId: number;
+  cantidadUtilizada: number;
 }
 
 export interface UpdateMaintenanceSparePartData {
-  cantidad?: number;
+  cantidadUtilizada?: number;
 }
