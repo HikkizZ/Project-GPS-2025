@@ -64,40 +64,40 @@ export async function createProductService(productData: CreateProductDTO): Promi
 }
 
 export async function updateProductService(id: number, productData: UpdateProductDTO): Promise<ServiceResponse<Product>> {
-        try {
-            const productRepository = AppDataSource.getRepository(Product);
+    try {
+        const productRepository = AppDataSource.getRepository(Product);
 
-            const product = await productRepository.findOne({ where: { id } });
+        const product = await productRepository.findOne({ where: { id } });
 
-            if (!product) return [null, "Producto no encontrado."];
+        if (!product) return [null, "Producto no encontrado."];
 
-            const updatedProduct = { ...product, ...productData };
+        const updatedProduct = { ...product, ...productData };
 
-            const savedProduct = await productRepository.save(updatedProduct);
+        const savedProduct = await productRepository.save(updatedProduct);
 
-            return [savedProduct, null];
-        } catch (error) {
-            console.error("Error updating product:", error);
-            return [null, "Error interno del servidor"];
-        }
+        return [savedProduct, null];
+    } catch (error) {
+        console.error("Error updating product:", error);
+        return [null, "Error interno del servidor"];
     }
+}
 
-    export async function deleteProductService(id: number): Promise<ServiceResponse<Product>> {
-        try {
-            const productRepository = AppDataSource.getRepository(Product);
+export async function deleteProductService(id: number): Promise<ServiceResponse<Product>> {
+    try {
+        const productRepository = AppDataSource.getRepository(Product);
 
-            const product = await productRepository.findOne({ where: { id } });
+        const product = await productRepository.findOne({ where: { id } });
 
-            if (!product) return [null, "Producto no encontrado."];
+        if (!product) return [null, "Producto no encontrado."];
 
-            product.isActive = false;
+        product.isActive = false;
 
-            const updatedProduct = await productRepository.save(product);
+        const updatedProduct = await productRepository.save(product);
 
-            return [updatedProduct, null];
+        return [updatedProduct, null];
 
-        } catch (error) {
-            console.error("Error deleting product:", error);
-            return [null, "Error interno del servidor"];
-        }
+    } catch (error) {
+        console.error("Error deleting product:", error);
+        return [null, "Error interno del servidor"];
     }
+}

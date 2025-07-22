@@ -21,4 +21,7 @@ export class Customer {
     @Index("IDX_CUSTOMERS_EMAIL", { unique: true }) // Unique index for the email column
     @Column({ type: "varchar", length: 255, nullable: false })
     email!: string;
+
+    @Column({ type: 'boolean', default: true })
+    isActive!: boolean;
 }
