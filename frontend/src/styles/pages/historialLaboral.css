@@ -341,3 +341,13 @@
   background-color: #6f42c1 !important;
   color: white !important;
 }
+
+.timeline-container::before, .timeline-marker, .timeline-marker-circle, .timeline-number {
+  z-index: 0 !important;
+}
+
+footer, .footer, .main-footer {
+  background: #222 !important;
+  z-index: 10 !important;
+  position: relative;
+}
