@@ -158,6 +158,7 @@ const InventoryHistoryTable: React.FC<InventoryHistoryTableProps> = ({
                           <td colSpan={5} className="p-0">
                             <div className="bg-light p-3 border-top">
                               <h6 className="mb-3">
+
                               </h6>
                               <Table striped bordered size="sm" className="mb-0">
                                 <thead>
