@@ -240,7 +240,7 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
 
   // Handler para navegar al historial laboral
   const handleOpenHistorialLaboral = (ficha: FichaEmpresa) => {
-    navigate(`/trabajadores/${ficha.trabajador.id}/historial-laboral`);
+    navigate('/trabajadores/historial-laboral', { state: { trabajadorId: ficha.trabajador.id } });
   };
 
   // Handler para descargar contrato histórico

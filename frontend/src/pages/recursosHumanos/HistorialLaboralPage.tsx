@@ -1,15 +1,18 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Container, Row, Col, Card, Badge, Button, Spinner, Alert, Breadcrumb, Nav, Form } from 'react-bootstrap';
 import { HistorialLaboral, HistorialUnificado } from '@/types/recursosHumanos/historialLaboral.types';
 import historialLaboralService from '@/services/recursosHumanos/historialLaboral.service';
+import { trabajadorService } from '@/services/recursosHumanos/trabajador.service';
 import '@/styles/pages/historialLaboral.css';
+import { useAuth } from '@/context';
 
 type FiltroTipo = 'todos' | 'inicial' | 'laboral' | 'licencias' | 'personales' | 'usuario';
 type ModoVista = 'tradicional' | 'unificado';
 
 export default function HistorialLaboralPage() {
-  const { id } = useParams<{ id: string }>();
+  const { user } = useAuth();
+  const location = useLocation();
   const navigate = useNavigate();
   const [historial, setHistorial] = useState<HistorialLaboral[]>([]);
   const [historialUnificado, setHistorialUnificado] = useState<HistorialUnificado[]>([]);
@@ -21,12 +24,37 @@ export default function HistorialLaboralPage() {
   const [filtroActivo, setFiltroActivo] = useState<FiltroTipo>('todos');
   const [busqueda, setBusqueda] = useState('');
   const [modoVista, setModoVista] = useState<ModoVista>('unificado');
+  const [trabajadorId, setTrabajadorId] = useState<number | null>(null);
+
+  // Solo permitir acceso a roles autorizados
+  const rolesPermitidos = ["SuperAdministrador", "Administrador", "RecursosHumanos"];
+  if (!user || !rolesPermitidos.includes(user.role)) {
+    return (
+      <div className="container py-4">
+        <div className="alert alert-danger mt-5">
+          <i className="bi bi-shield-lock me-2"></i>
+          Acceso denegado. No tienes permisos para ver el historial laboral.
+        </div>
+      </div>
+    );
+  }
+
+  // Leer trabajadorId desde location.state
+  useEffect(() => {
+    const state = location.state as { trabajadorId?: number };
+    if (state && state.trabajadorId) {
+      setTrabajadorId(state.trabajadorId);
+    } else {
+      setError('Debes acceder al historial laboral desde la ficha de empresa.');
+      setLoading(false);
+    }
+  }, [location.state]);
 
   useEffect(() => {
-    if (id) {
-      cargarHistorial(parseInt(id));
+    if (trabajadorId) {
+      cargarHistorial(trabajadorId);
     }
-  }, [id]);
+  }, [trabajadorId]);
 
   useEffect(() => {
     aplicarFiltros();
@@ -445,11 +473,17 @@ export default function HistorialLaboralPage() {
             </Breadcrumb.Item>
             <Breadcrumb.Item active>
               <i className="bi bi-clock-history me-1"></i>
-              Historial Laboral - {trabajadorNombre}
+              Historial Laboral {trabajadorNombre ? `- ${trabajadorNombre}` : ''}
             </Breadcrumb.Item>
           </Breadcrumb>
         </Col>
       </Row>
+      {error && (
+        <Alert variant="danger" className="mb-4">
+          <i className="bi bi-exclamation-triangle me-2"></i>
+          {error}
+        </Alert>
+      )}
 
       {/* Header */}
       <Row className="mb-4">

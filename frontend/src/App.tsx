@@ -633,7 +633,7 @@ function App() {
                 <Route path="dashboard" element={<Dashboard user={safeUser} />} />
                 <Route path="recursos-humanos" element={<DashboardRecursosHumanos />} />
                 <Route path="trabajadores" element={<TrabajadoresPage />} />
-                <Route path="trabajadores/:id/historial-laboral" element={<HistorialLaboralPage />} />
+                <Route path="trabajadores/historial-laboral" element={<HistorialLaboralPage />} />
                 <Route path="fichas-empresa" element={<FichasEmpresaPage />} />
                 <Route path="fichas-empresa/mi-ficha" element={<FichasEmpresaPage />} />
                 <Route path="bonos" element={<BonosPage />} />
