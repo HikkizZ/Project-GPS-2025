@@ -220,14 +220,6 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
     try {
       const fichaId = typeof ficha.id === 'string' ? parseInt(ficha.id) : ficha.id;
 
-      // Si hay un archivo seleccionado, subirlo
-      if (selectedFile) {
-        const uploadResponse = await uploadContrato(fichaId, selectedFile);
-        if (!uploadResponse.success) {
-          throw new Error(uploadResponse.message || 'Error al subir el contrato');
-        }
-      }
-
       // Procesar los datos antes de enviarlos
       const sueldoBaseNumber = formData.sueldoBase ? parseInt(cleanNumber(formData.sueldoBase)) : 0;
 
@@ -245,8 +237,21 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
         throw new Error('El sueldo base debe ser mayor a 0');
       }
 
-      // Actualizar ficha de empresa
-      const response = await updateFichaEmpresa(fichaId, dataToSubmit);
+      let response;
+      if (selectedFile) {
+        // Enviar como FormData
+        const formDataToSend = new FormData();
+        Object.entries(dataToSubmit).forEach(([key, value]) => {
+          if (value !== undefined && value !== null) {
+            formDataToSend.append(key, value as any);
+          }
+        });
+        formDataToSend.append('contrato', selectedFile);
+        response = await updateFichaEmpresa(fichaId, formDataToSend);
+      } else {
+        // Enviar como JSON
+        response = await updateFichaEmpresa(fichaId, dataToSubmit);
+      }
       
       if (response.success) {
         if (onUpdate) onUpdate();
@@ -493,6 +498,7 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
                     ref={fileInputRef}
                     type="file"
                     accept=".pdf"
+                    name="contrato"
                     onChange={handleFileSelect}
                     style={{ borderRadius: '8px' }}
                   />

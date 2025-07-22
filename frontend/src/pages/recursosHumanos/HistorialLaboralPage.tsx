@@ -289,9 +289,12 @@ export default function HistorialLaboralPage() {
     if (modoVista === 'unificado') {
       const itemUnificado = item as HistorialUnificado;
       const detalles = itemUnificado.detalles;
-      const esActualizacionLaboral = itemUnificado.descripcion.includes('Actualización de información laboral');
-      const esLicenciaPermiso = itemUnificado.descripcion.includes('Licencia') || itemUnificado.descripcion.includes('Permiso');
-      const esDesvinculacion = itemUnificado.descripcion.includes('Desvinculación');
+      const obs = itemUnificado.descripcion;
+      const esActualizacionLaboral = obs === 'Actualización de información laboral';
+      const esSubidaContrato = obs === 'Subida de contrato PDF';
+      const esAmbos = obs === 'Actualización de información laboral y subida de contrato PDF';
+      const esLicenciaPermiso = obs.includes('Licencia') || obs.includes('Permiso');
+      const esDesvinculacion = obs.includes('Desvinculación');
       
       // Para desvinculaciones, mostrar solo el motivo de desvinculación
       if (esDesvinculacion) {
@@ -334,6 +337,19 @@ export default function HistorialLaboralPage() {
         if (detalles.seguroCesantia !== undefined && detalles.seguroCesantia !== null) {
           campos.push(`Seguro Cesantía: ${formatSeguroCesantia(detalles.seguroCesantia)}`);
         }
+      } else if (esSubidaContrato) {
+        campos.push('Subida de Contrato');
+      } else if (esAmbos) {
+        // Mostrar campos modificados y "Subida de Contrato"
+        if (detalles.cargo) campos.push(`Cargo: ${detalles.cargo}`);
+        if (detalles.area) campos.push(`Área: ${detalles.area}`);
+        if (detalles.tipoContrato) campos.push(`Tipo Contrato: ${detalles.tipoContrato}`);
+        if (detalles.jornadaLaboral) campos.push(`Jornada: ${detalles.jornadaLaboral}`);
+        if (detalles.sueldoBase !== undefined && detalles.sueldoBase !== null) campos.push(`Sueldo: ${formatSueldo(detalles.sueldoBase)}`);
+        if (detalles.afp) campos.push(`AFP: ${detalles.afp}`);
+        if (detalles.previsionSalud) campos.push(`Previsión Salud: ${detalles.previsionSalud}`);
+        if (detalles.seguroCesantia !== undefined && detalles.seguroCesantia !== null) campos.push(`Seguro Cesantía: ${formatSeguroCesantia(detalles.seguroCesantia)}`);
+        campos.push('Subida de Contrato');
       } else {
         // Para otros tipos de registro, usar la lógica anterior (más selectiva)
         if (detalles.cargo && detalles.cargo !== 'Por Definir' && detalles.cargo !== 'Actualización de datos personales') {

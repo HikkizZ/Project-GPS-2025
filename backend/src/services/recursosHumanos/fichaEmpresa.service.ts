@@ -337,7 +337,8 @@ const CAMPOS_ESTADO_DESVINCULADO = ['cargo', 'area', 'tipoContrato', 'jornadaLab
 export async function updateFichaEmpresaService(
     id: number, 
     fichaData: Partial<FichaEmpresa>,
-    usuarioAutenticado?: User
+    usuarioAutenticado?: User,
+    file?: Express.Multer.File
 ): Promise<ServiceResponse<FichaEmpresa>> {
     const queryRunner = AppDataSource.createQueryRunner();
     await queryRunner.connect();
@@ -418,48 +419,88 @@ export async function updateFichaEmpresaService(
 
         
         // 6. Aplicar los cambios validados
+        let huboActualizacionCampos = false;
+        let huboSubidaContrato = false;
+        const camposModificados: string[] = [];
+
+        // Detectar cambios en campos relevantes
+        const camposRelevantes = [
+            'cargo', 'area', 'tipoContrato', 'jornadaLaboral', 'sueldoBase',
+            'afp', 'previsionSalud', 'seguroCesantia', 'fechaInicioContrato', 'fechaFinContrato'
+        ];
+        for (const campo of camposRelevantes) {
+            if (campo in fichaData && (fichaData as any)[campo] !== undefined && (fichaData as any)[campo] !== (fichaActual as any)[campo]) {
+                camposModificados.push(campo);
+                huboActualizacionCampos = true;
+            }
+        }
+
+        // Manejar subida de contrato (si hay archivo)
+        if (file) {
+            const nuevoContratoFilename = file.filename;
+            // Si ya existe un contrato, eliminar el anterior
+            if (fichaActual.contratoURL) {
+                const oldFilePath = FileUploadService.getContratoPath(fichaActual.contratoURL);
+                FileUploadService.deleteFile(oldFilePath);
+            }
+            fichaActual.contratoURL = nuevoContratoFilename;
+            huboSubidaContrato = true;
+        }
+
+        // Aplicar cambios de campos
         Object.assign(fichaActual, fichaData);
 
-        // 7. Guardar los cambios
+        // Guardar los cambios
         const fichaActualizada = await fichaRepo.save(fichaActual);
 
-        // 8. Crear snapshot en historial laboral
-        const historialRepo = queryRunner.manager.getRepository('HistorialLaboral');
-        
-        // Normalizar fechas para evitar problemas de zona horaria
-        const fechaInicioNormalizada = fichaActualizada.fechaInicioContrato ? 
-            new Date(fichaActualizada.fechaInicioContrato.toISOString().split('T')[0] + 'T12:00:00') : null;
-        const fechaFinNormalizada = fichaActualizada.fechaFinContrato ? 
-            new Date(fichaActualizada.fechaFinContrato.toISOString().split('T')[0] + 'T12:00:00') : null;
-        const fechaInicioLicenciaPermisoNormalizada = fichaActualizada.fechaInicioLicenciaPermiso ? 
-            new Date(fichaActualizada.fechaInicioLicenciaPermiso.toISOString().split('T')[0] + 'T12:00:00') : null;
-        const fechaFinLicenciaPermisoNormalizada = fichaActualizada.fechaFinLicenciaPermiso ? 
-            new Date(fichaActualizada.fechaFinLicenciaPermiso.toISOString().split('T')[0] + 'T12:00:00') : null;
-        
-        await historialRepo.save(historialRepo.create({
-            trabajador: fichaActualizada.trabajador,
-            cargo: fichaActualizada.cargo,
-            area: fichaActualizada.area,
-            tipoContrato: fichaActualizada.tipoContrato,
-            jornadaLaboral: fichaActualizada.jornadaLaboral,
-            sueldoBase: fichaActualizada.sueldoBase,
-            fechaInicio: fechaInicioNormalizada,
-            fechaFin: fechaFinNormalizada,
-            motivoDesvinculacion: fichaActualizada.motivoDesvinculacion,
-            observaciones: 'Actualización de ficha de empresa',
-            contratoURL: fichaActualizada.contratoURL,
-            afp: fichaActualizada.afp,
-            previsionSalud: fichaActualizada.previsionSalud,
-            seguroCesantia: fichaActualizada.seguroCesantia,
-            estado: fichaActualizada.estado,
-            fechaInicioLicenciaPermiso: fechaInicioLicenciaPermisoNormalizada,
-            fechaFinLicenciaPermiso: fechaFinLicenciaPermisoNormalizada,
-            motivoLicenciaPermiso: fichaActualizada.motivoLicenciaPermiso,
-            registradoPor: usuarioAutenticado || fichaActualizada.trabajador?.usuario || null
-        }));
+        // Determinar observaciones
+        let observaciones = '';
+        if (huboActualizacionCampos && huboSubidaContrato) {
+            observaciones = 'Actualización de información laboral y subida de contrato PDF';
+        } else if (huboActualizacionCampos) {
+            observaciones = 'Actualización de información laboral';
+        } else if (huboSubidaContrato) {
+            observaciones = 'Subida de contrato PDF';
+        } else {
+            observaciones = 'Sin cambios relevantes';
+        }
+
+        // Crear snapshot en historial laboral SOLO si hubo algún cambio relevante
+        if (huboActualizacionCampos || huboSubidaContrato) {
+            const historialRepo = queryRunner.manager.getRepository('HistorialLaboral');
+            // Normalizar fechas para evitar problemas de zona horaria
+            const fechaInicioNormalizada = fichaActualizada.fechaInicioContrato ? 
+                new Date(fichaActualizada.fechaInicioContrato.toISOString().split('T')[0] + 'T12:00:00') : null;
+            const fechaFinNormalizada = fichaActualizada.fechaFinContrato ? 
+                new Date(fichaActualizada.fechaFinContrato.toISOString().split('T')[0] + 'T12:00:00') : null;
+            const fechaInicioLicenciaPermisoNormalizada = fichaActualizada.fechaInicioLicenciaPermiso ? 
+                new Date(fichaActualizada.fechaInicioLicenciaPermiso.toISOString().split('T')[0] + 'T12:00:00') : null;
+            const fechaFinLicenciaPermisoNormalizada = fichaActualizada.fechaFinLicenciaPermiso ? 
+                new Date(fichaActualizada.fechaFinLicenciaPermiso.toISOString().split('T')[0] + 'T12:00:00') : null;
+            await historialRepo.save(historialRepo.create({
+                trabajador: fichaActualizada.trabajador,
+                cargo: fichaActualizada.cargo,
+                area: fichaActualizada.area,
+                tipoContrato: fichaActualizada.tipoContrato,
+                jornadaLaboral: fichaActualizada.jornadaLaboral,
+                sueldoBase: fichaActualizada.sueldoBase,
+                fechaInicio: fechaInicioNormalizada,
+                fechaFin: fechaFinNormalizada,
+                motivoDesvinculacion: fichaActualizada.motivoDesvinculacion,
+                observaciones,
+                contratoURL: fichaActualizada.contratoURL,
+                afp: fichaActualizada.afp,
+                previsionSalud: fichaActualizada.previsionSalud,
+                seguroCesantia: fichaActualizada.seguroCesantia,
+                estado: fichaActualizada.estado,
+                fechaInicioLicenciaPermiso: fechaInicioLicenciaPermisoNormalizada,
+                fechaFinLicenciaPermiso: fechaFinLicenciaPermisoNormalizada,
+                motivoLicenciaPermiso: fichaActualizada.motivoLicenciaPermiso,
+                registradoPor: usuarioAutenticado || fichaActualizada.trabajador?.usuario || null
+            }));
+        }
 
         await queryRunner.commitTransaction();
-
         return [fichaActualizada, null];
     } catch (error) {
         await queryRunner.rollbackTransaction();
@@ -558,91 +599,6 @@ export async function descargarContratoService( id: number, userId: number ): Pr
         return [null, { message: "Error interno del servidor" }];
     }
 } 
-
-export async function uploadContratoService( 
-    id: number, 
-    file: Express.Multer.File, 
-    usuarioAutenticado?: User 
-): Promise<ServiceResponse<{ contratoUrl: string }>> {
-    const queryRunner = AppDataSource.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
-
-    try {
-        const fichaRepository = queryRunner.manager.getRepository(FichaEmpresa);
-        const ficha = await fichaRepository.findOne({
-            where: { id },
-            relations: ["trabajador", "trabajador.usuario"]
-        });
-        
-        if (!ficha) {
-            // Eliminar el archivo subido si la ficha no existe
-            FileUploadService.deleteFile(file.path);
-            await queryRunner.rollbackTransaction();
-            return [null, { message: "Ficha no encontrada." }];
-        }
-
-        const nuevoContratoFilename = file.filename;
-        
-        // Si ya existe un contrato, eliminar el anterior
-        if (ficha.contratoURL) {
-            const oldFilePath = FileUploadService.getContratoPath(ficha.contratoURL);
-            FileUploadService.deleteFile(oldFilePath);
-        }
-        
-        // Actualizar la ficha con el nuevo contrato
-        ficha.contratoURL = nuevoContratoFilename;
-        await fichaRepository.save(ficha);
-
-        // Crear entrada en historial laboral para la subida de contrato
-        const historialRepo = queryRunner.manager.getRepository('HistorialLaboral');
-        
-        // Normalizar fechas para evitar problemas de zona horaria
-        const fechaInicioNormalizada = ficha.fechaInicioContrato ? 
-            new Date(ficha.fechaInicioContrato.toISOString().split('T')[0] + 'T12:00:00') : null;
-        const fechaFinNormalizada = ficha.fechaFinContrato ? 
-            new Date(ficha.fechaFinContrato.toISOString().split('T')[0] + 'T12:00:00') : null;
-        const fechaInicioLicenciaPermisoNormalizada = ficha.fechaInicioLicenciaPermiso ? 
-            new Date(ficha.fechaInicioLicenciaPermiso.toISOString().split('T')[0] + 'T12:00:00') : null;
-        const fechaFinLicenciaPermisoNormalizada = ficha.fechaFinLicenciaPermiso ? 
-            new Date(ficha.fechaFinLicenciaPermiso.toISOString().split('T')[0] + 'T12:00:00') : null;
-        
-        await historialRepo.save(historialRepo.create({
-            trabajador: ficha.trabajador,
-            cargo: ficha.cargo,
-            area: ficha.area,
-            tipoContrato: ficha.tipoContrato,
-            jornadaLaboral: ficha.jornadaLaboral,
-            sueldoBase: ficha.sueldoBase,
-            fechaInicio: fechaInicioNormalizada,
-            fechaFin: fechaFinNormalizada,
-            motivoDesvinculacion: ficha.motivoDesvinculacion,
-            observaciones: 'Subida de contrato PDF',
-            contratoURL: ficha.contratoURL,
-            afp: ficha.afp,
-            previsionSalud: ficha.previsionSalud,
-            seguroCesantia: ficha.seguroCesantia,
-            estado: ficha.estado,
-            fechaInicioLicenciaPermiso: fechaInicioLicenciaPermisoNormalizada,
-            fechaFinLicenciaPermiso: fechaFinLicenciaPermisoNormalizada,
-            motivoLicenciaPermiso: ficha.motivoLicenciaPermiso,
-            registradoPor: usuarioAutenticado || ficha.trabajador?.usuario || null
-        }));
-
-        await queryRunner.commitTransaction();
-        return [{ contratoUrl: nuevoContratoFilename }, null];
-    } catch (error) {
-        await queryRunner.rollbackTransaction();
-        // Si ocurre un error, eliminar el archivo subido
-        if (file && file.path) {
-            FileUploadService.deleteFile(file.path);
-        }
-        console.error("Error en uploadContratoService:", error);
-        return [null, { message: "Error interno al procesar la subida del archivo." }];
-    } finally {
-        await queryRunner.release();
-    }
-}
 
 export async function deleteContratoService( id: number ): Promise<ServiceResponse<{ deleted: boolean }>> {
     try {

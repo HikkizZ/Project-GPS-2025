@@ -88,7 +88,7 @@ export class FichaEmpresaService {
   }
 
   // Actualizar ficha
-  async updateFichaEmpresa(id: number, data: UpdateFichaEmpresaData): Promise<ApiResponse<FichaEmpresa>> {
+  async updateFichaEmpresa(id: number, data: any): Promise<ApiResponse<FichaEmpresa>> {
     try {
       const response = await apiClient.put<{ data: FichaEmpresa }>(`${this.baseURL}/${id}`, data);
       return {
@@ -273,7 +273,7 @@ export default fichaEmpresaService;
 
 // Funciones de conveniencia para uso directo
 export const getFichaEmpresa = (searchParams: FichaEmpresaSearchQuery = {}) => fichaEmpresaService.getFichasEmpresa(searchParams);
-export const updateFichaEmpresa = (id: number, data: UpdateFichaEmpresaData) => fichaEmpresaService.updateFichaEmpresa(id, data);
+export const updateFichaEmpresa = (id: number, data: any) => fichaEmpresaService.updateFichaEmpresa(id, data);
 export const uploadContrato = (fichaId: number, file: File) => fichaEmpresaService.uploadContrato(fichaId, file);
 export const downloadContrato = (fichaId: number) => fichaEmpresaService.downloadContrato(fichaId);
 export const deleteContrato = (fichaId: number) => fichaEmpresaService.deleteContrato(fichaId); 

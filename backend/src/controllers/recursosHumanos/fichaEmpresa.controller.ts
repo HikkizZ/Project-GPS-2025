@@ -11,7 +11,6 @@ import {
     getMiFichaService,
     updateFichaEmpresaService,
     descargarContratoService,
-    uploadContratoService,
     deleteContratoService,
     assignBonoService,
     verificarEstadoAsignacionBonoService,
@@ -74,6 +73,7 @@ export async function getMiFicha(req: Request, res: Response) {
 
 export async function updateFichaEmpresa(req: Request, res: Response) {
     try {
+        console.log('Archivo recibido en req.file:', req.file);
         const id = parseInt(req.params.id);
         console.log('Intentando actualizar ficha con ID:', id);
         
@@ -91,7 +91,7 @@ export async function updateFichaEmpresa(req: Request, res: Response) {
         }
 
         console.log('Datos a actualizar:', validationResult.value);
-        const [ficha, error] = await updateFichaEmpresaService(id, validationResult.value, req.user);
+        const [ficha, error] = await updateFichaEmpresaService(id, validationResult.value, req.user, req.file);
 
         if (error) {
             console.log('Error al actualizar:', error);
@@ -190,7 +190,7 @@ export async function uploadContrato(req: Request, res: Response): Promise<void>
             handleErrorClient(res, 400, "No se ha subido ningún archivo.");
             return;
         }
-        const [result, error] = await uploadContratoService(id, req.file, req.user);
+        const [result, error] = await FileUploadService.uploadFile(id, req.file, req.user);
         if (error) {
             const errorMsg = typeof error === 'string' ? error : error?.message || "Error al subir contrato";
             handleErrorClient(res, 400, errorMsg);
