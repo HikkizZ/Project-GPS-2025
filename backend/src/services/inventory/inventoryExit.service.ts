@@ -6,6 +6,7 @@ import { Customer } from "../../entity/stakeholders/customer.entity.js";
 import { CreateInventoryExitDTO } from "../../types/inventory/inventory.dto.js";
 import { ServiceResponse } from "../../../types.js";
 import { decrementInventory } from "./inventory.service.js";
+import { incrementInventory } from "./inventory.service.js";
 
 export async function createInventoryExitService(exitData: CreateInventoryExitDTO): Promise<ServiceResponse<InventoryExit>> {
     try {
@@ -82,9 +83,14 @@ export async function deleteInventoryExitService(id: number): Promise<ServiceRes
     try {
         const exitRepo = AppDataSource.getRepository(InventoryExit);
 
-        const exit = await exitRepo.findOne({ where: { id }, relations: ['details'] });
+        const exit = await exitRepo.findOne({ where: { id }, relations: ['details', 'details.product'] });
 
         if (!exit) return [null, "Salida de inventario no encontrada."];
+
+        for (const detail of exit.details) {
+            const [_, inventoryError] = await incrementInventory(detail.product.id, detail.quantity);
+            if (inventoryError) return [null, inventoryError];
+        }
 
         await exitRepo.remove(exit);
         return [exit, null];

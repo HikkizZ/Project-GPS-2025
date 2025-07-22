@@ -6,6 +6,7 @@ import { Product } from '../../entity/inventory/product.entity.js';
 import { CreateInventoryEntryDTO } from '../../types/inventory/inventory.dto.js';
 import { ServiceResponse } from '../../../types.js';
 import { incrementInventory } from './inventory.service.js';
+import { decrementInventory } from './inventory.service.js';
 
 export async function createInventoryEntryService(entryData: CreateInventoryEntryDTO): Promise<ServiceResponse<InventoryEntry>> {
     try {
@@ -79,9 +80,14 @@ export async function getInventoryEntryByIdService(id: number): Promise<ServiceR
 export async function deleteInventoryEntryService(id: number): Promise<ServiceResponse<InventoryEntry>> {
     try {
         const entryRepo = AppDataSource.getRepository(InventoryEntry);
-        const entry = await entryRepo.findOne({ where: { id }, relations: ['details'] });
+        const entry = await entryRepo.findOne({ where: { id }, relations: ['details', 'details.product'] });
 
         if (!entry) return [null, "Entrada no encontrada."];
+
+        for (const detail of entry.details) {
+            const [_, inventoryError] = await decrementInventory(detail.product.id, detail.quantity);
+            if (inventoryError) return [null, inventoryError];
+        }
 
         await entryRepo.remove(entry);
         return [entry, null];
