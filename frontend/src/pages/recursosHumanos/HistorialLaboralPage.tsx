@@ -702,6 +702,38 @@ export default function HistorialLaboralPage() {
                                   <h6 className="text-muted mb-0">
                                     {modoVista === 'unificado' ? 'Descripción' : 'Observaciones'}
                                   </h6>
+                                  {/* Mostrar SIEMPRE el botón de descarga si hay contratoURL */}
+                                  {contratoURLItem && (
+                                    <Button
+                                      variant="outline-success"
+                                      size="sm"
+                                      onClick={() => handleDescargarContrato(
+                                        modoVista === 'unificado'
+                                          ? parseInt((item as HistorialUnificado).id.split('-')[1])
+                                          : (item as HistorialLaboral).id
+                                      )}
+                                      disabled={descargandoId === (
+                                        modoVista === 'unificado'
+                                          ? parseInt((item as HistorialUnificado).id.split('-')[1])
+                                          : (item as HistorialLaboral).id
+                                      )}
+                                      title="Descargar contrato PDF"
+                                    >
+                                      {descargandoId === (
+                                        modoVista === 'unificado'
+                                          ? parseInt((item as HistorialUnificado).id.split('-')[1])
+                                          : (item as HistorialLaboral).id
+                                      ) ? (
+                                        <Spinner size="sm" />
+                                      ) : (
+                                        <>
+                                          <i className="bi bi-file-earmark-pdf me-1"></i>
+                                          Descargar
+                                        </>
+                                      )}
+                                    </Button>
+                                  )}
+                                  {/* Botón de descarga de licencia médica solo si aplica */}
                                   {esLicenciaMedica && licenciaIdItem && archivoAdjuntoURLItem && (
                                     <Button
                                       variant="outline-primary"
@@ -715,24 +747,6 @@ export default function HistorialLaboralPage() {
                                       ) : (
                                         <>
                                           <i className="bi bi-file-earmark-medical me-1"></i>
-                                          Descargar
-                                        </>
-                                      )}
-                                    </Button>
-                                  )}
-                                  {esSubidaContrato && contratoURLItem && (
-                                    <Button
-                                      variant="outline-success"
-                                      size="sm"
-                                      onClick={() => handleDescargarContrato(modoVista === 'unificado' ? parseInt((item as HistorialUnificado).id.split('-')[1]) : (item as HistorialLaboral).id)}
-                                      disabled={descargandoId === (modoVista === 'unificado' ? parseInt((item as HistorialUnificado).id.split('-')[1]) : (item as HistorialLaboral).id)}
-                                      title="Descargar contrato PDF"
-                                    >
-                                      {descargandoId === (modoVista === 'unificado' ? parseInt((item as HistorialUnificado).id.split('-')[1]) : (item as HistorialLaboral).id) ? (
-                                        <Spinner size="sm" />
-                                      ) : (
-                                        <>
-                                          <i className="bi bi-file-earmark-pdf me-1"></i>
                                           Descargar
                                         </>
                                       )}
