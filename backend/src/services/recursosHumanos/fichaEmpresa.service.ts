@@ -420,7 +420,6 @@ export async function updateFichaEmpresaService(
         
         // 6. Aplicar los cambios validados
         let huboActualizacionCampos = false;
-        let huboSubidaContrato = false;
         const camposModificados: string[] = [];
 
         // Detectar cambios en campos relevantes
@@ -428,36 +427,96 @@ export async function updateFichaEmpresaService(
             'cargo', 'area', 'tipoContrato', 'jornadaLaboral', 'sueldoBase',
             'afp', 'previsionSalud', 'seguroCesantia', 'fechaInicioContrato', 'fechaFinContrato'
         ];
+        // Función robusta para comparar valores
+        function sonDiferentes(nuevo: any, original: any, campo: string): boolean {
+            // Comparar fechas solo por YYYY-MM-DD
+            if (campo.toLowerCase().includes('fecha')) {
+                if (!nuevo && !original) return false;
+                const fechaN = nuevo ? new Date(nuevo).toISOString().split('T')[0] : '';
+                const fechaO = original ? new Date(original).toISOString().split('T')[0] : '';
+                return fechaN !== fechaO;
+            }
+            // Comparar números
+            if (typeof original === 'number' || typeof nuevo === 'number') {
+                return Number(nuevo) !== Number(original);
+            }
+            // Comparar booleanos
+            if (typeof original === 'boolean' || typeof nuevo === 'boolean') {
+                return Boolean(nuevo) !== Boolean(original);
+            }
+            // Comparar strings (trim y lower)
+            if (typeof nuevo === 'string' && typeof original === 'string') {
+                return nuevo.trim().toLowerCase() !== original.trim().toLowerCase();
+            }
+            // Comparar nulos/vacíos
+            if ((!nuevo && original) || (nuevo && !original)) {
+                return true;
+            }
+            // Fallback
+            return String(nuevo) !== String(original);
+        }
+
+        // Guardar valores originales antes de aplicar cambios
+        const valoresOriginales: Record<string, any> = {};
         for (const campo of camposRelevantes) {
-            if (campo in fichaData && (fichaData as any)[campo] !== undefined && (fichaData as any)[campo] !== (fichaActual as any)[campo]) {
-                camposModificados.push(campo);
-                huboActualizacionCampos = true;
+            valoresOriginales[campo] = (fichaActual as any)[campo];
+        }
+        const contratoOriginal = fichaActual.contratoURL;
+
+        // Detectar cambios en campos relevantes (comparando original vs NUEVO del request)
+        let huboSubidaContrato = false;
+        let huboCambios = false;
+        const camposRealmenteModificados: string[] = [];
+        for (const campo of camposRelevantes) {
+            if (campo in fichaData && (fichaData as any)[campo] !== undefined) {
+                const valorNuevo = (fichaData as any)[campo];
+                const valorOriginal = valoresOriginales[campo];
+                if (sonDiferentes(valorNuevo, valorOriginal, campo)) {
+                    camposRealmenteModificados.push(campo);
+                    huboCambios = true;
+                }
             }
         }
 
         // Manejar subida de contrato (si hay archivo)
+        let contratoAnterior = contratoOriginal;
+        let nuevoContratoFilename = contratoAnterior;
         if (file) {
-            const nuevoContratoFilename = file.filename;
+            nuevoContratoFilename = file.filename;
             // Si ya existe un contrato, eliminar el anterior
-            if (fichaActual.contratoURL) {
-                const oldFilePath = FileUploadService.getContratoPath(fichaActual.contratoURL);
+            if (contratoAnterior) {
+                const oldFilePath = FileUploadService.getContratoPath(contratoAnterior);
                 FileUploadService.deleteFile(oldFilePath);
             }
-            fichaActual.contratoURL = nuevoContratoFilename;
-            huboSubidaContrato = true;
+            // Solo marcar como cambio si el contrato es diferente
+            if (!contratoAnterior || contratoAnterior !== nuevoContratoFilename) {
+                huboSubidaContrato = true;
+                huboCambios = true;
+            }
         }
 
-        // Aplicar cambios de campos
-        Object.assign(fichaActual, fichaData);
+        // Si no hubo cambios, NO guardar ni crear historial
+        if (!huboCambios) {
+            await queryRunner.release();
+            return [fichaActual, null];
+        }
+
+        // Aplicar solo los cambios realmente modificados
+        for (const campo of camposRealmenteModificados) {
+            (fichaActual as any)[campo] = (fichaData as any)[campo];
+        }
+        if (huboSubidaContrato) {
+            fichaActual.contratoURL = nuevoContratoFilename;
+        }
 
         // Guardar los cambios
         const fichaActualizada = await fichaRepo.save(fichaActual);
 
         // Determinar observaciones
         let observaciones = '';
-        if (huboActualizacionCampos && huboSubidaContrato) {
+        if (camposRealmenteModificados.length > 0 && huboSubidaContrato) {
             observaciones = 'Actualización de información laboral y subida de contrato PDF';
-        } else if (huboActualizacionCampos) {
+        } else if (camposRealmenteModificados.length > 0) {
             observaciones = 'Actualización de información laboral';
         } else if (huboSubidaContrato) {
             observaciones = 'Subida de contrato PDF';
@@ -466,7 +525,7 @@ export async function updateFichaEmpresaService(
         }
 
         // Crear snapshot en historial laboral SOLO si hubo algún cambio relevante
-        if (huboActualizacionCampos || huboSubidaContrato) {
+        if (camposRealmenteModificados.length > 0 || huboSubidaContrato) {
             const historialRepo = queryRunner.manager.getRepository('HistorialLaboral');
             // Normalizar fechas para evitar problemas de zona horaria
             const fechaInicioNormalizada = fichaActualizada.fechaInicioContrato ? 
