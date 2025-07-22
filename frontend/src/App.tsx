@@ -32,7 +32,7 @@ import MantencionesCompletadasPage from '@/pages/machinaryMantenance/Mantencione
 import { CompraMaquinariaPage } from "./pages/maquinaria/compraMaquinariaPage"
 import { VentaMaquinariaPage } from "./pages/maquinaria/ventaMaquinariaPage"
 import { MaquinariaPage } from "./pages/maquinaria/maquinariaPage"
-import { ArriendoMaquinariaPage} from "./pages/maquinaria/arriendoMaquinariaPage"
+import { ArriendoMaquinariaPage } from "./pages/maquinaria/arriendoMaquinariaPage"
 import { ClienteMaquinariaPage } from "./pages/maquinaria/clienteMaquinariaPage"
 
 const RegistrarTrabajadorPage: React.FC<{
@@ -511,7 +511,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
 
                       <Col md={3} className="mb-4">
                         <Card
-                          className="h-100 border-0 shadow-sm"
+                          className="h-100 border-0 shadow-lg"
                           style={{
                             cursor: 'pointer',
                             borderRadius: '20px',
@@ -755,12 +755,12 @@ function App() {
                 <Route path="*" element={<Navigate to="dashboard" replace />} />
                 <Route path="*" element={<div className="container py-4"><div className="alert alert-warning"><h4>Página no encontrada</h4><p>La página que buscas no existe. <a href="/dashboard">Volver al dashboard</a></p></div></div>} />
 
-              {/* Mantención maquinaria */ }
+                {/* Mantención maquinaria */}
                 <Route path="spare-parts" element={<SparePartsPage />} />
                 <Route path="maintenance-records" element={<MantencionPage />} />
                 <Route path="maintenance-completed" element={<MantencionesCompletadasPage />} />
-              
-              {/* RUTAS DE MAQUINARIA ACTUALIZADAS */}
+
+                {/* RUTAS DE MAQUINARIA ACTUALIZADAS */}
                 <Route path="maquinaria" element={<MaquinariaPage />} />
                 <Route path="maquinaria/compras" element={<CompraMaquinariaPage />} />
                 <Route path="maquinaria/ventas" element={<VentaMaquinariaPage />} />
