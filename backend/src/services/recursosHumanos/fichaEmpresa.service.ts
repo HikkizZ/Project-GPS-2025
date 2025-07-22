@@ -483,11 +483,11 @@ export async function updateFichaEmpresaService(
         let nuevoContratoFilename = contratoAnterior;
         if (file) {
             nuevoContratoFilename = file.filename;
-            // Si ya existe un contrato, eliminar el anterior
-            if (contratoAnterior) {
-                const oldFilePath = FileUploadService.getContratoPath(contratoAnterior);
-                FileUploadService.deleteFile(oldFilePath);
-            }
+            // NO eliminar el archivo anterior para mantener trazabilidad histórica
+            // if (contratoAnterior) {
+            //     const oldFilePath = FileUploadService.getContratoPath(contratoAnterior);
+            //     FileUploadService.deleteFile(oldFilePath);
+            // }
             // Solo marcar como cambio si el contrato es diferente
             if (!contratoAnterior || contratoAnterior !== nuevoContratoFilename) {
                 huboSubidaContrato = true;
@@ -669,12 +669,12 @@ export async function deleteContratoService( id: number ): Promise<ServiceRespon
         if (!ficha.contratoURL) {
             return [null, { message: "No hay contrato para eliminar" }];
         }
-        // Eliminar archivo físico
-        const deleted = FileUploadService.deleteContratoFile(ficha.contratoURL);
+        // NO eliminar archivo físico para mantener trazabilidad histórica
+        // const deleted = FileUploadService.deleteContratoFile(ficha.contratoURL);
         // Actualizar ficha
         ficha.contratoURL = null;
         await fichaRepository.save(ficha);
-        return [{ deleted }, null];
+        return [{ deleted: true }, null];
     } catch (error) {
         console.error("Error en deleteContratoService:", error);
         return [null, { message: "Error interno del servidor" }];
