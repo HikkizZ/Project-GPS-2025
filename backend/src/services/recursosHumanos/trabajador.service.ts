@@ -468,7 +468,7 @@ export async function desvincularTrabajadorService(id: number, motivo: string, u
             nuevoHistorial.sueldoBase = trabajador.fichaEmpresa.sueldoBase;
             if (fechaInicioNormalizada) nuevoHistorial.fechaInicio = fechaInicioNormalizada;
             if (fechaFinNormalizada) nuevoHistorial.fechaFin = fechaFinNormalizada;
-            nuevoHistorial.motivoTermino = trabajador.fichaEmpresa.motivoDesvinculacion;
+            nuevoHistorial.motivoDesvinculacion = trabajador.fichaEmpresa.motivoDesvinculacion;
             nuevoHistorial.observaciones = 'Desvinculación de trabajador';
             nuevoHistorial.contratoURL = trabajador.fichaEmpresa.contratoURL;
             nuevoHistorial.afp = trabajador.fichaEmpresa.afp;

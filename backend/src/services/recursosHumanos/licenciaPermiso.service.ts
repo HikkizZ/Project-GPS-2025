@@ -351,7 +351,7 @@ export async function updateLicenciaPermisoService(id: number, data: UpdateLicen
           nuevoHistorial.sueldoBase = fichaEmpresa.sueldoBase;
           if (fechaInicioNormalizada) nuevoHistorial.fechaInicio = fechaInicioNormalizada;
           if (fechaFinNormalizada) nuevoHistorial.fechaFin = fechaFinNormalizada;
-          nuevoHistorial.motivoTermino = fichaEmpresa.motivoDesvinculacion;
+          nuevoHistorial.motivoDesvinculacion = fichaEmpresa.motivoDesvinculacion;
           nuevoHistorial.observaciones = `Cambio de estado a ${estadoLaboral}. Motivo: ${licencia.motivoSolicitud}`;
           nuevoHistorial.contratoURL = fichaEmpresa.contratoURL;
           nuevoHistorial.afp = fichaEmpresa.afp;

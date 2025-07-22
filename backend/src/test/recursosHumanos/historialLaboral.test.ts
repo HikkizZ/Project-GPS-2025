@@ -195,13 +195,13 @@ describe('📋 Historial Laboral API', () => {
                 .set('Authorization', `Bearer ${rrhToken}`)
                 .send({
                     fechaFin: "2024-01-01",
-                    motivoTermino: "Promoción a nuevo cargo"
+                    motivoDesvinculacion: "Promoción a nuevo cargo"
                 });
 
             expect(response.status).to.equal(200);
             expect(response.body.status).to.equal("success");
             expect(response.body.data.fechaFin).to.not.be.null;
-            expect(response.body.data.motivoTermino).to.equal("Promoción a nuevo cargo");
+            expect(response.body.data.motivoDesvinculacion).to.equal("Promoción a nuevo cargo");
         });
 
         it('no debe permitir actualizar un registro ya cerrado', async () => {
@@ -210,7 +210,7 @@ describe('📋 Historial Laboral API', () => {
                 .set('Authorization', `Bearer ${rrhToken}`)
                 .send({
                     fechaFin: "2024-02-01",
-                    motivoTermino: "Otro motivo"
+                    motivoDesvinculacion: "Otro motivo"
                 });
 
             expect(response.status).to.equal(400);
@@ -223,7 +223,7 @@ describe('📋 Historial Laboral API', () => {
                 .set('Authorization', `Bearer ${usuarioToken}`)
                 .send({
                     fechaFin: "2024-01-01",
-                    motivoTermino: "Intento no autorizado"
+                    motivoDesvinculacion: "Intento no autorizado"
                 });
 
             expect(response.status).to.equal(403);

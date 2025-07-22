@@ -87,7 +87,7 @@ export const ModalHistorialLaboral: React.FC<ModalHistorialLaboralProps> = ({
                   <th>Fecha Inicio</th>
                   <th>Fecha Fin</th>
                   <th>Estado</th>
-                  <th>Motivo Término</th>
+                  <th>Motivo Desvinculación</th>
                   <th>Observaciones</th>
                   <th>Contrato</th>
                 </tr>
@@ -103,7 +103,7 @@ export const ModalHistorialLaboral: React.FC<ModalHistorialLaboralProps> = ({
                     <td>{formatFecha(item.fechaInicio)}</td>
                     <td>{formatFecha(item.fechaFin)}</td>
                     <td>{getEstadoBadge(item.estado)}</td>
-                    <td>{item.motivoTermino || '-'}</td>
+                    <td>{item.motivoDesvinculacion || '-'}</td>
                     <td>{item.observaciones || '-'}</td>
                     <td>
                       {item.contratoURL ? (

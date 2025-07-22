@@ -445,7 +445,7 @@ export async function updateFichaEmpresaService(
             sueldoBase: fichaActualizada.sueldoBase,
             fechaInicio: fechaInicioNormalizada,
             fechaFin: fechaFinNormalizada,
-            motivoTermino: fichaActualizada.motivoDesvinculacion,
+            motivoDesvinculacion: fichaActualizada.motivoDesvinculacion,
             observaciones: 'Actualización de ficha de empresa',
             contratoURL: fichaActualizada.contratoURL,
             afp: fichaActualizada.afp,

@@ -7,7 +7,7 @@ export interface HistorialLaboral {
   sueldoBase: number;
   fechaInicio: string;
   fechaFin?: string | null;
-  motivoTermino?: string | null;
+  motivoDesvinculacion?: string | null;
   observaciones?: string | null;
   contratoURL?: string | null;
   afp?: string | null;

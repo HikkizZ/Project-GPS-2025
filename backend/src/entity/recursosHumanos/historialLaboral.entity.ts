@@ -35,7 +35,7 @@ export class HistorialLaboral {
   fechaFin!: Date;
 
   @Column({ type: "text", nullable: true })
-  motivoTermino!: string;
+  motivoDesvinculacion!: string;
 
   @Column({ type: "text", nullable: true })
   observaciones!: string;

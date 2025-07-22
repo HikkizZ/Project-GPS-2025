@@ -9,12 +9,12 @@ import { User } from "../../entity/user.entity.js";
 //     sueldoBase: number;
 //     fechaInicio: string;
 //     fechaFin?: string;
-//     motivoTermino?: string;
+//     motivoDesvinculacion?: string;
 //     contratoURL?: string;
 //     registradoPor: User;
 // };
 
 // export type UpdateHistorialLaboralDTO = {
 //     fechaFin: string;
-//     motivoTermino: string;
+//     motivoDesvinculacion: string;
 // };
