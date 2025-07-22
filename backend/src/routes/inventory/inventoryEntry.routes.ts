@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { verifyRole } from "../../middlewares/authorization.middleware.js";
 
 import {
     createInventoryEntry,
@@ -14,9 +15,9 @@ const router = Router();
 router.use(authenticateJWT);
 
 router
-    .post('/', createInventoryEntry)
-    .get('/all', getAllInventoryEntries)
-    .get('/:id', getInventoryEntryById)
-    .delete('/:id', deleteInventoryEntry);
+    .post('/', verifyRole(["Administrador", "SuperAdministrador", "Ventas", "Gerencia"]), createInventoryEntry)
+    .get('/all', verifyRole(["Administrador", "SuperAdministrador", "Ventas", "Gerencia", "Finanzas"]), getAllInventoryEntries)
+    .get('/:id', verifyRole(["Administrador", "SuperAdministrador", "Ventas", "Gerencia", "Finanzas"]),getInventoryEntryById)
+    .delete('/:id', verifyRole(["Administrador", "SuperAdministrador", "Ventas", "Gerencia"]), deleteInventoryEntry);
 
 export default router;

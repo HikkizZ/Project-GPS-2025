@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { verifyRole } from "../../middlewares/authorization.middleware.js";
 
 import {
     getSuppliers,
@@ -13,6 +14,8 @@ import { authenticateJWT } from "../../middlewares/authentication.middleware.js"
 const router: Router = Router();
 
 router.use(authenticateJWT);
+
+router.use(verifyRole(["Administrador", "SuperAdministrador", "Ventas", "Gerencia"]));
 
 router
     .get("/all", getSuppliers)
