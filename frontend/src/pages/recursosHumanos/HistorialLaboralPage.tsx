@@ -454,7 +454,7 @@ export default function HistorialLaboralPage() {
                         className="d-flex align-items-center"
                       >
                         <i className="bi bi-briefcase me-1"></i>
-                        Laborales <Badge bg="info" className="ms-1">{getContadorPorTipo('laboral')}</Badge>
+                        Laborales <Badge bg="primary" className="ms-1">{getContadorPorTipo('laboral')}</Badge>
                       </Nav.Link>
                     </Nav.Item>
                     <Nav.Item>
