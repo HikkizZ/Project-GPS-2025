@@ -25,7 +25,7 @@ export class HistorialLaboral {
   @Column({ type: "varchar", length: 50, nullable: false })
   jornadaLaboral!: string;
 
-  @Column({ type: "decimal", precision: 10, scale: 2, nullable: false })
+  @Column({ type: "int", nullable: false })
   sueldoBase!: number;
 
   @Column({ type: "date", nullable: false })
