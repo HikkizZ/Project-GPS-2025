@@ -6,6 +6,7 @@ import {
   type CreateProductData,
   type Product,
   type UpdateProductData,
+  type ProductFormState,
 } from "@/types/inventory/product.types"
 
 interface ProductFormProps {
@@ -23,8 +24,8 @@ const ProductForm: React.FC<ProductFormProps> = ({
   isSubmitting = false,
   existingProductTypes,
 }) => {
-  const [formData, setFormData] = useState<CreateProductData>({
-    product: ProductType.ARENA,
+  const [formData, setFormData] = useState<ProductFormState>({
+    product: "",
     salePrice: 0,
   })
   const [displaySalePrice, setDisplaySalePrice] = useState<string>(
@@ -41,7 +42,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
       setDisplaySalePrice(initialData.salePrice === 0 ? "" : initialData.salePrice.toString())
     } else {
       setFormData({
-        product: ProductType.ARENA,
+        product: "",
         salePrice: 0,
       })
       setDisplaySalePrice("")
