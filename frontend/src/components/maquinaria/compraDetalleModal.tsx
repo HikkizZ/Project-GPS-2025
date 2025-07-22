@@ -1,5 +1,3 @@
-"use client"
-
 import type React from "react"
 import { Modal, Button, Row, Col, Badge, Alert } from "react-bootstrap"
 import type { CompraMaquinaria } from "../../types/maquinaria.types"

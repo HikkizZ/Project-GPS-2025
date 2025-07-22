@@ -1,5 +1,3 @@
-"use client"
-
 import { useState, useEffect, useCallback } from "react"
 import { maquinariaService } from "../../services/maquinaria/maquinaria.service.js"
 import type { Maquinaria } from "../../types/maquinaria.types"

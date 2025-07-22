@@ -1,5 +1,3 @@
-"use client"
-
 import type React from "react"
 import { Nav } from "react-bootstrap"
 import { NavLink } from "react-router-dom"

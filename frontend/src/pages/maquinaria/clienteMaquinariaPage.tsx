@@ -1,5 +1,3 @@
-"use client"
-
 import type React from "react"
 import { useState } from "react"
 import { Modal, Container, Row, Col, Card, Button, Table, Alert, Spinner, Form, InputGroup } from "react-bootstrap"

@@ -1,5 +1,3 @@
-"use client"
-
 import { useState, useEffect, useCallback } from "react"
 import { arriendoMaquinariaService } from "../../services/maquinaria/arriendoMaquinaria.service"
 import type {

@@ -1,5 +1,3 @@
-"use client"
-
 import type React from "react"
 import { useState } from "react"
 import { GrupoMaquinaria, type CreateCompraMaquinaria } from "../../types/maquinaria.types"
