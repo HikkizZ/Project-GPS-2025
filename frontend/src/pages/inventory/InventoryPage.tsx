@@ -1,5 +1,3 @@
-"use client"
-
 import type React from "react"
 import { Container, Row, Col, Card, Button } from "react-bootstrap"
 import InventorySidebar from "@/components/inventory/layout/InventorySidebar"
@@ -12,13 +10,13 @@ import { useMemo, useState, useCallback } from "react" // Importar useCallback
 import { InventoryMovementSelectionModal } from "@/components/inventory/dashboard/InventoryMovementSelectionModal"
 import InventoryEntryModal from "@/components/inventory/dashboard/InventoryEntryModal"
 import { useInventoryEntries } from "@/hooks/inventory/useInventoryEntry"
-import type { CreateInventoryEntryData, InventoryEntry } from "@/types/inventory/inventory.types"
+import type { CreateInventoryEntryData, InventoryEntry, CreateInventoryExitData } from "@/types/inventory/inventory.types"
 import { useToast, Toast } from "@/components/common/Toast"
 import { useInventoryExits } from "@/hooks/inventory/useInventoryExit"
 import InventoryExitModal from "@/components/inventory/dashboard/InventoryExitModal"
 import ConfirmModal from "@/components/stakeholders/ConfirmModal"
 import type { InventoryExit } from "@/types/inventory/inventory.types"
-import type { CreateInventoryExitData } from "@/types/inventory/inventory.types"
+import { useInventory } from "@/hooks/inventory/useInventory"
 
 import "../../styles/pages/inventory.css"
 
@@ -27,10 +25,10 @@ export const InventoryPage: React.FC = () => {
   const { suppliers, isLoading: isLoadingSuppliers } = useSuppliers() // Obtener proveedores
   const { entries, loadEntries, createEntry, deleteEntry, isLoadingEntries, isCreatingEntry } = useInventoryEntries()
   const { exits, loadExits, createExit, deleteExit, isLoadingExits, isCreatingExit } = useInventoryExits() // NUEVO
+  const { inventory, isLoading: isLoadingInventory, loadInventory } = useInventory()
 
   const { toasts, removeToast, showSuccess, showError } = useToast()
 
-  // Estados para los nuevos modales de movimiento
   const [showMovementSelectionModal, setShowMovementSelectionModal] = useState(false)
   const [showPurchaseEntryModal, setShowPurchaseEntryModal] = useState(false)
   const [showSaleExitModal, setShowSaleExitModal] = useState(false) // NUEVO
@@ -40,18 +38,11 @@ export const InventoryPage: React.FC = () => {
 
   // Transforma los datos de productos en el formato que necesita el gráfico
   const chartData = useMemo(() => {
-    const productTypeStockMap = new Map<ProductType, number>()
-
-    const uniqueProductTypes = Array.from(new Set(products.map((p) => p.product)))
-    uniqueProductTypes.forEach((type) => {
-      productTypeStockMap.set(type, Math.floor(Math.random() * 251)) // 0 a 250
-    })
-
-    return Array.from(productTypeStockMap.entries()).map(([type, stock]) => ({
-      label: type,
-      value: stock,
-    }))
-  }, [products])
+      return inventory.map((item) => ({
+        label: item.product.product,
+        value: item.quantity,
+      }))
+    }, [inventory])
 
   // Cálculos para las tarjetas de métricas y las nuevas categorías
   const metrics = useMemo(() => {
@@ -64,16 +55,17 @@ export const InventoryPage: React.FC = () => {
     const lowStockProducts: ProductType[] = []
     const outOfStockProducts: ProductType[] = []
 
-    const maxSimulatedStock = 250
-    const lowStockThreshold = maxSimulatedStock * 0.4
+    const totalStock = inventory.reduce((sum, item) => sum + item.quantity, 0)
+    const averageStock = inventory.length > 0 ? totalStock / inventory.length : 0
+    const lowStockThreshold = averageStock > 0 ? averageStock * 0.4 : 10
 
-    chartData.forEach((item) => {
-      if (item.value === 0) {
-        outOfStockProducts.push(item.label)
-      } else if (item.value <= lowStockThreshold) {
-        lowStockProducts.push(item.label)
+    inventory.forEach((item) => {
+      if (item.quantity === 0) {
+        outOfStockProducts.push(item.product.product)
+      } else if (item.quantity <= lowStockThreshold) {
+        lowStockProducts.push(item.product.product)
       } else {
-        inStockProducts.push(item.label)
+        inStockProducts.push(item.product.product)
       }
     })
 
@@ -88,7 +80,7 @@ export const InventoryPage: React.FC = () => {
       lowStockProducts,
       outOfStockProducts,
     }
-  }, [products, chartData])
+  }, [products, inventory])
 
   const handleNewMovementClick = useCallback(() => {
     setShowMovementSelectionModal(true)
@@ -101,7 +93,7 @@ export const InventoryPage: React.FC = () => {
 
   const handleSelectSale = useCallback(() => {
     setShowMovementSelectionModal(false)
-    setShowSaleExitModal(true) // ABRIR MODAL DE SALIDA
+    setShowSaleExitModal(true) 
   }, [])
 
   const handleCreateEntry = useCallback(
@@ -110,13 +102,14 @@ export const InventoryPage: React.FC = () => {
       if (result.success) {
         showSuccess("¡Entrada registrada!", result.message, 4000)
         setShowPurchaseEntryModal(false)
-        loadProducts() // Recargar productos para actualizar el gráfico y métricas
-        loadEntries() // Recargar entradas para actualizar la tabla de historial
+        loadProducts() 
+        loadEntries()
+        loadInventory() 
       } else {
         showError("Error al registrar entrada", result.message || "Ocurrió un error inesperado.")
       }
     },
-    [createEntry, loadProducts, loadEntries, showSuccess, showError],
+    [createEntry, loadProducts, loadEntries,  loadInventory, showSuccess, showError],
   )
 
   const handleCreateExit = useCallback(
@@ -124,14 +117,15 @@ export const InventoryPage: React.FC = () => {
       const result = await createExit(data)
       if (result.success) {
         showSuccess("¡Salida registrada!", result.message, 4000)
-        setShowSaleExitModal(false) // CERRAR MODAL DE SALIDA
-        loadProducts() // Recargar productos para actualizar el stock
-        loadExits() // Recargar salidas para actualizar la tabla de historial
+        setShowSaleExitModal(false) 
+        loadProducts() 
+        loadExits() 
+        loadInventory()
       } else {
         showError("Error al registrar salida", result.message || "Ocurrió un error inesperado.")
       }
     },
-    [createExit, loadProducts, loadExits, showSuccess, showError],
+    [createExit, loadProducts, loadExits, loadInventory, showSuccess, showError],
   )
 
   const handleViewEntryDetails = useCallback((entry: InventoryEntry) => {
@@ -156,11 +150,12 @@ export const InventoryPage: React.FC = () => {
       showSuccess("¡Movimiento eliminado!", "El movimiento se ha eliminado exitosamente.", 4000)
       loadProducts()
       loadEntries()
+      loadInventory()
     } else {
       showError("Error al eliminar", result.message || "Ocurrió un error al eliminar el movimiento.")
     }
     setEntryToDelete(null)
-  }, [entryToDelete, deleteEntry, loadProducts, loadEntries, showSuccess, showError])
+  }, [entryToDelete, deleteEntry, loadProducts, loadEntries, loadInventory, showSuccess, showError])
 
   const confirmDeleteExit = useCallback(async () => {
     if (!exitToDelete) return
@@ -170,13 +165,14 @@ export const InventoryPage: React.FC = () => {
       showSuccess("¡Movimiento eliminado!", "El movimiento se ha eliminado exitosamente.", 4000)
       loadProducts()
       loadExits()
+      loadInventory()
     } else {
       showError("Error al eliminar", result.message || "Ocurrió un error al eliminar el movimiento.")
     }
     setExitToDelete(null)
-  }, [exitToDelete, deleteExit, loadProducts, loadExits, showSuccess, showError])
+  }, [exitToDelete, deleteExit, loadProducts, loadExits, loadInventory, showSuccess, showError])
 
-  const isLoadingPage = isLoadingProducts || isLoadingSuppliers || isLoadingEntries || isLoadingExits
+  const isLoadingPage = isLoadingProducts || isLoadingSuppliers || isLoadingEntries || isLoadingExits || isLoadingInventory
 
   return (
     <Container fluid className="inventory-page p-0">
@@ -309,8 +305,8 @@ export const InventoryPage: React.FC = () => {
                 <Row className="mb-4">
                   <Col>
                     <InventoryChart
-                      data={chartData}
-                      onRefresh={loadProducts}
+                      inventory={inventory}
+                      onRefresh={loadInventory}
                       activeProductTypesCount={metrics.activeProductTypesCount}
                       inactiveProductTypesCount={metrics.inactiveProductTypesCount}
                     />
