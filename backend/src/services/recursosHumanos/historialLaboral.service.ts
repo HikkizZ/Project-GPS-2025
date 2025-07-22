@@ -1,6 +1,7 @@
 import { AppDataSource } from "../../config/configDB.js";
 import { HistorialLaboral } from "../../entity/recursosHumanos/historialLaboral.entity.js";
 import { Trabajador } from "../../entity/recursosHumanos/trabajador.entity.js";
+import { LicenciaPermiso, TipoSolicitud, EstadoSolicitud } from "../../entity/recursosHumanos/licenciaPermiso.entity.js";
 import { ServiceResponse } from "../../../types.js";
 
 interface HistorialUnificado {
@@ -64,6 +65,25 @@ export async function getHistorialUnificadoByTrabajadorService(trabajadorId: num
             order: { createAt: "DESC" }
         });
 
+        // 2. Obtener todas las licencias médicas aprobadas del trabajador para mapear archivos
+        const licenciaRepo = AppDataSource.getRepository(LicenciaPermiso);
+        const licenciasMedicas = await licenciaRepo.find({
+            where: { 
+                trabajador: { id: trabajadorId },
+                tipo: TipoSolicitud.LICENCIA,
+                estado: EstadoSolicitud.APROBADA
+            }
+        });
+
+        // Crear un mapa de licencias por fechas para búsqueda rápida
+        const licenciasPorFecha = new Map();
+        licenciasMedicas.forEach(licencia => {
+            const fechaInicioKey = licencia.fechaInicio.toISOString().split('T')[0];
+            const fechaFinKey = licencia.fechaFin.toISOString().split('T')[0];
+            const key = `${fechaInicioKey}-${fechaFinKey}`;
+            licenciasPorFecha.set(key, licencia);
+        });
+
         // Agregar registros de historial laboral
         historialLaboral.forEach(item => {
             let descripcion = '';
@@ -91,6 +111,35 @@ export async function getHistorialUnificadoByTrabajadorService(trabajadorId: num
                 descripcion = item.observaciones || 'Cambio en historial laboral';
             }
 
+            // Buscar archivo de licencia médica si aplica
+            let licenciaId = null;
+            let archivoAdjuntoURL = null;
+            if (item.observaciones?.includes('Licencia médica') && item.fechaInicioLicenciaPermiso && item.fechaFinLicenciaPermiso) {
+                try {
+                    // Convertir fechas a objetos Date si son strings
+                    const fechaInicio = item.fechaInicioLicenciaPermiso instanceof Date 
+                        ? item.fechaInicioLicenciaPermiso 
+                        : new Date(item.fechaInicioLicenciaPermiso);
+                    const fechaFin = item.fechaFinLicenciaPermiso instanceof Date 
+                        ? item.fechaFinLicenciaPermiso 
+                        : new Date(item.fechaFinLicenciaPermiso);
+                    
+                    // Validar que las fechas sean válidas
+                    if (!isNaN(fechaInicio.getTime()) && !isNaN(fechaFin.getTime())) {
+                        const fechaInicioKey = fechaInicio.toISOString().split('T')[0];
+                        const fechaFinKey = fechaFin.toISOString().split('T')[0];
+                        const key = `${fechaInicioKey}-${fechaFinKey}`;
+                        const licenciaEncontrada = licenciasPorFecha.get(key);
+                        if (licenciaEncontrada) {
+                            licenciaId = licenciaEncontrada.id;
+                            archivoAdjuntoURL = licenciaEncontrada.archivoAdjuntoURL;
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error al procesar fechas de licencia:', error);
+                }
+            }
+
             historialUnificado.push({
                 id: `laboral-${item.id}`,
                 tipo: tipoRegistro as 'laboral' | 'trabajador' | 'usuario',
@@ -98,6 +147,8 @@ export async function getHistorialUnificadoByTrabajadorService(trabajadorId: num
                 descripcion,
                 detalles: {
                     historialLaboralId: item.id,
+                    licenciaId: licenciaId,
+                    archivoAdjuntoURL: archivoAdjuntoURL,
                     cargo: item.cargo,
                     area: item.area,
                     tipoContrato: item.tipoContrato,

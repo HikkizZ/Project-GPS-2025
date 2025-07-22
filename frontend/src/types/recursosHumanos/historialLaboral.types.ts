@@ -55,6 +55,8 @@ export interface HistorialUnificado {
     // Campos comunes
     historialLaboralId?: number;
     usuarioId?: number;
+    licenciaId?: number;
+    archivoAdjuntoURL?: string;
     
     // Campos laborales
     cargo?: string;

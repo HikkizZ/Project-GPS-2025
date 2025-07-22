@@ -191,6 +191,35 @@ export default function HistorialLaboralPage() {
     }
   };
 
+  const handleDescargarLicenciaMedica = async (licenciaId: number) => {
+    try {
+      setDescargandoId(licenciaId);
+      const result = await historialLaboralService.descargarLicenciaMedica(licenciaId);
+      
+      if (result.success && result.blob && result.filename) {
+        // Crear URL del blob y descarga
+        const url = window.URL.createObjectURL(result.blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = result.filename;
+        document.body.appendChild(link);
+        link.click();
+        
+        // Limpiar
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      } else {
+        console.error('Error al descargar:', result.error);
+        alert(result.error || 'Error al descargar el archivo');
+      }
+    } catch (error) {
+      console.error('Error al descargar licencia médica:', error);
+      alert('Error inesperado al descargar el archivo');
+    } finally {
+      setDescargandoId(null);
+    }
+  };
+
   const getTipoRegistro = (observaciones?: string | null) => {
     if (!observaciones) return { tipo: 'General', color: 'secondary', icono: 'file-text' };
     
@@ -561,6 +590,9 @@ export default function HistorialLaboralPage() {
                 const observacionesItem = modoVista === 'unificado' ? (item as HistorialUnificado).descripcion : (item as HistorialLaboral).observaciones;
                 const registradoPorItem = modoVista === 'unificado' ? (item as HistorialUnificado).registradoPor : (item as HistorialLaboral).registradoPor;
                 const contratoURLItem = modoVista === 'unificado' ? (item as HistorialUnificado).detalles.contratoURL : (item as HistorialLaboral).contratoURL;
+                const licenciaIdItem = modoVista === 'unificado' ? (item as HistorialUnificado).detalles.licenciaId : null;
+                const archivoAdjuntoURLItem = modoVista === 'unificado' ? (item as HistorialUnificado).detalles.archivoAdjuntoURL : null;
+                const esLicenciaMedica = observacionesItem?.includes('Licencia médica') || observacionesItem?.includes('licencia médica');
                 
                 return (
                   <div key={itemId} className="timeline-item">
@@ -601,6 +633,7 @@ export default function HistorialLaboralPage() {
                               )}
                             </Button>
                           )}
+
                           {getEstadoBadge(estadoItem)}
                         </div>
                       </Card.Header>
@@ -638,9 +671,29 @@ export default function HistorialLaboralPage() {
                             
                             {observacionesItem && (
                               <div className="mb-3">
-                                <h6 className="text-muted mb-2">
-                                  {modoVista === 'unificado' ? 'Descripción' : 'Observaciones'}
-                                </h6>
+                                <div className="d-flex justify-content-between align-items-center mb-2">
+                                  <h6 className="text-muted mb-0">
+                                    {modoVista === 'unificado' ? 'Descripción' : 'Observaciones'}
+                                  </h6>
+                                  {esLicenciaMedica && licenciaIdItem && archivoAdjuntoURLItem && (
+                                    <Button
+                                      variant="outline-primary"
+                                      size="sm"
+                                      onClick={() => handleDescargarLicenciaMedica(licenciaIdItem)}
+                                      disabled={descargandoId === licenciaIdItem}
+                                      title="Descargar certificado médico"
+                                    >
+                                      {descargandoId === licenciaIdItem ? (
+                                        <Spinner size="sm" />
+                                      ) : (
+                                        <>
+                                          <i className="bi bi-file-earmark-medical me-1"></i>
+                                          Descargar
+                                        </>
+                                      )}
+                                    </Button>
+                                  )}
+                                </div>
                                 <p className="mb-0 small bg-light p-2 rounded">
                                   <i className="bi bi-info-circle me-1"></i>
                                   {observacionesItem}
