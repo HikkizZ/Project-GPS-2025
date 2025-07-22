@@ -419,7 +419,7 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
               {/* Fecha Inicio Contrato */}
               <Col md={4}>
                 <Form.Group>
-                  <Form.Label className="fw-semibold">Fecha Inicio <span className="text-danger">*</span></Form.Label>
+                  <Form.Label className="fw-semibold">Fecha Inicio Contrato<span className="text-danger">*</span></Form.Label>
                   <Form.Control
                     type="date"
                     name="fechaInicioContrato"
@@ -437,7 +437,7 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
               {/* Fecha Fin Contrato */}
               <Col md={4}>
                 <Form.Group>
-                  <Form.Label className="fw-semibold">Fecha Fin</Form.Label>
+                  <Form.Label className="fw-semibold">Fecha Fin Contrato</Form.Label>
                   <Form.Control
                     type="date"
                     name="fechaFinContrato"
