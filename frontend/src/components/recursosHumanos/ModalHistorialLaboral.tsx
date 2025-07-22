@@ -39,6 +39,11 @@ function getEstadoBadge(estado?: string | null) {
   return <Badge bg={color}>{estado}</Badge>;
 }
 
+function formatSeguroCesantia(seguro?: boolean | null) {
+  if (seguro === null || seguro === undefined) return '-';
+  return seguro ? <Badge bg="success">Sí</Badge> : <Badge bg="danger">No</Badge>;
+}
+
 export const ModalHistorialLaboral: React.FC<ModalHistorialLaboralProps> = ({
   show,
   onHide,
@@ -87,8 +92,15 @@ export const ModalHistorialLaboral: React.FC<ModalHistorialLaboralProps> = ({
                   <th>Fecha Inicio</th>
                   <th>Fecha Fin</th>
                   <th>Estado</th>
+                  <th>AFP</th>
+                  <th>Previsión Salud</th>
+                  <th>Seguro Cesantía</th>
+                  <th>Fecha Inicio Solicitud</th>
+                  <th>Fecha Fin Solicitud</th>
+                  <th>Motivo Solicitud</th>
                   <th>Motivo Desvinculación</th>
                   <th>Observaciones</th>
+                  <th>Registrado Por</th>
                   <th>Contrato</th>
                 </tr>
               </thead>
@@ -103,8 +115,24 @@ export const ModalHistorialLaboral: React.FC<ModalHistorialLaboralProps> = ({
                     <td>{formatFecha(item.fechaInicio)}</td>
                     <td>{formatFecha(item.fechaFin)}</td>
                     <td>{getEstadoBadge(item.estado)}</td>
+                    <td>{item.afp || '-'}</td>
+                    <td>{item.previsionSalud || '-'}</td>
+                    <td>{formatSeguroCesantia(item.seguroCesantia)}</td>
+                    <td>{formatFecha(item.fechaInicioLicencia)}</td>
+                    <td>{formatFecha(item.fechaFinLicencia)}</td>
+                    <td>{item.motivoLicencia || '-'}</td>
                     <td>{item.motivoDesvinculacion || '-'}</td>
                     <td>{item.observaciones || '-'}</td>
+                    <td>
+                      {item.registradoPor ? (
+                        <div>
+                          <div className="fw-semibold">{item.registradoPor.name}</div>
+                          <small className="text-muted">{item.registradoPor.role}</small>
+                        </div>
+                      ) : (
+                        '-'
+                      )}
+                    </td>
                     <td>
                       {item.contratoURL ? (
                         <Button
