@@ -58,7 +58,7 @@ export const CompraDetalleModal: React.FC<CompraDetalleModalProps> = ({ show, on
 
   return (
     <Modal show={show} onHide={onHide} size="lg" centered className="compra-detalle-modal">
-      <Modal.Header closeButton className="text-white">
+      <Modal.Header closeButton className="bg-primary text-white">
         <Modal.Title>
           <i className="bi bi-eye me-2"></i>
           Detalles de Compra - {compra.patente}
@@ -66,8 +66,8 @@ export const CompraDetalleModal: React.FC<CompraDetalleModalProps> = ({ show, on
       </Modal.Header>
       <Modal.Body>
         {/* Padrón - Sección Principal */}
-        <div className="form-section padron-section">
-          <h5 className="section-title">
+        <div className="mb-4">
+          <h5>
             <i className="bi bi-file-earmark me-2"></i>
             Padrón
           </h5>
@@ -142,115 +142,115 @@ export const CompraDetalleModal: React.FC<CompraDetalleModalProps> = ({ show, on
         </div>
 
         {/* Información Básica */}
-        <div className="form-section">
-          <h5 className="section-title">
+        <div className="mb-4">
+          <h5>
             <i className="bi bi-info-circle me-2"></i>
             Información Básica
           </h5>
           <Row className="g-3">
             <Col md={6}>
-              <div className="detail-field">
-                <label className="detail-label">Patente:</label>
-                <div className="detail-value font-monospace fs-5 text-primary">{compra.patente}</div>
+              <div>
+                <label className="fw-bold">Patente:</label>
+                <div className="fs-5 text-primary font-monospace">{compra.patente}</div>
               </div>
             </Col>
             <Col md={6}>
-              <div className="detail-field">
-                <label className="detail-label">Grupo:</label>
-                <div className="detail-value">
+              <div>
+                <label className="fw-bold">Grupo:</label>
+                <div>
                   <Badge bg="secondary">{compra.grupo?.replace(/_/g, " ") || "Sin grupo"}</Badge>
                 </div>
               </div>
             </Col>
             <Col md={6}>
-              <div className="detail-field">
-                <label className="detail-label">Marca:</label>
-                <div className="detail-value">{compra.marca}</div>
+              <div>
+                <label className="fw-bold">Marca:</label>
+                <div>{compra.marca}</div>
               </div>
             </Col>
             <Col md={6}>
-              <div className="detail-field">
-                <label className="detail-label">Modelo:</label>
-                <div className="detail-value">{compra.modelo}</div>
+              <div>
+                <label className="fw-bold">Modelo:</label>
+                <div>{compra.modelo}</div>
               </div>
             </Col>
             <Col md={6}>
-              <div className="detail-field">
-                <label className="detail-label">Año:</label>
-                <div className="detail-value">{compra.anio}</div>
+              <div>
+                <label className="fw-bold">Año:</label>
+                <div>{compra.anio}</div>
               </div>
             </Col>
             <Col md={6}>
-              <div className="detail-field">
-                <label className="detail-label">Fecha de Compra:</label>
-                <div className="detail-value">{formatDate(compra.fechaCompra)}</div>
+              <div>
+                <label className="fw-bold">Fecha de Compra:</label>
+                <div>{formatDate(compra.fechaCompra)}</div>
               </div>
             </Col>
           </Row>
         </div>
 
         {/* Información Financiera */}
-        <div className="form-section">
-          <h5 className="section-title">
-            <i className="bi bi-currency-dollar me-2"></i>
+        <div className="mb-4">
+          <h5>
+            <i className="bi bi-cash-coin me-2"></i>
             Información Financiera
           </h5>
           <Row className="g-3">
             <Col md={6}>
-              <div className="detail-field">
-                <label className="detail-label">Valor de Compra:</label>
-                <div className="detail-value currency-value text-success">{formatCurrency(compra.valorCompra)}</div>
+              <div>
+                <label className="fw-bold">Valor de Compra:</label>
+                <div className="fs-5 fw-bold text-success">{formatCurrency(compra.valorCompra)}</div>
               </div>
             </Col>
             <Col md={6}>
-              <div className="detail-field">
-                <label className="detail-label">Avalúo Fiscal:</label>
-                <div className="detail-value currency-value text-info">{formatCurrency(compra.avaluoFiscal)}</div>
+              <div>
+                <label className="fw-bold">Avalúo Fiscal:</label>
+                <div className="fs-5 fw-bold text-info">{formatCurrency(compra.avaluoFiscal)}</div>
               </div>
             </Col>
           </Row>
         </div>
 
         {/* Información Técnica */}
-        <div className="form-section">
-          <h5 className="section-title">
+        <div className="mb-4">
+          <h5>
             <i className="bi bi-gear me-2"></i>
             Información Técnica
           </h5>
           <Row className="g-3">
             <Col md={12}>
-              <div className="detail-field">
-                <label className="detail-label">Número de Chasis:</label>
-                <div className="detail-value font-monospace">{compra.numeroChasis}</div>
+              <div>
+                <label className="fw-bold">Número de Chasis:</label>
+                <div className="font-monospace">{compra.numeroChasis}</div>
               </div>
             </Col>
             <Col md={6}>
-              <div className="detail-field">
-                <label className="detail-label">Kilometraje Inicial:</label>
-                <div className="detail-value">{compra.kilometrajeInicial?.toLocaleString() || 0} km</div>
+              <div>
+                <label className="fw-bold">Kilometraje Inicial:</label>
+                <div>{compra.kilometrajeInicial?.toLocaleString() || 0} km</div>
               </div>
             </Col>
           </Row>
         </div>
 
         {/* Información Adicional */}
-        <div className="form-section">
-          <h5 className="section-title">
+        <div className="mb-4">
+          <h5>
             <i className="bi bi-building me-2"></i>
             Información Adicional
           </h5>
           <Row className="g-3">
             <Col md={12}>
-              <div className="detail-field">
-                <label className="detail-label">Proveedor:</label>
-                <div className="detail-value">{compra.proveedor || "No especificado"}</div>
+              <div>
+                <label className="fw-bold">Proveedor:</label>
+                <div>{compra.proveedor || "No especificado"}</div>
               </div>
             </Col>
             {compra.observaciones && (
               <Col md={12}>
-                <div className="detail-field">
-                  <label className="detail-label">Observaciones:</label>
-                  <div className="detail-value bg-light p-2 rounded">{compra.observaciones}</div>
+                <div>
+                  <label className="fw-bold">Observaciones:</label>
+                  <div className="bg-light p-3 rounded">{compra.observaciones}</div>
                 </div>
               </Col>
             )}

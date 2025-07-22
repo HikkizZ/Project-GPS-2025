@@ -7,6 +7,8 @@ import {
   rutValidation,
   searchValidation,
 } from "../../validations/maquinaria/clienteMaquinaria.validations.js"
+import { authenticateJWT } from "../../middlewares/authentication.middleware.js"
+import { verifyRole } from "../../middlewares/authorization.middleware.js"
 
 const router = Router()
 const clienteMaquinariaController = new ClienteMaquinariaController()

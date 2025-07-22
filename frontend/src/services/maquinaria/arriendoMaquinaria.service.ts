@@ -12,27 +12,21 @@ export class ArriendoMaquinariaService {
 
   async crearReporteTrabajo(data: CreateArriendoMaquinaria): Promise<ApiResponse<ArriendoMaquinaria>> {
     try {
-      console.log("📤 ArriendoService: Enviando datos al servidor:", JSON.stringify(data, null, 2))
       const response = await apiClient.post(`${this.baseURL}/`, data)
-      console.log("📥 ArriendoService: Respuesta del servidor:", response.data)
       return {
         success: true,
         message: "Reporte de trabajo creado exitosamente",
         data: response.data.data || response.data,
       }
     } catch (error: any) {
-      console.error("❌ ArriendoService: Error al crear reporte:", error)
-      console.error("❌ ArriendoService: Error response completo:", error.response)
-      console.error("❌ ArriendoService: Error response data:", error.response?.data)
-      console.error("❌ ArriendoService: Error response status:", error.response?.status)
-      console.error("❌ ArriendoService: Error response headers:", error.response?.headers)
+      console.error("Error al crear reporte:", error)
+      console.error("Error response:", error.response?.data)
+      console.error("Error status:", error.response?.status)
 
       let errorMessage = "Error al crear el reporte de trabajo"
 
       if (error.response?.data) {
-        // Intentar extraer el mensaje de error del backend
         const errorData = error.response.data
-        console.log("🔍 ArriendoService: Analizando error data:", errorData)
 
         if (typeof errorData === "string") {
           errorMessage = errorData
@@ -48,8 +42,6 @@ export class ArriendoMaquinariaService {
       } else if (error.message) {
         errorMessage = error.message
       }
-
-      console.log("📋 ArriendoService: Mensaje de error final:", errorMessage)
 
       return {
         success: false,
@@ -94,11 +86,9 @@ export class ArriendoMaquinariaService {
 
   async obtenerMaquinariasDisponibles(): Promise<ApiResponse<Maquinaria[]>> {
     try {
-      console.log("🔄 ArriendoService: Obteniendo maquinarias disponibles...")
       const response = await apiClient.get("/maquinaria", {
         params: { estado: "disponible" },
       })
-      console.log("📊 ArriendoService: Respuesta maquinarias:", response.data)
 
       let maquinarias: Maquinaria[] = []
 
@@ -114,7 +104,7 @@ export class ArriendoMaquinariaService {
         data: maquinarias,
       }
     } catch (error: any) {
-      console.error("❌ ArriendoService: Error al obtener maquinarias:", error)
+      console.error("Error al obtener maquinarias:", error)
       return {
         success: false,
         message: error.response?.data?.message || error.message || "Error al obtener maquinarias disponibles",
@@ -125,9 +115,7 @@ export class ArriendoMaquinariaService {
 
   async obtenerClientesMaquinaria(): Promise<ApiResponse<ClienteMaquinaria[]>> {
     try {
-      console.log("🔄 ArriendoService: Obteniendo clientes de maquinaria...")
       const response = await apiClient.get("/clientes-maquinaria/")
-      console.log("📊 ArriendoService: Respuesta completa clientes:", response.data)
 
       let clientes: ClienteMaquinaria[] = []
 
@@ -139,15 +127,13 @@ export class ArriendoMaquinariaService {
         clientes = response.data.data
       }
 
-      console.log("✅ ArriendoService: Clientes procesados:", clientes)
-
       return {
         success: true,
         message: "Clientes obtenidos exitosamente",
         data: clientes,
       }
     } catch (error: any) {
-      console.error("❌ ArriendoService: Error al obtener clientes:", error)
+      console.error("Error al obtener clientes:", error)
       return {
         success: false,
         message: error.response?.data?.message || error.message || "Error al obtener clientes",

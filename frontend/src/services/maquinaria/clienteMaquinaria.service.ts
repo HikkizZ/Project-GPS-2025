@@ -11,9 +11,7 @@ export class ClienteMaquinariaService {
 
   async crearCliente(data: CreateClienteMaquinaria): Promise<ApiResponse<ClienteMaquinaria>> {
     try {
-      console.log("🔄 Creando cliente:", data)
       const response = await apiClient.post(`${this.baseURL}/`, data)
-      console.log("✅ Cliente creado exitosamente:", response.data)
 
       return {
         success: true,
@@ -21,7 +19,7 @@ export class ClienteMaquinariaService {
         data: response.data.data,
       }
     } catch (error: any) {
-      console.error("❌ Error al crear cliente:", error)
+      console.error("Error al crear cliente:", error)
       return {
         success: false,
         message: error.response?.data?.message || error.message || "Error al crear el cliente",
@@ -31,9 +29,7 @@ export class ClienteMaquinariaService {
 
   async obtenerTodosLosClientes(): Promise<ApiResponse<ClienteMaquinaria[]>> {
     try {
-      console.log("🔄 Obteniendo todos los clientes...")
       const response = await apiClient.get(`${this.baseURL}/`)
-      console.log("✅ Respuesta completa del backend:", response.data)
 
       // CORREGIDO: El backend devuelve directamente los datos o con estructura { success, data }
       let clientes: ClienteMaquinaria[] = []
@@ -49,15 +45,13 @@ export class ClienteMaquinariaService {
         clientes = response.data.data
       }
 
-      console.log("📊 Clientes procesados:", clientes)
-
       return {
         success: true,
         message: "Clientes obtenidos exitosamente",
         data: clientes,
       }
     } catch (error: any) {
-      console.error("❌ Error al obtener clientes:", error)
+      console.error("Error al obtener clientes:", error)
       return {
         success: false,
         message: error.response?.data?.message || error.message || "Error al obtener los clientes",
@@ -151,22 +145,6 @@ export class ClienteMaquinariaService {
       return {
         success: false,
         message: error.response?.data?.message || error.message || "Error al eliminar el cliente",
-      }
-    }
-  }
-
-  async obtenerEstadisticas(): Promise<ApiResponse<EstadisticasClienteMaquinaria>> {
-    try {
-      const response = await apiClient.get(`${this.baseURL}/stats`)
-      return {
-        success: true,
-        message: "Estadísticas obtenidas exitosamente",
-        data: response.data.data || response.data,
-      }
-    } catch (error: any) {
-      return {
-        success: false,
-        message: error.response?.data?.message || error.message || "Error al obtener estadísticas",
       }
     }
   }

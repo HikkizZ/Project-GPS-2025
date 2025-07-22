@@ -46,7 +46,7 @@ export const registrarVentaValidation = [
     .custom((value, { req }) => {
       // Validar que el valor de venta no sea menor al 50% del valor de compra
       const valorCompra = req.body.valorCompra
-      if (valorCompra && value < valorCompra * 0.5) {
+      if (valorCompra && value < valorCompra * 0.1) {
         throw new Error("El valor de venta no puede ser menor al 50% del valor de compra")
       }
       return true

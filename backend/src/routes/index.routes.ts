@@ -19,6 +19,7 @@ import compraMaquinariaRoutes from "./maquinaria/compraMaquinaria.routes.js"
 import ventaMaquinariaRoutes from "./maquinaria/ventaMaquinaria.routes.js"
 import arriendoMaquinariaRoutes from "./maquinaria/arriendoMaquinaria.routes.js"
 import clienteMaquinariaRoutes from "./maquinaria/clienteMaquinaria.routes.js"
+import updateImageRoutes from "./updateImage.routes.js" // ✅ NUEVA RUTA
 
 const router: Router = Router()
 
@@ -51,11 +52,14 @@ router.use("/inventory-entry", inventoryEntryRoutes)
 router.use("/inventory-exit", inventoryExitRoutes)
 router.use("/inventory", inventoryRoutes)
 
-/* Maquinaria routes */
+//MAQUINARIA
 router.use("/maquinaria", maquinariaRoutes)
 router.use("/compra-maquinaria", compraMaquinariaRoutes)
 router.use("/ventas-maquinaria", ventaMaquinariaRoutes)
 router.use("/arriendos-maquinaria", arriendoMaquinariaRoutes)
 router.use("/clientes-maquinaria", clienteMaquinariaRoutes) // Tu cliente de maquinaria
+
+/* Nueva ruta para subir imágenes */
+router.use("/update-image", updateImageRoutes) // ✅ Agregada
 
 export default router

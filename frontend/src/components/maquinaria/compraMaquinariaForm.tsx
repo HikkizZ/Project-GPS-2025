@@ -83,9 +83,9 @@ export const CompraMaquinariaForm: React.FC<CompraMaquinariaFormProps> = ({
     const file = e.target.files?.[0]
     if (file) {
       // Validar tipo de archivo
-      const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp", "application/pdf"]
+      const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp"]
       if (!allowedTypes.includes(file.type)) {
-        setErrors((prev) => ({ ...prev, padron: "Solo se permiten imágenes (JPEG, PNG, GIF, WebP) y archivos PDF" }))
+        setErrors((prev) => ({ ...prev, padron: "Solo se permiten imágenes (JPEG, PNG, GIF, WebP)" }))
         return
       }
 

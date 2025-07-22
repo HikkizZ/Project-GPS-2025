@@ -1,5 +1,3 @@
-"use client"
-
 import type React from "react"
 import { useState, useEffect } from "react"
 import { Modal, Button, Row, Col, Card, Form } from "react-bootstrap"
@@ -42,7 +40,7 @@ export const EstadoPagoModal: React.FC<EstadoPagoModalProps> = ({ show, onHide }
 
   // Generar opciones de años (últimos 3 años)
   const currentYear = new Date().getFullYear()
-  const anos = Array.from({ length: 3 }, (_, i) => currentYear - i)
+  const anos = Array.from({ length: 20 }, (_, i) => currentYear - i)
 
   // Filtrar reportes cuando cambian los filtros
   useEffect(() => {
@@ -93,12 +91,41 @@ export const EstadoPagoModal: React.FC<EstadoPagoModalProps> = ({ show, onHide }
   }
 
   const calcularTotal = () => {
-    return filteredReportes.reduce((total, reporte) => total + (reporte.valorServicio || 0), 0)
-  }
+  return filteredReportes.reduce((total, reporte) => {
+    const valor = reporte.valorServicio
+    // Verificar que sea un número válido
+    if (typeof valor === "number" && !isNaN(valor)) {
+      return total + valor
+    }
+    // Si es string, intentar convertir
+    if (typeof valor === "string") {
+      const numeroConvertido = Number.parseFloat(valor)
+      if (!isNaN(numeroConvertido)) {
+        return total + numeroConvertido
+      }
+    }
+    // Si no es válido, no sumar nada
+    return total
+  }, 0)
+}
 
-  const handlePrint = () => {
-    window.print()
-  }
+// Valor neto: simplemente el total calculado
+const calcularValorNeto = () => {
+  return calcularTotal()
+}
+
+// IVA: 19% del neto
+const calcularIVA = () => {
+  const valorNeto = calcularValorNeto()
+  return valorNeto * 0.19
+}
+
+// Total bruto: neto + IVA
+const calcularTotalBruto = () => {
+  const valorNeto = calcularValorNeto()
+  const iva = calcularIVA()
+  return valorNeto + iva
+}
 
   const handleDownloadPdf = async () => {
     if (!selectedCliente || filteredReportes.length === 0) {
@@ -252,7 +279,7 @@ export const EstadoPagoModal: React.FC<EstadoPagoModalProps> = ({ show, onHide }
                           <strong>RUT:</strong> 76.123.456-7
                         </p>
                         <p className="mb-2">
-                          <strong>DIRECCIÓN:</strong> Samuel Bambach  #254
+                          <strong>DIRECCIÓN:</strong> Samuel Bambach #254
                         </p>
                         <p className="mb-2">
                           <strong>GIRO:</strong> Alquiler de Vehículos y Maquinarias
@@ -366,24 +393,77 @@ export const EstadoPagoModal: React.FC<EstadoPagoModalProps> = ({ show, onHide }
                   </tbody>
                   {filteredReportes.length > 0 && (
                     <tfoot>
-                      <tr style={{ backgroundColor: "#fff3cd", fontWeight: "bold" }}>
+                      {/* Fila de Valor Neto */}
+                      <tr style={{ backgroundColor: "#f8f9fa", fontWeight: "bold" }}>
+                        <td
+                          colSpan={6}
+                          style={{
+                            padding: "12px 8px",
+                            textAlign: "right",
+                            fontSize: "13px",
+                            border: "1px solid #dee2e6",
+                          }}
+                        >
+                          VALOR NETO:
+                        </td>
+                        <td
+                          style={{
+                            padding: "12px 8px",
+                            textAlign: "right",
+                            fontFamily: "monospace",
+                            fontSize: "14px",
+                            fontWeight: "bold",
+                            border: "1px solid #dee2e6",
+                          }}
+                        >
+                          {formatCurrency(calcularValorNeto())}
+                        </td>
+                      </tr>
+                      {/* Fila de IVA */}
+                      <tr style={{ backgroundColor: "#f8f9fa", fontWeight: "bold" }}>
+                        <td
+                          colSpan={6}
+                          style={{
+                            padding: "12px 8px",
+                            textAlign: "right",
+                            fontSize: "13px",
+                            border: "1px solid #dee2e6",
+                          }}
+                        >
+                          IVA (19%):
+                        </td>
+                        <td
+                          style={{
+                            padding: "12px 8px",
+                            textAlign: "right",
+                            fontFamily: "monospace",
+                            fontSize: "14px",
+                            fontWeight: "bold",
+                            border: "1px solid #dee2e6",
+                          }}
+                        >
+                          {formatCurrency(calcularIVA())}
+                        </td>
+                      </tr>
+                      {/* Fila de Total Bruto */}
+                      <tr style={{ backgroundColor: "#28a745", color: "white", fontWeight: "bold" }}>
                         <td
                           colSpan={6}
                           style={{
                             padding: "15px 8px",
                             textAlign: "right",
-                            fontSize: "14px",
+                            fontSize: "15px",
                             border: "1px solid #dee2e6",
                           }}
                         >
-                          TOTAL GENERAL:
+                          TOTAL BRUTO:
                         </td>
                         <td
                           style={{
                             padding: "15px 8px",
                             textAlign: "right",
                             fontFamily: "monospace",
-                            fontSize: "16px",
+                            fontSize: "17px",
                             fontWeight: "bold",
                             border: "1px solid #dee2e6",
                           }}
@@ -439,10 +519,6 @@ export const EstadoPagoModal: React.FC<EstadoPagoModalProps> = ({ show, onHide }
                         Descargar PDF
                       </>
                     )}
-                  </Button>
-                  <Button variant="success" onClick={handlePrint} className="me-2">
-                    <i className="bi bi-printer me-2"></i>
-                    Imprimir
                   </Button>
                 </>
               )}

@@ -1,4 +1,4 @@
-import { apiClient } from '@/config/api.config';
+import { apiClient } from "@/config/api.config"
 import type { VentaMaquinaria, CreateVentaMaquinaria } from "../../types/maquinaria.types"
 
 export interface ApiResponse<T = any> {
