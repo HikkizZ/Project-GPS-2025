@@ -247,9 +247,19 @@ export default function HistorialLaboralPage() {
       const itemUnificado = item as HistorialUnificado;
       const detalles = itemUnificado.detalles;
       const esActualizacionLaboral = itemUnificado.descripcion.includes('Actualización de información laboral');
+      const esLicenciaPermiso = itemUnificado.descripcion.includes('Licencia') || itemUnificado.descripcion.includes('Permiso');
       
+      // Para licencias/permisos, mostrar solo fechas y motivo
+      if (esLicenciaPermiso) {
+        if (detalles.fechaInicioLicenciaPermiso) {
+          campos.push(`Licencia: ${formatFecha(detalles.fechaInicioLicenciaPermiso)} - ${formatFecha(detalles.fechaFinLicenciaPermiso)}`);
+        }
+        if (detalles.motivoLicenciaPermiso) {
+          campos.push(`Motivo: ${detalles.motivoLicenciaPermiso}`);
+        }
+      }
       // Para actualizaciones laborales, mostrar solo los campos que se modifican manualmente
-      if (esActualizacionLaboral) {
+      else if (esActualizacionLaboral) {
         if (detalles.cargo) {
           campos.push(`Cargo: ${detalles.cargo}`);
         }
@@ -287,41 +297,44 @@ export default function HistorialLaboralPage() {
         }
       }
       
-      // Campos específicos por tipo
-      if (detalles.fechaInicioLicenciaPermiso) {
-        campos.push(`Licencia: ${formatFecha(detalles.fechaInicioLicenciaPermiso)} - ${formatFecha(detalles.fechaFinLicenciaPermiso)}`);
-      }
-      if (detalles.motivoLicenciaPermiso) {
-        campos.push(`Motivo: ${detalles.motivoLicenciaPermiso}`);
-      }
-      if (detalles.rut) {
-        campos.push(`RUT: ${detalles.rut}`);
-      }
-      if (detalles.corporateEmail) {
-        campos.push(`Email: ${detalles.corporateEmail}`);
-      }
-      if (detalles.role) {
-        campos.push(`Rol: ${detalles.role}`);
+      // Campos específicos para otros tipos (no licencias/permisos)
+      if (!esLicenciaPermiso) {
+        if (detalles.rut) {
+          campos.push(`RUT: ${detalles.rut}`);
+        }
+        if (detalles.corporateEmail) {
+          campos.push(`Email: ${detalles.corporateEmail}`);
+        }
+        if (detalles.role) {
+          campos.push(`Rol: ${detalles.role}`);
+        }
       }
     } else {
       const itemTradicional = item as HistorialLaboral;
-      if (itemTradicional.cargo !== 'Por Definir' && itemTradicional.cargo !== 'Actualización de datos personales') {
-        campos.push(`Cargo: ${itemTradicional.cargo}`);
-      }
-      if (itemTradicional.area !== 'Por Definir' && itemTradicional.area !== 'N/A') {
-        campos.push(`Área: ${itemTradicional.area}`);
-      }
-      if (itemTradicional.sueldoBase > 0) {
-        campos.push(`Sueldo: ${formatSueldo(itemTradicional.sueldoBase)}`);
-      }
-      if (itemTradicional.estado) {
-        campos.push(`Estado: ${itemTradicional.estado}`);
-      }
-      if (itemTradicional.fechaInicioLicencia) {
-        campos.push(`Licencia: ${formatFecha(itemTradicional.fechaInicioLicencia)} - ${formatFecha(itemTradicional.fechaFinLicencia)}`);
-      }
-      if (itemTradicional.motivoLicencia) {
-        campos.push(`Motivo: ${itemTradicional.motivoLicencia}`);
+      const esLicenciaPermisoTradicional = itemTradicional.observaciones?.includes('Licencia') || itemTradicional.observaciones?.includes('Permiso');
+      
+      // Para licencias/permisos en vista tradicional, mostrar solo fechas y motivo
+      if (esLicenciaPermisoTradicional) {
+        if (itemTradicional.fechaInicioLicencia) {
+          campos.push(`Licencia: ${formatFecha(itemTradicional.fechaInicioLicencia)} - ${formatFecha(itemTradicional.fechaFinLicencia)}`);
+        }
+        if (itemTradicional.motivoLicencia) {
+          campos.push(`Motivo: ${itemTradicional.motivoLicencia}`);
+        }
+      } else {
+        // Para otros tipos, mostrar los campos normales
+        if (itemTradicional.cargo !== 'Por Definir' && itemTradicional.cargo !== 'Actualización de datos personales') {
+          campos.push(`Cargo: ${itemTradicional.cargo}`);
+        }
+        if (itemTradicional.area !== 'Por Definir' && itemTradicional.area !== 'N/A') {
+          campos.push(`Área: ${itemTradicional.area}`);
+        }
+        if (itemTradicional.sueldoBase > 0) {
+          campos.push(`Sueldo: ${formatSueldo(itemTradicional.sueldoBase)}`);
+        }
+        if (itemTradicional.estado) {
+          campos.push(`Estado: ${itemTradicional.estado}`);
+        }
       }
     }
     
