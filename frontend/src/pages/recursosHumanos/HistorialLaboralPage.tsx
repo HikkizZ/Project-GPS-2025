@@ -234,13 +234,10 @@ export default function HistorialLaboralPage() {
 
   const getTipoRegistro = (observaciones?: string | null) => {
     if (!observaciones) return { tipo: 'General', color: 'secondary', icono: 'file-text' };
-    
     if (observaciones.includes('Registro inicial')) 
       return { tipo: 'Registro Inicial', color: 'primary', icono: 'person-plus' };
-    if (observaciones.includes('Actualización de ficha')) 
+    if (observaciones.includes('Actualización de ficha') || observaciones.includes('Actualización de información laboral') || observaciones.includes('Subida de contrato')) 
       return { tipo: 'Actualización Laboral', color: 'purple', icono: 'pencil-square' };
-    if (observaciones.includes('Subida de contrato PDF')) 
-      return { tipo: 'Subida de Contrato', color: 'info', icono: 'file-earmark-arrow-up' };
     if (observaciones.includes('Licencia médica') || observaciones.includes('Permiso administrativo')) 
       return { tipo: 'Licencia/Permiso', color: 'warning', icono: 'calendar-check' };
     if (observaciones.includes('Desvinculación')) 
@@ -249,7 +246,6 @@ export default function HistorialLaboralPage() {
       return { tipo: 'Reactivación', color: 'success', icono: 'arrow-clockwise' };
     if (observaciones.includes('datos personales')) 
       return { tipo: 'Datos Personales', color: 'secondary', icono: 'person-gear' };
-    
     return { tipo: 'Cambio', color: 'light', icono: 'file-text' };
   };
 
@@ -420,10 +416,8 @@ export default function HistorialLaboralPage() {
     if (item.tipo === 'laboral') {
       if (item.descripcion.includes('Registro inicial')) 
         return { tipo: 'Registro Inicial', color: 'primary', icono: 'person-plus' };
-      if (item.descripcion.includes('Actualización de información laboral')) 
+      if (item.descripcion.includes('Actualización de información laboral') || item.descripcion.includes('Subida de contrato')) 
         return { tipo: 'Actualización Laboral', color: 'purple', icono: 'pencil-square' };
-      if (item.descripcion.includes('Subida de contrato PDF')) 
-        return { tipo: 'Subida de Contrato', color: 'info', icono: 'file-earmark-arrow-up' };
       if (item.descripcion.includes('Licencia') || item.descripcion.includes('Permiso')) 
         return { tipo: 'Licencia/Permiso', color: 'warning', icono: 'calendar-check' };
       if (item.descripcion.includes('Desvinculación')) 
