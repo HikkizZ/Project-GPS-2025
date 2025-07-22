@@ -14,9 +14,9 @@ export interface HistorialLaboral {
   previsionSalud?: string | null;
   seguroCesantia?: boolean | null;
   estado?: string | null;
-  fechaInicioLicencia?: string | null;
-  fechaFinLicencia?: string | null;
-  motivoLicencia?: string | null;
+  fechaInicioLicenciaPermiso?: string | null;
+  fechaFinLicenciaPermiso?: string | null;
+  motivoLicenciaPermiso?: string | null;
   trabajador?: {
     id: number;
     rut: string;

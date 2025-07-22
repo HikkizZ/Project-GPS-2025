@@ -454,10 +454,10 @@ export async function desvincularTrabajadorService(id: number, motivo: string, u
                 new Date(trabajador.fichaEmpresa.fechaInicioContrato.toISOString().split('T')[0] + 'T12:00:00') : null;
             const fechaFinNormalizada = trabajador.fichaEmpresa.fechaFinContrato ? 
                 new Date(trabajador.fichaEmpresa.fechaFinContrato.toISOString().split('T')[0] + 'T12:00:00') : null;
-            const fechaInicioLicenciaNormalizada = trabajador.fichaEmpresa.fechaInicioLicencia ? 
-                new Date(trabajador.fichaEmpresa.fechaInicioLicencia.toISOString().split('T')[0] + 'T12:00:00') : null;
-            const fechaFinLicenciaNormalizada = trabajador.fichaEmpresa.fechaFinLicencia ? 
-                new Date(trabajador.fichaEmpresa.fechaFinLicencia.toISOString().split('T')[0] + 'T12:00:00') : null;
+            const fechaInicioLicenciaPermisoNormalizada = trabajador.fichaEmpresa.fechaInicioLicenciaPermiso ? 
+                new Date(trabajador.fichaEmpresa.fechaInicioLicenciaPermiso.toISOString().split('T')[0] + 'T12:00:00') : null;
+            const fechaFinLicenciaPermisoNormalizada = trabajador.fichaEmpresa.fechaFinLicenciaPermiso ? 
+                new Date(trabajador.fichaEmpresa.fechaFinLicenciaPermiso.toISOString().split('T')[0] + 'T12:00:00') : null;
             
             const nuevoHistorial = new HistorialLaboral();
             nuevoHistorial.trabajador = trabajador;
@@ -475,9 +475,9 @@ export async function desvincularTrabajadorService(id: number, motivo: string, u
             nuevoHistorial.previsionSalud = trabajador.fichaEmpresa.previsionSalud;
             nuevoHistorial.seguroCesantia = trabajador.fichaEmpresa.seguroCesantia;
             nuevoHistorial.estado = trabajador.fichaEmpresa.estado;
-            if (fechaInicioLicenciaNormalizada) nuevoHistorial.fechaInicioLicencia = fechaInicioLicenciaNormalizada;
-            if (fechaFinLicenciaNormalizada) nuevoHistorial.fechaFinLicencia = fechaFinLicenciaNormalizada;
-            nuevoHistorial.motivoLicencia = trabajador.fichaEmpresa.motivoLicencia;
+            if (fechaInicioLicenciaPermisoNormalizada) nuevoHistorial.fechaInicioLicenciaPermiso = fechaInicioLicenciaPermisoNormalizada;
+            if (fechaFinLicenciaPermisoNormalizada) nuevoHistorial.fechaFinLicenciaPermiso = fechaFinLicenciaPermisoNormalizada;
+            nuevoHistorial.motivoLicenciaPermiso = trabajador.fichaEmpresa.motivoLicenciaPermiso;
             nuevoHistorial.registradoPor = userId ? await queryRunner.manager.findOne(User, { where: { id: userId } }) : undefined;
             
             await historialRepo.save(nuevoHistorial);
@@ -759,9 +759,9 @@ export async function reactivarTrabajadorService(
         trabajador.fichaEmpresa.fechaInicioContrato = new Date();
         trabajador.fichaEmpresa.fechaFinContrato = null;
         trabajador.fichaEmpresa.motivoDesvinculacion = null;
-        trabajador.fichaEmpresa.fechaInicioLicencia = null;
-        trabajador.fichaEmpresa.fechaFinLicencia = null;
-        trabajador.fichaEmpresa.motivoLicencia = null;
+        trabajador.fichaEmpresa.fechaInicioLicenciaPermiso = null;
+        trabajador.fichaEmpresa.fechaFinLicenciaPermiso = null;
+        trabajador.fichaEmpresa.motivoLicenciaPermiso = null;
 
         // 9. Registrar reactivación en historial laboral
         const historialReactivacion = historialRepo.create({
@@ -778,9 +778,9 @@ export async function reactivarTrabajadorService(
             previsionSalud: trabajador.fichaEmpresa.previsionSalud,
             seguroCesantia: trabajador.fichaEmpresa.seguroCesantia,
             estado: trabajador.fichaEmpresa.estado,
-            fechaInicioLicencia: trabajador.fichaEmpresa.fechaInicioLicencia,
-            fechaFinLicencia: trabajador.fichaEmpresa.fechaFinLicencia,
-            motivoLicencia: trabajador.fichaEmpresa.motivoLicencia,
+            fechaInicioLicenciaPermiso: trabajador.fichaEmpresa.fechaInicioLicenciaPermiso,
+            fechaFinLicenciaPermiso: trabajador.fichaEmpresa.fechaFinLicenciaPermiso,
+            motivoLicenciaPermiso: trabajador.fichaEmpresa.motivoLicenciaPermiso,
             registradoPor: usuarioRegistra
         });
 

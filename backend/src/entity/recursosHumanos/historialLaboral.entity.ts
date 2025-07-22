@@ -56,13 +56,13 @@ export class HistorialLaboral {
   estado!: string;
 
   @Column({ type: "date", nullable: true })
-  fechaInicioLicencia!: Date;
+  fechaInicioLicenciaPermiso!: Date;
 
   @Column({ type: "date", nullable: true })
-  fechaFinLicencia!: Date;
+  fechaFinLicenciaPermiso!: Date;
 
   @Column({ type: "text", nullable: true })
-  motivoLicencia!: string;
+  motivoLicenciaPermiso!: string;
 
   @ManyToOne("Trabajador", { onDelete: "CASCADE" })
   @JoinColumn({ name: "trabajadorId" })

@@ -118,9 +118,9 @@ export const ModalHistorialLaboral: React.FC<ModalHistorialLaboralProps> = ({
                     <td>{item.afp || '-'}</td>
                     <td>{item.previsionSalud || '-'}</td>
                     <td>{formatSeguroCesantia(item.seguroCesantia)}</td>
-                    <td>{formatFecha(item.fechaInicioLicencia)}</td>
-                    <td>{formatFecha(item.fechaFinLicencia)}</td>
-                    <td>{item.motivoLicencia || '-'}</td>
+                    <td>{formatFecha(item.fechaInicioLicenciaPermiso)}</td>
+                    <td>{formatFecha(item.fechaFinLicenciaPermiso)}</td>
+                    <td>{item.motivoLicenciaPermiso || '-'}</td>
                     <td>{item.motivoDesvinculacion || '-'}</td>
                     <td>{item.observaciones || '-'}</td>
                     <td>

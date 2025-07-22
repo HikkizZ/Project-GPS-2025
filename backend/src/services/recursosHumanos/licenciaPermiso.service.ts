@@ -308,9 +308,9 @@ export async function updateLicenciaPermisoService(id: number, data: UpdateLicen
       const fichaEmpresa = licencia.trabajador.fichaEmpresa;
       
       // Solo guardar las fechas y motivo, NO cambiar el estado inmediatamente
-      fichaEmpresa.fechaInicioLicencia = licencia.fechaInicio;
-      fichaEmpresa.fechaFinLicencia = licencia.fechaFin;
-      fichaEmpresa.motivoLicencia = licencia.motivoSolicitud;
+      fichaEmpresa.fechaInicioLicenciaPermiso = licencia.fechaInicio;
+      fichaEmpresa.fechaFinLicenciaPermiso = licencia.fechaFin;
+      fichaEmpresa.motivoLicenciaPermiso = licencia.motivoSolicitud;
       
       // Guardar los cambios en la ficha
       await fichaRepo.save(fichaEmpresa);
@@ -337,10 +337,10 @@ export async function updateLicenciaPermisoService(id: number, data: UpdateLicen
               new Date(fichaEmpresa.fechaInicioContrato.toISOString().split('T')[0] + 'T12:00:00') : null;
           const fechaFinNormalizada = fichaEmpresa.fechaFinContrato ? 
               new Date(fichaEmpresa.fechaFinContrato.toISOString().split('T')[0] + 'T12:00:00') : null;
-          const fechaInicioLicenciaNormalizada = fichaEmpresa.fechaInicioLicencia ? 
-              new Date(fichaEmpresa.fechaInicioLicencia.toISOString().split('T')[0] + 'T12:00:00') : null;
-          const fechaFinLicenciaNormalizada = fichaEmpresa.fechaFinLicencia ? 
-              new Date(fichaEmpresa.fechaFinLicencia.toISOString().split('T')[0] + 'T12:00:00') : null;
+          const fechaInicioLicenciaPermisoNormalizada = fichaEmpresa.fechaInicioLicenciaPermiso ? 
+              new Date(fichaEmpresa.fechaInicioLicenciaPermiso.toISOString().split('T')[0] + 'T12:00:00') : null;
+          const fechaFinLicenciaPermisoNormalizada = fichaEmpresa.fechaFinLicenciaPermiso ? 
+              new Date(fichaEmpresa.fechaFinLicenciaPermiso.toISOString().split('T')[0] + 'T12:00:00') : null;
           
           const nuevoHistorial = new HistorialLaboral();
           nuevoHistorial.trabajador = licencia.trabajador;
@@ -358,9 +358,9 @@ export async function updateLicenciaPermisoService(id: number, data: UpdateLicen
           nuevoHistorial.previsionSalud = fichaEmpresa.previsionSalud;
           nuevoHistorial.seguroCesantia = fichaEmpresa.seguroCesantia;
           nuevoHistorial.estado = fichaEmpresa.estado;
-          if (fechaInicioLicenciaNormalizada) nuevoHistorial.fechaInicioLicencia = fechaInicioLicenciaNormalizada;
-          if (fechaFinLicenciaNormalizada) nuevoHistorial.fechaFinLicencia = fechaFinLicenciaNormalizada;
-          nuevoHistorial.motivoLicencia = fichaEmpresa.motivoLicencia;
+          if (fechaInicioLicenciaPermisoNormalizada) nuevoHistorial.fechaInicioLicenciaPermiso = fechaInicioLicenciaPermisoNormalizada;
+          if (fechaFinLicenciaPermisoNormalizada) nuevoHistorial.fechaFinLicenciaPermiso = fechaFinLicenciaPermisoNormalizada;
+          nuevoHistorial.motivoLicenciaPermiso = fichaEmpresa.motivoLicenciaPermiso;
           nuevoHistorial.registradoPor = data.revisadoPor || undefined;
           
           await historialRepo.save(nuevoHistorial);
@@ -480,9 +480,9 @@ export async function verificarEstadosLicenciasService(): Promise<ServiceRespons
             // Solo cambiar a ACTIVO si no hay licencias vigentes Y el estado es distinto y NO está desvinculado
             if (!licenciaVigente && fichaEmpresa.estado !== EstadoLaboral.ACTIVO && fichaEmpresa.estado !== EstadoLaboral.DESVINCULADO) {
                 fichaEmpresa.estado = EstadoLaboral.ACTIVO;
-                fichaEmpresa.fechaInicioLicencia = null;
-                fichaEmpresa.fechaFinLicencia = null;
-                fichaEmpresa.motivoLicencia = null;
+                fichaEmpresa.fechaInicioLicenciaPermiso = null;
+                fichaEmpresa.fechaFinLicenciaPermiso = null;
+                fichaEmpresa.motivoLicenciaPermiso = null;
                 
                 await fichaRepo.save(fichaEmpresa);
                 desactivadas++;

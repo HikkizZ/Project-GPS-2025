@@ -431,10 +431,10 @@ export async function updateFichaEmpresaService(
             new Date(fichaActualizada.fechaInicioContrato.toISOString().split('T')[0] + 'T12:00:00') : null;
         const fechaFinNormalizada = fichaActualizada.fechaFinContrato ? 
             new Date(fichaActualizada.fechaFinContrato.toISOString().split('T')[0] + 'T12:00:00') : null;
-        const fechaInicioLicenciaNormalizada = fichaActualizada.fechaInicioLicencia ? 
-            new Date(fichaActualizada.fechaInicioLicencia.toISOString().split('T')[0] + 'T12:00:00') : null;
-        const fechaFinLicenciaNormalizada = fichaActualizada.fechaFinLicencia ? 
-            new Date(fichaActualizada.fechaFinLicencia.toISOString().split('T')[0] + 'T12:00:00') : null;
+        const fechaInicioLicenciaPermisoNormalizada = fichaActualizada.fechaInicioLicenciaPermiso ? 
+            new Date(fichaActualizada.fechaInicioLicenciaPermiso.toISOString().split('T')[0] + 'T12:00:00') : null;
+        const fechaFinLicenciaPermisoNormalizada = fichaActualizada.fechaFinLicenciaPermiso ? 
+            new Date(fichaActualizada.fechaFinLicenciaPermiso.toISOString().split('T')[0] + 'T12:00:00') : null;
         
         await historialRepo.save(historialRepo.create({
             trabajador: fichaActualizada.trabajador,
@@ -452,9 +452,9 @@ export async function updateFichaEmpresaService(
             previsionSalud: fichaActualizada.previsionSalud,
             seguroCesantia: fichaActualizada.seguroCesantia,
             estado: fichaActualizada.estado,
-            fechaInicioLicencia: fechaInicioLicenciaNormalizada,
-            fechaFinLicencia: fechaFinLicenciaNormalizada,
-            motivoLicencia: fichaActualizada.motivoLicencia,
+            fechaInicioLicenciaPermiso: fechaInicioLicenciaPermisoNormalizada,
+            fechaFinLicenciaPermiso: fechaFinLicenciaPermisoNormalizada,
+            motivoLicenciaPermiso: fichaActualizada.motivoLicenciaPermiso,
             registradoPor: usuarioAutenticado || fichaActualizada.trabajador?.usuario || null
         }));
 

@@ -167,7 +167,7 @@ export class FichaEmpresa {
       }
     }
   })
-  fechaInicioLicencia?: Date | null;
+  fechaInicioLicenciaPermiso?: Date | null;
 
   @Column({
     type: "date",
@@ -191,10 +191,10 @@ export class FichaEmpresa {
       }
     }
   })
-  fechaFinLicencia?: Date | null;
+  fechaFinLicenciaPermiso?: Date | null;
 
   @Column({ type: "text", nullable: true })
-  motivoLicencia?: string | null;
+  motivoLicenciaPermiso?: string | null;
 
   @Column({ type: "varchar", length: 255, nullable: true })
   contratoURL!: string | null;
