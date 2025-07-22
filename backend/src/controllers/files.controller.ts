@@ -42,7 +42,7 @@ export const uploadFileController = async (req: Request, res: Response) => {
     }
 
     // Subir archivo desde memoria directamente al servidor remoto
-    await sftp.put(req.file.buffer, remotePath);
+   // await sftp.put(req.file.buffer, remotePath);
 
     // Cerrar conexión
     await sftp.end();
