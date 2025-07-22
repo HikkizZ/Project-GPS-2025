@@ -13,21 +13,18 @@ export const useSuppliers = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Estados específicos para operaciones individuales
   const [isCreating, setIsCreating] = useState<boolean>(false);
   const [isUpdating, setIsUpdating] = useState<boolean>(false);
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
 
-  // Última query de búsqueda (para reutilizar al recargar)
   const [lastQuery, setLastQuery] = useState<SupplierSearchQuery>({});
 
-  //? Cargar proveedores con filtros
   const loadSuppliers = async (query?: SupplierSearchQuery) => {
     setIsLoading(true);
     setError(null);
 
     const useQuery = query || lastQuery || {};
-    setLastQuery(useQuery); // Guardamos la última query utilizada
+    setLastQuery(useQuery);
 
     try {
       if (useQuery.rut || useQuery.email) {
@@ -60,7 +57,6 @@ export const useSuppliers = () => {
     }
   };
 
-  //? Crear proveedor
   const createSupplier = async (data: CreateSupplierData) => {
     setIsCreating(true);
     setError(null);
@@ -68,7 +64,7 @@ export const useSuppliers = () => {
     try {
       const response = await supplierService.createSupplier(data);
       if (response.success) {
-        await loadSuppliers(lastQuery); // Recargar proveedores con la última query
+        await loadSuppliers(lastQuery);
         return { success: true, data: response.data, message: response.message };
       } else {
         return { success: false, error: response.error || "Error al crear proveedor" };
@@ -80,7 +76,6 @@ export const useSuppliers = () => {
     }
   };
 
-  //? Actualizar proveedor
   const updateSupplier = async (id: number, data: UpdateSupplierData) => {
     setIsUpdating(true);
     setError(null);
@@ -100,7 +95,6 @@ export const useSuppliers = () => {
     }
   };
 
-  //? Eliminar proveedor
   const deleteSupplier = async (id: number) => {
     setIsDeleting(true);
     setError(null);
@@ -120,7 +114,6 @@ export const useSuppliers = () => {
     }
   };
 
-  // Cargar proveedores al iniciar (si es necesario)
   useEffect(() => {
     loadSuppliers();
   }, []);

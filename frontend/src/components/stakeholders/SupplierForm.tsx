@@ -62,7 +62,6 @@ const SupplierForm: React.FC<SupplierFormProps> = ({ initialData, onSubmit, onCa
 
   return (
     <Form onSubmit={handleSubmit}>
-      {/* Nota Importante */}
       <div className="modal-info-alert">
         <i className="bi bi-info-circle-fill"></i>
         <div>

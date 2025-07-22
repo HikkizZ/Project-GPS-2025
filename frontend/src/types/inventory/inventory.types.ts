@@ -45,7 +45,6 @@ export interface InventoryExit {
   id: number
   exitDate?: string
   customer: {
-    // Considerar usar el tipo Customer completo si se necesitan más propiedades
     id: number
     name: string
     rut: string
@@ -56,14 +55,14 @@ export interface InventoryExit {
   details: {
     id: number
     product: {
-      // Considerar usar el tipo Product completo si se necesitan más propiedades
+
       id: number
       product: string
       salePrice: number
-      isActive: boolean // Añadido según tu ejemplo de backend
+      isActive: boolean 
     }
     quantity: number
-    salePrice: number // Precio de venta del producto en el momento de la salida
+    salePrice: number 
     totalPrice: number
   }[]
 }

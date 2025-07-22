@@ -1,15 +1,12 @@
-"use client"
-
 import type React from "react"
 import { Row, Col, Button, Card, Form } from "react-bootstrap"
-import { ProductType } from "@/types/inventory/product.types" // Importar ProductType
+import { ProductType } from "@/types/inventory/product.types"
 
 interface LocalFiltersProps {
   filters: {
     product: string
     salePrice: string
   }
-  // Aceptar HTMLTextAreaElement también, ya que FormControlElement lo incluye
   onFilterChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => void
   onReset: () => void
   hasActiveFilters: boolean
@@ -41,7 +38,7 @@ export const LocalFilters: React.FC<LocalFiltersProps> = ({ filters, onFilterCha
             <Form.Group className="mb-3">
               <Form.Label>Tipo de Producto</Form.Label>
               <Form.Control
-                as="select" // Cambiado a select para el enum
+                as="select"
                 name="product"
                 value={filters.product}
                 onChange={onFilterChange}

@@ -1,11 +1,9 @@
-"use client"
-
 import type React from "react"
 import { useState, useEffect } from "react"
 import { Container, Row, Col, Button, Card } from "react-bootstrap"
 import InventorySidebar from "@/components/inventory/layout/InventorySidebar"
 import CustomerModal from "@/components/stakeholders/CustomerModal"
-import ConfirmModal from "@/components/stakeholders/ConfirmModal"
+import ConfirmModal from "@/components/common/ConfirmModal"
 import { FiltersPanel } from "@/components/stakeholders/filters/FiltersPanel"
 import { CustomerTable } from "@/components/stakeholders/CustomerTable"
 import { useCustomers } from "@/hooks/stakeholders/useCustomers"
@@ -39,14 +37,12 @@ export const CustomerPage: React.FC = () => {
     phone: "",
   })
 
-  // Estados existentes
   const [showModal, setShowModal] = useState(false)
   const [editingCustomer, setEditingCustomer] = useState<Customer | undefined>(undefined)
   const [filters, setFilters] = useState({ rut: "", email: "" })
   const [showFilters, setShowFilters] = useState(false)
   const [customerToDelete, setCustomerToDelete] = useState<Customer | null>(null)
 
-  // Efecto para sincronizar customers del hook con el estado local
   useEffect(() => {
     setAllCustomers(customers)
     setFilteredCustomers(customers)
@@ -244,15 +240,14 @@ export const CustomerPage: React.FC = () => {
             message={`¿Estás seguro que deseas eliminar al cliente "${customerToDelete?.name}"?`}
             confirmText="Eliminar"
             cancelText="Cancelar"
-            headerVariant="danger" // Encabezado rojo
+            headerVariant="danger" 
             warningContent={
-              // Contenido de advertencia personalizable
               <>
                 <p className="mb-0">Esta acción:</p>
                 <ul>
-                  <li>Marcará el cliente como eliminado en el sistema.</li>
-                  <li>Desactivará su ficha de empresa.</li>
-                  <li>Registrará el motivo de eliminación en el historial.</li>
+                    <li>Marcará el cliente como eliminado en el sistema.</li>
+                    <li>No podrá ser utilizado hasta que sea restaurado.</li>
+                    <li>Las transacciones asociadas no se verán afectadas.</li>
                 </ul>
               </>
             }

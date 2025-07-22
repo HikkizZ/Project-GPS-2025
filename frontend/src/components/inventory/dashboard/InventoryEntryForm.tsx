@@ -27,12 +27,10 @@ const InventoryEntryForm: React.FC<InventoryEntryFormProps> = ({ onSubmit, onCan
       },
     ],
   })
-  const [entryDate, setEntryDate] = useState<string>(new Date().toISOString().split("T")[0]) // Default to current date
+  const [entryDate, setEntryDate] = useState<string>(new Date().toISOString().split("T")[0])
   const [errors, setErrors] = useState<Record<string, string | string[]>>({})
 
-  // Filter out inactive products
   const activeProducts = useMemo(() => {
-    // Assuming 'isActive' property exists on Product type for soft delete
     return products.filter((product) => (product as any).isActive !== false)
   }, [products])
 
@@ -91,7 +89,6 @@ const InventoryEntryForm: React.FC<InventoryEntryFormProps> = ({ onSubmit, onCan
     }
     setFormData((prev) => ({ ...prev, details: newDetails }))
 
-    // Clear specific detail error if it exists
     if (Array.isArray(errors.details) && errors.details[index]) {
       const newDetailErrors = [...errors.details]
       newDetailErrors[index] = ""
@@ -132,20 +129,16 @@ const InventoryEntryForm: React.FC<InventoryEntryFormProps> = ({ onSubmit, onCan
     e.preventDefault()
     if (!validate()) return
 
-    // Prepare data for submission, including optional entryDate
     const dataToSubmit: CreateInventoryEntryData = {
       supplierRut: formData.supplierRut,
       details: formData.details,
     }
-    // Only add entryDate if it's explicitly set or not empty
     if (entryDate) {
-      // Convert to ISO string if it's a valid date, otherwise send as is or omit
       try {
         const dateObj = new Date(entryDate)
         if (!isNaN(dateObj.getTime())) {
           ;(dataToSubmit as any).entryDate = dateObj.toISOString()
         } else {
-          // If date is invalid, you might want to handle this error or omit the field
           console.warn("Invalid entryDate provided, omitting from submission:", entryDate)
         }
       } catch (error) {
@@ -172,12 +165,12 @@ const InventoryEntryForm: React.FC<InventoryEntryFormProps> = ({ onSubmit, onCan
 
   return (
     <Form onSubmit={handleSubmit}>
-      <div className="modal-info-alert">
+      <div className="modal-warning-alert">
         <i className="bi bi-info-circle-fill"></i>
         <div>
-          <strong>Nota Importante:</strong>
+          <strong>Importante:</strong>
           <p className="mb-0">
-            Al registrar una entrada de inventario, se actualizará el stock de los productos seleccionados.
+            Al registrar una compra, el stock de los productos se actualizará automáticamente.
           </p>
         </div>
       </div>
