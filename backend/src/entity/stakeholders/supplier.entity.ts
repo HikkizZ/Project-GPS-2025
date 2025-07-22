@@ -21,4 +21,7 @@ export class Supplier {
     @Index("IDX_SUPPLIERS_EMAIL", { unique: true }) // Unique index for the email column
     @Column({ type: "varchar", length: 255, nullable: false })
     email!: string;
+
+    @Column({ type: 'boolean', default: true })
+    isActive!: boolean;
 }
