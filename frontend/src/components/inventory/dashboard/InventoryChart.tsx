@@ -6,14 +6,14 @@ import { Chart, BarController, BarElement, CategoryScale, LinearScale, Tooltip, 
 Chart.register(BarController, BarElement, CategoryScale, LinearScale, Tooltip, Legend)
 
 interface InventoryChartProps {
-  data?: { label: string; value: number }[]
+  inventory?: { id: number; product: { id: number; product: string; salePrice: number }; quantity: number }[]
   onRefresh?: () => void
   activeProductTypesCount: number
   inactiveProductTypesCount: number
 }
 
 const InventoryChart: React.FC<InventoryChartProps> = ({
-  data: propData,
+  inventory,
   onRefresh,
   activeProductTypesCount,
   inactiveProductTypesCount,
@@ -21,7 +21,6 @@ const InventoryChart: React.FC<InventoryChartProps> = ({
   const chartRef = useRef<HTMLCanvasElement | null>(null)
   const chartInstance = useRef<Chart | null>(null)
 
-  // Estado para controlar la visibilidad de cada métrica
   const [metricVisibility, setMetricVisibility] = useState({
     totalStock: true,
     averagePerCategory: true,
@@ -30,7 +29,11 @@ const InventoryChart: React.FC<InventoryChartProps> = ({
     unregisteredCategories: true,
   })
 
-  const chartData = propData || []
+  const chartData =
+    inventory?.map((item) => ({
+      label: item.product.product,
+      value: item.quantity,
+    })) || []
 
   const calculations = useMemo(() => {
     const values = chartData.map((item) => item.value)
