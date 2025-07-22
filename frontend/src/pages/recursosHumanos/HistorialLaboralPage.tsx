@@ -197,7 +197,7 @@ export default function HistorialLaboralPage() {
     if (observaciones.includes('Registro inicial')) 
       return { tipo: 'Registro Inicial', color: 'primary', icono: 'person-plus' };
     if (observaciones.includes('Actualización de ficha')) 
-      return { tipo: 'Actualización Laboral', color: 'success', icono: 'pencil-square' };
+      return { tipo: 'Actualización Laboral', color: 'purple', icono: 'pencil-square' };
     if (observaciones.includes('Licencia médica') || observaciones.includes('Permiso administrativo')) 
       return { tipo: 'Licencia/Permiso', color: 'warning', icono: 'calendar-check' };
     if (observaciones.includes('Desvinculación')) 
@@ -335,7 +335,7 @@ export default function HistorialLaboralPage() {
       if (item.descripcion.includes('Registro inicial')) 
         return { tipo: 'Registro Inicial', color: 'primary', icono: 'person-plus' };
       if (item.descripcion.includes('Actualización de información laboral')) 
-        return { tipo: 'Actualización Laboral', color: 'info', icono: 'pencil-square' };
+        return { tipo: 'Actualización Laboral', color: 'purple', icono: 'pencil-square' };
       if (item.descripcion.includes('Licencia') || item.descripcion.includes('Permiso')) 
         return { tipo: 'Licencia/Permiso', color: 'warning', icono: 'calendar-check' };
       if (item.descripcion.includes('Desvinculación')) 

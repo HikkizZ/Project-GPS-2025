@@ -325,3 +325,19 @@
   outline: 2px solid #007bff;
   outline-offset: 2px;
 } 
+
+/* Custom Purple Colors */
+.bg-purple {
+  background-color: #6f42c1 !important;
+  color: white !important;
+}
+
+.badge.bg-purple {
+  background-color: #6f42c1 !important;
+  color: white !important;
+}
+
+.timeline-marker-circle.bg-purple {
+  background-color: #6f42c1 !important;
+  color: white !important;
+}
