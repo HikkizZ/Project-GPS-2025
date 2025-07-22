@@ -11,6 +11,7 @@ import { useDeleteSparePart } from "@/hooks/MachinaryMaintenance/SparePart/useDe
 import ListSparePart from "@/components/MachineryMaintenance/SpareParts/ListSparePart"
 import SparePartModal from "@/components/MachineryMaintenance/SpareParts/SparePartModal"
 import { Toast, useToast } from "@/components/common/Toast"
+import MaintenanceSidebar from "@/components/MachineryMaintenance/MaintenanceSidebar";
 
 const SparePartsPage: React.FC = () => {
   const { spareParts, loading, error, reload } = useSpareParts()
@@ -65,6 +66,9 @@ const SparePartsPage: React.FC = () => {
   }
 
   return (
+     <div className="d-flex">
+      <MaintenanceSidebar />
+      <div className="flex-grow-1"></div>
     <Container fluid className="py-4">
       <Row>
         <Col>
@@ -128,7 +132,7 @@ const SparePartsPage: React.FC = () => {
         </Col>
       </Row>
     </Container>
-  );
+  </div>);
 }
 
 export default SparePartsPage
