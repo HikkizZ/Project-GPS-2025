@@ -162,8 +162,8 @@ export default function HistorialLaboralPage() {
     if (!estado) return <Badge bg="secondary">-</Badge>;
     const color =
       estado.toLowerCase().includes('activo') ? 'success' :
-      estado.toLowerCase().includes('licencia') ? 'warning' :
-      estado.toLowerCase().includes('permiso') ? 'info' :
+      estado.toLowerCase().includes('licencia') ? 'info' :
+      estado.toLowerCase().includes('permiso') ? 'warning' :
       estado.toLowerCase().includes('desvinculado') ? 'danger' :
       'secondary';
     return <Badge bg={color}>{estado}</Badge>;
@@ -197,7 +197,7 @@ export default function HistorialLaboralPage() {
     if (observaciones.includes('Registro inicial')) 
       return { tipo: 'Registro Inicial', color: 'primary', icono: 'person-plus' };
     if (observaciones.includes('Actualización de ficha')) 
-      return { tipo: 'Actualización Laboral', color: 'info', icono: 'pencil-square' };
+      return { tipo: 'Actualización Laboral', color: 'success', icono: 'pencil-square' };
     if (observaciones.includes('Licencia médica') || observaciones.includes('Permiso administrativo')) 
       return { tipo: 'Licencia/Permiso', color: 'warning', icono: 'calendar-check' };
     if (observaciones.includes('Desvinculación')) 

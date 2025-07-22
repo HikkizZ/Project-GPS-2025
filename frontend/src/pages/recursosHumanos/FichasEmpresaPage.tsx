@@ -290,9 +290,9 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
       case EstadoLaboral.ACTIVO:
         return 'bg-success';
       case EstadoLaboral.LICENCIA:
-        return 'bg-warning';
-      case EstadoLaboral.PERMISO:
         return 'bg-info';
+      case EstadoLaboral.PERMISO:
+        return 'bg-warning';
       case EstadoLaboral.DESVINCULADO:
         return 'bg-danger';
       default:
