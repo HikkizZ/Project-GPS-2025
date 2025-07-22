@@ -9,6 +9,7 @@ import {
 import { CreateInventoryExitDTO } from '../../types/inventory/inventory.dto.js';
 import { handleSuccess, handleErrorClient, handleErrorServer } from '../../handlers/responseHandlers.js';
 import { createInventoryExitValidation, inventoryQueryValidation } from '../../validations/inventory/inventory.validation.js';
+import { exit } from 'process';
 
 export async function createInventoryExit(req: Request, res: Response): Promise<void> {
     try {
@@ -43,13 +44,13 @@ export async function getAllInventoryExits(_req: Request, res: Response): Promis
     try {
         const [exits, err] = await getAllInventoryExitsService();
 
-        if (err) {
+        if (err && exits === null) {
             handleErrorServer(res, 500, typeof err === 'string' ? err : err.message);
             return;
         }
 
         if (!exits || exits.length === 0) {
-            handleErrorClient(res, 404, 'No se encontraron salidas de inventario.');
+            handleSuccess(res, 200, 'No se encontraron salidas de inventario.', exits || []);
             return;
         }
 
@@ -69,13 +70,13 @@ export async function getInventoryExitById(req: Request, res: Response): Promise
 
         const [exit, err] = await getInventoryExitByIdService(id);
 
-        if (err) {
+        if (err && exit === null) {
             handleErrorClient(res, 404, typeof err === 'string' ? err : err.message);
             return;
         }
 
         if (!exit) {
-            handleErrorClient(res, 404, 'Salida de inventario no encontrada.');
+            handleSuccess(res, 404, 'Salida de inventario no encontrada.');
             return;
         }
 

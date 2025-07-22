@@ -9,10 +9,6 @@ export async function getAllSuppliersService(): Promise<ServiceResponse<Supplier
         const supplierRepository = AppDataSource.getRepository(Supplier);
         const suppliers = await supplierRepository.find();
 
-        if (!suppliers || suppliers.length === 0) {
-            return [null, "No hay proveedores registrados."];
-        }
-
         return [suppliers, null];
     } catch (error) {
         console.error("Error fetching suppliers:", error);

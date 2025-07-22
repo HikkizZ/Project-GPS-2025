@@ -14,13 +14,13 @@ export async function getProducts(_req: Request, res: Response): Promise<void> {
     try {
         const [products, error] = await getAllProductsService();
 
-        if (error) {
-            handleErrorServer(res, 404, typeof error === 'string' ? error : error.message);
+        if (error && products === null) {
+            handleErrorServer(res, 500, typeof error === 'string' ? error : error.message);
         return;
         }
 
         if (!products || products.length === 0) {
-            handleErrorClient(res, 404, "No se encontraron productos.");
+            handleSuccess(res, 200, "No se encontraron productos.", products || []);
             return;
         }
 

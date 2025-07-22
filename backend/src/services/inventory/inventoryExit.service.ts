@@ -53,10 +53,6 @@ export async function getAllInventoryExitsService(): Promise<ServiceResponse<Inv
         
         const exits = await exitRepo.find({ relations: ['customer', 'details', 'details.product'] });
 
-        if (exits.length === 0) {
-            return [[], "No se encontraron salidas de inventario."];
-        }
-
         return [exits, null];
     } catch (error) {
         console.error("Error al obtener salidas de inventario:", error);

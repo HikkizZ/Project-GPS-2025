@@ -9,10 +9,6 @@ export async function getAllProductsService(): Promise<ServiceResponse<Product[]
 
         const products = await productRepository.find({ where: { isActive: true } });
 
-        if (!products || products.length === 0) {
-            return [null, "No hay productos registrados."];
-        }
-
         return [products, null];
     } catch (error) {
         console.error("Error fetching products:", error);

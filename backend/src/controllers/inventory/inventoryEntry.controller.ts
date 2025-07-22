@@ -43,13 +43,13 @@ export async function getAllInventoryEntries(_req: Request, res: Response): Prom
   try {
     const [entries, err] = await getAllInventoryEntriesService();
 
-    if (err) {
+    if (err && entries === null) {
       handleErrorServer(res, 500, typeof err === 'string' ? err : err.message);
       return;
     }
 
     if (!entries || entries.length === 0) {
-      handleErrorClient(res, 404, 'No se encontraron entradas de inventario.');
+      handleSuccess(res, 200, 'No se encontraron entradas de inventario.', entries || []);
       return;
     }
 

@@ -9,10 +9,6 @@ export async function getAllCustomersService(): Promise<ServiceResponse<Customer
         const customerRepository = AppDataSource.getRepository(Customer);
         const customers = await customerRepository.find();
 
-        if (!customers || customers.length === 0) {
-            return [null, "No hay clientes registrados."];
-        }
-
         return [customers, null];
     } catch (error) {
         console.error("Error fetching customers:", error);

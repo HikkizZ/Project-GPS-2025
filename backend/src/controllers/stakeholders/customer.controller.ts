@@ -15,13 +15,13 @@ export async function getCustomers(_req: Request, res: Response): Promise<void> 
     try {
         const [customers, error] = await getAllCustomersService();
 
-        if (error) {
-            handleErrorServer(res, 404, typeof error === 'string' ? error : error.message);
+        if (error && customers === null) {
+            handleErrorServer(res, 500, typeof error === 'string' ? error : error.message);
             return;
         }
 
         if (!customers || customers.length === 0) {
-            handleErrorClient(res, 404, "No se encontraron clientes.");
+            handleSuccess(res, 200, "No se encontraron clientes.", customers || []);
             return;
         }
 

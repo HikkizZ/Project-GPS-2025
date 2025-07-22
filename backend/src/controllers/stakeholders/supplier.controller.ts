@@ -15,13 +15,13 @@ export async function getSuppliers(_req: Request, res: Response): Promise<void> 
     try {
         const [suppliers, error] = await getAllSuppliersService();
 
-        if (error) {
-            handleErrorServer(res, 404, typeof error === 'string' ? error : error.message);
+        if (error && suppliers === null) {
+            handleErrorServer(res, 500, typeof error === 'string' ? error : error.message);
             return;
         }
 
         if (!suppliers || suppliers.length === 0) {
-            handleErrorClient(res, 404, "No se encontraron proveedoress.");
+            handleSuccess(res, 200, "No se encontraron proveedores.", suppliers || []);
             return;
         }
 
