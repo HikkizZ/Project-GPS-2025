@@ -596,16 +596,19 @@ export async function updateTrabajadorService(id: number, data: any): Promise<Se
         }
 
         if (cambios.length > 0) {
-            await historialRepo.save(historialRepo.create({
-                trabajador: trabajador,
-                cargo: 'Actualización de datos personales',
-                area: 'N/A',
-                tipoContrato: 'N/A',
-                sueldoBase: 0,
-                fechaInicio: new Date(),
-                observaciones: cambios.join(' | '),
-                registradoPor: data.registradoPor || null
-            }));
+            const nuevoHistorial = new HistorialLaboral();
+            nuevoHistorial.trabajador = trabajador;
+            nuevoHistorial.cargo = 'Actualización de datos personales';
+            nuevoHistorial.area = 'N/A';
+            nuevoHistorial.tipoContrato = 'N/A';
+            nuevoHistorial.jornadaLaboral = 'N/A';
+            nuevoHistorial.sueldoBase = 0;
+            nuevoHistorial.fechaInicio = new Date();
+            nuevoHistorial.observaciones = cambios.join(' | ');
+            nuevoHistorial.estado = 'Activo';
+            nuevoHistorial.registradoPor = data.registradoPor || undefined;
+            
+            await historialRepo.save(nuevoHistorial);
         }
 
         // Guardar cambios en trabajador y usuario

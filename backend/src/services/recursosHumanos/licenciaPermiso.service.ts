@@ -10,6 +10,7 @@ import { FileManagementService } from "../fileManagement.service.js";
 import { FileUploadService } from "../fileUpload.service.js";
 import { sendLicenciaPermisoApprovedEmail, sendLicenciaPermisoRejectedEmail } from "../email.service.js";
 import { FichaEmpresa } from "../../entity/recursosHumanos/fichaEmpresa.entity.js";
+import { HistorialLaboral } from "../../entity/recursosHumanos/historialLaboral.entity.js";
 
 /**
  * Normaliza el tipo de solicitud - solo acepta valores exactos para mayor profesionalismo
@@ -316,11 +317,10 @@ export async function updateLicenciaPermisoService(id: number, data: UpdateLicen
       
       // Procesar inmediatamente si la fecha de inicio es hoy
       const hoy = new Date();
-      hoy.setHours(0, 0, 0, 0);
-      const fechaInicio = new Date(licencia.fechaInicio);
-      fechaInicio.setHours(0, 0, 0, 0);
+      const fechaHoyString = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
+      const fechaInicioString = licencia.fechaInicio.toISOString().split('T')[0];
       
-      if (fechaInicio.getTime() === hoy.getTime()) {
+      if (fechaInicioString === fechaHoyString) {
         // Si la fecha de inicio es hoy, cambiar el estado inmediatamente
         const estadoLaboral = licencia.tipo === TipoSolicitud.LICENCIA ? 
           EstadoLaboral.LICENCIA : EstadoLaboral.PERMISO;
@@ -330,9 +330,9 @@ export async function updateLicenciaPermisoService(id: number, data: UpdateLicen
           await fichaRepo.save(fichaEmpresa);
 
           // Crear snapshot en historial laboral
-          const historialRepo = queryRunner.manager.getRepository('HistorialLaboral');
+          const historialRepo = queryRunner.manager.getRepository(HistorialLaboral);
           await historialRepo.save(historialRepo.create({
-            trabajador: fichaEmpresa.trabajador,
+            trabajador: licencia.trabajador,
             cargo: fichaEmpresa.cargo,
             area: fichaEmpresa.area,
             tipoContrato: fichaEmpresa.tipoContrato,
