@@ -17,6 +17,7 @@ import { Toast, useToast } from '@/components/common/Toast';
 import { ModalHistorialLaboral } from '@/components/recursosHumanos/ModalHistorialLaboral';
 import { useHistorialLaboral } from '@/hooks/recursosHumanos/useHistorialLaboral';
 import historialLaboralService from '@/services/recursosHumanos/historialLaboral.service';
+import { TrabajadorDetalleModal } from '@/components/recursosHumanos/TrabajadorDetalleModal';
 
 interface FichasEmpresaPageProps {
   trabajadorRecienRegistrado?: Trabajador | null;
@@ -93,6 +94,10 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
     setHistorial,
     setError: setErrorHistorial
   } = useHistorialLaboral();
+
+  // Estado para modal de detalles de trabajador desde ficha
+  const [showDetalleModal, setShowDetalleModal] = useState(false);
+  const [trabajadorDetalle, setTrabajadorDetalle] = useState<any | null>(null);
 
   // Cargar datos iniciales
   useEffect(() => {
@@ -352,6 +357,17 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
     }
     
     return telefono;
+  };
+
+  // Función para ver detalles del trabajador desde ficha
+  const handleVerDetalle = (ficha: FichaEmpresa) => {
+    // Pasar el trabajador y la ficha actual como fichaEmpresa
+    const trabajador = {
+      ...ficha.trabajador,
+      fichaEmpresa: ficha
+    };
+    setTrabajadorDetalle(trabajador);
+    setShowDetalleModal(true);
   };
 
   // Si es usuario sin permisos administrativos o está en la ruta de ficha personal
@@ -927,7 +943,6 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                                   <i className="bi bi-download"></i>
                                 </Button>
                               )}
-                              {/* Botón de historial laboral solo para roles permitidos */}
                               {puedeGestionarFichas && (
                                 <Button
                                   variant="outline-info"
@@ -937,6 +952,13 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                                   <i className="bi bi-clock-history"></i>
                                 </Button>
                               )}
+                              <Button
+                                variant="outline-secondary"
+                                onClick={() => handleVerDetalle(ficha)}
+                                title="Ver detalles"
+                              >
+                                <i className="bi bi-eye"></i>
+                              </Button>
                             </div>
                           </td>
                         </tr>
@@ -971,6 +993,13 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
         trabajadorNombre={trabajadorNombreHistorial}
         onDescargarContrato={handleDescargarContratoHistorial}
         descargandoId={descargandoContratoId}
+      />
+
+      {/* Modal de detalles de trabajador desde ficha */}
+      <TrabajadorDetalleModal
+        show={showDetalleModal}
+        onHide={() => setShowDetalleModal(false)}
+        trabajador={trabajadorDetalle}
       />
 
       {/* Sistema de notificaciones */}

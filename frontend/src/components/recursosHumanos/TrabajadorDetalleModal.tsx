@@ -42,19 +42,20 @@ export const TrabajadorDetalleModal: React.FC<TrabajadorDetalleModalProps> = ({ 
             <Card className="mb-3">
               <Card.Body>
                 <h6 className="fw-bold text-primary mb-3">Información Laboral</h6>
-                {trabajador.fichaEmpresa ? (
+                {(
+                  // Mostrar siempre los campos, aunque no haya fichaEmpresa
+                  true
+                ) && (
                   <>
-                    <div><strong>Cargo:</strong> {trabajador.fichaEmpresa.cargo}</div>
-                    <div><strong>Área:</strong> {trabajador.fichaEmpresa.area}</div>
-                    <div><strong>Tipo Contrato:</strong> {trabajador.fichaEmpresa.tipoContrato}</div>
-                    <div><strong>Jornada Laboral:</strong> {trabajador.fichaEmpresa.jornadaLaboral}</div>
-                    <div><strong>Sueldo Base:</strong> ${trabajador.fichaEmpresa.sueldoBase?.toLocaleString() || '-'}</div>
-                    <div><strong>Fecha Inicio Contrato:</strong> {trabajador.fichaEmpresa.fechaInicioContrato ? new Date(trabajador.fichaEmpresa.fechaInicioContrato).toLocaleDateString() : '-'}</div>
-                    <div><strong>Fecha Fin Contrato:</strong> {trabajador.fichaEmpresa.fechaFinContrato ? new Date(trabajador.fichaEmpresa.fechaFinContrato).toLocaleDateString() : '-'}</div>
-                    <div><strong>Estado:</strong> {trabajador.fichaEmpresa.estado}</div>
+                    <div><strong>Cargo:</strong> {trabajador.fichaEmpresa?.cargo || '-'}</div>
+                    <div><strong>Área:</strong> {trabajador.fichaEmpresa?.area || '-'}</div>
+                    <div><strong>Tipo Contrato:</strong> {trabajador.fichaEmpresa?.tipoContrato || '-'}</div>
+                    <div><strong>Jornada Laboral:</strong> {trabajador.fichaEmpresa?.jornadaLaboral || '-'}</div>
+                    <div><strong>Sueldo Base:</strong> {trabajador.fichaEmpresa?.sueldoBase ? `$${trabajador.fichaEmpresa.sueldoBase.toLocaleString()}` : '-'}</div>
+                    <div><strong>Fecha Inicio Contrato:</strong> {trabajador.fichaEmpresa?.fechaInicioContrato ? new Date(trabajador.fichaEmpresa.fechaInicioContrato).toLocaleDateString() : '-'}</div>
+                    <div><strong>Fecha Fin Contrato:</strong> {trabajador.fichaEmpresa?.fechaFinContrato ? new Date(trabajador.fichaEmpresa.fechaFinContrato).toLocaleDateString() : '-'}</div>
+                    <div><strong>Estado:</strong> {trabajador.fichaEmpresa?.estado || '-'}</div>
                   </>
-                ) : (
-                  <div className="text-muted">Sin ficha de empresa asociada</div>
                 )}
                 {trabajador.usuario && (
                   <div className="mt-3">
