@@ -1,32 +1,42 @@
+"use client"
+
 import type React from "react"
 import { Container, Row, Col, Card, Button } from "react-bootstrap"
 import InventorySidebar from "@/components/inventory/layout/InventorySidebar"
 import InventoryChart from "@/components/inventory/dashboard/InventoryChart"
 import InventoryHistoryTable from "@/components/inventory/dashboard/InventoryHistoryTable"
 import { useProducts } from "@/hooks/inventory/useProducts"
-import { useSuppliers } from "@/hooks/stakeholders/useSuppliers"
+import { useSuppliers } from "@/hooks/stakeholders/useSuppliers" // Importar hook de proveedores
 import { ProductType } from "@/types/inventory/product.types"
+import { useMemo, useState, useCallback } from "react" // Importar useCallback
+import { InventoryMovementSelectionModal } from "@/components/inventory/dashboard/InventoryMovementSelectionModal"
 import InventoryEntryModal from "@/components/inventory/dashboard/InventoryEntryModal"
 import { useInventoryEntries } from "@/hooks/inventory/useInventoryEntry"
 import type { CreateInventoryEntryData, InventoryEntry } from "@/types/inventory/inventory.types"
-import { useMemo, useState, useCallback } from "react"
 import { useToast, Toast } from "@/components/common/Toast"
+import { useInventoryExits } from "@/hooks/inventory/useInventoryExit"
+import InventoryExitModal from "@/components/inventory/dashboard/InventoryExitModal"
+import ConfirmModal from "@/components/stakeholders/ConfirmModal"
+import type { InventoryExit } from "@/types/inventory/inventory.types"
+import type { CreateInventoryExitData } from "@/types/inventory/inventory.types"
 
 import "../../styles/pages/inventory.css"
-import { InventoryMovementSelectionModal } from "@/components/inventory/dashboard/InventoryMovementSelectionModal"
-import ConfirmModal from "@/components/stakeholders/ConfirmModal"
 
 export const InventoryPage: React.FC = () => {
   const { products, loadProducts, isLoading: isLoadingProducts } = useProducts()
-  const { suppliers, isLoading: isLoadingSuppliers } = useSuppliers()
-  const { entries, loadEntries, createEntry, deleteEntry, isLoadingEntries, isCreatingEntry, isDeletingEntry } = useInventoryEntries()
+  const { suppliers, isLoading: isLoadingSuppliers } = useSuppliers() // Obtener proveedores
+  const { entries, loadEntries, createEntry, deleteEntry, isLoadingEntries, isCreatingEntry } = useInventoryEntries()
+  const { exits, loadExits, createExit, deleteExit, isLoadingExits, isCreatingExit } = useInventoryExits() // NUEVO
 
   const { toasts, removeToast, showSuccess, showError } = useToast()
 
+  // Estados para los nuevos modales de movimiento
   const [showMovementSelectionModal, setShowMovementSelectionModal] = useState(false)
   const [showPurchaseEntryModal, setShowPurchaseEntryModal] = useState(false)
-  const [entryToDelete, setEntryToDelete] = useState<InventoryEntry | null>(null) // Para confirmar eliminación
-  const [entryToViewDetails, setEntryToViewDetails] = useState<InventoryEntry | null>(null) // Para ver detalles
+  const [showSaleExitModal, setShowSaleExitModal] = useState(false) // NUEVO
+  const [entryToDelete, setEntryToDelete] = useState<InventoryEntry | null>(null)
+  const [exitToDelete, setExitToDelete] = useState<InventoryExit | null>(null) // NUEVO
+  const [entryToViewDetails, setEntryToViewDetails] = useState<InventoryEntry | null>(null)
 
   // Transforma los datos de productos en el formato que necesita el gráfico
   const chartData = useMemo(() => {
@@ -91,7 +101,7 @@ export const InventoryPage: React.FC = () => {
 
   const handleSelectSale = useCallback(() => {
     setShowMovementSelectionModal(false)
-    alert("Funcionalidad de Vender Materiales no implementada aún.")
+    setShowSaleExitModal(true) // ABRIR MODAL DE SALIDA
   }, [])
 
   const handleCreateEntry = useCallback(
@@ -109,6 +119,21 @@ export const InventoryPage: React.FC = () => {
     [createEntry, loadProducts, loadEntries, showSuccess, showError],
   )
 
+  const handleCreateExit = useCallback(
+    async (data: CreateInventoryExitData) => {
+      const result = await createExit(data)
+      if (result.success) {
+        showSuccess("¡Salida registrada!", result.message, 4000)
+        setShowSaleExitModal(false) // CERRAR MODAL DE SALIDA
+        loadProducts() // Recargar productos para actualizar el stock
+        loadExits() // Recargar salidas para actualizar la tabla de historial
+      } else {
+        showError("Error al registrar salida", result.message || "Ocurrió un error inesperado.")
+      }
+    },
+    [createExit, loadProducts, loadExits, showSuccess, showError],
+  )
+
   const handleViewEntryDetails = useCallback((entry: InventoryEntry) => {
     setEntryToViewDetails(entry)
     // Aquí podrías abrir un modal de detalles de entrada
@@ -119,21 +144,39 @@ export const InventoryPage: React.FC = () => {
     setEntryToDelete(entry)
   }, [])
 
+  const handleDeleteExit = useCallback((exit: InventoryExit) => {
+    setExitToDelete(exit)
+  }, [])
+
   const confirmDeleteEntry = useCallback(async () => {
     if (!entryToDelete) return
 
     const result = await deleteEntry(entryToDelete.id)
     if (result.success) {
       showSuccess("¡Movimiento eliminado!", "El movimiento se ha eliminado exitosamente.", 4000)
-      loadProducts() // Recargar productos por si el stock cambió
-      loadEntries() // Recargar entradas para actualizar la tabla
+      loadProducts()
+      loadEntries()
     } else {
       showError("Error al eliminar", result.message || "Ocurrió un error al eliminar el movimiento.")
     }
     setEntryToDelete(null)
   }, [entryToDelete, deleteEntry, loadProducts, loadEntries, showSuccess, showError])
 
-  const isLoadingPage = isLoadingProducts || isLoadingSuppliers || isLoadingEntries
+  const confirmDeleteExit = useCallback(async () => {
+    if (!exitToDelete) return
+
+    const result = await deleteExit(exitToDelete.id)
+    if (result.success) {
+      showSuccess("¡Movimiento eliminado!", "El movimiento se ha eliminado exitosamente.", 4000)
+      loadProducts()
+      loadExits()
+    } else {
+      showError("Error al eliminar", result.message || "Ocurrió un error al eliminar el movimiento.")
+    }
+    setExitToDelete(null)
+  }, [exitToDelete, deleteExit, loadProducts, loadExits, showSuccess, showError])
+
+  const isLoadingPage = isLoadingProducts || isLoadingSuppliers || isLoadingEntries || isLoadingExits
 
   return (
     <Container fluid className="inventory-page p-0">
@@ -277,36 +320,18 @@ export const InventoryPage: React.FC = () => {
                 {/* Tabla de movimientos recientes */}
                 <Row>
                   <Col>
-                    <Card className="inventory-history-card shadow-sm">
-                      <Card.Header className="bg-light border-bottom">
-                        <div className="d-flex align-items-center justify-content-between">
-                          <div className="d-flex align-items-center">
-                            <i className="bi bi-clock-history fs-5 me-2 text-primary"></i>
-                            <h5 className="mb-0">Movimientos Recientes</h5>
-                          </div>
-                          <div className="d-flex gap-2">
-                            <Button variant="outline-primary" size="sm">
-                              <i className="bi bi-funnel me-1"></i>
-                              Filtrar
-                            </Button>
-                            <Button variant="outline-secondary" size="sm">
-                              <i className="bi bi-eye me-1"></i>
-                              Ver Todos
-                            </Button>
-                          </div>
-                        </div>
-                      </Card.Header>
-                      <Card.Body>
-                        <InventoryHistoryTable
-                          entries={entries}
-                          products={products}
-                          suppliers={suppliers}
-                          isLoading={isLoadingPage}
-                          onViewDetails={handleViewEntryDetails}
-                          onDeleteEntry={handleDeleteEntry}
-                        />
-                      </Card.Body>
-                    </Card>
+                    {/* Eliminada la Card aquí, ahora está dentro de InventoryHistoryTable */}
+                    <InventoryHistoryTable
+                      entries={entries}
+                      exits={exits} // NUEVO
+                      products={products}
+                      suppliers={suppliers}
+                      isLoading={isLoadingPage}
+                      onViewDetails={handleViewEntryDetails}
+                      onDeleteEntry={handleDeleteEntry}
+                      onDeleteExit={handleDeleteExit} // NUEVO
+                      allEntriesCount={entries.length + exits.length} // ACTUALIZADO
+                    />
                   </Col>
                 </Row>
               </Col>
@@ -330,17 +355,39 @@ export const InventoryPage: React.FC = () => {
         onSubmit={handleCreateEntry}
         isSubmitting={isCreatingEntry}
       />
-      {/* Modal de confirmación para eliminar movimiento */}
+
+      {/* Modal para la salida de venta */}
+      <InventoryExitModal
+        show={showSaleExitModal}
+        onClose={() => setShowSaleExitModal(false)}
+        onSubmit={handleCreateExit}
+        isSubmitting={isCreatingExit}
+      />
+
+      {/* Modal de confirmación para eliminar movimiento de entrada */}
       <ConfirmModal
         show={!!entryToDelete}
         onClose={() => setEntryToDelete(null)}
         onConfirm={confirmDeleteEntry}
-        title="Eliminar Movimiento"
-        message={`¿Estás seguro que deseas eliminar el movimiento con fecha ${entryToDelete ? new Date(entryToDelete.entryDate).toLocaleDateString() : ""}? Esta acción no se puede deshacer.`}
+        title="Eliminar Movimiento de Entrada"
+        message={`¿Estás seguro que deseas eliminar el movimiento de entrada #${entryToDelete?.id}? Esta acción no se puede deshacer.`}
         confirmText="Eliminar"
         cancelText="Cancelar"
         headerVariant="danger"
       />
+
+      {/* Modal de confirmación para eliminar movimiento de salida */}
+      <ConfirmModal
+        show={!!exitToDelete}
+        onClose={() => setExitToDelete(null)}
+        onConfirm={confirmDeleteExit}
+        title="Eliminar Movimiento de Salida"
+        message={`¿Estás seguro que deseas eliminar el movimiento de salida #${exitToDelete?.id}? Esta acción no se puede deshacer.`}
+        confirmText="Eliminar"
+        cancelText="Cancelar"
+        headerVariant="danger"
+      />
+
       {/* Sistema de notificaciones */}
       <Toast toasts={toasts} removeToast={removeToast} />
     </Container>
