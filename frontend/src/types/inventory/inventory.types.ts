@@ -1,3 +1,5 @@
+import { ProductType } from "./product.types";
+
 export interface InventoryEntryDetailData {
   productId: number;
   quantity: number;
@@ -64,6 +66,16 @@ export interface InventoryExit {
     salePrice: number // Precio de venta del producto en el momento de la salida
     totalPrice: number
   }[]
+}
+
+export interface InventoryItem {
+  id: number;
+  product: {
+    id: number;
+    product: ProductType;
+    salePrice: number;
+  };
+  quantity: number;
 }
 
 export interface ApiResponse<T = any> {
