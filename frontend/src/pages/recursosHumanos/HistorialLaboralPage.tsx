@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { Container, Row, Col, Card, Badge, Button, Spinner, Alert, Breadcrumb, Nav, Form } from 'react-bootstrap';
+import { Container, Row, Col, Card, Badge, Button, Spinner, Alert, Breadcrumb, Nav, Form, Modal } from 'react-bootstrap';
 import { HistorialLaboral, HistorialUnificado } from '@/types/recursosHumanos/historialLaboral.types';
 import historialLaboralService from '@/services/recursosHumanos/historialLaboral.service';
 import { trabajadorService } from '@/services/recursosHumanos/trabajador.service';
@@ -25,6 +25,8 @@ export default function HistorialLaboralPage() {
   const [busqueda, setBusqueda] = useState('');
   const [modoVista, setModoVista] = useState<ModoVista>('unificado');
   const [trabajadorId, setTrabajadorId] = useState<number | null>(null);
+  const [showRevisorModal, setShowRevisorModal] = useState(false);
+  const [revisorSeleccionado, setRevisorSeleccionado] = useState<any>(null);
 
   // Solo permitir acceso a roles autorizados
   const rolesPermitidos = ["SuperAdministrador", "Administrador", "RecursosHumanos"];
@@ -461,6 +463,45 @@ export default function HistorialLaboralPage() {
     return { tipo: 'Cambio', color: 'light', icono: 'file-text' };
   };
 
+  const mostrarInfoRevisor = (revisor: any) => {
+    if (revisor) {
+      setRevisorSeleccionado(revisor);
+      setShowRevisorModal(true);
+    }
+  };
+
+  const getDatosRevisor = (item: any) => {
+    let name = '';
+    let role = '';
+    let rut = '';
+    let corporateEmail = '';
+
+    if (item.registradoPor) {
+      name = item.registradoPor.name || '';
+      role = item.registradoPor.role || '';
+      rut = item.registradoPor.rut || '';
+      corporateEmail = item.registradoPor.corporateEmail || '';
+    }
+
+    // Si rut o correo no están en registradoPor, buscar en trabajador.usuario (como en licencias)
+    if (!rut && item.trabajador && item.trabajador.usuario && item.trabajador.usuario.rut) {
+      rut = item.trabajador.usuario.rut;
+    }
+    if (!corporateEmail && item.trabajador && item.trabajador.usuario && item.trabajador.usuario.corporateEmail) {
+      corporateEmail = item.trabajador.usuario.corporateEmail;
+    }
+
+    // Si aún no hay rut o correo, buscar en detalles (modo unificado)
+    if (!rut && item.detalles && item.detalles.rut) {
+      rut = item.detalles.rut;
+    }
+    if (!corporateEmail && item.detalles && item.detalles.corporateEmail) {
+      corporateEmail = item.detalles.corporateEmail;
+    }
+
+    return { name, role, rut, corporateEmail };
+  };
+
   return (
     <Container fluid className="py-4">
       {/* Breadcrumbs */}
@@ -829,10 +870,20 @@ export default function HistorialLaboralPage() {
                                   <div className="d-flex align-items-center">
                                     <div className="flex-grow-1">
                                       <small className="fw-semibold d-block">{registradoPorItem.name}</small>
-                                      <Badge bg="outline-secondary" className="small">
-                                        {registradoPorItem.role}
-                                      </Badge>
                                     </div>
+                                    <Button
+                                      variant="link"
+                                      size="sm"
+                                      className="p-0 ms-1"
+                                      onClick={e => {
+                                        e.stopPropagation();
+                                        const datos = getDatosRevisor(item);
+                                        mostrarInfoRevisor(datos);
+                                      }}
+                                      title="Ver información del usuario"
+                                    >
+                                      <i className="bi bi-info-circle text-primary"></i>
+                                    </Button>
                                   </div>
                                 </div>
                               )}
@@ -848,6 +899,82 @@ export default function HistorialLaboralPage() {
           )}
         </Col>
       </Row>
+
+      {/* Modal de información del revisor */}
+      <Modal
+        show={showRevisorModal}
+        onHide={() => setShowRevisorModal(false)}
+        centered
+        dialogClassName="modal-revisor"
+      >
+        <Modal.Header closeButton className="bg-gradient-primary text-white border-0">
+          <Modal.Title className="d-flex align-items-center">
+            <i className="bi bi-person-badge me-2"></i>
+            Información del Revisor
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body className="p-4">
+          {revisorSeleccionado && (
+            <div>
+              <div className="mb-3">
+                <div className="text-secondary mb-1">Nombre completo</div>
+                <div className="d-flex align-items-center">
+                  <i className="bi bi-person-circle text-primary me-2"></i>
+                  {revisorSeleccionado.name}
+                </div>
+              </div>
+              <div className="mb-3">
+                <div className="text-secondary mb-1">Rol</div>
+                <div className="d-flex align-items-center">
+                  <i className="bi bi-person-badge text-primary me-2"></i>
+                  {revisorSeleccionado.role === 'SuperAdministrador' ? 'Super Administrador Sistema' : revisorSeleccionado.role}
+                </div>
+              </div>
+              <div className="mb-3">
+                <div className="text-secondary mb-1">RUT</div>
+                <div className="d-flex align-items-center">
+                  <i className="bi bi-person-vcard text-primary me-2"></i>
+                  {revisorSeleccionado.rut ? (
+                    <span>{revisorSeleccionado.rut}</span>
+                  ) : (
+                    <span className="text-muted">No disponible</span>
+                  )}
+                </div>
+              </div>
+              <div className="mb-3">
+                <div className="text-secondary mb-1">Correo Corporativo</div>
+                <div className="d-flex align-items-center">
+                  <i className="bi bi-envelope text-primary me-2"></i>
+                  {revisorSeleccionado.corporateEmail ? (
+                    <a href={`mailto:${revisorSeleccionado.corporateEmail}`} className="text-decoration-none text-primary">
+                      {revisorSeleccionado.corporateEmail}
+                    </a>
+                  ) : (
+                    <span className="text-muted">No disponible</span>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+        </Modal.Body>
+      </Modal>
+      <style>{`
+        .modal-revisor {
+          max-width: 400px;
+        }
+        .modal-revisor .modal-content {
+          border: none;
+          border-radius: 12px;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .bg-gradient-primary {
+          background: linear-gradient(45deg, #0d6efd, #0a58ca);
+        }
+        .modal-revisor .modal-header .btn-close {
+          color: white;
+          opacity: 1;
+        }
+      `}</style>
     </Container>
   );
 } 

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Modal, Table, Badge, Button, Spinner, Alert } from 'react-bootstrap';
 import { HistorialLaboral } from '@/types/recursosHumanos/historialLaboral.types';
 
@@ -54,6 +54,17 @@ export const ModalHistorialLaboral: React.FC<ModalHistorialLaboralProps> = ({
   onDescargarContrato,
   descargandoId
 }) => {
+  // Estado para el modal de información del revisor
+  const [showRevisorModal, setShowRevisorModal] = useState(false);
+  const [revisorSeleccionado, setRevisorSeleccionado] = useState<any>(null);
+
+  const mostrarInfoRevisor = (revisor: any) => {
+    if (revisor) {
+      setRevisorSeleccionado(revisor);
+      setShowRevisorModal(true);
+    }
+  };
+
   return (
     <Modal show={show} onHide={onHide} size="xl" centered className="modal-enhanced">
       <Modal.Header closeButton className="modal-header-custom">
@@ -118,16 +129,27 @@ export const ModalHistorialLaboral: React.FC<ModalHistorialLaboralProps> = ({
                     <td>{item.afp || '-'}</td>
                     <td>{item.previsionSalud || '-'}</td>
                     <td>{formatSeguroCesantia(item.seguroCesantia)}</td>
-                    <td>{formatFecha(item.fechaInicioLicenciaPermiso)}</td>
-                    <td>{formatFecha(item.fechaFinLicenciaPermiso)}</td>
-                    <td>{item.motivoLicenciaPermiso || '-'}</td>
+                    <td>{formatFecha(item.fechaInicioLicencia)}</td>
+                    <td>{formatFecha(item.fechaFinLicencia)}</td>
+                    <td>{item.motivoLicencia || '-'}</td>
                     <td>{item.motivoDesvinculacion || '-'}</td>
                     <td>{item.observaciones || '-'}</td>
                     <td>
                       {item.registradoPor ? (
-                        <div>
-                          <div className="fw-semibold">{item.registradoPor.name}</div>
-                          <small className="text-muted">{item.registradoPor.role}</small>
+                        <div className="d-flex align-items-center">
+                          <span className="fw-semibold">{item.registradoPor.name}</span>
+                          <Button
+                            variant="link"
+                            size="sm"
+                            className="p-0 ms-1"
+                            onClick={e => {
+                              e.stopPropagation();
+                              mostrarInfoRevisor(item.registradoPor);
+                            }}
+                            title="Ver información del usuario"
+                          >
+                            <i className="bi bi-info-circle text-primary"></i>
+                          </Button>
                         </div>
                       ) : (
                         '-'
@@ -170,6 +192,75 @@ export const ModalHistorialLaboral: React.FC<ModalHistorialLaboralProps> = ({
           Cerrar
         </Button>
       </Modal.Footer>
+      {/* Modal de información del revisor */}
+      <Modal
+        show={showRevisorModal}
+        onHide={() => setShowRevisorModal(false)}
+        centered
+        dialogClassName="modal-revisor"
+      >
+        <Modal.Header closeButton className="bg-gradient-primary text-white border-0">
+          <Modal.Title className="d-flex align-items-center">
+            <i className="bi bi-person-badge me-2"></i>
+            Información del Revisor
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body className="p-4">
+          {revisorSeleccionado && (
+            <div>
+              <div className="mb-3">
+                <div className="text-secondary mb-1">Nombre completo</div>
+                <div className="d-flex align-items-center">
+                  <i className="bi bi-person-circle text-primary me-2"></i>
+                  {revisorSeleccionado.name}
+                </div>
+              </div>
+              <div className="mb-3">
+                <div className="text-secondary mb-1">Rol</div>
+                <div className="d-flex align-items-center">
+                  <i className="bi bi-person-badge text-primary me-2"></i>
+                  {revisorSeleccionado.role === 'SuperAdministrador' ? 'Super Administrador Sistema' : revisorSeleccionado.role}
+                </div>
+              </div>
+              {revisorSeleccionado.rut && (
+                <div className="mb-3">
+                  <div className="text-secondary mb-1">RUT</div>
+                  <div className="d-flex align-items-center">
+                    <i className="bi bi-person-vcard text-primary me-2"></i>
+                    {revisorSeleccionado.rut}
+                  </div>
+                </div>
+              )}
+              <div className="mb-3">
+                <div className="text-secondary mb-1">Correo Corporativo</div>
+                <div className="d-flex align-items-center">
+                  <i className="bi bi-envelope text-primary me-2"></i>
+                  <a href={`mailto:${revisorSeleccionado.corporateEmail}`} className="text-decoration-none text-primary">
+                    {revisorSeleccionado.corporateEmail}
+                  </a>
+                </div>
+              </div>
+            </div>
+          )}
+        </Modal.Body>
+      </Modal>
+      <style>{`
+        .modal-revisor {
+          max-width: 400px;
+        }
+        .modal-revisor .modal-content {
+          border: none;
+          border-radius: 12px;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .bg-gradient-primary {
+          background: linear-gradient(45deg, #0d6efd, #0a58ca);
+        }
+        .modal-revisor .modal-header .btn-close {
+          color: white;
+          opacity: 1;
+        }
+      `}</style>
     </Modal>
   );
 }; 
