@@ -3,8 +3,8 @@ import { validateRut } from "../../helpers/rut.helper.js";
 
 /* Custom validator for RUT */
 const rutValidator = (value: string, helper: CustomHelpers) => {
-    if (!validateRut(value)) return helper.message({ custom: "El RUT ingresado no es válido." });
-    return value;
+  if (!validateRut(value)) return helper.message({ custom: "El RUT ingresado no es válido." });
+  return value;
 }
 
 /* Query validation for inventory entry */
@@ -73,6 +73,13 @@ export const createInventoryEntryValidation: ObjectSchema = Joi.object({
       "string.max": "El RUT debe tener como máximo 12 caracteres.",
     }),
 
+  entryDate: Joi.string()
+    .isoDate()
+    .messages({
+      "string.base": "La fecha debe ser una cadena de texto.",
+      "string.isoDate": "La fecha debe estar en formato ISO 8601 válido.",
+    }),
+
   details: Joi.array()
     .items(inventoryEntryDetailSchema)
     .min(1)
@@ -123,6 +130,13 @@ export const createInventoryExitValidation: ObjectSchema = Joi.object({
       "string.base": "El RUT debe ser una cadena de texto.",
       "string.min": "El RUT debe tener al menos 8 caracteres.",
       "string.max": "El RUT debe tener menos de 12 caracteres.",
+    }),
+
+  exitDate: Joi.string()
+    .isoDate()
+    .messages({
+      "string.base": "La fecha debe ser una cadena de texto.",
+      "string.isoDate": "La fecha debe estar en formato ISO 8601 válido.",
     }),
 
   details: Joi.array()
