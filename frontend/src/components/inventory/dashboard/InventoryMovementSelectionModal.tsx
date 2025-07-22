@@ -29,7 +29,7 @@ export const InventoryMovementSelectionModal: React.FC<InventoryMovementSelectio
         <Row className="justify-content-center g-3">
           <Col md={6}>
             <Button
-              variant="success"
+              variant="primary"
               className="w-100 py-4 d-flex flex-column align-items-center justify-content-center inventory-movement-button"
               onClick={onSelectPurchase}
             >
@@ -40,7 +40,7 @@ export const InventoryMovementSelectionModal: React.FC<InventoryMovementSelectio
           </Col>
           <Col md={6}>
             <Button
-              variant="danger"
+              variant="success"
               className="w-100 py-4 d-flex flex-column align-items-center justify-content-center inventory-movement-button"
               onClick={onSelectSale}
             >

@@ -34,6 +34,10 @@
   background: linear-gradient(135deg, #007bff 0%, #0056b3 100%) !important;
 }
 
+.bg-gradient-green-inventory {
+  background: linear-gradient(135deg, #28a745 0%, #16703c 100%) !important;
+}
+
 /* ============================================
    TARJETAS DE MÉTRICAS
    ============================================ */

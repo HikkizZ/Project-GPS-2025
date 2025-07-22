@@ -13,7 +13,7 @@ interface InventoryExitModalProps {
 const InventoryExitModal: React.FC<InventoryExitModalProps> = ({ show, onClose, onSubmit, isSubmitting = false }) => {
   return (
     <Modal show={show} onHide={onClose} size="xl" centered>
-      <Modal.Header className="bg-gradient-danger text-white" closeButton>
+      <Modal.Header className="bg-gradient-primary text-white" closeButton>
         <Modal.Title>
           <i className="bi bi-box-arrow-up me-2"></i>
           Nueva Salida de Inventario (Venta)

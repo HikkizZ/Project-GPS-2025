@@ -26,10 +26,9 @@ const InventoryExitForm: React.FC<InventoryExitFormProps> = ({ onSubmit, onCance
       },
     ],
   })
-  const [exitDate, setExitDate] = useState<string>(new Date().toISOString().split("T")[0]) // Default to current date
+  const [exitDate, setExitDate] = useState<string>(new Date().toISOString().split("T")[0])
   const [errors, setErrors] = useState<Record<string, string | string[]>>({})
 
-  // Filter out inactive products
   const activeProducts = useMemo(() => {
     return products.filter((product) => (product as any).isActive !== false)
   }, [products])
@@ -79,15 +78,21 @@ const InventoryExitForm: React.FC<InventoryExitFormProps> = ({ onSubmit, onCance
   ) => {
     const { name, value } = e.target
     const newDetails = [...formData.details]
-    const numericValue = ["quantity"].includes(name) ? Number.parseFloat(value) : value
+    let parsedValue: number | string = value 
+
+    if (name === "quantity" || name === "productId") {
+      parsedValue = Number.parseFloat(value)
+      if (isNaN(parsedValue)) {
+        parsedValue = 0
+      }
+    }
 
     newDetails[index] = {
       ...newDetails[index],
-      [name]: isNaN(numericValue as number) ? 0 : numericValue,
+      [name]: parsedValue,
     }
     setFormData((prev) => ({ ...prev, details: newDetails }))
 
-    // Clear specific detail error if it exists
     if (Array.isArray(errors.details) && errors.details[index]) {
       const newDetailErrors = [...errors.details]
       newDetailErrors[index] = ""
@@ -129,12 +134,11 @@ const InventoryExitForm: React.FC<InventoryExitFormProps> = ({ onSubmit, onCance
     e.preventDefault()
     if (!validate()) return
 
-    // Prepare data for submission, including optional exitDate
     const dataToSubmit: CreateInventoryExitData = {
       customerRut: formData.customerRut,
       details: formData.details,
     }
-    // Only add exitDate if it's explicitly set or not empty
+
     if (exitDate) {
       try {
         const dateObj = new Date(exitDate)
