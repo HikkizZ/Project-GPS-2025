@@ -3,7 +3,7 @@ import { Table, Button, Spinner, Card } from "react-bootstrap"
 import type { InventoryEntry } from "@/types/inventory/inventory.types"
 import type { Product } from "@/types/inventory/product.types"
 import type { Supplier } from "@/types/stakeholders/supplier.types"
-import type { InventoryExit } from "@/types/inventory/inventory.types"
+import type { InventoryExit, MovementDetail } from "@/types/inventory/inventory.types"
 
 interface InventoryHistoryTableProps {
   entries: InventoryEntry[]
@@ -28,7 +28,8 @@ const InventoryHistoryTable: React.FC<InventoryHistoryTableProps> = ({
   onDeleteExit,
   allEntriesCount,
 }) => {
-  const [expandedEntryId, setExpandedEntryId] = useState<number | null>(null)
+  const [expandedMovementKey, setExpandedMovementKey] = useState<string | null>(null)
+
 
   const getProductNameFromDetail = (detailProduct: { id: number; product: string; salePrice: number }): string => {
     return detailProduct.product
@@ -39,13 +40,15 @@ const InventoryHistoryTable: React.FC<InventoryHistoryTableProps> = ({
   }
 
   const calculateMovementGrandTotal = (movement: InventoryEntry | InventoryExit): number => {
-    return movement.details.reduce((sum, detail) => sum + detail.totalPrice, 0)
+    const details = movement.details as MovementDetail[]
+    return details.reduce((sum, detail) => sum + detail.totalPrice, 0)
   }
 
-  const toggleDetails = (movementId: number) => {
-    // Cambiado a movementId
-    setExpandedEntryId(expandedEntryId === movementId ? null : movementId)
+  const toggleDetails = (movementId: number, type: "entry" | "exit") => {
+    const key = `${type}-${movementId}`
+    setExpandedMovementKey(expandedMovementKey === key ? null : key)
   }
+
 
   const combinedMovements = useMemo(() => {
     const allMovements = [
@@ -104,9 +107,9 @@ const InventoryHistoryTable: React.FC<InventoryHistoryTableProps> = ({
                       <tr>
                         <td>
                           {movement.type === "entry" ? (
-                            <span className="badge bg-success">Entrada (Compra)</span>
+                            <span className="badge bg-secondary">Entrada (Compra)</span>
                           ) : (
-                            <span className="badge bg-danger">Salida (Venta)</span>
+                            <span className="badge bg-success">Salida (Venta)</span>
                           )}
                         </td>
                         <td>
@@ -120,7 +123,7 @@ const InventoryHistoryTable: React.FC<InventoryHistoryTableProps> = ({
                             : getPartyName(movement.customer)}
                         </td>
                         <td>
-                          <span className={`fw-bold ${movement.type === "entry" ? "text-success" : "text-danger"}`}>
+                          <span className={`fw-bold ${movement.type === "entry" ? "text-secondary" : "text-success"}`}>
                             ${calculateMovementGrandTotal(movement).toLocaleString()}
                           </span>
                         </td>
@@ -130,10 +133,10 @@ const InventoryHistoryTable: React.FC<InventoryHistoryTableProps> = ({
                               variant="outline-info"
                               size="sm"
                               className="me-2"
-                              onClick={() => toggleDetails(movement.id)}
-                              title={expandedEntryId === movement.id ? "Ocultar detalles" : "Ver detalles"}
+                              onClick={() => toggleDetails(movement.id, movement.type)}
+                              title={expandedMovementKey === `${movement.type}-${movement.id}` ? "Ocultar detalles" : "Ver detalles"}
                             >
-                              <i className={`bi ${expandedEntryId === movement.id ? "bi-eye-slash" : "bi-eye"}`}></i>
+                              <i className={`bi ${expandedMovementKey === `${movement.type}-${movement.id}` ? "bi-eye-slash" : "bi-eye"}`}></i>
                             </Button>
                             <Button
                               variant="outline-danger"
@@ -150,12 +153,11 @@ const InventoryHistoryTable: React.FC<InventoryHistoryTableProps> = ({
                           </div>
                         </td>
                       </tr>
-                      {expandedEntryId === movement.id && (
+                      {expandedMovementKey === `${movement.type}-${movement.id}` && (
                         <tr>
                           <td colSpan={5} className="p-0">
                             <div className="bg-light p-3 border-top">
                               <h6 className="mb-3">
-                                Detalles de la {movement.type === "entry" ? "Entrada" : "Salida"} #{movement.id}
                               </h6>
                               <Table striped bordered size="sm" className="mb-0">
                                 <thead>
@@ -174,9 +176,9 @@ const InventoryHistoryTable: React.FC<InventoryHistoryTableProps> = ({
                                       <td>
                                         $
                                         {(movement.type === "entry"
-                                          ? (detail as any).purchasePrice // Acceso condicional
+                                          ? (detail as any).purchasePrice
                                           : (detail as any).salePrice
-                                        ) // Acceso condicional
+                                        ) 
                                           ?.toLocaleString()}
                                       </td>
                                       <td>${detail.totalPrice.toLocaleString()}</td>
