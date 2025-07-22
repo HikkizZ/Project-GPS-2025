@@ -55,6 +55,10 @@
 @import './pages/licenciasPermisos.css';
 @import './pages/trabajadores.css';
 @import './pages/fichasEmpresa.css';
+@import './pages/suppliers.css';
+@import './pages/inventory.css';
+@import './pages/suppliers.css';
+@import './pages/product.css';
 /* ... agrega aquí los CSS de nuevas páginas o módulos */
 
 /* =====================

@@ -11,7 +11,7 @@ export class InventoryExitDetail {
     @PrimaryGeneratedColumn()
     id!: number;
 
-    @ManyToOne("inventory_exits", { nullable: false })
+    @ManyToOne("inventory_exits", { nullable: false, onDelete: 'CASCADE' })
     exit!: any;
 
     @ManyToOne(() => Product)

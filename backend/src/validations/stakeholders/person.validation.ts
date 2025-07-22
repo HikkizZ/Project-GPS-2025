@@ -7,6 +7,7 @@ const allowedEmailDomains = ["gmail.com", "outlook.com", "hotmail.com", "gmail.c
 const domainEmailValidator = (value: string, helper: CustomHelpers) => {
     const isValid = allowedEmailDomains.some(domain => value.endsWith(domain));
     if (!isValid) return helper.message({ custom: "El dominio del email no es válido." });
+    return value;
 }
 
 /* Custom validator for RUT */

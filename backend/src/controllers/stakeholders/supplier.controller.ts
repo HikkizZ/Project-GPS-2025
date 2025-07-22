@@ -15,13 +15,13 @@ export async function getSuppliers(_req: Request, res: Response): Promise<void> 
     try {
         const [suppliers, error] = await getAllSuppliersService();
 
-        if (error) {
-            handleErrorServer(res, 404, typeof error === 'string' ? error : error.message);
+        if (error && suppliers === null) {
+            handleErrorServer(res, 500, typeof error === 'string' ? error : error.message);
             return;
         }
 
         if (!suppliers || suppliers.length === 0) {
-            handleErrorClient(res, 404, "No se encontraron proveedoress.");
+            handleSuccess(res, 200, "No se encontraron proveedores.", suppliers || []);
             return;
         }
 
@@ -92,14 +92,9 @@ export const createSupplier = async (req: Request, res: Response): Promise<void>
 
 export async function updateSupplier(req: Request, res: Response): Promise<void> {
     try {
-        const id = req.query.id ? Number(req.query.id) : undefined;
-        const rut = req.query.rut as string | undefined;
-        const email = req.query.email as string | undefined;
-
-        const { error: queryError } = personQueryValidation.validate({ id, rut, email });
-
-        if (queryError) {
-            handleErrorClient(res, 400, queryError.message);
+        const id = Number(req.params.id);
+        if (isNaN(id)) {
+            handleErrorClient(res, 400, "ID inválido.");
             return;
         }
 
@@ -110,8 +105,8 @@ export async function updateSupplier(req: Request, res: Response): Promise<void>
             return;
         }
 
-        const [supplier, errorSupplier] = await updateSupplierService({ id, rut, email }, req.body);
-
+        const [supplier, errorSupplier] = await updateSupplierService({ id }, req.body);
+        
         if (errorSupplier) {
             handleErrorClient(res, 404, typeof errorSupplier === 'string' ? errorSupplier : errorSupplier.message);
             return;
@@ -130,18 +125,13 @@ export async function updateSupplier(req: Request, res: Response): Promise<void>
 
 export async function deleteSupplier(req: Request, res: Response): Promise<void> {
     try {
-        const id = req.query.id ? Number(req.query.id) : undefined;
-        const rut = req.query.rut as string | undefined;
-        const email = req.query.email as string | undefined;
-
-        const { error } = personQueryValidation.validate({ id, rut, email });
-
-        if (error) {
-            handleErrorClient(res, 400, error.message);
+        const id = Number(req.params.id);
+        if (isNaN(id)) {
+            handleErrorClient(res, 400, "ID inválido.");
             return;
         }
 
-        const [deletedSupplier, errorSupplier] = await deleteSupplierService({ id, rut, email });
+        const [deletedSupplier, errorSupplier] = await deleteSupplierService({ id });
 
         if (errorSupplier) {
             handleErrorClient(res, 404, typeof errorSupplier === 'string' ? errorSupplier : errorSupplier.message);

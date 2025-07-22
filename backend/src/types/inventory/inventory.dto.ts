@@ -2,6 +2,7 @@
 /* Header-level data for inventory entry */
 export type CreateInventoryEntryDTO = {
   supplierRut: string;
+  entryDate?: string;
   details: InventoryEntryDetailDTO[];
 };
 
@@ -16,6 +17,7 @@ export type InventoryEntryDetailDTO = {
 /* Header-level data for inventory exit */
 export type CreateInventoryExitDTO = {
   customerRut: string;
+  exitDate?: string;
   details: InventoryExitDetailDTO[];
 };
 

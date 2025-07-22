@@ -9,10 +9,6 @@ export async function getAllSuppliersService(): Promise<ServiceResponse<Supplier
         const supplierRepository = AppDataSource.getRepository(Supplier);
         const suppliers = await supplierRepository.find();
 
-        if (!suppliers || suppliers.length === 0) {
-            return [null, "No hay proveedores registrados."];
-        }
-
         return [suppliers, null];
     } catch (error) {
         console.error("Error fetching suppliers:", error);
@@ -64,15 +60,13 @@ export async function createSupplierService(supplierData: CreateSupplierDTO): Pr
     }
 }
 
-export async function updateSupplierService(query: QueryParams, supplierData: UpdateSupplierDTO): Promise<ServiceResponse<Supplier>> {
+export async function updateSupplierService(query: { id: number }, supplierData: UpdateSupplierDTO): Promise<ServiceResponse<Supplier>> {
     try {
-        const { id, rut, email } = query;
-
-        const rutFormatted = rut ? formatRut(rut) : undefined;
+        const { id } = query;
 
         const supplierRepository = AppDataSource.getRepository(Supplier);
 
-        const supplierFound = await supplierRepository.findOne({ where: [{ id }, { rut: rutFormatted }, { email }] });
+        const supplierFound = await supplierRepository.findOne({ where: { id } });
 
         if (!supplierFound) return [null, "El proveedor no existe."];
 
@@ -81,7 +75,7 @@ export async function updateSupplierService(query: QueryParams, supplierData: Up
         const updatedSupplier = await supplierRepository.save({
             ...supplierFound,
             ...supplierData,
-            rut: formattedUpdateRut ?? supplierFound.rut
+            rut: formattedUpdateRut ?? supplierFound.rut,
         });
 
         return [updatedSupplier, null];
@@ -91,15 +85,13 @@ export async function updateSupplierService(query: QueryParams, supplierData: Up
     }
 }
 
-export async function deleteSupplierService(query: QueryParams): Promise<ServiceResponse<Supplier>> {
+export async function deleteSupplierService(query: { id: number }): Promise<ServiceResponse<Supplier>> {
     try {
-        const { id, rut, email } = query;
-
-        const rutFormatted = rut ? formatRut(rut) : undefined;
+        const { id } = query;
 
         const supplierRepository = AppDataSource.getRepository(Supplier);
 
-        const supplierFound = await supplierRepository.findOne({ where: [{ id }, { rut: rutFormatted }, { email }] });
+        const supplierFound = await supplierRepository.findOne({ where: { id } });
 
         if (!supplierFound) return [null, "El proveedor no existe."];
 

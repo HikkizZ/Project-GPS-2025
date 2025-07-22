@@ -11,4 +11,7 @@ export class Product {
 
     @Column({ type: 'integer', nullable: false })
     salePrice!: number;
+
+    @Column({ type: 'boolean', default: true })
+    isActive!: boolean;
 }

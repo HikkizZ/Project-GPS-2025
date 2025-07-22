@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { verifyRole } from "../../middlewares/authorization.middleware.js";
 
 import {
     getCustomers,
@@ -14,11 +15,13 @@ const router: Router = Router();
 
 router.use(authenticateJWT);
 
+router.use(verifyRole(["Administrador", "SuperAdministrador", "Ventas", "Gerencia"]));
+
 router
     .get("/all", getCustomers)
     .get("/", getCustomer)
     .post("/", createCustomer)
-    .patch("/", updateCustomer)
-    .delete("/", deleteCustomer);
+    .put("/:id", updateCustomer)
+    .delete("/:id", deleteCustomer);
 
 export default router;
