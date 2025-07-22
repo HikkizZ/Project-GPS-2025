@@ -1,4 +1,5 @@
 import { apiClient } from '@/config/api.config';
+import { ApiResponse } from '@/types';
 import type {
   FichaEmpresa,
   FichaEmpresaSearchQuery,
@@ -6,12 +7,6 @@ import type {
   UpdateFichaEmpresaData
 } from '../../types/recursosHumanos/fichaEmpresa.types';
 import { EstadoLaboral } from '../../types/recursosHumanos/fichaEmpresa.types';
-
-export interface ApiResponse<T = any> {
-  success: boolean;
-  message: string;
-  data?: T;
-}
 
 // Exportar la clase
 export class FichaEmpresaService {

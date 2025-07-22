@@ -1,13 +1,19 @@
 import { AppDataSource } from "../../config/configDB.js";
 import { FichaEmpresa, EstadoLaboral } from "../../entity/recursosHumanos/fichaEmpresa.entity.js";
 import { ServiceResponse } from "../../../types.js";
-import { FindOptionsWhere, ILike, LessThanOrEqual, MoreThanOrEqual, Between, In } from "typeorm";
-import { Trabajador } from "../../entity/recursosHumanos/trabajador.entity.js";
+import { FindOptionsWhere, ILike, LessThanOrEqual, MoreThanOrEqual, Between, In, DeepPartial } from "typeorm";
 import { User } from "../../entity/user.entity.js";
 import { LicenciaPermiso, TipoSolicitud, EstadoSolicitud } from "../../entity/recursosHumanos/licenciaPermiso.entity.js";
 import { normalizeText } from "../../helpers/normalizeText.helper.js";
 import { FileUploadService } from "../../services/fileUpload.service.js";
 import path from 'path';
+import { get } from "http";
+import { Bono } from "../../entity/recursosHumanos/Remuneraciones/Bono.entity.js";
+import { AsignarBono } from "entity/recursosHumanos/Remuneraciones/asignarBono.entity.js"; 
+import { 
+    AsignarBonoDTO,
+    UpdateAsignarBonoDTO, 
+} from "types/recursosHumanos/bono.dto.js";
 
 // Interfaz para los parámetros de búsqueda
 interface SearchFichaParams {
@@ -24,6 +30,9 @@ interface SearchFichaParams {
     area?: string;
     tipoContrato?: string;
     jornadaLaboral?: string;
+    afp?: string;
+    previsionSalud?: string;
+    seguroCesantia?: boolean;
 
     // Búsqueda por rango salarial
     sueldoBaseDesde?: number;
@@ -38,6 +47,110 @@ interface SearchFichaParams {
 
     // Búsqueda por id de ficha
     id?: number;
+
+    //Búsqueda por bonos
+    bonoId?: number;
+    bonoNombre?: string;
+    bonoActivo?: boolean;
+}
+
+export function calcularFechaFin(temporalidad: string, fechaInicio: Date, duracionMes?: number): Date | null {
+    let fechaFin: Date | null = null;
+    switch (temporalidad) {
+        case 'permanente':
+            // No tiene fecha fin
+            fechaFin = null;
+            break;
+        case 'puntual':
+            // Dura 1 mes desde la fecha de inicio como default
+            fechaFin = new Date(fechaInicio);
+            if (duracionMes && duracionMes > 0) {
+                fechaFin.setMonth(fechaFin.getMonth() + duracionMes);
+            } else {
+                fechaFin.setMonth(fechaFin.getMonth() + 1);
+            }
+            break;
+        case 'recurrente':
+            if (duracionMes && duracionMes > 0) {
+                fechaFin = new Date(fechaInicio);
+                fechaFin.setMonth(fechaFin.getMonth() + duracionMes);
+            } else {
+                fechaFin = null;
+            }
+            break;
+        default:
+            console.error('Tipo de temporalidad desconocido:', temporalidad);
+    }
+    return fechaFin;
+}
+
+// Esta función se podría usar al calcular asignación, actualizar asignación, obtener datos de fichas, obtener datos de asignaciones, calcular remuneraciones
+function verificarCambiosBonos ( asignarBono: AsignarBono, newBono: Bono ): [AsignarBono, string] | [null , string] {
+    let errorMessage: string | null = null; 
+    let messageSuport: string | null = null;
+    // Verificar que la asignacion este activa, solo las activas se pueden editar, las inactivas no serán visibles en getMiFicha, getFichasEmpresa
+    if (asignarBono.activo === false) {
+        // Mensaje de que la asignacion esta inactiva, o la asignación se ha acabado en caso que simplemente se esté obteniendo en un get
+        // En caso de getMiFicha o getFichasEmpresa, no se mostrará la asignación inactiva
+        // En caso de updateAsignarBono, se mostrará un mensaje de error
+        errorMessage = "Asignacion de bono inactiva";
+        return [null, errorMessage];
+    }
+    const hoy = new Date();
+    const fechaHoyString = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
+    let fechaFin: Date | null = null;
+
+    // Verificar si hay un cambio en bono que afecte la asignación, actualizar asignacion, obtener asignaciones, obtener fichas y asignaciones, calcular remuneraciones
+    // Verificar cambio de bono
+    if (asignarBono.bono !== newBono) {
+        // Lógica para manejar el cambio de id
+        asignarBono.bono = newBono;
+        // Actualizar fecha de asignación
+        asignarBono.fechaAsignacion = new Date(fechaHoyString);
+        fechaFin = calcularFechaFin(newBono.temporalidad, asignarBono.fechaAsignacion, newBono.duracionMes);
+        asignarBono.fechaFinAsignacion = fechaFin;
+        messageSuport = "Cambio calculo de remumeraciones, cambio calculo de asignacion activa";
+        return [asignarBono, messageSuport];
+    }
+
+    // Verificar cambio de temporalidad, en caso de que pase esto se recalcula la fecha de fin, si este cambio fue en conjunto con una duracion mes, los calculos cambian
+    if (asignarBono.bono.temporalidad !== newBono.temporalidad) {
+        if (asignarBono.bono.duracionMes !== newBono.duracionMes) {
+            fechaFin = calcularFechaFin(newBono.temporalidad, asignarBono.fechaAsignacion, newBono.duracionMes);
+            asignarBono.fechaFinAsignacion = fechaFin;
+            asignarBono.bono.temporalidad = newBono.temporalidad;
+            asignarBono.bono.duracionMes = newBono.duracionMes;
+            messageSuport = "Cambio calculo de remumeraciones, cambio calculo de asignacion activa";
+            return [asignarBono, messageSuport];
+        } else {
+            // Solo importa el cambio de temporalidad
+            fechaFin = calcularFechaFin(newBono.temporalidad, asignarBono.fechaAsignacion, asignarBono.bono.duracionMes);
+            asignarBono.fechaFinAsignacion = fechaFin;
+            asignarBono.bono.temporalidad = newBono.temporalidad;
+            messageSuport = "Cambio calculo de remumeraciones, cambio calculo de asignacion activa";
+            return [asignarBono, messageSuport];
+        }
+    }
+    // Verificar cambio de duracionMes
+    if (asignarBono.bono.duracionMes !== newBono.duracionMes) {
+        fechaFin = calcularFechaFin(asignarBono.bono.temporalidad, asignarBono.fechaAsignacion, newBono.duracionMes);
+        asignarBono.fechaFinAsignacion = fechaFin;
+        asignarBono.bono.duracionMes = newBono.duracionMes;
+        messageSuport = "Cambio calculo de remumeraciones, cambio calculo de asignacion activa";
+        return [asignarBono, messageSuport];
+    }
+    // Verificar si hubo un cambio de imponibilidad
+    if (asignarBono.bono.imponible !== newBono.imponible) {
+        messageSuport = "Cambio calculo de remumeraciones";
+        return [null, messageSuport];
+    }
+    // Verificar si hubo un cambio de monto
+    if (asignarBono.bono.monto !== newBono.monto) {
+        messageSuport = "Cambio calculo de remumeraciones";
+        return [null, messageSuport];
+    }
+    // Si no hubo cambios relevantes, retornar null
+    return [null, "SIN CAMBIOS"];
 }
 
 export async function getFichasEmpresaService(params: SearchFichaParams): Promise<ServiceResponse<FichaEmpresa[]>> {
@@ -45,8 +158,10 @@ export async function getFichasEmpresaService(params: SearchFichaParams): Promis
         const fichaRepo = AppDataSource.getRepository(FichaEmpresa);
         const queryBuilder = fichaRepo.createQueryBuilder("ficha")
             .leftJoinAndSelect("ficha.trabajador", "trabajador")
-            .leftJoinAndSelect("trabajador.usuario", "usuario");
-
+            .leftJoinAndSelect("trabajador.usuario", "usuario")
+            .leftJoinAndSelect("ficha.asignacionesBonos", "asignacionesBonos")
+            .leftJoinAndSelect("asignacionesBonos.bono", "bono");
+        
         // Filtros por trabajador
         if (params.rut) {
             // Limpiar el RUT de búsqueda (quitar puntos y guión)
@@ -115,6 +230,19 @@ export async function getFichasEmpresaService(params: SearchFichaParams): Promis
             }
         }
 
+        // Filtros por previsión de salud y AFP
+        if (params.previsionSalud) {
+            queryBuilder.andWhere("ficha.previsionSalud = :previsionSalud", { previsionSalud: params.previsionSalud });
+        }
+        if (params.afp) {
+            queryBuilder.andWhere("ficha.afp = :afp", { afp: params.afp });
+        }
+
+        // Filtro por seguro de cesantía
+        if (params.seguroCesantia !== undefined) {
+            queryBuilder.andWhere("ficha.seguroCesantia = :seguroCesantia", { seguroCesantia: params.seguroCesantia });
+        }
+
         // Filtros por fechas
         if (params.fechaInicioDesde || params.fechaInicioHasta) {
             if (params.fechaInicioDesde) {
@@ -159,6 +287,8 @@ export async function getFichasEmpresaService(params: SearchFichaParams): Promis
             }
         }
 
+
+
         // Ordenar por ID
         queryBuilder.orderBy("ficha.id", "ASC");
 
@@ -201,8 +331,8 @@ export async function getMiFichaService(userId: number): Promise<ServiceResponse
 }
 
 // Definir los campos que no se pueden modificar según el estado
-const CAMPOS_PROTEGIDOS = ['id', 'trabajador'] as const;
-const CAMPOS_ESTADO_DESVINCULADO = ['cargo', 'area', 'tipoContrato', 'jornadaLaboral', 'sueldoBase'] as const;
+const CAMPOS_PROTEGIDOS = ['id', 'trabajador', 'asignacionesBonos'] as const;
+const CAMPOS_ESTADO_DESVINCULADO = ['cargo', 'area', 'tipoContrato', 'jornadaLaboral', 'sueldoBase', 'afp', 'previsionSalud', 'seguroCesantia'] as const;
 
 export async function updateFichaEmpresaService(
     id: number, 
@@ -218,7 +348,7 @@ export async function updateFichaEmpresaService(
         // 1. Obtener la ficha actual con sus relaciones
         const fichaActual = await fichaRepo.findOne({
             where: { id },
-            relations: ["trabajador", "trabajador.usuario"]
+            relations: ["trabajador", "trabajador.usuario", "asignacionesBonos", "asignacionesBonos.bono"]
         });
 
         if (!fichaActual) {
@@ -244,6 +374,26 @@ export async function updateFichaEmpresaService(
             }
         }
 
+        if ('afp' in fichaData && fichaData.afp) {
+            const afpsValidas = ["habitat", "provida", "modelo", "cuprum", "capital", "planvital", "uno"];
+            if (!afpsValidas.includes(fichaData.afp)) {
+                return [null, { message: "AFP no válida" }];
+            }
+        }
+
+        if ('previsionSalud' in fichaData && fichaData.previsionSalud) {
+            const previsionesValidas = ["ISAPRE", "FONASA"];
+            if (!previsionesValidas.includes(fichaData.previsionSalud)) {
+                return [null, { message: "Previsión de salud no válida" }];
+            }
+        }
+
+        if ('seguroCesantia' in fichaData && fichaData.seguroCesantia !== undefined) {
+            if (typeof fichaData.seguroCesantia !== 'boolean') {
+                return [null, { message: "El seguro de cesantía debe ser un valor booleano" }];
+            }
+        }
+
         if ('fechaFinContrato' in fichaData && fichaData.fechaFinContrato) {
             const fechaFin = new Date(fichaData.fechaFinContrato);
             if (fechaFin <= fichaActual.fechaInicioContrato) {
@@ -265,10 +415,11 @@ export async function updateFichaEmpresaService(
             }
         }
 
-        // 5. Aplicar los cambios validados
+        
+        // 6. Aplicar los cambios validados
         Object.assign(fichaActual, fichaData);
 
-        // 6. Guardar los cambios
+        // 7. Guardar los cambios
         const fichaActualizada = await fichaRepo.save(fichaActual);
         await queryRunner.commitTransaction();
 
@@ -282,7 +433,7 @@ export async function updateFichaEmpresaService(
     }
 }
 
-export async function descargarContratoService(id: number, userId: number): Promise<ServiceResponse<{filePath: string, customFilename: string}>> {
+export async function descargarContratoService( id: number, userId: number ): Promise<ServiceResponse<{filePath: string, customFilename: string}>> {
     try {
         const fichaRepo = AppDataSource.getRepository(FichaEmpresa);
         const userRepo = AppDataSource.getRepository(User);
@@ -371,7 +522,7 @@ export async function descargarContratoService(id: number, userId: number): Prom
     }
 } 
 
-export async function uploadContratoService(id: number, file: Express.Multer.File): Promise<ServiceResponse<{ contratoUrl: string }>> {
+export async function uploadContratoService( id: number, file: Express.Multer.File ): Promise<ServiceResponse<{ contratoUrl: string }>> {
     try {
         const fichaRepository = AppDataSource.getRepository(FichaEmpresa);
         const ficha = await fichaRepository.findOneBy({ id });
@@ -399,7 +550,7 @@ export async function uploadContratoService(id: number, file: Express.Multer.Fil
     }
 }
 
-export async function deleteContratoService(id: number): Promise<ServiceResponse<{ deleted: boolean }>> {
+export async function deleteContratoService( id: number ): Promise<ServiceResponse<{ deleted: boolean }>> {
     try {
         const fichaRepository = AppDataSource.getRepository(FichaEmpresa);
         const ficha = await fichaRepository.findOne({ where: { id }, relations: ['trabajador'] });
@@ -419,4 +570,251 @@ export async function deleteContratoService(id: number): Promise<ServiceResponse
         console.error("Error en deleteContratoService:", error);
         return [null, { message: "Error interno del servidor" }];
     }
-} 
+}
+
+// Asignar Bono
+export async function assignBonoService (idFicha: number, data: AsignarBonoDTO): Promise<ServiceResponse<AsignarBono>> {
+    // Crear un query runner para manejar transacciones
+    const queryRunner = AppDataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+        const fichaRepo = queryRunner.manager.getRepository(FichaEmpresa);
+        const bonoRepo = queryRunner.manager.getRepository(Bono);
+        const asignarBonoRepo = queryRunner.manager.getRepository(AsignarBono);
+        // Obtener los repositorios necesarios
+        const fichaActual = await fichaRepo.findOne({
+            where: { id: idFicha },
+            relations: ["trabajador", "trabajador.usuario", "asignacionesBonos", "asignacionesBonos.bono"]
+        });
+        
+        // Validar si el bono existe
+        const bono = await bonoRepo.findOneBy({ id: data.bonoId });
+        if (!bono) {
+            await queryRunner.rollbackTransaction();
+            return [null, "Bono no encontrado"];
+        }
+
+        // Validar si el bono ya está asignado al trabajador
+        if (!fichaActual) {
+            await queryRunner.rollbackTransaction();
+            return [null, "Ficha no encontrada"];
+        }
+        const asignacionExistente = Array.isArray(fichaActual.asignacionesBonos)
+        ? fichaActual.asignacionesBonos.filter(ab => ab.bono.id === bono.id)
+        : [];
+
+        if (asignacionExistente.length > 0) {
+            await queryRunner.rollbackTransaction();
+            return [null, "El bono ya está asignado a esta ficha"];
+        }
+
+        // Validar fechas - usar comparación de strings y crear fechas locales correctamente
+        const hoy = new Date();
+        const fechaHoyString = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
+    
+        
+    
+        // Crear fechas locales correctamente manejando tanto strings como objetos Date
+        let fechaInicio: Date;
+        let fechaFin: Date | null = null;
+        
+        fechaInicio = fechaHoyString ? new Date(fechaHoyString) : new Date();
+
+       // Determinar fechaFin según la temporalidad
+        switch (bono.temporalidad) {
+            case 'permanente':
+                // No tiene fecha fin
+                fechaFin = null;
+                break;
+
+            case 'puntual':
+                // Dura 1 mes desde la fecha de inicio como default
+                fechaFin = new Date(fechaInicio);
+                if (bono.duracionMes && bono.duracionMes > 0) {
+                    fechaFin.setMonth(fechaFin.getMonth() + bono.duracionMes);
+                } else {
+                    fechaFin.setMonth(fechaFin.getMonth() + 1);
+                }
+                break;
+
+            case 'recurrente':
+                if (bono.duracionMes && bono.duracionMes > 0) {
+                    fechaFin = new Date(fechaInicio);
+                    fechaFin.setMonth(fechaFin.getMonth() + bono.duracionMes);
+                } else {
+                    fechaFin = null;
+                }
+                break;
+
+            default:
+                // Si llega un tipo desconocido
+                await queryRunner.rollbackTransaction();
+                await queryRunner.release();
+                return [null, "Temporalidad desconocida"];
+        }
+
+        // Validar que fechaFin sea posterior a fechaInicio, solo si existe
+        if (fechaFin && fechaFin <= fechaInicio) {
+            await queryRunner.rollbackTransaction();
+            await queryRunner.release();
+            return [null, "La fecha de fin debe ser posterior a la fecha de inicio"];
+        }
+        
+        //Obtener data de la asignación
+        const asignacionData: DeepPartial<AsignarBono> = {
+            fichaEmpresa: fichaActual,
+            bono: bono,
+            fechaAsignacion: fechaHoyString,
+            fechaFinAsignacion: fechaFin === null ? null : fechaFin,
+            activo: true, // Por defecto es true si no se especifica
+            observaciones: data.observaciones
+        };
+
+        // Crear la asignación de bono
+        const asignacionBono = asignarBonoRepo.create(asignacionData);
+        await queryRunner.manager.save(asignacionBono);
+        await queryRunner.commitTransaction();
+
+        return [asignacionBono, null];
+    } catch (error) {
+        await queryRunner.rollbackTransaction();
+        console.error("Error al asignar bono:", error);
+        return [null, "Error interno del servidor"];
+    } finally {
+        await queryRunner.release();
+    }
+}
+
+// Actualizar estado Asignación de Bono
+export async function updateAsignarBonoService( id: number, idFichaActual: number, data: UpdateAsignarBonoDTO ): Promise<ServiceResponse<AsignarBono>> {
+    const queryRunner = AppDataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+    try {
+        const asignarBonoRepo = queryRunner.manager.getRepository(AsignarBono);
+        const fichaRepo = queryRunner.manager.getRepository(FichaEmpresa);
+        const bonoRepo = queryRunner.manager.getRepository(Bono);
+        // Obtener la asignación de bono, bono y la ficha actual
+        const asignacionBono = await asignarBonoRepo.findOne({ 
+            where: { id },
+            relations: ["fichaEmpresa", "fichaEmpresa.trabajador", "bono"]
+        });
+        const fichaActual = await fichaRepo.findOne({
+            where: { id: idFichaActual },
+            relations: ["trabajador", "trabajador.usuario", "asignacionesBonos", "asignacionesBonos.bono"]
+        });
+        const bono = await bonoRepo.findOneBy({ id: data.bonoId });
+        // Validar si la ficha existe
+        if (!fichaActual) {
+            await queryRunner.rollbackTransaction();
+            return [null, "Ficha no encontrada"];
+        }
+        // Validar si la asignación de bono existe
+        if (!asignacionBono) {
+            return [null, "Asignación de bono no encontrada"];
+        }
+        // Validar si el bono existe 
+        if (!bono) {
+            await queryRunner.rollbackTransaction();
+            return [null, "Bono no encontrado"];
+        }
+
+        // Revisar si hubo cambios de actividad, observaciones o bono
+        if (data.bonoId && data.bonoId !== asignacionBono.bono.id) {
+            // Validar si el nuevo bono ya está asignado al trabajador
+            const asignacionExistente = Array.isArray(fichaActual.asignacionesBonos)
+                ? fichaActual.asignacionesBonos.filter(ab => ab.bono.id === bono.id)
+                : [];
+            if (asignacionExistente.length > 0) {
+                await queryRunner.rollbackTransaction();
+                return [null, "El bono ya está asignado a esta ficha"];
+            }
+        }
+        
+        // Verificar si hubo cambios en los campos de la asignación de bono
+        const [cambios, messageSuport] = verificarCambiosBonos(asignacionBono, bono);
+        if (cambios) {
+            // Si hubo cambios relevantes, actualizar la asignación de bono
+            asignacionBono.bono = bono;
+            asignacionBono.fechaAsignacion = cambios.fechaAsignacion;
+            asignacionBono.fechaFinAsignacion = cambios.fechaFinAsignacion;
+            asignacionBono.activo = data.activo ?? asignacionBono.activo;
+            asignacionBono.observaciones = data.observaciones ?? asignacionBono.observaciones;
+            await asignarBonoRepo.save(asignacionBono);
+            await queryRunner.commitTransaction();
+            // Devolver la asignación de bono actualizada
+            return [asignacionBono, null];
+        } else if (messageSuport === "asignacion de bono inactiva") {
+            // no se puede actualizar una asignación de bono inactiva
+            await queryRunner.rollbackTransaction();
+            return [null, messageSuport];
+        } else if (messageSuport === "SIN CAMBIOS") {
+            // Si no hubo cambios relevantes, simplemente devolver la asignación de bono sin modificar
+            asignacionBono.activo = data.activo ?? asignacionBono.activo;
+            asignacionBono.observaciones = data.observaciones ?? asignacionBono.observaciones;
+            await asignarBonoRepo.save(asignacionBono);
+            await queryRunner.commitTransaction();
+            return [asignacionBono, null];
+        }
+        // Devolver la asignación de bono actualizada
+        return [asignacionBono, null];
+    } catch (error) {
+        console.error("Error al actualizar asignación de bono:", error);
+        return [null, "Error interno del servidor"];
+    }
+}
+
+// Obtener las asignaciones por fichaEmpresa
+export async function getAsignacionesByFichaService(idFicha: number): Promise<ServiceResponse<AsignarBono[]>> {
+    try {
+        const asignarBonoRepo = AppDataSource.getRepository(AsignarBono);
+        const asignaciones = await asignarBonoRepo.find({
+            where: { fichaEmpresa: { id: idFicha } },
+            relations: ["fichaEmpresa", "fichaEmpresa.trabajador", "bono"]
+        });
+        return [asignaciones, null];
+    } catch (error) {
+        console.error("Error al obtener asignaciones:", error);
+        return [null, "Error interno del servidor"];
+    }   
+}
+
+export async function verificarEstadoAsignacionBonoService(): Promise<ServiceResponse<{ desactivadas: number }>> {
+    const queryRunner = AppDataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+    
+    try {
+        const asignarBonoRepo = queryRunner.manager.getRepository(AsignarBono);
+
+        const hoy = new Date();
+        hoy.setHours(0, 0, 0, 0);
+        let desactivadas = 0;
+
+        // Desactivar asignaciones que hayan expirado
+        const asignacionesExpiradas = await asignarBonoRepo.find({
+            where: {
+                fechaFinAsignacion: LessThanOrEqual(hoy),
+                activo: true
+            },
+            relations: ["fichaEmpresa", "fichaEmpresa.trabajador", "bono"]
+        });
+
+        for (const asignacion of asignacionesExpiradas) {
+            asignacion.activo = false;
+            await asignarBonoRepo.save(asignacion);
+            desactivadas++;
+        }
+
+        await queryRunner.commitTransaction();
+        return [{ desactivadas }, null];
+    } catch (error) {
+        await queryRunner.rollbackTransaction();
+        console.error("Error al verificar estado de asignación de bono:", error);
+        return [null, "Error interno del servidor"];
+    }finally {
+        await queryRunner.release();
+    }
+}

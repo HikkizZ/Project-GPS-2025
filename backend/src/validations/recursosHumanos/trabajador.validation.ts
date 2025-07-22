@@ -292,3 +292,73 @@ export const TrabajadorUpdateValidation = Joi.object({
 }).min(1).messages({
     "object.min": "Debe proporcionar al menos un campo para actualizar"
 });
+
+export const TrabajadorReactivacionValidation = Joi.object({
+    nombres: Joi.string()
+        .min(3)
+        .max(200)
+        .required()
+        .messages({
+            "string.base": "Los nombres deben ser una cadena de texto.",
+            "string.min": "Los nombres deben tener al menos 3 caracteres.",
+            "string.max": "Los nombres no pueden exceder los 200 caracteres.",
+            "any.required": "Los nombres son requeridos."
+        }),
+
+    apellidoPaterno: Joi.string()
+        .min(3)
+        .max(100)
+        .required()
+        .messages({
+            "string.base": "El apellido paterno debe ser una cadena de texto.",
+            "string.min": "El apellido paterno debe tener al menos 3 caracteres.",
+            "string.max": "El apellido paterno no puede exceder los 100 caracteres.",
+            "any.required": "El apellido paterno es requerido."
+        }),
+
+    apellidoMaterno: Joi.string()
+        .min(3)
+        .max(100)
+        .required()
+        .messages({
+            "string.base": "El apellido materno debe ser una cadena de texto.",
+            "string.min": "El apellido materno debe tener al menos 3 caracteres.",
+            "string.max": "El apellido materno no puede exceder los 100 caracteres.",
+            "any.required": "El apellido materno es requerido."
+        }),
+
+    correoPersonal: Joi.string()
+        .email()
+        .required()
+        .messages({
+            "string.base": "El correo personal debe ser una cadena de texto.",
+            "string.email": "El correo personal debe tener un formato válido.",
+            "any.required": "El correo personal es requerido."
+        }),
+
+    telefono: Joi.string()
+        .pattern(/^\+?[\d]{9,12}$/)
+        .optional()
+        .messages({
+            "string.base": "El teléfono debe ser una cadena de texto.",
+            "string.pattern.base": "El teléfono debe tener entre 9 y 12 dígitos y puede incluir el símbolo +."
+        }),
+
+    numeroEmergencia: Joi.string()
+        .pattern(/^\+?[\d]{9,12}$/)
+        .optional()
+        .messages({
+            "string.base": "El número de emergencia debe ser una cadena de texto.",
+            "string.pattern.base": "El número de emergencia debe tener entre 9 y 12 dígitos y puede incluir el símbolo +."
+        }),
+
+    direccion: Joi.string()
+        .min(5)
+        .max(200)
+        .optional()
+        .messages({
+            "string.base": "La dirección debe ser una cadena de texto.",
+            "string.min": "La dirección debe tener al menos 5 caracteres.",
+            "string.max": "La dirección no puede exceder los 200 caracteres."
+        })
+});

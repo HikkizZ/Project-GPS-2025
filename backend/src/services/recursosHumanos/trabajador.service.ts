@@ -52,27 +52,102 @@ function generateRandomPassword(): string {
     return password.join('');
 }
 
-// Función para generar correo corporativo y manejar duplicados
-async function generateCorporateEmail(primerNombre: string, apellidoPaterno: string): Promise<string> {
-    const userRepo = AppDataSource.getRepository(User);
+// Función para obtener todos los correos corporativos que han sido utilizados históricamente
+async function getAllUsedCorporateEmails(primerNombre: string, apellidoPaterno: string, queryRunner?: any): Promise<string[]> {
+    const userRepo = queryRunner ? queryRunner.manager.getRepository(User) : AppDataSource.getRepository(User);
+    const historialRepo = queryRunner ? queryRunner.manager.getRepository(HistorialLaboral) : AppDataSource.getRepository(HistorialLaboral);
+    
+    const baseEmailPattern = `${primerNombre}.${apellidoPaterno}`;
+    const allUsedEmails: Set<string> = new Set();
+    
+    // 1. Buscar en la tabla User (correos actuales)
+    const pattern = `${baseEmailPattern}%@lamas.com`;
+    const currentEmails = await userRepo
+        .createQueryBuilder("user")
+        .select("user.corporateEmail")
+        .where("user.corporateEmail ILIKE :pattern", { pattern })
+        .getMany();
+    
+    currentEmails.forEach((user: any) => {
+        if (user.corporateEmail) {
+            allUsedEmails.add(user.corporateEmail);
+        }
+    });
+    
+    // 2. Buscar en HistorialLaboral (correos históricos en observaciones)
+    const historialEntries = await historialRepo
+        .createQueryBuilder("historial")
+        .select("historial.observaciones")
+        .where("historial.observaciones ILIKE :pattern", { pattern: `%${baseEmailPattern}%@lamas.com%` })
+        .getMany();
+    
+    // Extraer correos de las observaciones usando regex
+    const emailRegex = new RegExp(`${baseEmailPattern}\\d*@lamas\\.com`, 'g');
+    historialEntries.forEach((entry: any) => {
+        if (entry.observaciones) {
+            const matches = entry.observaciones.match(emailRegex);
+            if (matches) {
+                matches.forEach((email: string) => {
+                    allUsedEmails.add(email);
+                });
+            }
+        }
+    });
+    
+    // 3. También buscar el correo base exacto en User (por si existe)
+    const baseEmail = `${baseEmailPattern}@lamas.com`;
+    const exactEmailExists = await userRepo
+        .createQueryBuilder("user")
+        .select("user.corporateEmail")
+        .where("user.corporateEmail = :email", { email: baseEmail })
+        .getOne();
+    
+    if (exactEmailExists && exactEmailExists.corporateEmail) {
+        allUsedEmails.add(exactEmailExists.corporateEmail);
+    }
+    
+    return Array.from(allUsedEmails);
+}
+
+// Función para generar correo corporativo y manejar duplicados - NUNCA reutilizar correos anteriores
+async function generateCorporateEmail(primerNombre: string, apellidoPaterno: string, queryRunner?: any): Promise<string> {
     const baseEmail = `${primerNombre}.${apellidoPaterno}@lamas.com`;
     
-    // Verificar si el correo base ya existe
-    let existingUser = await userRepo.findOne({ where: { corporateEmail: baseEmail } });
-    if (!existingUser) {
+    // Obtener TODOS los correos históricos (User + HistorialLaboral)
+    const allUsedEmails = await getAllUsedCorporateEmails(primerNombre, apellidoPaterno, queryRunner);
+    
+    if (allUsedEmails.length === 0) {
         return baseEmail;
     }
-
-    // Si existe, buscar el último número usado
-    let counter = 1;
-    let newEmail = `${primerNombre}.${apellidoPaterno}${counter}@lamas.com`;
     
-    while (await userRepo.findOne({ where: { corporateEmail: newEmail } })) {
-        counter++;
-        newEmail = `${primerNombre}.${apellidoPaterno}${counter}@lamas.com`;
+    // Extraer todos los números usados
+    const numbersUsed: number[] = [];
+    const baseEmailPattern = `${primerNombre}.${apellidoPaterno}`;
+    
+    allUsedEmails.forEach((email: string) => {
+        // Verificar si es el correo base sin número
+        if (email === baseEmail) {
+            numbersUsed.push(0); // Consideramos el base como "0"
+        } else {
+            // Extraer número del final del correo antes de @lamas.com
+            const match = email.match(new RegExp(`${baseEmailPattern}(\\d+)@lamas\\.com$`));
+            if (match) {
+                const numero = parseInt(match[1]);
+                numbersUsed.push(numero);
+            }
+        }
+    });
+    
+    // Encontrar el siguiente número disponible (siempre el mayor + 1)
+    const maxNumber = numbersUsed.length > 0 ? Math.max(...numbersUsed) : -1;
+    const nextNumber = maxNumber + 1;
+    
+    // Si el número es 0, significa que solo existe el base, entonces usar 1
+    if (nextNumber === 0) {
+        return `${primerNombre}.${apellidoPaterno}1@lamas.com`;
     }
     
-    return newEmail;
+    return `${primerNombre}.${apellidoPaterno}${nextNumber}@lamas.com`;
 }
 
 // Función auxiliar para limpiar automáticamente los campos de texto
@@ -126,9 +201,11 @@ export async function createTrabajadorService(trabajadorData: Partial<Trabajador
         // Formatear el RUT antes de guardarlo (con puntos y guión)
         trabajadorData.rut = formatRut(trabajadorData.rut);
 
-        // Validar formato de correo
+        // Validar formato de correo 
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(trabajadorData.correoPersonal)) {
+        const emailPersonal = trabajadorData.correoPersonal ?? ""; // usa "" si es undefined o null
+
+        if (!emailRegex.test(emailPersonal)) {
             return [null, "Formato de correo personal inválido"];
         }
 
@@ -174,7 +251,8 @@ export async function createTrabajadorService(trabajadorData: Partial<Trabajador
             // Generar correo corporativo
             const primerNombre = trabajador.nombres.split(' ')[0].toLowerCase().normalize('NFD').replace(/[^a-zA-Z]/g, '');
             const apellidoPaterno = trabajador.apellidoPaterno.toLowerCase().normalize('NFD').replace(/[^a-zA-Z]/g, '');
-            const correoUsuario = await generateCorporateEmail(primerNombre, apellidoPaterno);
+            
+            const correoUsuario = await generateCorporateEmail(primerNombre, apellidoPaterno, queryRunner);
 
             // Crear usuario automáticamente
             const randomPassword = generateRandomPassword();
@@ -366,16 +444,30 @@ export async function desvincularTrabajadorService(id: number, motivo: string, u
 
 // Actualizar trabajador: permite actualizar campos permitidos y sincroniza con usuario
 export async function updateTrabajadorService(id: number, data: any): Promise<ServiceResponse<Trabajador>> {
+    const queryRunner = AppDataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
     try {
-        const trabajadorRepo = AppDataSource.getRepository(Trabajador);
-        const userRepo = AppDataSource.getRepository(User);
+        const trabajadorRepo = queryRunner.manager.getRepository(Trabajador);
+        const userRepo = queryRunner.manager.getRepository(User);
+        const historialRepo = queryRunner.manager.getRepository(HistorialLaboral);
+        
         const trabajador = await trabajadorRepo.findOne({ 
             where: { id }, 
             relations: ["usuario", "fichaEmpresa"] 
         });
 
-        if (!trabajador) return [null, "Trabajador no encontrado"];
-        if (!trabajador.usuario) return [null, "El trabajador no tiene usuario asociado"];
+        if (!trabajador) {
+            await queryRunner.rollbackTransaction();
+            await queryRunner.release();
+            return [null, "Trabajador no encontrado"];
+        }
+        if (!trabajador.usuario) {
+            await queryRunner.rollbackTransaction();
+            await queryRunner.release();
+            return [null, "El trabajador no tiene usuario asociado"];
+        }
 
         // LIMPIEZA AUTOMÁTICA: Eliminar espacios extra de todos los campos de texto
         data = limpiarCamposTexto(data);
@@ -383,8 +475,22 @@ export async function updateTrabajadorService(id: number, data: any): Promise<Se
         let updated = false;
         let correoUsuarioAnterior = trabajador.usuario.corporateEmail;
         let correoPersonalAnterior = trabajador.correoPersonal;
+        let nuevoCorreoUsuario = trabajador.usuario.corporateEmail;
 
-        // Actualizar campos permitidos del trabajador
+        // IGUAL QUE EN REACTIVAR: Generar correo ANTES de actualizar datos
+        if (data.nombres || data.apellidoPaterno) {
+            // Usar los datos actualizados correctamente para evitar reutilización de correos
+            const nombresActualizados = data.nombres || trabajador.nombres;
+            const apellidoPaternoActualizado = data.apellidoPaterno || trabajador.apellidoPaterno;
+            
+            const primerNombre = nombresActualizados.split(' ')[0].toLowerCase().normalize('NFD').replace(/[^a-zA-Z]/g, '');
+            const apellidoPaterno = apellidoPaternoActualizado.toLowerCase().normalize('NFD').replace(/[^a-zA-Z]/g, '');
+            
+            // GENERAR CORREO ANTES DE CAMBIAR DATOS (igual que reactivarTrabajadorService)
+            nuevoCorreoUsuario = await generateCorporateEmail(primerNombre, apellidoPaterno, queryRunner);
+        }
+
+        // DESPUÉS: Actualizar campos permitidos del trabajador
         const camposPermitidos = [
             "nombres", "apellidoPaterno", "apellidoMaterno", "telefono", 
             "numeroEmergencia", "direccion", "correoPersonal"
@@ -397,23 +503,38 @@ export async function updateTrabajadorService(id: number, data: any): Promise<Se
             }
         }
 
-        // Si se actualiza el nombre o apellidoPaterno, actualizar el correo de usuario automáticamente
-        if (data.nombres || data.apellidoPaterno) {
-            const primerNombre = (data.nombres || trabajador.nombres).split(' ')[0].toLowerCase().normalize('NFD').replace(/[^a-zA-Z]/g, '');
-            const apellidoPaterno = (data.apellidoPaterno || trabajador.apellidoPaterno).toLowerCase().normalize('NFD').replace(/[^a-zA-Z]/g, '');
-            const nuevoCorreoUsuario = await generateCorporateEmail(primerNombre, apellidoPaterno);
-            trabajador.usuario.corporateEmail = nuevoCorreoUsuario;
-            updated = true;
-        }
-
         // Si se actualiza el nombre o apellidos, actualizar el campo name en usuario
         if (data.nombres || data.apellidoPaterno || data.apellidoMaterno) {
             trabajador.usuario.name = `${data.nombres || trabajador.nombres} ${data.apellidoPaterno || trabajador.apellidoPaterno} ${data.apellidoMaterno || trabajador.apellidoMaterno}`;
             updated = true;
         }
 
+        // Solo generar nueva contraseña si el correo corporativo cambió
+        if (nuevoCorreoUsuario !== correoUsuarioAnterior) {
+            // Generar nueva contraseña y encriptarla
+            const nuevaPassword = generateRandomPassword();
+            const hashedPassword = await encryptPassword(nuevaPassword);
+            trabajador.usuario.password = hashedPassword;
+            
+            // Enviar correo con nuevas credenciales
+            try {
+                await sendCredentialsEmail({
+                    to: trabajador.correoPersonal,
+                    nombre: trabajador.nombres,
+                    correoUsuario: nuevoCorreoUsuario,
+                    passwordTemporal: nuevaPassword
+                });
+            } catch (emailError) {
+                console.error("Error enviando correo de credenciales actualizadas:", emailError);
+                // No fallar la operación por el correo, pero registrar el error
+            }
+        }
+        
+        // Actualizar el correo corporativo
+        trabajador.usuario.corporateEmail = nuevoCorreoUsuario;
+        updated = true;
+
         // Registrar cambios en historial laboral
-        const historialRepo = AppDataSource.getRepository(HistorialLaboral);
         const cambios: string[] = [];
         
         if (data.nombres && data.nombres !== trabajador.nombres) {
@@ -427,6 +548,11 @@ export async function updateTrabajadorService(id: number, data: any): Promise<Se
         }
         if (data.correoPersonal && data.correoPersonal !== correoPersonalAnterior) {
             cambios.push(`Cambio de correo personal: de "${correoPersonalAnterior}" a "${data.correoPersonal}"`);
+        }
+        
+        // IMPORTANTE: Registrar cambio de correo corporativo para el historial
+        if (nuevoCorreoUsuario !== correoUsuarioAnterior) {
+            cambios.push(`Cambio de correo corporativo: de "${correoUsuarioAnterior}" a "${nuevoCorreoUsuario}"`);
         }
 
         if (cambios.length > 0) {
@@ -445,19 +571,197 @@ export async function updateTrabajadorService(id: number, data: any): Promise<Se
 
         // Guardar cambios en trabajador y usuario
         if (updated) {
-            await trabajadorRepo.save(trabajador);
-            await userRepo.save(trabajador.usuario);
+            await queryRunner.manager.save(Trabajador, trabajador);
+            await queryRunner.manager.save(User, trabajador.usuario);
         }
 
+        // Confirmar la transacción
+        await queryRunner.commitTransaction();
+
         // Devolver el trabajador actualizado con relaciones
-        const trabajadorActualizado = await trabajadorRepo.findOne({ 
+        const trabajadorFinal = await trabajadorRepo.findOne({ 
             where: { id }, 
             relations: ["usuario", "fichaEmpresa"] 
         });
         
-        return [trabajadorActualizado, null];
+        await queryRunner.release();
+        return [trabajadorFinal, null];
     } catch (error) {
         console.error("Error en updateTrabajadorService:", error);
+        await queryRunner.rollbackTransaction();
+        await queryRunner.release();
         return [null, "Error interno del servidor"];
+    }
+}
+
+// Servicio para reactivar trabajador desvinculado (revinculación)
+export async function reactivarTrabajadorService(
+    trabajadorId: number, 
+    data: {
+        nombres: string;
+        apellidoPaterno: string;
+        apellidoMaterno: string;
+        correoPersonal: string;
+        telefono?: string;
+        numeroEmergencia?: string;
+        direccion?: string;
+    },
+    userId: number
+): Promise<ServiceResponse<{ trabajador: Trabajador, nuevoCorreoCorporativo: string, credencialesEnviadas: boolean }>> {
+    const queryRunner = AppDataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+        const trabajadorRepo = queryRunner.manager.getRepository(Trabajador);
+        const userRepo = queryRunner.manager.getRepository(User);
+        const fichaRepo = queryRunner.manager.getRepository(FichaEmpresa);
+        const historialRepo = queryRunner.manager.getRepository(HistorialLaboral);
+
+        // 1. Validar que el ID existe y está desvinculado
+        const trabajador = await trabajadorRepo.findOne({
+            where: { id: trabajadorId },
+            relations: ["usuario", "fichaEmpresa"]
+        });
+
+        if (!trabajador) {
+            await queryRunner.rollbackTransaction();
+            await queryRunner.release();
+            return [null, "No se encontró un trabajador con ese ID"];
+        }
+
+        if (trabajador.enSistema) {
+            await queryRunner.rollbackTransaction();
+            await queryRunner.release();
+            return [null, "Solo se pueden reactivar trabajadores desvinculados"];
+        }
+
+        if (!trabajador.usuario || !trabajador.fichaEmpresa) {
+            await queryRunner.rollbackTransaction();
+            await queryRunner.release();
+            return [null, "Error: Trabajador sin usuario o ficha de empresa asociada"];
+        }
+
+        // 2. Obtener usuario que registra la reactivación
+        const usuarioRegistra = await userRepo.findOne({ where: { id: userId } });
+        if (!usuarioRegistra) {
+            await queryRunner.rollbackTransaction();
+            await queryRunner.release();
+            return [null, "Usuario registrador no encontrado"];
+        }
+
+        // 3. Limpiar y validar datos
+        const datosLimpios = limpiarCamposTexto(data);
+        
+        if (!datosLimpios.nombres || !datosLimpios.apellidoPaterno || !datosLimpios.apellidoMaterno || !datosLimpios.correoPersonal) {
+            await queryRunner.rollbackTransaction();
+            await queryRunner.release();
+            return [null, "Faltan campos requeridos: nombres, apellidos y correo personal"];
+        }
+
+        // Validar formato de correo
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(datosLimpios.correoPersonal)) {
+            await queryRunner.rollbackTransaction();
+            await queryRunner.release();
+            return [null, "Formato de correo personal inválido"];
+        }
+
+        // 4. Generar nuevo correo corporativo (NUNCA reutilizar anteriores)
+        const primerNombre = datosLimpios.nombres.split(' ')[0].toLowerCase().normalize('NFD').replace(/[^a-zA-Z]/g, '');
+        const apellidoPaterno = datosLimpios.apellidoPaterno.toLowerCase().normalize('NFD').replace(/[^a-zA-Z]/g, '');
+        const nuevoCorreoCorporativo = await generateCorporateEmail(primerNombre, apellidoPaterno, queryRunner);
+
+        // 5. Generar nueva contraseña
+        const nuevaPassword = generateRandomPassword();
+        const hashedPassword = await encryptPassword(nuevaPassword);
+
+        // 6. Actualizar datos del trabajador
+        trabajador.nombres = datosLimpios.nombres;
+        trabajador.apellidoPaterno = datosLimpios.apellidoPaterno;
+        trabajador.apellidoMaterno = datosLimpios.apellidoMaterno;
+        trabajador.correoPersonal = datosLimpios.correoPersonal;
+        trabajador.telefono = datosLimpios.telefono || trabajador.telefono;
+        trabajador.numeroEmergencia = datosLimpios.numeroEmergencia || trabajador.numeroEmergencia;
+        trabajador.direccion = datosLimpios.direccion || trabajador.direccion;
+        trabajador.fechaIngreso = new Date(); // Nueva fecha de ingreso
+        trabajador.enSistema = true; // Reactivar
+
+        // 7. Actualizar usuario
+        trabajador.usuario.name = `${datosLimpios.nombres} ${datosLimpios.apellidoPaterno} ${datosLimpios.apellidoMaterno}`;
+        trabajador.usuario.corporateEmail = nuevoCorreoCorporativo;
+        trabajador.usuario.password = hashedPassword;
+        trabajador.usuario.role = "Usuario"; // Siempre rol "Usuario" al reactivar
+        trabajador.usuario.estadoCuenta = "Activa";
+        trabajador.usuario.updateAt = new Date();
+
+        // 8. Resetear ficha de empresa a estado activo con datos por defecto
+        trabajador.fichaEmpresa.estado = EstadoLaboral.ACTIVO;
+        trabajador.fichaEmpresa.cargo = "Por Definir";
+        trabajador.fichaEmpresa.area = "Por Definir";
+        trabajador.fichaEmpresa.tipoContrato = "Por Definir";
+        trabajador.fichaEmpresa.jornadaLaboral = "Por Definir";
+        trabajador.fichaEmpresa.sueldoBase = 0;
+        trabajador.fichaEmpresa.fechaInicioContrato = new Date();
+        trabajador.fichaEmpresa.fechaFinContrato = null;
+        trabajador.fichaEmpresa.motivoDesvinculacion = null;
+        trabajador.fichaEmpresa.fechaInicioLicencia = null;
+        trabajador.fichaEmpresa.fechaFinLicencia = null;
+        trabajador.fichaEmpresa.motivoLicencia = null;
+
+        // 9. Registrar reactivación en historial laboral
+        const historialReactivacion = historialRepo.create({
+            trabajador: trabajador,
+            cargo: trabajador.fichaEmpresa.cargo,
+            area: trabajador.fichaEmpresa.area,
+            departamento: 'N/A',
+            tipoContrato: trabajador.fichaEmpresa.tipoContrato,
+            sueldoBase: trabajador.fichaEmpresa.sueldoBase,
+            fechaInicio: new Date(),
+            observaciones: `Reactivación de trabajador. Nuevo correo corporativo: ${nuevoCorreoCorporativo}`,
+            registradoPor: usuarioRegistra
+        });
+
+        // 10. Guardar todos los cambios
+        await queryRunner.manager.save(Trabajador, trabajador);
+        await queryRunner.manager.save(User, trabajador.usuario);
+        await queryRunner.manager.save(FichaEmpresa, trabajador.fichaEmpresa);
+        await queryRunner.manager.save(HistorialLaboral, historialReactivacion);
+
+        // 11. Enviar credenciales por correo
+        let credencialesEnviadas = false;
+        try {
+            await sendCredentialsEmail({
+                to: trabajador.correoPersonal,
+                nombre: trabajador.nombres,
+                correoUsuario: nuevoCorreoCorporativo,
+                passwordTemporal: nuevaPassword
+            });
+            credencialesEnviadas = true;
+        } catch (emailError) {
+            console.error("Error enviando correo de credenciales en reactivación:", emailError);
+            // No fallar la operación por el correo, pero registrar el error
+        }
+
+        await queryRunner.commitTransaction();
+
+        // Recargar el trabajador con sus relaciones
+        const trabajadorReactivado = await trabajadorRepo.findOne({
+            where: { id: trabajador.id },
+            relations: ["usuario", "fichaEmpresa"]
+        });
+
+        return [{
+            trabajador: trabajadorReactivado!,
+            nuevoCorreoCorporativo,
+            credencialesEnviadas
+        }, null];
+
+    } catch (error) {
+        await queryRunner.rollbackTransaction();
+        console.error("Error en reactivarTrabajadorService:", error);
+        return [null, "Error interno del servidor"];
+    } finally {
+        await queryRunner.release();
     }
 }

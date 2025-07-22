@@ -5,8 +5,8 @@ import { Bono, temporalidad, tipoBono } from "../entity/recursosHumanos/Remunera
 import { PrevisionAFP, TipoFondoAFP } from "../entity/recursosHumanos/Remuneraciones/previsionAFP.entity.js";
 import { PrevisionSalud, TipoPrevisionSalud } from "../entity/recursosHumanos/Remuneraciones/previsionSalud.entity.js";
 import { userRole } from "../../types.d.js";
-//import { Trabajador } from  "../entity/recursosHumanos/trabajador.entity.js";
-//import { FichaEmpresa, EstadoLaboral } from "../entity/recursosHumanos/fichaEmpresa.entity.js";
+import { Trabajador } from  "../entity/recursosHumanos/trabajador.entity.js";
+import { FichaEmpresa, EstadoLaboral } from "../entity/recursosHumanos/fichaEmpresa.entity.js";
 //import { cp } from "fs";
 
 // Determinar el entorno
@@ -17,6 +17,8 @@ const isTest = process.env.NODE_ENV === "test";
 export async function initialSetup(): Promise<void> {
     try {
         const userRepo = AppDataSource.getRepository(User);
+        const trabajadorRepo = AppDataSource.getRepository(Trabajador);
+        const fichasRepo = AppDataSource.getRepository(FichaEmpresa);
         const bonosRepo = AppDataSource.getRepository(Bono);
         const afpRepo = AppDataSource.getRepository(PrevisionAFP);
         const saludRepo = AppDataSource.getRepository(PrevisionSalud);
@@ -170,9 +172,69 @@ export async function initialSetup(): Promise<void> {
         console.log("✅ Configuración de previsión salud creada exitosamente");
          */
         
+        /*
+        // Verificar si ya existe un Finanzas
+        const existingFinanzas = await userRepo.findOne({
+            where: { role: 'Finanzas' }
+        });
+        if (!existingFinanzas) {
+            // Crear ÚNICAMENTE el trabajador finanzas
+            // Crear trabajador para las pruebas
+            const trabajadorResponse = trabajadorRepo.create({
+                rut: "21.271.162-4",
+                nombres: "Juan",
+                apellidoPaterno: "Perez",
+                apellidoMaterno: "Gonzalez",
+                fechaNacimiento: new Date("1990-01-01"),
+                telefono: "+56912345678",
+                correo: "juan.perez@test.com",
+                direccion: "Calle 123",
+                fechaIngreso: new Date("2025-07-07"),
+            });
 
+            await trabajadorRepo.save(trabajadorResponse);
+
+            // Crear ÚNICAMENTE el usuario finanzas
+            const finanzasPlainPassword = "FINANZAS_204_M1n8";
+            const finanzasHashedPassword = await encryptPassword(finanzasPlainPassword);
+            
+            const finanzasUser = userRepo.create({
+                name: "Finanzas Sistema",
+                email: "finanzas@lamas.com",
+                password: finanzasHashedPassword,
+                role: 'Finanzas' as userRole,
+                rut: "21.271.162-4",
+                estadoCuenta: "Activa"
+            });
+            await userRepo.save(finanzasUser);
+
+            // Crear ficha empresa
+            const fichaEmpresaTest = fichasRepo.create({
+                trabajador: trabajadorResponse,
+                asignacionesBonos: [],
+                cargo: "Trabajador de Finanzas",
+                area: "Finanzas",
+                tipoContrato: "Indefinido",
+                jornadaLaboral: "Completa",
+                sueldoBase: 500000, 
+                previsionSalud: null, // Asignar más tarde
+                afp: null, // Asignar más tarde
+                seguroCesantia: false,
+                fechaInicioContrato: new Date("2025-07-07"),
+                estado: EstadoLaboral.ACTIVO
+            });
+
+            await fichasRepo.save(fichaEmpresaTest);
+            console.log("✅ Configuración inicial completada - Trabajador de finanzas creado únicamente");
+        } else {
+              console.log("✅ Configuración inicial completada - Trabajador finanzas ya existe");
+        }
+        */
         
-        
+
+            
+          
+
     } catch (error) {
         console.error("❌ Error en la configuración inicial:", error);
         throw error;
