@@ -7,12 +7,13 @@ import { userService } from '@/services/user.service';
 import { Table, Button, Form, Spinner, Modal, Container, Row, Col, Card } from 'react-bootstrap';
 import { FiltrosBusquedaHeader } from '@/components/common/FiltrosBusquedaHeader';
 import { useToast, Toast } from '@/components/common/Toast';
+import { PasswordInput } from '@/components/common/LoginForm';
 
 // Interfaz para los parámetros de búsqueda
 interface UserSearchParams {
   name?: string;
   rut?: string;
-  email?: string;
+  corporateEmail?: string;
   role?: FilterableUserRole;
   incluirInactivos: boolean;
   soloInactivos: boolean;
@@ -28,6 +29,7 @@ export const UsersPage: React.FC = () => {
   const [isUpdating, setIsUpdating] = useState(false);
   const [users, setUsers] = useState<SafeUser[]>([]);
   const [showUpdateModal, setShowUpdateModal] = useState(false);
+  const [showSelfEditModal, setShowSelfEditModal] = useState(false);
   const [newRole, setNewRole] = useState<FilterableUserRole>();
   const [newPassword, setNewPassword] = useState<string>('');
   const [searchParams, setSearchParams] = useState<UserSearchParams>({
@@ -38,7 +40,7 @@ export const UsersPage: React.FC = () => {
   const [rutError, setRutError] = useState<string | null>(null);
   const [passwordError, setPasswordError] = useState<string | null>(null);
 
-  const availableRoles: FilterableUserRole[] = ['Usuario', 'RecursosHumanos', 'Gerencia', 'Ventas', 'Arriendo', 'Finanzas', 'Mecánico', 'Mantenciones de Maquinaria', 'Conductor'];
+  const availableRoles: FilterableUserRole[] = ['Usuario', 'RecursosHumanos', 'Gerencia', 'Ventas', 'Arriendo', 'Finanzas', 'Mecánico', 'Mantenciones de Maquinaria'];
   
   // Admin, SuperAdmin y RecursosHumanos pueden asignar rol de Administrador
   if (user?.role === 'Administrador' || user?.role === 'SuperAdministrador' || user?.role === 'RecursosHumanos') {
@@ -85,7 +87,7 @@ export const UsersPage: React.FC = () => {
       const filters: any = {};
       if (params.name) filters.name = params.name;
       if (params.rut) filters.rut = params.rut;
-      if (params.email) filters.email = params.email;
+      if (params.corporateEmail) filters.corporateEmail = params.corporateEmail;
       if (params.role) filters.role = params.role;
       // Obtener usuarios con o sin filtros
       const { data: foundUsers } = await userService.getUsers(filters);
@@ -161,6 +163,13 @@ export const UsersPage: React.FC = () => {
     setShowUpdateModal(true);
   };
 
+  const handleShowSelfEditModal = (user: SafeUser) => {
+    setSelectedUser(user);
+    setNewPassword('');
+    setPasswordError(null);
+    setShowSelfEditModal(true);
+  };
+
   // Función para validar contraseña
   const validatePassword = (password: string): string | null => {
     if (password.length === 0) return null; // Vacía es válida (no cambiar)
@@ -190,19 +199,28 @@ export const UsersPage: React.FC = () => {
           }
         }
         
-        // Crear objeto con las actualizaciones
-        const updates: { role?: FilterableUserRole, password?: string } = {};
-        if (newRole && newRole !== selectedUser.role) updates.role = newRole;
-        if (newPassword && newPassword.length >= 8 && newPassword.length <= 16) updates.password = newPassword;
-
-        // Solo enviar la petición si hay cambios
-        if (Object.keys(updates).length > 0) {
-            await userService.updateUser(selectedUser.id, updates);
-            showSuccess('¡Usuario actualizado!', `El usuario ${selectedUser.name} se ha actualizado exitosamente`, 4000);
-            setShowUpdateModal(false);
-            loadUsers(); // Recargar la lista después de actualizar
+        // Construir query y body según permisos
+        const isSelf = user && selectedUser.id === user.id;
+        const rolesPrivilegiados = ['SuperAdministrador', 'Administrador', 'RecursosHumanos'];
+        const puedeEditarRol = user && rolesPrivilegiados.includes(user.role) && !isSelf;
+        const query = { id: selectedUser.id };
+        const updates: any = {};
+        if (isSelf) {
+          // Solo puede cambiar su propia contraseña
+          if (newPassword) updates.password = newPassword;
         } else {
-            setShowUpdateModal(false); // Cerrar modal si no hay cambios
+          // Puede cambiar rol y/o contraseña de otros
+          if (puedeEditarRol && newRole && newRole !== selectedUser.role) updates.role = newRole;
+          if (newPassword) updates.password = newPassword;
+        }
+        // Solo enviar si hay cambios válidos
+        if (Object.keys(updates).length > 0) {
+          await userService.updateUser(query, updates);
+          showSuccess('¡Usuario actualizado!', `El usuario ${selectedUser.name} se ha actualizado exitosamente`, 4000);
+          setShowUpdateModal(false);
+          loadUsers();
+        } else {
+          setShowUpdateModal(false);
         }
     } catch (err: any) {
         setError(err.message || 'Error al actualizar usuario');
@@ -210,6 +228,39 @@ export const UsersPage: React.FC = () => {
         setIsUpdating(false);
         setNewPassword('');
         setPasswordError(null);
+    }
+  };
+
+  const handleChangeOwnPassword = async () => {
+    if (!selectedUser) return;
+
+    try {
+        setIsUpdating(true);
+        setError('');
+        setPasswordError(null);
+        
+        // Validar nueva contraseña
+        if (newPassword) {
+          const passwordValidation = validatePassword(newPassword);
+          if (passwordValidation) {
+            setPasswordError(passwordValidation);
+            return;
+          }
+        }
+        // Usar el nuevo endpoint de update
+        const query = { id: selectedUser.id };
+        const updates: any = {};
+        if (newPassword) updates.password = newPassword;
+        if (Object.keys(updates).length > 0) {
+          await userService.updateUser(query, updates);
+          showSuccess('¡Contraseña actualizada!', 'Tu contraseña se ha actualizado exitosamente', 4000);
+          setShowSelfEditModal(false);
+          setNewPassword('');
+        }
+    } catch (err: any) {
+        setError(err.message || 'Error al cambiar contraseña');
+    } finally {
+        setIsUpdating(false);
     }
   };
 
@@ -315,17 +366,17 @@ export const UsersPage: React.FC = () => {
                   </Col>
                   <Col md={3}>
                     <Form.Group className="mb-3">
-                      <Form.Label>Email</Form.Label>
+                      <Form.Label>Correo Corporativo</Form.Label>
                       <Form.Control
                         type="text"
-                        name="email"
+                        name="corporateEmail"
                         placeholder="usuario@gmail.com"
-                        value={searchParams.email || ''}
+                        value={searchParams.corporateEmail || ''}
                         onChange={(e) => {
                           const { value } = e.target;
                           setSearchParams(prev => ({
                             ...prev,
-                            email: value
+                            corporateEmail: value
                           }));
                         }}
                       />
@@ -428,16 +479,16 @@ export const UsersPage: React.FC = () => {
                 <div className="text-center py-5">
                   <i className="bi bi-person-x display-1 text-muted"></i>
                   <h5 className="mt-3">
-                    {(!searchParams.name && !searchParams.rut && !searchParams.email && !searchParams.role && !searchParams.soloInactivos && !searchParams.incluirInactivos) ? 
+                    {(!searchParams.name && !searchParams.rut && !searchParams.corporateEmail && !searchParams.role && !searchParams.soloInactivos && !searchParams.incluirInactivos) ? 
                       'No hay usuarios registrados en el sistema' : 
                       'No hay resultados que coincidan con tu búsqueda'}
                   </h5>
                   <p className="text-muted">
-                    {(!searchParams.name && !searchParams.rut && !searchParams.email && !searchParams.role && !searchParams.soloInactivos && !searchParams.incluirInactivos) ? 
+                    {(!searchParams.name && !searchParams.rut && !searchParams.corporateEmail && !searchParams.role && !searchParams.soloInactivos && !searchParams.incluirInactivos) ? 
                       'Los usuarios se crean automáticamente al registrar un nuevo trabajador' : 
                       'Intenta ajustar los filtros para obtener más resultados'}
                   </p>
-                  {(searchParams.name || searchParams.rut || searchParams.email || searchParams.role || searchParams.soloInactivos || searchParams.incluirInactivos) && (
+                  {(searchParams.name || searchParams.rut || searchParams.corporateEmail || searchParams.role || searchParams.soloInactivos || searchParams.incluirInactivos) && (
                     <Button variant="outline-primary" onClick={handleResetSearch}>
                       <i className="bi bi-arrow-clockwise me-2"></i>
                       Mostrar Todos
@@ -462,7 +513,7 @@ export const UsersPage: React.FC = () => {
                         <tr>
                           <th>Nombre</th>
                           <th>RUT</th>
-                          <th>Email</th>
+                          <th>Correo Corporativo</th>
                           <th>Rol</th>
                           <th>Estado</th>
                           <th className="text-center">Acciones</th>
@@ -473,7 +524,7 @@ export const UsersPage: React.FC = () => {
                           <tr key={userItem.id}>
                             <td>{userItem.name}</td>
                             <td>{userItem.rut ? formatRUT(userItem.rut) : <span className="text-muted">No aplica</span>}</td>
-                            <td>{userItem.email}</td>
+                            <td>{userItem.corporateEmail}</td>
                             <td>
                               <span className={`badge bg-${getRoleBadgeColor(userItem.role)}`}>
                                 {userItem.role}
@@ -485,17 +536,30 @@ export const UsersPage: React.FC = () => {
                               </span>
                             </td>
                             <td className="text-center">
-                              {/* Ocultar acciones si es el admin principal, SuperAdministrador o si es el usuario actual */}
-                              {(userItem.email !== 'admin.principal@gmail.com' && userItem.role !== 'SuperAdministrador' && !esUsuarioActual(userItem)) && (
+                              {/* Mostrar diferentes acciones según el tipo de usuario */}
+                              {userItem.corporateEmail !== 'admin.principal@gmail.com' && userItem.role !== 'SuperAdministrador' && (
                                 <div className="btn-group">
-                                  <Button
-                                    variant="outline-primary"
-                                    onClick={() => handleShowModal(userItem)}
-                                    title="Editar rol"
-                                    disabled={userItem.estadoCuenta === 'Inactiva'}
-                                  >
-                                    <i className="bi bi-pencil-square"></i>
-                                  </Button>
+                                  {esUsuarioActual(userItem) ? (
+                                    // Botón para editar propio perfil
+                                    <Button
+                                      variant="outline-success"
+                                      onClick={() => handleShowSelfEditModal(userItem)}
+                                      title="Cambiar mi contraseña"
+                                      disabled={userItem.estadoCuenta === 'Inactiva'}
+                                    >
+                                      <i className="bi bi-key"></i>
+                                    </Button>
+                                  ) : (
+                                    // Botón para editar otros usuarios (solo roles permitidos)
+                                    <Button
+                                      variant="outline-primary"
+                                      onClick={() => handleShowModal(userItem)}
+                                      title="Editar rol"
+                                      disabled={userItem.estadoCuenta === 'Inactiva'}
+                                    >
+                                      <i className="bi bi-pencil-square"></i>
+                                    </Button>
+                                  )}
                                 </div>
                               )}
                             </td>
@@ -561,10 +625,9 @@ export const UsersPage: React.FC = () => {
                       <i className="bi bi-key me-2"></i>
                       Nueva Contraseña
                     </Form.Label>
-                    <Form.Control
-                      type="password"
+                    <PasswordInput
                       value={newPassword}
-                      onChange={(e) => {
+                      onChange={e => {
                         setNewPassword(e.target.value);
                         if (e.target.value) {
                           setPasswordError(validatePassword(e.target.value));
@@ -575,10 +638,11 @@ export const UsersPage: React.FC = () => {
                       placeholder="Dejar vacío para mantener la actual"
                       maxLength={16}
                       isInvalid={!!passwordError}
+                      feedback={passwordError || ''}
+                      disabled={isUpdating}
+                      name="newPassword"
+                      autoComplete="new-password"
                     />
-                    <Form.Control.Feedback type="invalid">
-                      {passwordError}
-                    </Form.Control.Feedback>
                     <Form.Text className="text-muted">
                       La contraseña debe tener entre 8 y 16 caracteres, al menos una mayúscula, una minúscula, un número y un carácter especial.
                     </Form.Text>
@@ -622,6 +686,120 @@ export const UsersPage: React.FC = () => {
               </Button>
             </Modal.Footer>
           </Modal>
+
+          {/* Modal de Autoedición */}
+          <Modal show={showSelfEditModal} onHide={() => {
+            setShowSelfEditModal(false);
+            setNewPassword('');
+            setPasswordError(null);
+          }}>
+            <Modal.Header closeButton>
+              <Modal.Title>
+                <i className="bi bi-key me-2"></i>
+                Cambiar Mi Contraseña
+              </Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+              {selectedUser && (
+                <Form>
+                  <Form.Group className="mb-3">
+                    <Form.Label>
+                      <i className="bi bi-person me-2"></i>
+                      Usuario
+                    </Form.Label>
+                    <Form.Control type="text" value={selectedUser.name} disabled />
+                  </Form.Group>
+                  
+                  <Form.Group className="mb-3">
+                    <Form.Label>
+                      <i className="bi bi-credit-card me-2"></i>
+                      RUT
+                    </Form.Label>
+                    <Form.Control type="text" value={formatRUT(selectedUser.rut)} disabled />
+                  </Form.Group>
+
+                  <Form.Group className="mb-3">
+                    <Form.Label>
+                      <i className="bi bi-shield me-2"></i>
+                      Rol
+                    </Form.Label>
+                    <Form.Control 
+                      type="text" 
+                      value={selectedUser.role} 
+                      disabled 
+                      className="bg-light"
+                    />
+                    <Form.Text className="text-muted">
+                      <i className="bi bi-info-circle me-1"></i>
+                      El rol no puede ser modificado por el mismo usuario
+                    </Form.Text>
+                  </Form.Group>
+
+                  <Form.Group className="mb-3">
+                    <Form.Label>
+                      <i className="bi bi-key me-2"></i>
+                      Nueva Contraseña
+                    </Form.Label>
+                    <PasswordInput
+                      value={newPassword}
+                      onChange={e => {
+                        setNewPassword(e.target.value);
+                        if (e.target.value) {
+                          setPasswordError(validatePassword(e.target.value));
+                        } else {
+                          setPasswordError(null);
+                        }
+                      }}
+                      placeholder="Ingrese la nueva contraseña"
+                      maxLength={16}
+                      isInvalid={!!passwordError}
+                      feedback={passwordError || ''}
+                      disabled={isUpdating}
+                      name="newPassword"
+                      autoComplete="new-password"
+                    />
+                    <Form.Text className="text-muted">
+                      La contraseña debe tener entre 8 y 16 caracteres, al menos una mayúscula, una minúscula, un número y un carácter especial.
+                    </Form.Text>
+                  </Form.Group>
+                </Form>
+              )}
+            </Modal.Body>
+            <Modal.Footer>
+              <Button variant="secondary" onClick={() => {
+                setShowSelfEditModal(false);
+                setNewPassword('');
+                setPasswordError(null);
+              }}>
+                <i className="bi bi-x-circle me-2"></i>
+                Cancelar
+              </Button>
+              <Button
+                variant="success"
+                onClick={handleChangeOwnPassword}
+                disabled={isUpdating || !!passwordError || !newPassword}
+              >
+                {isUpdating ? (
+                  <>
+                    <Spinner
+                      as="span"
+                      animation="border"
+                      size="sm"
+                      role="status"
+                      aria-hidden="true"
+                      className="me-2"
+                    />
+                    Actualizando...
+                  </>
+                ) : (
+                  <>
+                    <i className="bi bi-check-circle me-2"></i>
+                    Cambiar Contraseña
+                  </>
+                )}
+              </Button>
+            </Modal.Footer>
+          </Modal>
         </Col>
       </Row>
       {/* Sistema de notificaciones */}
@@ -651,8 +829,6 @@ const getRoleBadgeColor = (role: string): string => {
       return 'warning';
     case 'Mantenciones de Maquinaria':
       return 'info';
-    case 'Conductor':
-      return 'success';
     case 'Usuario':
       return 'dark';
     default:

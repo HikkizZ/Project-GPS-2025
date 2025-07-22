@@ -31,7 +31,7 @@ async function limpiarEspaciosUsuarios() {
                 // Limpiar cada campo de texto
                 const camposALimpiar = [
                     'name',
-                    'email',
+                    'corporateEmail',
                     'rut'
                 ];
 
@@ -52,7 +52,7 @@ async function limpiarEspaciosUsuarios() {
                 if (necesitaActualizacion) {
                     await userRepo.save(usuario);
                     usuariosActualizados++;
-                    console.log(`✅ Usuario ${usuario.name} (${usuario.email}) actualizado`);
+                    console.log(`✅ Usuario ${usuario.name} (${usuario.corporateEmail}) actualizado`);
                 }
 
             } catch (error) {

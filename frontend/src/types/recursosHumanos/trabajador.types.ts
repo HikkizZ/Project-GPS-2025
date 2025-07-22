@@ -43,7 +43,7 @@ export interface Trabajador {
   licenciasPermisos?: LicenciaPermiso[];
   usuario?: {
     id: number;
-    email: string;
+    corporateEmail: string;
     role: string;
   };
 }

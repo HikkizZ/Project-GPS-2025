@@ -1,4 +1,5 @@
 import { apiClient } from '@/config/api.config';
+import { ApiResponse } from '@/types';
 import type {
   FichaEmpresa,
   FichaEmpresaSearchQuery,
@@ -6,12 +7,6 @@ import type {
   UpdateFichaEmpresaData
 } from '../../types/recursosHumanos/fichaEmpresa.types';
 import { EstadoLaboral } from '../../types/recursosHumanos/fichaEmpresa.types';
-
-export interface ApiResponse<T = any> {
-  success: boolean;
-  message: string;
-  data?: T;
-}
 
 // Exportar la clase
 export class FichaEmpresaService {
@@ -181,7 +176,7 @@ export class FichaEmpresaService {
   // Download de contrato
   async downloadContrato(fichaId: number): Promise<void> {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}${this.baseURL}/${fichaId}/contrato`, {
+      const response = await fetch(`${import.meta.env.VITE_BASE_URL || 'http://localhost:3000/api'}${this.baseURL}/${fichaId}/contrato`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('auth_token')}`

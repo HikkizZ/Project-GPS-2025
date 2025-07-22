@@ -1,12 +1,13 @@
 import Joi, { CustomHelpers, ObjectSchema } from 'joi';
 import { validateRut } from '../helpers/rut.helper.js';
 
-const allowedEmailDomains = ["gmail.com", "outlook.com", "hotmail.com", "gmail.cl", "outlook.cl", "hotmail.cl", "lamas.com", "live.cl"];
-/* Custom validator for email domains */
-const domainEmailValidator = (value: string, helper: CustomHelpers) => {
-    const isValid = allowedEmailDomains.some(domain => value.endsWith(domain));
-    if (!isValid) return helper.message({ custom: "El dominio del email no es válido." });
-}
+const allowedCorporateEmailDomains = ["gmail.com", "outlook.com", "hotmail.com", "gmail.cl", "outlook.cl", "hotmail.cl", "lamas.com", "live.cl"];
+/* Custom validator for corporateEmail domains */
+const domainCorporateEmailValidator = (value: string, helper: CustomHelpers) => {
+  const isValid = allowedCorporateEmailDomains.some(domain => value.endsWith(domain));
+  if (!isValid) return helper.message({ custom: "El dominio del correo corporativo no es válido." });
+  return value;
+};
 
 /* Custom validator for RUT */
 const rutValidator = (value: string, helper: CustomHelpers) => {
@@ -24,11 +25,11 @@ export const userQueryValidation: ObjectSchema = Joi.object({
             "number.integer": "El ID debe ser un número entero.",
             "number.min": "El ID debe ser mayor a 0."
         }),
-    email: Joi.string()
+    corporateEmail: Joi.string()
         .email()
         .messages({
-            "string.base": "El email debe ser una cadena de texto.",
-            "string.email": "El email debe tener un formato válido."
+            "string.base": "El correo corporativo debe ser una cadena de texto.",
+            "string.email": "El correo corporativo debe tener un formato válido."
         }),
     rut: Joi.string()
         .custom((value, helpers) => {
@@ -42,17 +43,17 @@ export const userQueryValidation: ObjectSchema = Joi.object({
             "any.invalid": "El RUT no es válido."
         }),
     role: Joi.string()
-        .valid("SuperAdministrador", "Administrador", "Usuario", "RecursosHumanos", "Gerencia", "Ventas", "Arriendo", "Finanzas", "Mecánico", "Mantenciones de Maquinaria", "Conductor")
+        .valid("SuperAdministrador", "Administrador", "Usuario", "RecursosHumanos", "Gerencia", "Ventas", "Arriendo", "Finanzas", "Mecánico", "Mantenciones de Maquinaria")
         .messages({
             "string.base": "El rol debe ser una cadena de texto.",
             "any.only": "El rol especificado no es válido."
         })
 })
-    .or('id', 'email', 'rut', 'role')
+    .or('id', 'corporateEmail', 'rut', 'role')
     .unknown(false)
     .messages({
         "object.unknown": "El objeto contiene campos no permitidos.",
-        "object.missing": "Se requiere al menos uno de los siguientes campos: id, email, rut, role."
+        "object.missing": "Se requiere al menos uno de los siguientes campos: id, corporateEmail, rut, role."
     });
 
 /* Validation of the body for creation or update */
@@ -68,11 +69,12 @@ export const userBodyValidation: ObjectSchema = Joi.object({
             "string.max": "El nombre debe tener menos de {#limit} caracteres.",
             "string.pattern.base": "El nombre solo puede contener letras y espacios."
         }),
-    email: Joi.string()
+    corporateEmail: Joi.string()
         .email()
+        .custom(domainCorporateEmailValidator, "domain corporateEmail validation")
         .messages({
-            "string.base": "El email debe ser una cadena de texto.",
-            "string.email": "El email debe tener un formato válido."
+            "string.base": "El correo corporativo debe ser una cadena de texto.",
+            "string.email": "El correo corporativo debe tener un formato válido."
         }),
     rut: Joi.string()
         .when('role', {
@@ -104,15 +106,15 @@ export const userBodyValidation: ObjectSchema = Joi.object({
             "string.pattern.base": "La contraseña solo puede contener letras y números."
         }),
     role: Joi.string()
-        .valid("SuperAdministrador", "Administrador", "Usuario", "RecursosHumanos", "Gerencia", "Ventas", "Arriendo", "Finanzas", "Mecánico", "Mantenciones de Maquinaria", "Conductor")
+        .valid("SuperAdministrador", "Administrador", "Usuario", "RecursosHumanos", "Gerencia", "Ventas", "Arriendo", "Finanzas", "Mecánico", "Mantenciones de Maquinaria")
         .messages({
             "string.base": "El rol debe ser una cadena de texto.",
             "any.only": "El rol especificado no es válido."
         })
 })
-    .or('name', 'email', 'rut', 'password', 'role')
+    .or('name', 'corporateEmail', 'rut', 'password', 'role')
     .unknown(false)
     .messages({
         "object.unknown": "El objeto contiene campos no permitidos.",
-        "object.missing": "Se requiere al menos uno de los siguientes campos: name, email, rut, password o role."
+        "object.missing": "Se requiere al menos uno de los siguientes campos: name, corporateEmail, rut, password o role."
     });

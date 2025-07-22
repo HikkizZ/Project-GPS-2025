@@ -9,8 +9,7 @@ export type UserRole =
     | "Arriendo"
     | "Finanzas"
     | "Mecánico"
-    | "Mantenciones de Maquinaria"
-    | "Conductor";
+    | "Mantenciones de Maquinaria";
 
 // Roles disponibles para filtrado y asignación (excluyendo SuperAdministrador)
 export type FilterableUserRole = Exclude<UserRole, "SuperAdministrador">;
@@ -18,16 +17,16 @@ export type FilterableUserRole = Exclude<UserRole, "SuperAdministrador">;
 export interface User {
   id: number;
   name: string;
+  corporateEmail: string;
+  role: string;
   rut: string;
-  email: string;
-  role: UserRole;
   estadoCuenta: string;
   createAt: string;
   updateAt: string;
 }
 
 export interface LoginData {
-  email: string;
+  corporateEmail: string;
   password: string;
 }
 
@@ -41,7 +40,7 @@ export interface AuthResponse {
 
 export interface JWTPayload {
   name: string;
-  email: string;
+  corporateEmail: string;
   role: UserRole;
   rut: string;
 }
@@ -50,11 +49,19 @@ export interface SafeUser {
     id: number;
     name: string;
     rut: string;
-    email: string;
+    corporateEmail: string;
     role: UserRole;
     estadoCuenta: string;
     createAt: string;
     updateAt: string;
     password?: string;
     showPassword?: boolean;
+} 
+
+export interface CustomJwtPayload {
+  id: number;
+  name: string;
+  corporateEmail: string;
+  role: string;
+  rut: string;
 } 

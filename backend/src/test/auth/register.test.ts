@@ -116,7 +116,7 @@ describe('🔒 Auth API - Registro y Login', () => {
             const testUser = {
                 name: "Test User",
                 rut: "33.333.333-3",
-                email: "test.login@gmail.com",
+                corporateEmail: "test.login@gmail.com",
                 password: "TestLogin123",
                 role: "Usuario"
             };
@@ -149,7 +149,7 @@ describe('🔒 Auth API - Registro y Login', () => {
             const res = await request(app)
                 .post('/api/auth/login')
                 .send({
-                    email: "test.login@gmail.com",
+                    corporateEmail: "test.login@gmail.com",
                     password: "TestLogin123"
                 });
 
@@ -164,20 +164,20 @@ describe('🔒 Auth API - Registro y Login', () => {
             const res = await request(app)
                 .post('/api/auth/login')
                 .send({
-                    email: "noexiste@gmail.com",
+                    corporateEmail: "noexiste@gmail.com",
                     password: "TestLogin123"
                 });
 
             expect(res.status).to.equal(401);
             expect(res.body).to.have.property('status').to.equal('error');
-            expect(res.body).to.have.property('message').to.equal('El email ingresado no está registrado.');
+            expect(res.body).to.have.property('message').to.equal('El correo corporativo ingresado no está registrado.');
         });
 
         it('no debe permitir iniciar sesión con contraseña incorrecta', async () => {
             const res = await request(app)
                 .post('/api/auth/login')
                 .send({
-                    email: "test.login@gmail.com",
+                    corporateEmail: "test.login@gmail.com",
                     password: "ContraseñaIncorrecta123"
                 });
 
@@ -190,20 +190,20 @@ describe('🔒 Auth API - Registro y Login', () => {
             const res = await request(app)
                 .post('/api/auth/login')
                 .send({
-                    email: "correo.invalido",
+                    corporateEmail: "correo.invalido",
                     password: "TestLogin123"
                 });
 
             expect(res.status).to.equal(400);
             expect(res.body).to.have.property('status').to.equal('error');
-            expect(res.body).to.have.property('message').to.include('email');
+            expect(res.body).to.have.property('message').to.include('correo corporativo');
         });
 
         it('no debe permitir iniciar sesión sin contraseña', async () => {
             const res = await request(app)
                 .post('/api/auth/login')
                 .send({
-                    email: "test.login@gmail.com",
+                    corporateEmail: "test.login@gmail.com",
                     password: ""
                 });
 
@@ -221,7 +221,7 @@ describe('🔒 Auth API - Registro y Login', () => {
                 .send({
                     name: "Usuario Prueba Test",
                     rut: "12.345.678-9",
-                    email: "usuario.prueba@gmail.com",
+                    corporateEmail: "usuario.prueba@gmail.com",
                     password: "Usuario123",
                     role: "Usuario"
                 });
@@ -230,7 +230,7 @@ describe('🔒 Auth API - Registro y Login', () => {
             expect(res.body).to.have.property('status').to.equal('success');
             expect(res.body).to.have.property('message').to.equal('Usuario registrado exitosamente.');
             expect(res.body).to.have.property('data');
-            expect(res.body.data).to.have.property('email').to.equal('usuario.prueba@gmail.com');
+            expect(res.body.data).to.have.property('corporateEmail').to.equal('usuario.prueba@gmail.com');
         });
 
         it('no debe permitir registrar un usuario sin token', async () => {
@@ -239,7 +239,7 @@ describe('🔒 Auth API - Registro y Login', () => {
                 .send({
                     name: "Usuario Prueba Test",
                     rut: "12.345.678-9",
-                    email: "usuario.prueba@gmail.com",
+                    corporateEmail: "usuario.prueba@gmail.com",
                     password: "Usuario123",
                     role: "Usuario"
                 });
@@ -256,7 +256,7 @@ describe('🔒 Auth API - Registro y Login', () => {
                 .send({
                     name: "Usuario Prueba Test",
                     rut: "11.222.333-4",
-                    email: "otro.usuario@gmail.com",
+                    corporateEmail: "otro.usuario@gmail.com",
                     password: "Usuario123",
                     role: "Usuario"
                 });
@@ -273,14 +273,14 @@ describe('🔒 Auth API - Registro y Login', () => {
                 .send({
                     name: "Usuario Prueba Test",
                     rut: "12.345.678-9",
-                    email: "otro.email@gmail.com",
+                    corporateEmail: "otro.email@gmail.com",
                     password: "Usuario123",
                     role: "Usuario"
                 });
 
             expect(res.status).to.equal(400);
             expect(res.body).to.have.property('status').to.equal('error');
-            expect(res.body).to.have.property('message').to.equal('El email debe coincidir con el email del trabajador.');
+            expect(res.body).to.have.property('message').to.equal('El correo corporativo debe coincidir con el correo personal del trabajador.');
         });
     });
 
@@ -292,7 +292,7 @@ describe('🔒 Auth API - Registro y Login', () => {
                 .send({
                     name: "Usuario Prueba Test",
                     rut: "12.345.678-9",
-                    email: "usuario.prueba@gmail.com",
+                    corporateEmail: "usuario.prueba@gmail.com",
                     password: "Usuario123",
                     role: "Usuario"
                 });
@@ -301,7 +301,7 @@ describe('🔒 Auth API - Registro y Login', () => {
             expect(res.body).to.have.property('status').to.equal('success');
             expect(res.body).to.have.property('message').to.equal('Usuario registrado exitosamente.');
             expect(res.body).to.have.property('data');
-            expect(res.body.data).to.have.property('email').to.equal('usuario.prueba@gmail.com');
+            expect(res.body.data).to.have.property('corporateEmail').to.equal('usuario.prueba@gmail.com');
         });
 
         it('debe permitir a RRHH registrar un usuario administrador', async () => {
@@ -311,7 +311,7 @@ describe('🔒 Auth API - Registro y Login', () => {
                 .send({
                     name: "Admin Prueba",
                     rut: "12.345.678-9",
-                    email: "usuario.prueba@gmail.com",
+                    corporateEmail: "usuario.prueba@gmail.com",
                     password: "Usuario123",
                     role: "Administrador"
                 });
@@ -332,7 +332,7 @@ describe('🔒 Auth API - Registro y Login', () => {
                 .send({
                     name: "Usuario Prueba Test",
                     rut: "123456789",  // RUT sin formato
-                    email: "usuario.prueba@gmail.com",
+                    corporateEmail: "usuario.prueba@gmail.com",
                     password: "Usuario123",
                     role: "Usuario"
                 });
@@ -349,14 +349,14 @@ describe('🔒 Auth API - Registro y Login', () => {
                 .send({
                     name: "Usuario Prueba Test",
                     rut: "12.345.678-9",
-                    email: "correo.invalido@hotmail.com",  // No es gmail.com
+                    corporateEmail: "correo.invalido@hotmail.com",  // No es gmail.com
                     password: "Usuario123",
                     role: "Usuario"
                 });
 
             expect(res.status).to.equal(400);
             expect(res.body).to.have.property('status').to.equal('error');
-            expect(res.body).to.have.property('message').to.include('email');
+            expect(res.body).to.have.property('message').to.include('correo corporativo');
         });
 
         it('no debe permitir registrar un usuario con contraseña muy corta', async () => {
@@ -366,7 +366,7 @@ describe('🔒 Auth API - Registro y Login', () => {
                 .send({
                     name: "Usuario Prueba Test",
                     rut: "12.345.678-9",
-                    email: "usuario.prueba@gmail.com",
+                    corporateEmail: "usuario.prueba@gmail.com",
                     password: "123",  // Contraseña muy corta
                     role: "Usuario"
                 });
@@ -383,7 +383,7 @@ describe('🔒 Auth API - Registro y Login', () => {
                 .send({
                     name: "Usuario123!@#",  // Caracteres no permitidos
                     rut: "12.345.678-9",
-                    email: "usuario.prueba@gmail.com",
+                    corporateEmail: "usuario.prueba@gmail.com",
                     password: "Usuario123",
                     role: "Usuario"
                 });
@@ -403,7 +403,7 @@ describe('🔒 Auth API - Registro y Login', () => {
                 .send({
                     name: "Usuario Existente",
                     rut: "12.345.678-9",
-                    email: "usuario.prueba@gmail.com",
+                    corporateEmail: "usuario.prueba@gmail.com",
                     password: "Usuario123",
                     role: "Usuario"
                 });
@@ -416,14 +416,14 @@ describe('🔒 Auth API - Registro y Login', () => {
                 .send({
                     name: "Otro Usuario",
                     rut: "12.345.678-9",
-                    email: "usuario.prueba@gmail.com",  // Email ya registrado
+                    corporateEmail: "usuario.prueba@gmail.com",  // Email ya registrado
                     password: "Usuario123",
                     role: "Usuario"
                 });
 
             expect(res.status).to.equal(400);
             expect(res.body).to.have.property('status').to.equal('error');
-            expect(res.body).to.have.property('message').to.include('email');
+            expect(res.body).to.have.property('message').to.include('correo corporativo');
             expect(res.body).to.have.property('message').to.include('registrado');
         });
     });
@@ -436,7 +436,7 @@ describe('🔒 Auth API - Registro y Login', () => {
                 .send({
                     name: "Usuario Prueba Test",
                     rut: "12.345.678-9",
-                    email: "usuario.prueba@gmail.com",
+                    corporateEmail: "usuario.prueba@gmail.com",
                     password: "Usuario123",
                     role: "RolInvalido"  // Rol que no existe
                 });
@@ -454,7 +454,7 @@ describe('🔒 Auth API - Registro y Login', () => {
                 .set('Authorization', `Bearer ${adminToken}`)
                 .send({
                     rut: "12.345.678-9",
-                    email: "usuario.prueba@gmail.com",
+                    corporateEmail: "usuario.prueba@gmail.com",
                     password: "Usuario123",
                     role: "Usuario"
                 });
@@ -471,7 +471,7 @@ describe('🔒 Auth API - Registro y Login', () => {
                 .send({
                     name: "",
                     rut: "12.345.678-9",
-                    email: "usuario.prueba@gmail.com",
+                    corporateEmail: "usuario.prueba@gmail.com",
                     password: "Usuario123",
                     role: "Usuario"
                 });
@@ -487,7 +487,7 @@ describe('🔒 Auth API - Registro y Login', () => {
             const res = await request(app)
                 .post('/api/auth/login')
                 .send({
-                    email: "super.administrador@lamas.com",
+                    corporateEmail: "super.administrador@lamas.com",
                     password: "204_M1n8"
                 });
 
@@ -502,7 +502,7 @@ describe('🔒 Auth API - Registro y Login', () => {
             const res = await request(app)
                 .post('/api/auth/login')
                 .send({
-                    email: "super.administrador@lamas.com",
+                    corporateEmail: "super.administrador@lamas.com",
                     password: "204_M1n8"
                 });
 
@@ -515,7 +515,7 @@ describe('🔒 Auth API - Registro y Login', () => {
             const res = await request(app)
                 .post('/api/auth/login')
                 .send({
-                    email: "super.administrador@lamas.com",
+                    corporateEmail: "super.administrador@lamas.com",
                     password: "204_M1n8"
                 });
 
@@ -550,7 +550,7 @@ describe('🔒 Auth API - Registro y Login', () => {
         it('debe rechazar un token expirado', async () => {
             // Crear un token expirado (1 segundo de validez)
             const expiredToken = jwt.sign(
-                { id: 1, email: 'test@gmail.com', role: 'Usuario' },
+                { id: 1, corporateEmail: 'test@gmail.com', role: 'Usuario' },
                 process.env.JWT_SECRET || 'secret',
                 { expiresIn: '1s' }
             );
@@ -564,7 +564,7 @@ describe('🔒 Auth API - Registro y Login', () => {
                 .send({
                     name: "Usuario Prueba",
                     rut: "12.345.678-9",
-                    email: "usuario.prueba@gmail.com",
+                    corporateEmail: "usuario.prueba@gmail.com",
                     password: "Usuario123",
                     role: "Usuario"
                 });
@@ -581,7 +581,7 @@ describe('🔒 Auth API - Registro y Login', () => {
                 .send({
                     name: "Usuario Prueba",
                     rut: "12.345.678-9",
-                    email: "usuario.prueba@gmail.com",
+                    corporateEmail: "usuario.prueba@gmail.com",
                     password: "Usuario123",
                     role: "Usuario"
                 });
@@ -593,7 +593,7 @@ describe('🔒 Auth API - Registro y Login', () => {
 
         it('debe rechazar un token con firma inválida', async () => {
             const tokenConFirmaInvalida = jwt.sign(
-                { id: 1, email: 'test@gmail.com', role: 'Usuario' },
+                { id: 1, corporateEmail: 'test@gmail.com', role: 'Usuario' },
                 'firma_incorrecta'
             );
 
@@ -603,7 +603,7 @@ describe('🔒 Auth API - Registro y Login', () => {
                 .send({
                     name: "Usuario Prueba",
                     rut: "12.345.678-9",
-                    email: "usuario.prueba@gmail.com",
+                    corporateEmail: "usuario.prueba@gmail.com",
                     password: "Usuario123",
                     role: "Usuario"
                 });
@@ -620,7 +620,7 @@ describe('🔒 Auth API - Registro y Login', () => {
             const res = await request(app)
                 .post('/api/auth/login')
                 .send({
-                    email: "test.login@gmail.com",
+                    corporateEmail: "test.login@gmail.com",
                     password: "ContraseñaIncorrecta"
                 });
 
@@ -642,7 +642,7 @@ describe('🔒 Auth API - Registro y Login', () => {
                 .send({
                     name: "Usuario Prueba",
                     rut: "12.345.678-9",
-                    email: "usuario.prueba@gmail.com",
+                    corporateEmail: "usuario.prueba@gmail.com",
                     password: "123456",  // Contraseña débil
                     role: "Usuario"
                 });
@@ -659,7 +659,7 @@ describe('🔒 Auth API - Registro y Login', () => {
                 .send({
                     name: "<script>alert('xss')</script>",
                     rut: "12.345.678-9",
-                    email: "usuario.prueba@gmail.com",
+                    corporateEmail: "usuario.prueba@gmail.com",
                     password: "Usuario123",
                     role: "Usuario"
                 });

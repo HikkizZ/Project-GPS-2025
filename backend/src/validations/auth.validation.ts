@@ -2,7 +2,8 @@ import Joi, { CustomHelpers } from 'joi';
 import { validateRut } from '../helpers/rut.helper.js';
 
 const allowedEmailDomains = ["gmail.com", "outlook.com", "hotmail.com", "gmail.cl", "outlook.cl", "hotmail.cl", "lamas.com", "live.cl"];
-const allowedRoles = ["SuperAdministrador", "Administrador", "Usuario", "RecursosHumanos", "Gerencia", "Ventas", "Arriendo", "Finanzas", "Mecánico", "Mantenciones de Maquinaria", "Conductor"];
+const allowedCorporateEmailDomains = ["gmail.com", "outlook.com", "hotmail.com", "gmail.cl", "outlook.cl", "hotmail.cl", "lamas.com", "live.cl"];
+const allowedRoles = ["SuperAdministrador", "Administrador", "Usuario", "RecursosHumanos", "Gerencia", "Ventas", "Arriendo", "Finanzas", "Mecánico", "Mantenciones de Maquinaria"];
 
 /* Custom validator for email domains */
 const domainEmailValidator = (value: string, helper: CustomHelpers) => {
@@ -18,14 +19,14 @@ const rutValidator = (value: string, helper: CustomHelpers) => {
 
 /* Login validation */
 export const authValidation = Joi.object({
-    email: Joi.string()
+    corporateEmail: Joi.string()
         .email()
         .required()
         .messages({
-            "string.base": "El email debe ser una cadena de texto.",
-            "string.empty": "El email es requerido.",
-            "string.email": "El email debe tener un formato válido.",
-            "any.required": "El email es requerido."
+            "string.base": "El correo corporativo debe ser una cadena de texto.",
+            "string.empty": "El correo corporativo es requerido.",
+            "string.email": "El correo corporativo debe tener un formato válido.",
+            "any.required": "El correo corporativo es requerido."
         }),
     password: Joi.string()
         .required()

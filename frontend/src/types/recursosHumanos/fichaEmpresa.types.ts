@@ -18,7 +18,7 @@ export interface FichaEmpresa {
     fechaNacimiento?: Date | string;
     usuario?: {
       id: number;
-      email: string;
+      corporateEmail: string;
       role: string;
     };
   };

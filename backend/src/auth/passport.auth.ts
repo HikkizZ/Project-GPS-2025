@@ -11,10 +11,10 @@ const options: StrategyOptions = {
 };
 
 passport.use(
-    new JwtStrategy(options, async(jwt_payload: { email: string }, done) => {
+    new JwtStrategy(options, async(jwt_payload: { corporateEmail: string }, done) => {
         try {
             const userRepository: Repository<User> = AppDataSource.getRepository(User);
-            const user = await userRepository.findOne({where: { email: jwt_payload.email }});
+            const user = await userRepository.findOne({where: { corporateEmail: jwt_payload.corporateEmail }});
 
             if (!user) {
                 return done(null, false);

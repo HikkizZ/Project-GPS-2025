@@ -1,24 +1,28 @@
-"use client"
 
-import { Routes, Route } from "react-router-dom"
-import type React from "react"
-import { useState } from "react"
-import { useRut } from "./hooks/useRut"
-import { useTrabajadores } from "./hooks/recursosHumanos/useTrabajadores"
-import type { CreateTrabajadorData, Trabajador } from "./types/recursosHumanos/trabajador.types"
-import { FichasEmpresaPage } from "./pages/recursosHumanos/FichasEmpresaPage"
-import { UsersPage } from "./pages/UsersPage"
-import { TrabajadoresPage } from "./pages/recursosHumanos/TrabajadoresPage"
-import { Card, Row, Col } from "react-bootstrap"
-import { useNavigate, Navigate, useLocation } from "react-router-dom"
-import DashboardRecursosHumanos from "./pages/recursosHumanos/DashboardRecursosHumanos"
-import { GestionLicenciasPermisosPage } from "./pages/recursosHumanos/GestionLicenciasPermisosPage"
-import { MisLicenciasPermisosPage } from "./pages/recursosHumanos/MisLicenciasPermisosPage"
-import MainLayout from "./components/common/MainLayout"
-import GestionPersonalPage from "./pages/GestionPersonalPage"
-import { LoginPage } from "./pages/LoginPage"
-import { useAuth } from "./context"
-import type { UserRole } from "./types/auth.types"
+import React, { useState } from 'react';
+import { useRut } from './hooks/useRut';
+import { useTrabajadores } from './hooks/recursosHumanos/useTrabajadores';
+import { type CreateTrabajadorData, type Trabajador } from './types/recursosHumanos/trabajador.types';
+import { FichasEmpresaPage } from './pages/recursosHumanos/FichasEmpresaPage';
+import { BonosPage } from './pages/recursosHumanos/bonosPage';
+import { UsersPage } from './pages/UsersPage';
+import { TrabajadoresPage } from './pages/recursosHumanos/TrabajadoresPage';
+import { authService } from './services/auth.service';
+import { Card, Row, Col } from 'react-bootstrap';
+import { useNavigate, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import DashboardRecursosHumanos from './pages/recursosHumanos/DashboardRecursosHumanos';
+import { GestionLicenciasPermisosPage } from './pages/recursosHumanos/GestionLicenciasPermisosPage';
+import { MisLicenciasPermisosPage } from './pages/recursosHumanos/MisLicenciasPermisosPage';
+import MainLayout from './components/common/MainLayout';
+import GestionPersonalPage from './pages/GestionPersonalPage';
+import { LoginPage } from './pages/LoginPage';
+import { useAuth } from './context';
+import { UserRole } from './types/auth.types';
+
+//Importaciones de Mantenciones
+import MantencionPage from './pages/machinaryMantenance/MantencionPage';
+import SparePartsPage from './pages/machinaryMantenance/SparePartsPage';
+import MantencionesCompletadasPage from '@/pages/machinaryMantenance/MantencionesCompletadasPage'
 
 // IMPORTACIONES PARA MAQUINARIA
 import { CompraMaquinariaPage } from "./pages/maquinaria/compraMaquinariaPage"
@@ -27,7 +31,6 @@ import { MaquinariaPage } from "./pages/maquinaria/maquinariaPage"
 import { ArriendoMaquinariaPage} from "./pages/maquinaria/arriendoMaquinariaPage"
 import { ClienteMaquinariaPage } from "./pages/maquinaria/clienteMaquinariaPage"
 
-// Componente de Registro de Trabajadores (mantener igual)
 const RegistrarTrabajadorPage: React.FC<{
   onSuccess: (trabajador: Trabajador) => void
   onCancel: () => void
@@ -78,9 +81,9 @@ const RegistrarTrabajadorPage: React.FC<{
       errors.apellidoMaterno = "Apellido materno debe tener al menos 2 caracteres"
     }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(formData.correoPersonal)) {
-      errors.correoPersonal = "Email inválido"
+    const correoPersonalRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!correoPersonalRegex.test(formData.correoPersonal)) {
+      errors.correoPersonal = 'Correo personal inválido';
     }
 
     if (formData.telefono.length < 9) {
@@ -241,9 +244,7 @@ const RegistrarTrabajadorPage: React.FC<{
 
                 <div className="row">
                   <div className="col-md-6 mb-3">
-                    <label className="form-label">
-                      Email: <span className="text-danger">*</span>
-                    </label>
+                    <label className="form-label">Correo Personal: <span className="text-danger">*</span></label>
                     <input
                       type="email"
                       className={`form-control ${validationErrors.correoPersonal ? "is-invalid" : ""}`}
@@ -699,6 +700,7 @@ function App() {
                 <Route path="trabajadores" element={<TrabajadoresPage />} />
                 <Route path="fichas-empresa" element={<FichasEmpresaPage />} />
                 <Route path="fichas-empresa/mi-ficha" element={<FichasEmpresaPage />} />
+                <Route path="bonos" element={<BonosPage />} />
                 <Route path="usuarios" element={<UsersPage />} />
                 <Route path="gestion-personal" element={<GestionPersonalPage />} />
                 <Route path="gestion-licencias-permisos" element={<GestionLicenciasPermisosPage />} />
@@ -714,6 +716,15 @@ function App() {
                 <Route path="*" element={<Navigate to="dashboard" replace />} />
                 <Route path="*" element={<div className="container py-4"><div className="alert alert-warning"><h4>Página no encontrada</h4><p>La página que buscas no existe. <a href="/dashboard">Volver al dashboard</a></p></div></div>} />
 
+              {/* Mantención maquinaria */ }
+                <Route path="spare-parts" element={<SparePartsPage />} />
+                <Route path="maintenance-records" element={<MantencionPage />} />
+                <Route path="maintenance-completed" element={<MantencionesCompletadasPage />} />
+              
+              {/* RUTAS DE MAQUINARIA ACTUALIZADAS */}
+                <Route path="maquinaria" element={<MaquinariaPage />} />
+                <Route path="maquinaria/compras" element={<CompraMaquinariaPage />} />
+                <Route path="maquinaria/ventas" element={<VentaMaquinariaPage />} />
               </Routes>
             </MainLayout>
           ) : (
