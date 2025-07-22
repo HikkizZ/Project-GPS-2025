@@ -15,7 +15,9 @@ interface ModalHistorialLaboralProps {
 
 function formatFecha(fecha?: string | null) {
   if (!fecha) return '-';
-  return new Date(fecha).toLocaleDateString('es-CL');
+  // Usar formato local para evitar problemas de zona horaria
+  const [year, month, day] = fecha.split('T')[0].split('-');
+  return `${day}-${month}-${year}`;
 }
 
 function formatSueldo(sueldo: number) {

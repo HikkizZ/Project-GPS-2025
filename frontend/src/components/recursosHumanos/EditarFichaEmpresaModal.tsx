@@ -42,6 +42,16 @@ function formatSueldo(sueldo: number): string {
   }).format(sueldo);
 }
 
+// Función para formatear fecha sin problemas de zona horaria
+const formatLocalDate = (date: string | Date): string => {
+  if (!date) return '';
+  const d = new Date(date);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = ({
   show,
   onHide,
@@ -75,8 +85,8 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
     tipoContrato: (ficha.tipoContrato && ficha.tipoContrato !== 'Por Definir') ? ficha.tipoContrato : '',
     jornadaLaboral: (ficha.jornadaLaboral && ficha.jornadaLaboral !== 'Por Definir') ? ficha.jornadaLaboral : '',
     sueldoBase: ficha.sueldoBase ? formatMiles(ficha.sueldoBase) : '',
-    fechaInicioContrato: ficha.fechaInicioContrato ? new Date(ficha.fechaInicioContrato).toISOString().split('T')[0] : '',
-    fechaFinContrato: ficha.fechaFinContrato ? new Date(ficha.fechaFinContrato).toISOString().split('T')[0] : ''
+    fechaInicioContrato: formatLocalDate(ficha.fechaInicioContrato),
+    fechaFinContrato: formatLocalDate(ficha.fechaFinContrato)
   });
 
   useEffect(() => {
@@ -87,8 +97,8 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
         tipoContrato: (ficha.tipoContrato && ficha.tipoContrato !== 'Por Definir') ? ficha.tipoContrato : '',
         jornadaLaboral: (ficha.jornadaLaboral && ficha.jornadaLaboral !== 'Por Definir') ? ficha.jornadaLaboral : '',
         sueldoBase: ficha.sueldoBase ? formatMiles(ficha.sueldoBase) : '',
-        fechaInicioContrato: ficha.fechaInicioContrato ? new Date(ficha.fechaInicioContrato).toISOString().split('T')[0] : '',
-        fechaFinContrato: ficha.fechaFinContrato ? new Date(ficha.fechaFinContrato).toISOString().split('T')[0] : ''
+        fechaInicioContrato: formatLocalDate(ficha.fechaInicioContrato),
+        fechaFinContrato: formatLocalDate(ficha.fechaFinContrato)
       };
       setFormData(newFormData);
       setInitialFormData(newFormData);
