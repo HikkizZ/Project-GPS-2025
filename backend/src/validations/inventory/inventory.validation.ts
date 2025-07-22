@@ -132,7 +132,7 @@ export const createInventoryExitValidation: ObjectSchema = Joi.object({
       "string.max": "El RUT debe tener menos de 12 caracteres.",
     }),
 
-  entryDate: Joi.string()
+  exitDate: Joi.string()
     .isoDate()
     .messages({
       "string.base": "La fecha debe ser una cadena de texto.",
