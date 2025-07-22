@@ -50,7 +50,7 @@ export class InventoryEntryService {
             return {
                 success: true,
                 data: response.data,
-                message: response.message || "Entrada eliminada correctamente",
+                message: response.message || "Entrada de inventario eliminada correctamente",
             };
         } catch (error) {
             throw error;
