@@ -929,7 +929,7 @@ export default function HistorialLaboralPage() {
                 <div className="text-secondary mb-1">Rol</div>
                 <div className="d-flex align-items-center">
                   <i className="bi bi-person-badge text-primary me-2"></i>
-                  {revisorSeleccionado.role === 'SuperAdministrador' ? 'Super Administrador Sistema' : revisorSeleccionado.role}
+                  {revisorSeleccionado.role === 'SuperAdministrador' ? 'SuperAdministrador' : revisorSeleccionado.role}
                 </div>
               </div>
               {/* <div className="mb-3">
