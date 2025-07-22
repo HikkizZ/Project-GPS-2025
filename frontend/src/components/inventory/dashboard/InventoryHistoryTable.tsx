@@ -80,7 +80,7 @@ const InventoryHistoryTable: React.FC<InventoryHistoryTableProps> = ({
           <div className="text-center py-5">
             <i className="bi bi-journal-text fs-1 text-muted mb-3 d-block"></i>
             <h5 className="text-muted">No hay movimientos de inventario registrados</h5>
-            <p className="text-muted">Los movimientos de entrada y salida aparecerán aquí.</p>
+            <p className="text-muted">Los movimientos de compra y venta aparecerán aquí.</p>
           </div>
         ) : (
           <>
@@ -107,9 +107,9 @@ const InventoryHistoryTable: React.FC<InventoryHistoryTableProps> = ({
                       <tr>
                         <td>
                           {movement.type === "entry" ? (
-                            <span className="badge bg-secondary">Entrada (Compra)</span>
+                            <span className="badge bg-secondary">Compra (Entrada)</span>
                           ) : (
-                            <span className="badge bg-success">Salida (Venta)</span>
+                            <span className="badge bg-success">Venta (Salida)</span>
                           )}
                         </td>
                         <td>

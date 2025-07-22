@@ -4,9 +4,9 @@ import InventorySidebar from "@/components/inventory/layout/InventorySidebar"
 import InventoryChart from "@/components/inventory/dashboard/InventoryChart"
 import InventoryHistoryTable from "@/components/inventory/dashboard/InventoryHistoryTable"
 import { useProducts } from "@/hooks/inventory/useProducts"
-import { useSuppliers } from "@/hooks/stakeholders/useSuppliers" // Importar hook de proveedores
+import { useSuppliers } from "@/hooks/stakeholders/useSuppliers"
 import { ProductType } from "@/types/inventory/product.types"
-import { useMemo, useState, useCallback } from "react" // Importar useCallback
+import { useMemo, useState, useCallback } from "react"
 import { InventoryMovementSelectionModal } from "@/components/inventory/dashboard/InventoryMovementSelectionModal"
 import InventoryEntryModal from "@/components/inventory/dashboard/InventoryEntryModal"
 import { useInventoryEntries } from "@/hooks/inventory/useInventoryEntry"
@@ -14,7 +14,7 @@ import type { CreateInventoryEntryData, InventoryEntry, CreateInventoryExitData 
 import { useToast, Toast } from "@/components/common/Toast"
 import { useInventoryExits } from "@/hooks/inventory/useInventoryExit"
 import InventoryExitModal from "@/components/inventory/dashboard/InventoryExitModal"
-import ConfirmModal from "@/components/stakeholders/ConfirmModal"
+import ConfirmModal from "@/components/common/ConfirmModal"
 import type { InventoryExit } from "@/types/inventory/inventory.types"
 import { useInventory } from "@/hooks/inventory/useInventory"
 
@@ -22,21 +22,20 @@ import "../../styles/pages/inventory.css"
 
 export const InventoryPage: React.FC = () => {
   const { products, loadProducts, isLoading: isLoadingProducts } = useProducts()
-  const { suppliers, isLoading: isLoadingSuppliers } = useSuppliers() // Obtener proveedores
+  const { suppliers, isLoading: isLoadingSuppliers } = useSuppliers()
   const { entries, loadEntries, createEntry, deleteEntry, isLoadingEntries, isCreatingEntry } = useInventoryEntries()
-  const { exits, loadExits, createExit, deleteExit, isLoadingExits, isCreatingExit } = useInventoryExits() // NUEVO
+  const { exits, loadExits, createExit, deleteExit, isLoadingExits, isCreatingExit } = useInventoryExits()
   const { inventory, isLoading: isLoadingInventory, loadInventory } = useInventory()
 
   const { toasts, removeToast, showSuccess, showError } = useToast()
 
   const [showMovementSelectionModal, setShowMovementSelectionModal] = useState(false)
   const [showPurchaseEntryModal, setShowPurchaseEntryModal] = useState(false)
-  const [showSaleExitModal, setShowSaleExitModal] = useState(false) // NUEVO
+  const [showSaleExitModal, setShowSaleExitModal] = useState(false)
   const [entryToDelete, setEntryToDelete] = useState<InventoryEntry | null>(null)
-  const [exitToDelete, setExitToDelete] = useState<InventoryExit | null>(null) // NUEVO
+  const [exitToDelete, setExitToDelete] = useState<InventoryExit | null>(null) 
   const [entryToViewDetails, setEntryToViewDetails] = useState<InventoryEntry | null>(null)
 
-  // Transforma los datos de productos en el formato que necesita el gráfico
   const chartData = useMemo(() => {
       return inventory.map((item) => ({
         label: item.product.product,
@@ -44,7 +43,6 @@ export const InventoryPage: React.FC = () => {
       }))
     }, [inventory])
 
-  // Cálculos para las tarjetas de métricas y las nuevas categorías
   const metrics = useMemo(() => {
     const allPossibleProductTypes = Object.values(ProductType)
     const registeredProductTypes = new Set(products.map((p) => p.product))
@@ -130,7 +128,6 @@ export const InventoryPage: React.FC = () => {
 
   const handleViewEntryDetails = useCallback((entry: InventoryEntry) => {
     setEntryToViewDetails(entry)
-    // Aquí podrías abrir un modal de detalles de entrada
     alert(`Ver detalles de la entrada ID: ${entry.id}`)
   }, [])
 
@@ -316,17 +313,16 @@ export const InventoryPage: React.FC = () => {
                 {/* Tabla de movimientos recientes */}
                 <Row>
                   <Col>
-                    {/* Eliminada la Card aquí, ahora está dentro de InventoryHistoryTable */}
                     <InventoryHistoryTable
                       entries={entries}
-                      exits={exits} // NUEVO
+                      exits={exits} 
                       products={products}
                       suppliers={suppliers}
                       isLoading={isLoadingPage}
                       onViewDetails={handleViewEntryDetails}
                       onDeleteEntry={handleDeleteEntry}
-                      onDeleteExit={handleDeleteExit} // NUEVO
-                      allEntriesCount={entries.length + exits.length} // ACTUALIZADO
+                      onDeleteExit={handleDeleteExit}
+                      allEntriesCount={entries.length + exits.length}
                     />
                   </Col>
                 </Row>

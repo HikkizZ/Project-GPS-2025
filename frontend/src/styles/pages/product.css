@@ -21,26 +21,25 @@
    ============================================ */
 .modal-header.bg-gradient-primary,
 .modal-header.bg-gradient-danger {
-  /* Aplicar estilos a ambos degradados */
-  border-bottom: none; /* Eliminar el borde inferior del header del modal */
-  padding: 1.5rem 2rem; /* Aumentar el padding */
+  border-bottom: none;
+  padding: 1.5rem 2rem; 
 }
 
 .modal-header .modal-title {
   display: flex;
   align-items: center;
-  font-size: 1.5rem; /* Tamaño de fuente más grande */
-  font-weight: 600; /* Más negrita */
-  color: white; /* Color de texto blanco */
+  font-size: 1.5rem; 
+  font-weight: 600; 
+  color: white; 
 }
 
 .modal-header .modal-title i {
-  font-size: 1.8rem; /* Tamaño del icono */
-  margin-right: 1rem; /* Espacio entre icono y texto */
+  font-size: 1.8rem; 
+  margin-right: 1rem; 
 }
 
 .modal-header .btn-close {
-  filter: invert(1) grayscale(100%) brightness(200%); /* Hacer el botón de cerrar blanco */
+  filter: invert(1) grayscale(100%) brightness(200%);
   opacity: 0.8;
   transition: opacity 0.2s ease;
 }
@@ -50,31 +49,30 @@
 }
 
 .modal-body {
-  padding: 1.5rem 2rem; /* Ajustar padding del cuerpo del modal */
+  padding: 1.5rem 2rem; 
 }
 
 .modal-footer {
-  padding: 1rem 2rem; /* Ajustar padding del footer del modal */
-  border-top: 1px solid #e9ecef; /* Añadir un borde superior sutil */
-  background-color: #f8f9fa; /* Fondo ligeramente diferente para el footer */
+  padding: 1rem 2rem; 
+  border-top: 1px solid #e9ecef; 
+  background-color: #f8f9fa; 
 }
 
-/* Estilo para la "Nota Importante" */
 .modal-info-alert {
-  background-color: #e0f2f7; /* Azul claro */
-  border-left: 5px solid #007bff; /* Borde izquierdo azul */
+  background-color: #e0f2f7; 
+  border-left: 5px solid #007bff; 
   padding: 1rem 1.5rem;
   margin-bottom: 1.5rem;
   border-radius: 0.375rem;
   display: flex;
   align-items: flex-start;
-  color: #0056b3; /* Texto azul oscuro */
+  color: #0056b3; 
 }
 
 .modal-info-alert i {
   font-size: 1.5rem;
   margin-right: 1rem;
-  color: #007bff; /* Icono azul */
+  color: #007bff; 
 }
 
 .modal-info-alert strong {
@@ -83,22 +81,21 @@
   display: block;
 }
 
-/* Estilo para la "Nota de Advertencia" */
 .modal-warning-alert {
-  background-color: #fffbe6; /* Amarillo muy claro */
-  border-left: 5px solid #ffc107; /* Borde izquierdo amarillo */
+  background-color: #fffbe6; 
+  border-left: 5px solid #ffc107; 
   padding: 1rem 1.5rem;
   margin-bottom: 1.5rem;
   border-radius: 0.375rem;
   display: flex;
   align-items: flex-start;
-  color: #856404; /* Texto amarillo oscuro */
+  color: #856404; 
 }
 
 .modal-warning-alert i {
   font-size: 1.5rem;
   margin-right: 1rem;
-  color: #ffc107; /* Icono amarillo */
+  color: #ffc107; 
 }
 
 .modal-warning-alert strong {

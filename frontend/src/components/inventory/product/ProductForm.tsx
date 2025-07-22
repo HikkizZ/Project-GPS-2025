@@ -1,6 +1,6 @@
 import type React from "react"
 import { useState, useEffect } from "react"
-import { Button, Form, Spinner, Row, Col } from "react-bootstrap" // Importar Row y Col
+import { Button, Form, Spinner, Row, Col } from "react-bootstrap"
 import {
   ProductType,
   type CreateProductData,
@@ -104,7 +104,6 @@ const ProductForm: React.FC<ProductFormProps> = ({
 
   return (
     <Form onSubmit={handleSubmit}>
-      {/* Nota Importante */}
       <div className={`${isEditing ? "modal-warning-alert" : "modal-info-alert"} d-flex align-items-start`}>
         <i className="bi bi-info-circle-fill"></i>
         <div>

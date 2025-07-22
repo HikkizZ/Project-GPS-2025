@@ -1,3 +1,5 @@
+"use client"
+
 import type React from "react"
 import { useState, useMemo } from "react"
 import { Button, Form, Spinner, Row, Col, Card } from "react-bootstrap"
@@ -31,15 +33,13 @@ const InventoryExitForm: React.FC<InventoryExitFormProps> = ({ onSubmit, onCance
 
   const activeProducts = useMemo(() => {
     return products.filter((product) => (product as any).isActive !== false)
-  }, [products])
+  }, [products]) // Memoize the filtered list of active products [^1]
 
   const validate = (): boolean => {
     const newErrors: Record<string, string | string[]> = {}
-
     if (!formData.customerRut) {
       newErrors.customerRut = "Debe seleccionar un cliente."
     }
-
     if (formData.details.length === 0) {
       newErrors.details = "Debe agregar al menos un producto."
     } else {
@@ -55,7 +55,6 @@ const InventoryExitForm: React.FC<InventoryExitFormProps> = ({ onSubmit, onCance
         newErrors.details = detailErrors
       }
     }
-
     setErrors(newErrors)
     return (
       Object.keys(newErrors).length === 0 && (!Array.isArray(newErrors.details) || newErrors.details.every((e) => !e))
@@ -78,21 +77,18 @@ const InventoryExitForm: React.FC<InventoryExitFormProps> = ({ onSubmit, onCance
   ) => {
     const { name, value } = e.target
     const newDetails = [...formData.details]
-    let parsedValue: number | string = value 
-
+    let parsedValue: number | string = value
     if (name === "quantity" || name === "productId") {
       parsedValue = Number.parseFloat(value)
       if (isNaN(parsedValue)) {
         parsedValue = 0
       }
     }
-
     newDetails[index] = {
       ...newDetails[index],
       [name]: parsedValue,
     }
     setFormData((prev) => ({ ...prev, details: newDetails }))
-
     if (Array.isArray(errors.details) && errors.details[index]) {
       const newDetailErrors = [...errors.details]
       newDetailErrors[index] = ""
@@ -128,7 +124,7 @@ const InventoryExitForm: React.FC<InventoryExitFormProps> = ({ onSubmit, onCance
 
   const grandTotal = useMemo(() => {
     return formData.details.reduce((sum, detail) => sum + calculateDetailTotalPrice(detail), 0)
-  }, [formData.details, activeProducts])
+  }, [formData.details, activeProducts]) // Recalculate grand total when details or active products change
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -151,7 +147,6 @@ const InventoryExitForm: React.FC<InventoryExitFormProps> = ({ onSubmit, onCance
         console.error("Error processing exitDate:", error)
       }
     }
-
     onSubmit(dataToSubmit)
   }
 
@@ -171,16 +166,13 @@ const InventoryExitForm: React.FC<InventoryExitFormProps> = ({ onSubmit, onCance
 
   return (
     <Form onSubmit={handleSubmit}>
-      <div className="modal-info-alert">
+      <div className="modal-warning-alert">
         <i className="bi bi-info-circle-fill"></i>
         <div>
-          <strong>Nota Importante:</strong>
-          <p className="mb-0">
-            Al registrar una salida de inventario, se descontará el stock de los productos seleccionados.
-          </p>
+          <strong>Importante:</strong>
+          <p className="mb-0">Al registrar una venta, se descontará el stock de los productos seleccionados.</p>
         </div>
       </div>
-
       <Row>
         <Col md={6}>
           <Form.Group className="mb-3" controlId="customerRut">
@@ -213,7 +205,7 @@ const InventoryExitForm: React.FC<InventoryExitFormProps> = ({ onSubmit, onCance
       <h5 className="mt-4 mb-3">Detalles de Productos</h5>
       {formData.details.map((detail, index) => (
         <Card key={index} className="mb-3 p-3 inventory-detail-card">
-          <Row className="align-items-end">
+          <Row>
             <Col md={5}>
               <Form.Group className="mb-3" controlId={`productId-${index}`}>
                 <Form.Label>Producto</Form.Label>
@@ -227,7 +219,7 @@ const InventoryExitForm: React.FC<InventoryExitFormProps> = ({ onSubmit, onCance
                   <option value={0}>Selecciona un producto</option>
                   {getProductOptions(detail.productId).map((product: Product) => (
                     <option key={product.id} value={product.id}>
-                      {product.product} (Precio Venta: ${product.salePrice.toLocaleString()})
+                      {product.product}
                     </option>
                   ))}
                 </Form.Control>
@@ -236,6 +228,15 @@ const InventoryExitForm: React.FC<InventoryExitFormProps> = ({ onSubmit, onCance
                     {errors.details[index]}
                   </Form.Control.Feedback>
                 )}
+              </Form.Group>
+              <Form.Group className="mb-3" controlId={`pricePerM3-${index}`}>
+                <Form.Label>Precio por m³</Form.Label>
+                <Form.Control
+                  type="text"
+                  readOnly
+                  value={`$${activeProducts.find((p) => p.id === detail.productId)?.salePrice.toLocaleString() || "0"}`}
+                  className="fw-bold text-success"
+                />
               </Form.Group>
             </Col>
             <Col md={4}>
@@ -270,11 +271,9 @@ const InventoryExitForm: React.FC<InventoryExitFormProps> = ({ onSubmit, onCance
           </div>
         </Card>
       ))}
-
       {Array.isArray(errors.details) && errors.details.length > 0 && typeof errors.details[0] === "string" && (
         <div className="text-danger mb-3">{errors.details[0]}</div>
       )}
-
       <Button variant="outline-primary" onClick={handleAddDetail} className="mb-4">
         <i className="bi bi-plus-circle me-2"></i>
         Agregar Otro Producto

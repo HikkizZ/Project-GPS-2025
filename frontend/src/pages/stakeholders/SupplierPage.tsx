@@ -1,8 +1,6 @@
-"use client"
-
 import type React from "react"
 import { useState, useEffect } from "react"
-import { Container, Row, Col, Button, Card } from "react-bootstrap"
+import { Container, Row, Col, Button, Card, Form } from "react-bootstrap"
 import InventorySidebar from "@/components/inventory/layout/InventorySidebar"
 import SupplierModal from "@/components/stakeholders/SupplierModal"
 import ConfirmModal from "@/components/stakeholders/ConfirmModal"
@@ -25,10 +23,8 @@ export const SupplierPage: React.FC = () => {
     isUpdating,
     isDeleting,
   } = useSuppliers()
-
   const { toasts, removeToast, showSuccess, showError } = useToast()
 
-  // Estados para filtrado local
   const [allSuppliers, setAllSuppliers] = useState<Supplier[]>([])
   const [filteredSuppliers, setFilteredSuppliers] = useState<Supplier[]>([])
   const [localFilters, setLocalFilters] = useState({
@@ -39,46 +35,37 @@ export const SupplierPage: React.FC = () => {
     phone: "",
   })
 
-  // Estados existentes
   const [showModal, setShowModal] = useState(false)
   const [editingSupplier, setEditingSupplier] = useState<Supplier | undefined>(undefined)
   const [filters, setFilters] = useState({ rut: "", email: "" })
   const [showFilters, setShowFilters] = useState(false)
   const [supplierToDelete, setSupplierToDelete] = useState<Supplier | null>(null)
 
-  // Efecto para sincronizar suppliers del hook con el estado local
   useEffect(() => {
     setAllSuppliers(suppliers)
     setFilteredSuppliers(suppliers)
   }, [suppliers])
 
-  // Efecto para aplicar filtros locales
   useEffect(() => {
     let filtered = [...allSuppliers]
 
-    // Aplicar filtros locales
     if (localFilters.name) {
       filtered = filtered.filter((supplier) => supplier.name.toLowerCase().includes(localFilters.name.toLowerCase()))
     }
-
     if (localFilters.rut) {
       filtered = filtered.filter((supplier) => supplier.rut.toLowerCase().includes(localFilters.rut.toLowerCase()))
     }
-
     if (localFilters.email) {
       filtered = filtered.filter((supplier) => supplier.email.toLowerCase().includes(localFilters.email.toLowerCase()))
     }
-
     if (localFilters.address) {
       filtered = filtered.filter((supplier) =>
         supplier.address.toLowerCase().includes(localFilters.address.toLowerCase()),
       )
     }
-
     if (localFilters.phone) {
       filtered = filtered.filter((supplier) => supplier.phone.includes(localFilters.phone))
     }
-
     setFilteredSuppliers(filtered)
   }, [allSuppliers, localFilters])
 
@@ -97,8 +84,6 @@ export const SupplierPage: React.FC = () => {
   }
 
   const confirmDeleteSupplier = async () => {
-    if (!supplierToDelete) return
-
     const result = await deleteSupplier(supplierToDelete.id)
     if (result.success) {
       showSuccess("¡Proveedor eliminado!", "El proveedor se ha eliminado exitosamente del sistema", 4000)
@@ -113,7 +98,6 @@ export const SupplierPage: React.FC = () => {
     const result = isEdit
       ? await updateSupplier(editingSupplier!.id, data as UpdateSupplierData)
       : await createSupplier(data as CreateSupplierData)
-
     if (result.success) {
       showSuccess(isEdit ? "¡Proveedor actualizado!" : "¡Proveedor creado!", result.message, 4000)
       setShowModal(false)
@@ -164,7 +148,6 @@ export const SupplierPage: React.FC = () => {
         <div className="inventory-sidebar-wrapper">
           <InventorySidebar />
         </div>
-
         {/* Contenido principal */}
         <div className="inventory-main-content flex-grow-1">
           <Container fluid className="py-2">
@@ -198,7 +181,6 @@ export const SupplierPage: React.FC = () => {
                     </div>
                   </Card.Header>
                 </Card>
-
                 {/* Panel de filtros */}
                 <FiltersPanel
                   showFilters={showFilters}
@@ -211,7 +193,6 @@ export const SupplierPage: React.FC = () => {
                   onLocalFilterReset={handleLocalFilterReset}
                   hasActiveLocalFilters={hasActiveLocalFilters}
                 />
-
                 {/* Tabla de proveedores */}
                 <SupplierTable
                   suppliers={filteredSuppliers}
@@ -227,7 +208,6 @@ export const SupplierPage: React.FC = () => {
                 />
               </Col>
             </Row>
-
             <SupplierModal
               show={showModal}
               onClose={() => setShowModal(false)}
@@ -235,30 +215,43 @@ export const SupplierPage: React.FC = () => {
               isSubmitting={isCreating || isUpdating}
               initialData={editingSupplier}
             />
-
             <ConfirmModal
               show={!!supplierToDelete}
               onClose={() => setSupplierToDelete(null)}
               onConfirm={confirmDeleteSupplier}
               title="Eliminar proveedor"
-              message={`¿Estás seguro que deseas eliminar al proveedor "${supplierToDelete?.name}"?`}
               confirmText="Eliminar"
               cancelText="Cancelar"
-              headerVariant="danger" // Encabezado rojo
+              headerVariant="danger"
+              headerIcon="bi-exclamation-triangle-fill"
+              confirmIcon="bi-trash"
+              cancelIcon="bi-x-circle"
               warningContent={
-                // Contenido de advertencia personalizable
                 <>
-                  <p className="mb-0">Esta acción:</p>
-                  <ul>
+                  <p className="mb-2 mt-1">Esta acción:</p>
+                  <ul className="mb-0">
                     <li>Marcará el proveedor como eliminado en el sistema.</li>
-                    <li>Desactivará su ficha de empresa.</li>
-                    <li>Registrará el motivo de eliminación en el historial.</li>
+                    <li>No podrá ser utilizado hasta que sea restaurado.</li>
+                    <li>Las transacciones asociadas no se verán afectadas.</li>
                   </ul>
                 </>
               }
-            />
+            >
+              <div className="mb-3 p-3 bg-light rounded-3">
+                <p className="mb-2 fw-semibold">¿Estás seguro que deseas eliminar al proveedor?</p>
+                <div className="d-flex flex-column gap-1">
+                  <div>
+                    <span className="fw-semibold text-muted">Nombre:</span>{" "}
+                    <span className="ms-2">{supplierToDelete?.name || "N/A"}</span>
+                  </div>
+                  <div>
+                    <span className="fw-semibold text-muted">RUT:</span>{" "}
+                    <span className="ms-2">{supplierToDelete?.rut || "N/A"}</span>
+                  </div>
+                </div>
+              </div>
+            </ConfirmModal>
 
-            {/* Sistema de notificaciones */}
             <Toast toasts={toasts} removeToast={removeToast} />
           </Container>
         </div>
