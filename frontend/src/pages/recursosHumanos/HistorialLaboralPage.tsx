@@ -248,9 +248,16 @@ export default function HistorialLaboralPage() {
       const detalles = itemUnificado.detalles;
       const esActualizacionLaboral = itemUnificado.descripcion.includes('Actualización de información laboral');
       const esLicenciaPermiso = itemUnificado.descripcion.includes('Licencia') || itemUnificado.descripcion.includes('Permiso');
+      const esDesvinculacion = itemUnificado.descripcion.includes('Desvinculación');
       
+      // Para desvinculaciones, mostrar solo el motivo de desvinculación
+      if (esDesvinculacion) {
+        if (detalles.motivoDesvinculacion) {
+          campos.push(`Motivo: ${detalles.motivoDesvinculacion}`);
+        }
+      }
       // Para licencias/permisos, mostrar solo fechas y motivo
-      if (esLicenciaPermiso) {
+      else if (esLicenciaPermiso) {
         if (detalles.fechaInicioLicenciaPermiso) {
           campos.push(`Licencia: ${formatFecha(detalles.fechaInicioLicenciaPermiso)} - ${formatFecha(detalles.fechaFinLicenciaPermiso)}`);
         }
@@ -297,8 +304,8 @@ export default function HistorialLaboralPage() {
         }
       }
       
-      // Campos específicos para otros tipos (no licencias/permisos)
-      if (!esLicenciaPermiso) {
+      // Campos específicos para otros tipos (no licencias/permisos ni desvinculaciones)
+      if (!esLicenciaPermiso && !esDesvinculacion) {
         if (detalles.rut) {
           campos.push(`RUT: ${detalles.rut}`);
         }
@@ -312,9 +319,16 @@ export default function HistorialLaboralPage() {
     } else {
       const itemTradicional = item as HistorialLaboral;
       const esLicenciaPermisoTradicional = itemTradicional.observaciones?.includes('Licencia') || itemTradicional.observaciones?.includes('Permiso');
+      const esDesvinculacionTradicional = itemTradicional.observaciones?.includes('Desvinculación');
       
+      // Para desvinculaciones en vista tradicional, mostrar solo el motivo
+      if (esDesvinculacionTradicional) {
+        if (itemTradicional.motivoDesvinculacion) {
+          campos.push(`Motivo: ${itemTradicional.motivoDesvinculacion}`);
+        }
+      }
       // Para licencias/permisos en vista tradicional, mostrar solo fechas y motivo
-      if (esLicenciaPermisoTradicional) {
+      else if (esLicenciaPermisoTradicional) {
         if (itemTradicional.fechaInicioLicencia) {
           campos.push(`Licencia: ${formatFecha(itemTradicional.fechaInicioLicencia)} - ${formatFecha(itemTradicional.fechaFinLicencia)}`);
         }

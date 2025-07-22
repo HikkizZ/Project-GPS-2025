@@ -66,6 +66,7 @@ export interface HistorialUnificado {
     fechaInicioLicenciaPermiso?: string;
     fechaFinLicenciaPermiso?: string;
     motivoLicenciaPermiso?: string;
+    motivoDesvinculacion?: string;
     observaciones?: string;
     contratoURL?: string;
     afp?: string;
