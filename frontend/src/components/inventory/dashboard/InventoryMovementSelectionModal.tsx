@@ -1,3 +1,5 @@
+"use client"
+
 import type React from "react"
 import { Modal, Button, Row, Col } from "react-bootstrap"
 
@@ -41,7 +43,6 @@ export const InventoryMovementSelectionModal: React.FC<InventoryMovementSelectio
               variant="danger"
               className="w-100 py-4 d-flex flex-column align-items-center justify-content-center inventory-movement-button"
               onClick={onSelectSale}
-              disabled // Deshabilitado por ahora, se implementará más tarde
             >
               <i className="bi bi-box-arrow-up fs-1 mb-2"></i>
               <span className="fs-5 fw-bold">Vender Materiales</span>
