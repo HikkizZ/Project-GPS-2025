@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useFichaEmpresa } from '@/hooks/recursosHumanos/useFichaEmpresa';
 import { useAuth, useUI } from '@/context';
 import { useRut } from '@/hooks/useRut';
@@ -33,6 +34,7 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
   trabajadorRecienRegistrado, 
   onTrabajadorModalClosed 
 }) => {
+  const navigate = useNavigate();
   const { user, isLoading: isAuthLoading } = useAuth();
   const { setSuccess, setError } = useUI();
   const { formatRUT } = useRut();
@@ -236,14 +238,9 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
     }
   };
 
-  // Handler para abrir el modal de historial laboral
-  const handleOpenHistorialModal = (ficha: FichaEmpresa) => {
-    setTrabajadorNombreHistorial(`${ficha.trabajador.nombres} ${ficha.trabajador.apellidoPaterno} ${ficha.trabajador.apellidoMaterno}`);
-    setTrabajadorIdHistorial(ficha.trabajador.id);
-    setShowHistorialModal(true);
-    setHistorial([]);
-    setErrorHistorial(null);
-    fetchHistorial(ficha.trabajador.id);
+  // Handler para navegar al historial laboral
+  const handleOpenHistorialLaboral = (ficha: FichaEmpresa) => {
+    navigate(`/trabajadores/${ficha.trabajador.id}/historial-laboral`);
   };
 
   // Handler para descargar contrato histórico
@@ -944,7 +941,7 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                               {puedeGestionarFichas && (
                                 <Button
                                   variant="outline-info"
-                                  onClick={() => handleOpenHistorialModal(ficha)}
+                                  onClick={() => handleOpenHistorialLaboral(ficha)}
                                   title="Ver historial laboral"
                                 >
                                   <i className="bi bi-clock-history"></i>

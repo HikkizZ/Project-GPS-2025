@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { handleSuccess, handleErrorClient, handleErrorServer } from "../../handlers/responseHandlers.js";
-import { getHistorialLaboralByTrabajadorService, descargarContratoService } from "../../services/recursosHumanos/historialLaboral.service.js";
+import { getHistorialLaboralByTrabajadorService, getHistorialUnificadoByTrabajadorService, descargarContratoService } from "../../services/recursosHumanos/historialLaboral.service.js";
 import { User } from "../../entity/user.entity.js";
 import { AppDataSource } from "../../config/configDB.js";
 import { Trabajador } from "../../entity/recursosHumanos/trabajador.entity.js";
@@ -126,5 +126,59 @@ export async function descargarContrato(req: Request, res: Response): Promise<vo
     } catch (error) {
         console.error("Error al descargar contrato:", error);
         handleErrorServer(res, 500, "Error al descargar contrato.");
+    }
+}
+
+export async function getHistorialUnificado(req: Request, res: Response): Promise<void> {
+    try {
+        const user = req.user as User;
+        let historial, errorMsg;
+
+        // Solo permiten acceso estos roles
+        const rolesPermitidos = ["SuperAdministrador", "Administrador", "RecursosHumanos"];
+        if (!rolesPermitidos.includes(user.role)) {
+            handleErrorClient(res, 403, "No tienes permisos para acceder al historial unificado");
+            return;
+        }
+
+        // SuperAdministrador puede consultar cualquier historial, aunque no tenga trabajador asociado
+        if (user.role === "SuperAdministrador") {
+            const trabajadorId = parseInt(req.params.id);
+            if (isNaN(trabajadorId)) {
+                handleErrorClient(res, 400, "ID de trabajador inválido");
+                return;
+            }
+            [historial, errorMsg] = await getHistorialUnificadoByTrabajadorService(trabajadorId);
+        } else {
+            // Los demás roles permitidos (Administrador, RecursosHumanos) deben tener trabajador asociado
+            const trabajadorRepo = AppDataSource.getRepository(Trabajador);
+            const trabajadorSolicitante = await trabajadorRepo.findOne({
+                where: { usuario: { id: user.id } },
+                relations: ["usuario"]
+            });
+
+            if (!trabajadorSolicitante) {
+                handleErrorClient(res, 403, "Usuario sin trabajador asociado no puede acceder al historial");
+                return;
+            }
+
+            const trabajadorId = parseInt(req.params.id);
+            if (isNaN(trabajadorId)) {
+                handleErrorClient(res, 400, "ID de trabajador inválido");
+                return;
+            }
+
+            [historial, errorMsg] = await getHistorialUnificadoByTrabajadorService(trabajadorId);
+        }
+
+        if (errorMsg) {
+            handleErrorClient(res, 400, typeof errorMsg === 'string' ? errorMsg : errorMsg.message || 'Error desconocido');
+            return;
+        }
+
+        handleSuccess(res, 200, "Historial unificado obtenido exitosamente", historial || []);
+    } catch (error) {
+        console.error("Error al obtener historial unificado:", error);
+        handleErrorServer(res, 500, "Error interno del servidor.");
     }
 }

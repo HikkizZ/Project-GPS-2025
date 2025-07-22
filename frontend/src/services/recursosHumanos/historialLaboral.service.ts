@@ -1,6 +1,6 @@
 import { apiClient } from '@/config/api.config';
 import { ApiResponse } from '@/types';
-import { HistorialLaboral } from '@/types/recursosHumanos/historialLaboral.types';
+import { HistorialLaboral, HistorialUnificado } from '@/types/recursosHumanos/historialLaboral.types';
 
 export class HistorialLaboralService {
   private baseURL = '/historial-laboral';
@@ -17,6 +17,22 @@ export class HistorialLaboralService {
       return {
         success: false,
         message: error.response?.data?.message || error.message || 'Error al obtener historial laboral',
+      };
+    }
+  }
+
+  async getHistorialUnificadoByTrabajadorId(trabajadorId: number): Promise<ApiResponse<HistorialUnificado[]>> {
+    try {
+      const response = await apiClient.get(`${this.baseURL}/trabajador/${trabajadorId}/unificado`);
+      return {
+        success: true,
+        message: 'Historial unificado obtenido exitosamente',
+        data: response.data || []
+      };
+    } catch (error: any) {
+      return {
+        success: false,
+        message: error.response?.data?.message || error.message || 'Error al obtener historial unificado',
       };
     }
   }

@@ -6,6 +6,7 @@ import { FichasEmpresaPage } from './pages/recursosHumanos/FichasEmpresaPage';
 import { BonosPage } from './pages/recursosHumanos/bonosPage';
 import { UsersPage } from './pages/UsersPage';
 import { TrabajadoresPage } from './pages/recursosHumanos/TrabajadoresPage';
+import HistorialLaboralPage from './pages/recursosHumanos/HistorialLaboralPage';
 import { authService } from './services/auth.service';
 import { Card, Row, Col } from 'react-bootstrap';
 import { useNavigate, Routes, Route, Navigate, useLocation } from 'react-router-dom';
@@ -632,6 +633,7 @@ function App() {
                 <Route path="dashboard" element={<Dashboard user={safeUser} />} />
                 <Route path="recursos-humanos" element={<DashboardRecursosHumanos />} />
                 <Route path="trabajadores" element={<TrabajadoresPage />} />
+                <Route path="trabajadores/:id/historial-laboral" element={<HistorialLaboralPage />} />
                 <Route path="fichas-empresa" element={<FichasEmpresaPage />} />
                 <Route path="fichas-empresa/mi-ficha" element={<FichasEmpresaPage />} />
                 <Route path="bonos" element={<BonosPage />} />
