@@ -6,6 +6,7 @@ import historialLaboralService from '@/services/recursosHumanos/historialLaboral
 import { trabajadorService } from '@/services/recursosHumanos/trabajador.service';
 import '@/styles/pages/historialLaboral.css';
 import { useAuth } from '@/context';
+import { useRut } from '@/hooks/useRut';
 
 type FiltroTipo = 'todos' | 'inicial' | 'laboral' | 'licencias' | 'personales' | 'usuario';
 type ModoVista = 'tradicional' | 'unificado';
@@ -20,13 +21,15 @@ export default function HistorialLaboralPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [trabajadorNombre, setTrabajadorNombre] = useState<string>('');
+  const [trabajadorRut, setTrabajadorRut] = useState<string>('');
   const [descargandoId, setDescargandoId] = useState<number | null>(null);
-  const [filtroActivo, setFiltroActivo] = useState<FiltroTipo>('todos');
+  const [filtroActivo, setFiltroActivo] = useState<FiltroTipo>('laboral');
   const [busqueda, setBusqueda] = useState('');
   const [modoVista, setModoVista] = useState<ModoVista>('unificado');
   const [trabajadorId, setTrabajadorId] = useState<number | null>(null);
   const [showRevisorModal, setShowRevisorModal] = useState(false);
   const [revisorSeleccionado, setRevisorSeleccionado] = useState<any>(null);
+  const { formatRUT } = useRut();
 
   // Solo permitir acceso a roles autorizados
   const rolesPermitidos = ["SuperAdministrador", "Administrador", "RecursosHumanos"];
@@ -47,10 +50,11 @@ export default function HistorialLaboralPage() {
     if (state && state.trabajadorId) {
       setTrabajadorId(state.trabajadorId);
     } else {
-      setError('Debes acceder al historial laboral desde la ficha de empresa.');
-      setLoading(false);
+      // Redirigir automáticamente a gestion-personal si no viene del flujo correcto
+      navigate('/gestion-personal', { replace: true });
+      return;
     }
-  }, [location.state]);
+  }, [location.state, navigate]);
 
   useEffect(() => {
     if (trabajadorId) {
@@ -74,6 +78,7 @@ export default function HistorialLaboralPage() {
         if (responseTradicional.data.length > 0 && responseTradicional.data[0].trabajador) {
           const trabajador = responseTradicional.data[0].trabajador;
           setTrabajadorNombre(`${trabajador.nombres} ${trabajador.apellidoPaterno} ${trabajador.apellidoMaterno}`);
+          setTrabajadorRut(trabajador.rut || '');
         }
       }
 
@@ -280,7 +285,7 @@ export default function HistorialLaboralPage() {
   };
 
   const getContadorPorTipo = (tipo: FiltroTipo) => {
-    const datosBase = modoVista === 'unificado' ? historialUnificado : historial;
+    const datosBase = (modoVista === 'unificado' ? historialUnificado : historial) as any[];
     if (tipo === 'todos') return datosBase.length;
     
     return datosBase.filter(item => {
@@ -499,7 +504,26 @@ export default function HistorialLaboralPage() {
       corporateEmail = item.detalles.corporateEmail;
     }
 
+    // Formatear RUT si existe
+    if (rut) {
+      rut = formatRUT ? formatRUT(rut) : rut;
+    }
+
     return { name, role, rut, corporateEmail };
+  };
+
+  // Guardar la ruta actual en un stack de rutas en localStorage
+  useEffect(() => {
+    const stack = JSON.parse(localStorage.getItem('routeStack') || '[]');
+    if (stack[stack.length - 1] !== location.pathname) {
+      stack.push(location.pathname);
+      localStorage.setItem('routeStack', JSON.stringify(stack));
+    }
+  }, [location.pathname]);
+
+  // Botón Volver del header azul SIEMPRE va a /fichas-empresa
+  const handleVolverHeader = () => {
+    navigate('/fichas-empresa', { replace: true });
   };
 
   return (
@@ -540,9 +564,15 @@ export default function HistorialLaboralPage() {
                   <p className="mb-0 opacity-75 text-white">
                     <i className="bi bi-person me-1"></i>
                     {trabajadorNombre}
+                    {trabajadorRut && (
+                      <span className="ms-2" style={{ fontWeight: 400, fontSize: '1rem', opacity: 0.85 }}>
+                        <i className="bi bi-credit-card-2-front me-1"></i>{trabajadorRut}
+                      </span>
+                    )}
                   </p>
                 </Col>
-                <Col xs="auto">
+                {/* Botones de vista ocultos temporalmente */}
+                {/* <Col xs="auto">
                   <div className="d-flex gap-2">
                     <Button 
                       variant={modoVista === 'unificado' ? 'light' : 'outline-light'} 
@@ -569,6 +599,16 @@ export default function HistorialLaboralPage() {
                       Volver
                     </Button>
                   </div>
+                </Col> */}
+                <Col xs="auto">
+                  <Button 
+                    variant="light" 
+                    onClick={handleVolverHeader}
+                    className="d-flex align-items-center"
+                  >
+                    <i className="bi bi-arrow-left me-2"></i>
+                    Volver
+                  </Button>
                 </Col>
               </Row>
             </Card.Body>
@@ -586,57 +626,19 @@ export default function HistorialLaboralPage() {
                   <Nav variant="pills" className="flex-nowrap">
                     <Nav.Item>
                       <Nav.Link 
-                        active={filtroActivo === 'todos'} 
-                        onClick={() => setFiltroActivo('todos')}
+                        active={true} 
+                        // onClick eliminado para que no sea clickable
                         className="d-flex align-items-center"
-                      >
-                        <i className="bi bi-list-ul me-1"></i>
-                        Todos <Badge bg="primary" className="ms-1">{getContadorPorTipo('todos')}</Badge>
-                      </Nav.Link>
-                    </Nav.Item>
-                    <Nav.Item>
-                      <Nav.Link 
-                        active={filtroActivo === 'inicial'} 
-                        onClick={() => setFiltroActivo('inicial')}
-                        className="d-flex align-items-center"
-                      >
-                        <i className="bi bi-person-plus me-1"></i>
-                        Inicial <Badge bg="primary" className="ms-1">{getContadorPorTipo('inicial')}</Badge>
-                      </Nav.Link>
-                    </Nav.Item>
-                    <Nav.Item>
-                      <Nav.Link 
-                        active={filtroActivo === 'laboral'} 
-                        onClick={() => setFiltroActivo('laboral')}
-                        className="d-flex align-items-center"
+                        style={{ pointerEvents: 'none', opacity: 1 }}
                       >
                         <i className="bi bi-briefcase me-1"></i>
                         Laborales <Badge bg="primary" className="ms-1">{getContadorPorTipo('laboral')}</Badge>
                       </Nav.Link>
                     </Nav.Item>
-                    <Nav.Item>
-                      <Nav.Link 
-                        active={filtroActivo === 'licencias'} 
-                        onClick={() => setFiltroActivo('licencias')}
-                        className="d-flex align-items-center"
-                      >
-                        <i className="bi bi-calendar-check me-1"></i>
-                        Licencias <Badge bg="warning" className="ms-1">{getContadorPorTipo('licencias')}</Badge>
-                      </Nav.Link>
-                    </Nav.Item>
-                    <Nav.Item>
-                      <Nav.Link 
-                        active={filtroActivo === 'personales'} 
-                        onClick={() => setFiltroActivo('personales')}
-                        className="d-flex align-items-center"
-                      >
-                        <i className="bi bi-person-gear me-1"></i>
-                        Personales <Badge bg="secondary" className="ms-1">{getContadorPorTipo('personales')}</Badge>
-                      </Nav.Link>
-                    </Nav.Item>
                   </Nav>
                 </Col>
-                <Col lg={4}>
+                {/* Buscador oculto temporalmente */}
+                {/* <Col lg={4}>
                   <Form.Control
                     type="text"
                     placeholder="Buscar en historial..."
@@ -646,7 +648,7 @@ export default function HistorialLaboralPage() {
                     style={{ paddingLeft: '2.5rem' }}
                   />
                   <i className="bi bi-search position-absolute" style={{ left: '1rem', top: '50%', transform: 'translateY(-50%)', color: '#6c757d' }}></i>
-                </Col>
+                </Col> */}
               </Row>
             </Card.Body>
           </Card>
@@ -930,7 +932,7 @@ export default function HistorialLaboralPage() {
                   {revisorSeleccionado.role === 'SuperAdministrador' ? 'Super Administrador Sistema' : revisorSeleccionado.role}
                 </div>
               </div>
-              <div className="mb-3">
+              {/* <div className="mb-3">
                 <div className="text-secondary mb-1">RUT</div>
                 <div className="d-flex align-items-center">
                   <i className="bi bi-person-vcard text-primary me-2"></i>
@@ -953,7 +955,7 @@ export default function HistorialLaboralPage() {
                     <span className="text-muted">No disponible</span>
                   )}
                 </div>
-              </div>
+              </div> */}
             </div>
           )}
         </Modal.Body>
