@@ -78,6 +78,19 @@ export interface InventoryItem {
   quantity: number;
 }
 
+export type MovementDetail = {
+  id: number
+  product: {
+    id: number
+    product: string
+    salePrice: number
+  }
+  quantity: number
+  purchasePrice?: number
+  salePrice?: number
+  totalPrice: number
+}
+
 export interface ApiResponse<T = any> {
   success: boolean;
   message: string;
