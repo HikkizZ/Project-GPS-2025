@@ -276,20 +276,20 @@ export const TrabajadoresPage: React.FC = () => {
                           setSearchParams({
                             ...searchParams,
                             todos: e.target.checked,
-                            soloEliminados: false
+                            enSistema: undefined // Si se marca 'todos', no filtrar por enSistema
                           });
                         }}
                         id="includeInactive"
-                        disabled={searchParams.soloEliminados}
+                        disabled={searchParams.enSistema === false}
                       />
                       <Form.Check
                         type="checkbox"
                         label="Sólo mostrar trabajadores desvinculados"
-                        checked={searchParams.soloEliminados || false}
+                        checked={searchParams.enSistema === false}
                         onChange={(e) => {
                           setSearchParams({
                             ...searchParams,
-                            soloEliminados: e.target.checked,
+                            enSistema: e.target.checked ? false : undefined,
                             todos: false
                           });
                         }}

@@ -9,7 +9,8 @@ export type userRole =
     | "Arriendo" 
     | "Finanzas" 
     | "Mecánico" 
-    | "Mantenciones de Maquinaria";
+    | "Mantenciones de Maquinaria"
+    | "Conductor";
 
 /* userResponse Interface */
 export interface UserResponse {

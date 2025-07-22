@@ -13,7 +13,8 @@ export const useTrabajadores = () => {
     setIsLoading(true);
     setError('');
     try {
-      const result = await trabajadorService.getAllTrabajadores();
+      const result = await trabajadorService.getTrabajadores();
+      
       if (result.success) {
         setTrabajadores(result.data || []);
         setTotalTrabajadores((result.data || []).length);
@@ -24,26 +25,6 @@ export const useTrabajadores = () => {
     } catch (error) {
       setError('Error de conexión');
       setTotalTrabajadores(0);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Buscar trabajadores
-  const searchTrabajadores = async (query: TrabajadorSearchQuery) => {
-    setIsLoading(true);
-    setError('');
-    try {
-      const result = await trabajadorService.searchTrabajadores(query);
-      if (result.success) {
-        setTrabajadores(result.data || []);
-      } else {
-        setError(result.message || 'No se encontraron trabajadores');
-        setTrabajadores([]);
-      }
-    } catch (error) {
-      setError('Error en la búsqueda');
-      setTrabajadores([]);
     } finally {
       setIsLoading(false);
     }
@@ -138,6 +119,27 @@ export const useTrabajadores = () => {
       const errorMsg = 'Error al desvincular trabajador';
       setError(errorMsg);
       return { success: false, error: errorMsg };
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Buscar trabajadores con filtros
+  const searchTrabajadores = async (query: TrabajadorSearchQuery = {}) => {
+    setIsLoading(true);
+    setError('');
+    try {
+      const result = await trabajadorService.getTrabajadores(query);
+      if (result.success) {
+        setTrabajadores(result.data || []);
+        setTotalTrabajadores((result.data || []).length);
+      } else {
+        setError(result.message || 'Error al buscar trabajadores');
+        setTotalTrabajadores(0);
+      }
+    } catch (error) {
+      setError('Error de conexión');
+      setTotalTrabajadores(0);
     } finally {
       setIsLoading(false);
     }

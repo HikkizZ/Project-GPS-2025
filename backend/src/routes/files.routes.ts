@@ -1,13 +1,10 @@
 import { Router } from "express";
-import { authenticateJWT } from "../middlewares/authentication.middleware.js";
-import { downloadFile } from "../controllers/files.controller.js";
+import { uploadFileController } from "../controllers/files.controller.js";
+import { uploadMiddleware } from "../middlewares/upload.middleware.js";
 
-const router: Router = Router();
+const router = Router();
 
-// Rutas protegidas - requieren autenticación
-router.use(authenticateJWT);
+// Endpoint para subir un archivo (imagen o PDF)
+router.post("/upload", uploadMiddleware.single("file"), uploadFileController);
 
-// Ruta para descarga segura de archivos
-router.get("/*", downloadFile);
-
-export default router; 
+export default router;

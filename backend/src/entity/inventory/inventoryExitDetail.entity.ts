@@ -5,15 +5,14 @@
 
 import { Entity, Column, PrimaryGeneratedColumn, ManyToOne } from 'typeorm';
 import { Product } from './product.entity.js';
-import { InventoryExit } from './inventoryExit.entity.js';
 
 @Entity("inventory_exit_details")
 export class InventoryExitDetail {
     @PrimaryGeneratedColumn()
     id!: number;
 
-    @ManyToOne(() => InventoryExit, exit => exit.details)
-    exit!: InventoryExit;
+    @ManyToOne("inventory_exits", { nullable: false })
+    exit!: any;
 
     @ManyToOne(() => Product)
     product!: Product;

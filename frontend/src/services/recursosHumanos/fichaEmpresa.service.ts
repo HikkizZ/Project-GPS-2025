@@ -15,37 +15,31 @@ export interface ApiResponse<T = any> {
 
 // Exportar la clase
 export class FichaEmpresaService {
-  private baseURL = '/ficha-empresa';
+  private baseURL = '/fichas-empresa';
 
   // Obtener todas las fichas con filtros
   async getFichasEmpresa(searchParams: FichaEmpresaSearchQuery = {}): Promise<ApiResponse<FichaEmpresa[]>> {
     try {
       const queryParams = new URLSearchParams();
-      
       Object.entries(searchParams).forEach(([key, value]) => {
         if (value !== undefined && value !== null && value !== '') {
-          // Formatear fechas a ISO string si es necesario
           if (value instanceof Date) {
             queryParams.append(key, value.toISOString());
           } else if (key === 'rut') {
-            // Limpiar el RUT antes de enviarlo
             const cleanRut = value.toString().replace(/\./g, '').replace(/-/g, '');
             queryParams.append(key, cleanRut);
           } else if (Array.isArray(value)) {
-            // Para arrays, mantener el formato original del array
             value.forEach((v) => {
               queryParams.append(`${key}[]`, v.toString());
             });
           } else {
-            // Para strings, asegurarse de que los espacios se manejen correctamente
             const stringValue = value.toString().trim();
             queryParams.append(key, stringValue);
           }
         }
       });
-
-      const data = await apiClient.get<{ data: FichaEmpresa[] }>(`${this.baseURL}/search?${queryParams}`);
-
+      const url = queryParams.toString() ? `${this.baseURL}/?${queryParams}` : `${this.baseURL}/`;
+      const data = await apiClient.get<{ data: FichaEmpresa[] }>(url);
       return {
         success: true,
         message: 'Fichas obtenidas exitosamente',
@@ -60,28 +54,7 @@ export class FichaEmpresaService {
     }
   }
 
-  // Obtener ficha por ID
-  async getFichaEmpresaById(id: number): Promise<ApiResponse<FichaEmpresa>> {
-    try {
-      const data = await apiClient.get<{ data: FichaEmpresa }>(`${this.baseURL}/${id}`);
-
-      if (!data.data) {
-        throw new Error('No se encontró la ficha solicitada');
-      }
-
-      return {
-        success: true,
-        message: 'Ficha obtenida exitosamente',
-        data: data.data
-      };
-    } catch (error: any) {
-      console.error('Error al obtener ficha:', error);
-      return {
-        success: false,
-        message: error.response?.data?.message || error.message || 'Error al obtener ficha'
-      };
-    }
-  }
+  // Eliminar método getFichaEmpresaById
 
   // Obtener mi ficha personal
   async getMiFicha(): Promise<ApiResponse<FichaEmpresa>> {
@@ -162,10 +135,8 @@ export class FichaEmpresaService {
   // Buscar por RUT
   async getFichaByRUT(rut: string): Promise<ApiResponse<FichaEmpresa | null>> {
     try {
-      // Limpiar el RUT antes de enviarlo al backend
       const cleanRut = rut.replace(/\./g, '').replace(/-/g, '');
-      const data = await apiClient.get<{ data: FichaEmpresa[] }>(`${this.baseURL}/search?rut=${cleanRut}`);
-
+      const data = await apiClient.get<{ data: FichaEmpresa[] }>(`${this.baseURL}/?rut=${cleanRut}`);
       if (!data.data || !Array.isArray(data.data) || data.data.length === 0) {
         return {
           success: false,
@@ -173,7 +144,6 @@ export class FichaEmpresaService {
           data: null
         };
       }
-
       const fichas = data.data;
       return {
         success: true,
@@ -307,7 +277,7 @@ const fichaEmpresaService = new FichaEmpresaService();
 export default fichaEmpresaService;
 
 // Funciones de conveniencia para uso directo
-export const getFichaEmpresa = (id: number) => fichaEmpresaService.getFichaEmpresaById(id);
+export const getFichaEmpresa = (searchParams: FichaEmpresaSearchQuery = {}) => fichaEmpresaService.getFichasEmpresa(searchParams);
 export const updateFichaEmpresa = (id: number, data: UpdateFichaEmpresaData) => fichaEmpresaService.updateFichaEmpresa(id, data);
 export const uploadContrato = (fichaId: number, file: File) => fichaEmpresaService.uploadContrato(fichaId, file);
 export const downloadContrato = (fichaId: number) => fichaEmpresaService.downloadContrato(fichaId);

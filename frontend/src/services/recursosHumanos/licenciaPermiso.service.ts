@@ -158,11 +158,23 @@ export class LicenciaPermisoService {
   }
 
   /**
-   * Obtener solicitud por ID
+   * Obtener solicitudes con filtros opcionales (unificado)
    */
-  async obtenerSolicitudPorId(id: number): Promise<LicenciaPermisoOperationResult> {
+  async obtenerSolicitudesConFiltros(filtros: Record<string, any> = {}): Promise<LicenciasPermisosOperationResult> {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}${this.baseURL}/${id}`, {
+      const queryParams = new URLSearchParams();
+      
+      // Agregar filtros a los query params
+      Object.keys(filtros).forEach(key => {
+        if (filtros[key] !== undefined && filtros[key] !== null && filtros[key] !== '') {
+          queryParams.append(key, filtros[key].toString());
+        }
+      });
+
+      const queryString = queryParams.toString();
+      const url = `${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}${this.baseURL}${queryString ? `?${queryString}` : ''}`;
+
+      const response = await fetch(url, {
         method: 'GET',
         headers: this.getHeaders()
       });
@@ -172,16 +184,44 @@ export class LicenciaPermisoService {
       if (response.ok && responseData.status === 'success') {
         return {
           success: true,
-          data: responseData.data
+          data: responseData.data || []
         };
       }
 
       return {
         success: false,
-        error: responseData.message || 'Error al obtener solicitud'
+        error: responseData.message || 'Error al obtener solicitudes'
       };
     } catch (error: any) {
-      console.error('Error al obtener solicitud:', error);
+      console.error('Error al obtener solicitudes:', error);
+      return {
+        success: false,
+        error: error.message || 'Error al obtener solicitudes'
+      };
+    }
+  }
+
+  /**
+   * Obtener solicitud por ID (usando filtros)
+   * @deprecated Use obtenerSolicitudesConFiltros({ id }) instead
+   */
+  async obtenerSolicitudPorId(id: number): Promise<LicenciaPermisoOperationResult> {
+    try {
+      const resultado = await this.obtenerSolicitudesConFiltros({ id });
+      
+      if (resultado.success && resultado.data && resultado.data.length > 0) {
+        return {
+          success: true,
+          data: resultado.data[0] // Retornar el primer (y único) resultado
+        };
+      }
+
+      return {
+        success: false,
+        error: 'Solicitud no encontrada'
+      };
+    } catch (error: any) {
+      console.error('Error al obtener solicitud por ID:', error);
       return {
         success: false,
         error: error.message || 'Error al obtener solicitud'
@@ -370,6 +410,7 @@ export const licenciaPermisoService = new LicenciaPermisoService();
 export const crearSolicitud = (data: CreateLicenciaPermisoForm) => licenciaPermisoService.crearSolicitud(data);
 export const obtenerMisSolicitudes = () => licenciaPermisoService.obtenerMisSolicitudes();
 export const obtenerTodasLasSolicitudes = () => licenciaPermisoService.obtenerTodasLasSolicitudes();
+export const obtenerSolicitudesConFiltros = (filtros: Record<string, any> = {}) => licenciaPermisoService.obtenerSolicitudesConFiltros(filtros);
 export const obtenerSolicitudPorId = (id: number) => licenciaPermisoService.obtenerSolicitudPorId(id);
 export const actualizarSolicitud = (id: number, data: UpdateLicenciaPermisoDTO) => licenciaPermisoService.actualizarSolicitud(id, data);
 

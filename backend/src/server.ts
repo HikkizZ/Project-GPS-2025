@@ -20,6 +20,7 @@ import { authenticateJWT } from "./middlewares/authentication.middleware.js";
 import { FileManagementService } from "./services/fileManagement.service.js";
 import { FileUploadService } from "./services/fileUpload.service.js";
 import userRoutes from "./routes/user.routes.js";
+import fileRoutes from "./routes/files.routes.js";
 import { verificarLicenciasVencidasService } from "./services/recursosHumanos/licenciaPermiso.service.js";
 import cron from "node-cron";
 
@@ -150,6 +151,7 @@ async function setupServer(): Promise<void> {
         // Configurar todas las rutas bajo /api
         app.use("/api", indexRoutes);
         app.use("/api/users", userRoutes);
+        app.use("/api/files", fileRoutes);
 
         server = app.listen(SERVER_PORT, SERVER_HOST, () => {
             console.log("✅ API started successfully.");
@@ -205,6 +207,7 @@ async function setupTestServer(): Promise<{ app: Application; server: any }> {
         // Configurar todas las rutas bajo /api
         app.use("/api", indexRoutes);
         app.use("/api/users", userRoutes);
+        app.use("/api/files", fileRoutes);
 
         await initializeDatabase();
         await initialSetup();
@@ -291,6 +294,7 @@ const startServer = async () => {
     // Configurar todas las rutas bajo /api
     app.use("/api", indexRoutes);
     app.use("/api/users", userRoutes);
+    app.use("/api/files", fileRoutes);
 
     server = app.listen(SERVER_PORT, SERVER_HOST, () => {
       console.log("✅ API started successfully.");

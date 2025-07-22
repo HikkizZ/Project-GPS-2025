@@ -87,7 +87,7 @@ export interface TrabajadorSearchQuery {
   direccion?: string;
   fechaIngreso?: string;
   todos?: boolean;
-  soloEliminados?: boolean;
+  enSistema?: boolean;
 }
 
 export interface TrabajadorResponse {

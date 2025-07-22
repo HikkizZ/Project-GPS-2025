@@ -5,11 +5,25 @@ import { User } from "../../entity/user.entity.js";
 import { CreateLicenciaPermisoDTO, UpdateLicenciaPermisoDTO } from "../../types/recursosHumanos/licenciaPermiso.dto.js";
 import { ServiceResponse } from "../../../types.js";
 import { EstadoLaboral } from "../../entity/recursosHumanos/fichaEmpresa.entity.js";
-import { actualizarEstadoFichaService } from "./fichaEmpresa.service.js";
 import { LessThan, Not, LessThanOrEqual, MoreThanOrEqual, MoreThan } from "typeorm";
 import { FileManagementService } from "../fileManagement.service.js";
 import { FileUploadService } from "../fileUpload.service.js";
 import { sendLicenciaPermisoApprovedEmail, sendLicenciaPermisoRejectedEmail } from "../email.service.js";
+
+/**
+ * Normaliza el tipo de solicitud - solo acepta valores exactos para mayor profesionalismo
+ */
+function normalizarTipoSolicitud(tipoInput: string): TipoSolicitud | null {
+  const tipoLimpio = tipoInput.trim();
+  
+  // Solo valores exactos del enum - más profesional y predecible
+  const mapeoTipos: { [key: string]: TipoSolicitud } = {
+    "Licencia médica": TipoSolicitud.LICENCIA,
+    "Permiso administrativo": TipoSolicitud.PERMISO
+  };
+  
+  return mapeoTipos[tipoLimpio] || null;
+}
 
 export async function createLicenciaPermisoService(data: CreateLicenciaPermisoDTO & { file?: Express.Multer.File }): Promise<ServiceResponse<LicenciaPermiso>> {
   const queryRunner = AppDataSource.createQueryRunner();
@@ -129,17 +143,79 @@ export async function createLicenciaPermisoService(data: CreateLicenciaPermisoDT
   }
 }
 
-export async function getAllLicenciasPermisosService(): Promise<ServiceResponse<LicenciaPermiso[]>> {
+export async function getAllLicenciasPermisosService(filtros: any = {}): Promise<ServiceResponse<LicenciaPermiso[]>> {
   try {
     const licenciaRepo = AppDataSource.getRepository(LicenciaPermiso);
     const userRepo = AppDataSource.getRepository(User);
     
-    const licencias = await licenciaRepo.find({ 
-      relations: ["trabajador", "revisadoPor"],
-      order: {
-        fechaSolicitud: "DESC"
+    // Crear el query builder para usar búsquedas más flexibles
+    const queryBuilder = licenciaRepo.createQueryBuilder('licencia')
+      .leftJoinAndSelect('licencia.trabajador', 'trabajador')
+      .leftJoinAndSelect('licencia.revisadoPor', 'revisadoPor');
+
+    // Agregar filtros por campos si existen
+    if (filtros.id) {
+      queryBuilder.andWhere('licencia.id = :id', { id: filtros.id });
+    }
+    if (filtros.trabajadorId) {
+      queryBuilder.andWhere('trabajador.id = :trabajadorId', { trabajadorId: filtros.trabajadorId });
+    }
+    if (filtros.tipo) {
+      // Mapeo inteligente para tipos legibles
+      const tipoNormalizado = normalizarTipoSolicitud(filtros.tipo);
+      if (tipoNormalizado) {
+        queryBuilder.andWhere('licencia.tipo = :tipo', { tipo: tipoNormalizado });
       }
-    });
+    }
+    if (filtros.estado) {
+      queryBuilder.andWhere('licencia.estado = :estado', { estado: filtros.estado });
+    }
+    if (filtros.fechaInicio) {
+      queryBuilder.andWhere('licencia.fechaInicio = :fechaInicio', { fechaInicio: filtros.fechaInicio });
+    }
+    if (filtros.fechaFin) {
+      queryBuilder.andWhere('licencia.fechaFin = :fechaFin', { fechaFin: filtros.fechaFin });
+    }
+    if (filtros.fechaSolicitud) {
+      queryBuilder.andWhere('DATE(licencia.fechaSolicitud) = :fechaSolicitud', { fechaSolicitud: filtros.fechaSolicitud });
+    }
+    if (filtros.motivoSolicitud) {
+      queryBuilder.andWhere('licencia.motivoSolicitud ILIKE :motivoSolicitud', { motivoSolicitud: `%${filtros.motivoSolicitud}%` });
+    }
+    if (filtros.revisadoPorId) {
+      queryBuilder.andWhere('revisadoPor.id = :revisadoPorId', { revisadoPorId: filtros.revisadoPorId });
+    }
+    
+    // Filtros por campos del trabajador
+    if (filtros.trabajadorRut) {
+      queryBuilder.andWhere('trabajador.rut ILIKE :trabajadorRut', { trabajadorRut: `%${filtros.trabajadorRut}%` });
+    }
+    if (filtros.trabajadorNombres) {
+      queryBuilder.andWhere('trabajador.nombres ILIKE :trabajadorNombres', { trabajadorNombres: `%${filtros.trabajadorNombres}%` });
+    }
+    if (filtros.trabajadorApellidos) {
+      // Búsqueda inteligente en apellidos: permite buscar por uno solo o ambos juntos
+      const apellidosBusqueda = filtros.trabajadorApellidos.trim();
+      
+      // Si contiene espacios, buscar la frase completa en la concatenación
+      if (apellidosBusqueda.includes(' ')) {
+        queryBuilder.andWhere(
+          'CONCAT(trabajador.apellidoPaterno, \' \', trabajador.apellidoMaterno) ILIKE :apellidosCompletos',
+          { apellidosCompletos: `%${apellidosBusqueda}%` }
+        );
+      } else {
+        // Si no contiene espacios, buscar en cualquiera de los dos campos
+        queryBuilder.andWhere(
+          '(trabajador.apellidoPaterno ILIKE :apellidos OR trabajador.apellidoMaterno ILIKE :apellidos)',
+          { apellidos: `%${apellidosBusqueda}%` }
+        );
+      }
+    }
+
+    // Ordenar por fecha de solicitud descendente
+    queryBuilder.orderBy('licencia.fechaSolicitud', 'DESC');
+
+    const licencias = await queryBuilder.getMany();
 
     // Cargar usuarios manualmente para cada trabajador
     for (const licencia of licencias) {
@@ -158,36 +234,6 @@ export async function getAllLicenciasPermisosService(): Promise<ServiceResponse<
     return [licencias, null];
   } catch (error) {
     console.error("Error al obtener licencias/permisos:", error);
-    return [null, "Error interno del servidor."];
-  }
-}
-
-export async function getLicenciaPermisoByIdService(id: number): Promise<ServiceResponse<LicenciaPermiso>> {
-  try {
-    const licenciaRepo = AppDataSource.getRepository(LicenciaPermiso);
-    const userRepo = AppDataSource.getRepository(User);
-    
-    const licencia = await licenciaRepo.findOne({
-      where: { id },
-      relations: ["trabajador", "revisadoPor"]
-    });
-
-    if (!licencia) return [null, "Solicitud no encontrada."];
-
-    // Cargar usuario manualmente para el trabajador
-    if (licencia.trabajador?.rut) {
-      const usuario = await userRepo.findOne({
-        where: { rut: licencia.trabajador.rut },
-        select: ['id', 'email', 'role']
-      });
-      if (usuario) {
-        licencia.trabajador.usuario = usuario;
-      }
-    }
-
-    return [licencia, null];
-  } catch (error) {
-    console.error("Error al buscar la solicitud:", error);
     return [null, "Error interno del servidor."];
   }
 }
@@ -219,12 +265,12 @@ export async function updateLicenciaPermisoService(id: number, data: UpdateLicen
     const estadoAnterior = licencia.estado;
     
     // Actualizar los campos de la licencia
-    licencia.estado = data.estadoSolicitud;
+    licencia.estado = data.estado;
     licencia.respuestaEncargado = data.respuestaEncargado || '';
     licencia.revisadoPor = data.revisadoPor;
     
     // Si el estado está cambiando a APROBADA
-    if (data.estadoSolicitud === EstadoSolicitud.APROBADA && estadoAnterior !== EstadoSolicitud.APROBADA) {
+    if (data.estado === EstadoSolicitud.APROBADA && estadoAnterior !== EstadoSolicitud.APROBADA) {
       if (!licencia.trabajador?.fichaEmpresa?.id) {
         await queryRunner.rollbackTransaction();
         await queryRunner.release();
@@ -255,31 +301,34 @@ export async function updateLicenciaPermisoService(id: number, data: UpdateLicen
       }
 
       // Actualizar el estado en la ficha de empresa
-      const [fichaActualizada, errorFicha] = await actualizarEstadoFichaService(
-        licencia.trabajador.fichaEmpresa.id,
-        estadoLaboral,
-        licencia.fechaInicio,
-        licencia.fechaFin,
-        licencia.motivoSolicitud
-      );
+      // Eliminar la importación de actualizarEstadoFichaService
+      // import { actualizarEstadoFichaService } from "./fichaEmpresa.service.js";
+      // Eliminar o adaptar el uso de actualizarEstadoFichaService en el archivo
+      // const [fichaActualizada, errorFicha] = await actualizarEstadoFichaService(
+      //   licencia.trabajador.fichaEmpresa.id,
+      //   estadoLaboral,
+      //   licencia.fechaInicio,
+      //   licencia.fechaFin,
+      //   licencia.motivoSolicitud
+      // );
 
-      if (errorFicha) {
-        await queryRunner.rollbackTransaction();
-        await queryRunner.release();
-        return [null, errorFicha];
-      }
+      // if (errorFicha) {
+      //   await queryRunner.rollbackTransaction();
+      //   await queryRunner.release();
+      //   return [null, errorFicha];
+      // }
     }
 
     // Guardar los cambios de la licencia
     await queryRunner.manager.save(licencia);
     
     // Enviar notificación por correo electrónico después de guardar exitosamente
-    if (estadoAnterior !== data.estadoSolicitud) {
+    if (estadoAnterior !== data.estado) {
       try {
         const nombreCompleto = `${licencia.trabajador.nombres} ${licencia.trabajador.apellidoPaterno}`;
         const tipoSolicitudTexto = licencia.tipo === TipoSolicitud.LICENCIA ? 'Licencia Médica' : 'Permiso Administrativo';
         
-        if (data.estadoSolicitud === EstadoSolicitud.APROBADA) {
+        if (data.estado === EstadoSolicitud.APROBADA) {
           await sendLicenciaPermisoApprovedEmail({
             to: licencia.trabajador.correoPersonal,
             nombre: nombreCompleto,
@@ -288,7 +337,7 @@ export async function updateLicenciaPermisoService(id: number, data: UpdateLicen
             fechaFin: licencia.fechaFin.toISOString(),
             motivoRespuesta: data.respuestaEncargado || undefined
           });
-        } else if (data.estadoSolicitud === EstadoSolicitud.RECHAZADA) {
+        } else if (data.estado === EstadoSolicitud.RECHAZADA) {
           await sendLicenciaPermisoRejectedEmail({
             to: licencia.trabajador.correoPersonal,
             nombre: nombreCompleto,
@@ -357,17 +406,20 @@ export async function verificarLicenciasVencidasService(): Promise<ServiceRespon
 
             // Solo cambiar a ACTIVO si no hay licencias vigentes
             if (!licenciaVigente) {
-                const [fichaActualizada, error] = await actualizarEstadoFichaService(
-                    fichaEmpresa.id,
-                    EstadoLaboral.ACTIVO,
-                    new Date(),
-                    undefined,
-                    "Fin de licencia/permiso"
-                );
+                // Eliminar la importación de actualizarEstadoFichaService
+                // import { actualizarEstadoFichaService } from "./fichaEmpresa.service.js";
+                // Eliminar o adaptar el uso de actualizarEstadoFichaService en el archivo
+                // const [fichaActualizada, error] = await actualizarEstadoFichaService(
+                //     fichaEmpresa.id,
+                //     EstadoLaboral.ACTIVO,
+                //     new Date(),
+                //     undefined,
+                //     "Fin de licencia/permiso"
+                // );
 
-                if (!error) {
-                    actualizaciones++;
-                }
+                // if (!error) {
+                //     actualizaciones++;
+                // }
             }
         }
 

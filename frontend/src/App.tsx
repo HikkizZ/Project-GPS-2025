@@ -697,8 +697,8 @@ function App() {
                 <Route path="dashboard" element={<Dashboard user={safeUser} />} />
                 <Route path="recursos-humanos" element={<DashboardRecursosHumanos />} />
                 <Route path="trabajadores" element={<TrabajadoresPage />} />
-                <Route path="ficha-empresa" element={<FichasEmpresaPage />} />
-                <Route path="ficha-empresa/mi-ficha" element={<FichasEmpresaPage />} />
+                <Route path="fichas-empresa" element={<FichasEmpresaPage />} />
+                <Route path="fichas-empresa/mi-ficha" element={<FichasEmpresaPage />} />
                 <Route path="usuarios" element={<UsersPage />} />
                 <Route path="gestion-personal" element={<GestionPersonalPage />} />
                 <Route path="gestion-licencias-permisos" element={<GestionLicenciasPermisosPage />} />
@@ -712,6 +712,8 @@ function App() {
                 <Route path="maquinaria/clientes" element={<ClienteMaquinariaPage />} />
 
                 <Route path="*" element={<Navigate to="dashboard" replace />} />
+                <Route path="*" element={<div className="container py-4"><div className="alert alert-warning"><h4>Página no encontrada</h4><p>La página que buscas no existe. <a href="/dashboard">Volver al dashboard</a></p></div></div>} />
+
               </Routes>
             </MainLayout>
           ) : (

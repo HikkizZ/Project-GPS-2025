@@ -2,7 +2,6 @@ import { Request, Response } from "express";
 import {
   createLicenciaPermisoService,
   getAllLicenciasPermisosService,
-  getLicenciaPermisoByIdService,
   updateLicenciaPermisoService,
   descargarArchivoLicenciaService,
   verificarLicenciasVencidasService
@@ -103,7 +102,7 @@ export async function getAllLicenciasPermisos(req: Request, res: Response): Prom
       }
     }
 
-    const [licenciasPermisos, error] = await getAllLicenciasPermisosService();
+    const [licenciasPermisos, error] = await getAllLicenciasPermisosService(req.query);
 
     if (error) {
       handleErrorClient(res, 400, error as string);
@@ -166,32 +165,7 @@ export async function getMisSolicitudes(req: Request, res: Response): Promise<vo
   }
 }
 
-export async function getLicenciaPermisoById(req: Request, res: Response): Promise<void> {
-  try {
-    const validationResult = LicenciaPermisoQueryValidation.validate({ id: req.params.id }, { abortEarly: false });
-    if (validationResult.error) {
-      handleErrorClient(res, 400, "Error de validación", {
-        errors: validationResult.error.details.map(error => ({
-          field: error.path.join('.'),
-          message: error.message
-        }))
-      });
-      return;
-    }
 
-    const [licenciaPermiso, error] = await getLicenciaPermisoByIdService(parseInt(req.params.id));
-
-    if (error) {
-      handleErrorClient(res, 404, error as string);
-      return;
-    }
-
-    handleSuccess(res, 200, "Solicitud recuperada exitosamente", licenciaPermiso || {});
-  } catch (error) {
-    console.error("Error al obtener licencia/permiso:", error);
-    handleErrorServer(res, 500, "Error interno del servidor");
-  }
-}
 
 export async function updateLicenciaPermiso(req: Request, res: Response): Promise<void> {
   try {

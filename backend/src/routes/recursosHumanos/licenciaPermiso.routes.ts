@@ -3,7 +3,6 @@ import { authenticateJWT } from "../../middlewares/authentication.middleware.js"
 import { verifyRole } from "../../middlewares/authorization.middleware.js";
 import { FileUploadService } from "../../services/fileUpload.service.js";
 import {
-    getLicenciaPermisoById,
     getAllLicenciasPermisos,
     getMisSolicitudes,
     createLicenciaPermiso,
@@ -22,8 +21,7 @@ router.post("/", FileUploadService.uploadSingle('archivo'), createLicenciaPermis
 router.get("/mis-solicitudes", getMisSolicitudes); // Ver propias solicitudes
 
 // Rutas para RRHH, Administradores y SuperAdministradores
-router.get("/", verifyRole(["RecursosHumanos", "Administrador", "SuperAdministrador"]), getAllLicenciasPermisos); // Ver todas las solicitudes
-router.get("/:id", getLicenciaPermisoById); // Ver una solicitud específica
+router.get("/", verifyRole(["RecursosHumanos", "Administrador", "SuperAdministrador"]), getAllLicenciasPermisos); // Ver todas las solicitudes (con filtros opcionales)
 router.put("/:id", verifyRole(["RecursosHumanos", "Administrador", "SuperAdministrador"]), updateLicenciaPermiso); // Aprobar/Rechazar solicitud
 
 router.get("/:id/archivo", descargarArchivoLicencia);
