@@ -4,7 +4,7 @@ import { verifyRole } from "../../middlewares/authorization.middleware.js";
 import {
     getHistorialLaboral,
     getHistorialUnificado,
-    descargarContrato
+    descargarContratoHistorial
 } from "../../controllers/recursosHumanos/historialLaboral.controller.js";
 
 const router: Router = Router();
@@ -18,6 +18,6 @@ router.use(verifyRole(["SuperAdministrador", "Administrador", "RecursosHumanos"]
 router
     .get("/trabajador/:id", getHistorialLaboral)
     .get("/trabajador/:id/unificado", getHistorialUnificado)
-    .get("/:id/contrato", descargarContrato);
+    .get("/:id/contrato", descargarContratoHistorial);
 
 export default router; 

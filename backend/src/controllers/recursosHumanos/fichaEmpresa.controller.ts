@@ -190,7 +190,7 @@ export async function uploadContrato(req: Request, res: Response): Promise<void>
             handleErrorClient(res, 400, "No se ha subido ningún archivo.");
             return;
         }
-        const [result, error] = await uploadContratoService(id, req.file);
+        const [result, error] = await uploadContratoService(id, req.file, req.user);
         if (error) {
             const errorMsg = typeof error === 'string' ? error : error?.message || "Error al subir contrato";
             handleErrorClient(res, 400, errorMsg);

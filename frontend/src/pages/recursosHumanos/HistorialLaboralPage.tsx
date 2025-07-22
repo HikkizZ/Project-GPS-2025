@@ -92,7 +92,7 @@ export default function HistorialLaboralPage() {
             case 'inicial':
               return obs.includes('registro inicial');
             case 'laboral':
-              return obs.includes('actualización de ficha') || obs.includes('desvinculación') || obs.includes('reactivación');
+              return obs.includes('actualización de ficha') || obs.includes('desvinculación') || obs.includes('reactivación') || obs.includes('subida de contrato pdf');
             case 'licencias':
               return obs.includes('licencia') || obs.includes('permiso');
             case 'personales':
@@ -177,15 +177,27 @@ export default function HistorialLaboralPage() {
   const handleDescargarContrato = async (historialId: number) => {
     try {
       setDescargandoId(historialId);
-      const url = `${import.meta.env.VITE_BASE_URL || 'http://localhost:3000/api'}/historial-laboral/${historialId}/contrato`;
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `contrato_historial_${historialId}.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      const result = await historialLaboralService.descargarContratoHistorial(historialId);
+      
+      if (result.success && result.blob && result.filename) {
+        // Crear URL del blob y descarga
+        const url = window.URL.createObjectURL(result.blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = result.filename;
+        document.body.appendChild(link);
+        link.click();
+        
+        // Limpiar
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      } else {
+        console.error('Error al descargar:', result.error);
+        alert(result.error || 'Error al descargar el contrato');
+      }
     } catch (error) {
       console.error('Error al descargar contrato:', error);
+      alert('Error inesperado al descargar el contrato');
     } finally {
       setDescargandoId(null);
     }
@@ -227,6 +239,8 @@ export default function HistorialLaboralPage() {
       return { tipo: 'Registro Inicial', color: 'primary', icono: 'person-plus' };
     if (observaciones.includes('Actualización de ficha')) 
       return { tipo: 'Actualización Laboral', color: 'purple', icono: 'pencil-square' };
+    if (observaciones.includes('Subida de contrato PDF')) 
+      return { tipo: 'Subida de Contrato', color: 'info', icono: 'file-earmark-arrow-up' };
     if (observaciones.includes('Licencia médica') || observaciones.includes('Permiso administrativo')) 
       return { tipo: 'Licencia/Permiso', color: 'warning', icono: 'calendar-check' };
     if (observaciones.includes('Desvinculación')) 
@@ -259,7 +273,7 @@ export default function HistorialLaboralPage() {
         const obs = itemTradicional.observaciones?.toLowerCase() || '';
         switch (tipo) {
           case 'inicial': return obs.includes('registro inicial');
-          case 'laboral': return obs.includes('actualización de ficha') || obs.includes('desvinculación') || obs.includes('reactivación');
+          case 'laboral': return obs.includes('actualización de ficha') || obs.includes('desvinculación') || obs.includes('reactivación') || obs.includes('subida de contrato pdf');
           case 'licencias': return obs.includes('licencia') || obs.includes('permiso');
           case 'personales': return obs.includes('datos personales');
           case 'usuario': return obs.includes('correo corporativo') || obs.includes('rol');
@@ -392,6 +406,8 @@ export default function HistorialLaboralPage() {
         return { tipo: 'Registro Inicial', color: 'primary', icono: 'person-plus' };
       if (item.descripcion.includes('Actualización de información laboral')) 
         return { tipo: 'Actualización Laboral', color: 'purple', icono: 'pencil-square' };
+      if (item.descripcion.includes('Subida de contrato PDF')) 
+        return { tipo: 'Subida de Contrato', color: 'info', icono: 'file-earmark-arrow-up' };
       if (item.descripcion.includes('Licencia') || item.descripcion.includes('Permiso')) 
         return { tipo: 'Licencia/Permiso', color: 'warning', icono: 'calendar-check' };
       if (item.descripcion.includes('Desvinculación')) 
@@ -593,6 +609,7 @@ export default function HistorialLaboralPage() {
                 const licenciaIdItem = modoVista === 'unificado' ? (item as HistorialUnificado).detalles.licenciaId : null;
                 const archivoAdjuntoURLItem = modoVista === 'unificado' ? (item as HistorialUnificado).detalles.archivoAdjuntoURL : null;
                 const esLicenciaMedica = observacionesItem?.includes('Licencia médica') || observacionesItem?.includes('licencia médica');
+                const esSubidaContrato = observacionesItem?.includes('Subida de contrato PDF');
                 
                 return (
                   <div key={itemId} className="timeline-item">
@@ -688,6 +705,24 @@ export default function HistorialLaboralPage() {
                                       ) : (
                                         <>
                                           <i className="bi bi-file-earmark-medical me-1"></i>
+                                          Descargar
+                                        </>
+                                      )}
+                                    </Button>
+                                  )}
+                                  {esSubidaContrato && contratoURLItem && (
+                                    <Button
+                                      variant="outline-success"
+                                      size="sm"
+                                      onClick={() => handleDescargarContrato(modoVista === 'unificado' ? parseInt((item as HistorialUnificado).id.split('-')[1]) : (item as HistorialLaboral).id)}
+                                      disabled={descargandoId === (modoVista === 'unificado' ? parseInt((item as HistorialUnificado).id.split('-')[1]) : (item as HistorialLaboral).id)}
+                                      title="Descargar contrato PDF"
+                                    >
+                                      {descargandoId === (modoVista === 'unificado' ? parseInt((item as HistorialUnificado).id.split('-')[1]) : (item as HistorialLaboral).id) ? (
+                                        <Spinner size="sm" />
+                                      ) : (
+                                        <>
+                                          <i className="bi bi-file-earmark-pdf me-1"></i>
                                           Descargar
                                         </>
                                       )}

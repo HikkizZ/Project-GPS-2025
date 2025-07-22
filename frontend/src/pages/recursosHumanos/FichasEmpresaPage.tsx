@@ -245,41 +245,31 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
 
   // Handler para descargar contrato histórico
   const handleDescargarContratoHistorial = async (historialId: number) => {
-    setDescargandoContratoId(historialId);
     try {
-      // El endpoint de descarga de contrato histórico es /historial-laboral/:id/contrato
-      const token = localStorage.getItem('auth_token');
-      const url = `${import.meta.env.VITE_BASE_URL || 'http://localhost:3000/api'}/historial-laboral/${historialId}/contrato`;
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      if (response.ok) {
-        const blob = await response.blob();
-        const contentDisposition = response.headers.get('Content-Disposition');
-        let filename = `contrato_historial_${historialId}.pdf`;
-        if (contentDisposition) {
-          const filenameMatch = contentDisposition.match(/filename\*?=(?:"([^"]*)"|([^;,\s]*))/);
-          if (filenameMatch) {
-            filename = filenameMatch[1] || filenameMatch[2] || filename;
-          }
-        }
-        const urlBlob = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.style.display = 'none';
-        a.href = urlBlob;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(urlBlob);
-        document.body.removeChild(a);
+      setDescargandoContratoId(historialId);
+      const result = await historialLaboralService.descargarContratoHistorial(historialId);
+      
+      if (result.success && result.blob && result.filename) {
+        // Crear URL del blob y descarga
+        const url = window.URL.createObjectURL(result.blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = result.filename;
+        document.body.appendChild(link);
+        link.click();
+        
+        // Limpiar
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+        
+        showSuccess('Descarga exitosa', 'El contrato histórico se ha descargado correctamente', 4000);
       } else {
-        showError('Error de descarga', 'No se pudo descargar el contrato histórico.', 6000);
+        console.error('Error al descargar:', result.error);
+        showError('Error de descarga', result.error || 'Error al descargar el contrato histórico', 6000);
       }
     } catch (error) {
-      showError('Error de descarga', 'No se pudo descargar el contrato histórico.', 6000);
+      console.error('Error al descargar contrato histórico:', error);
+      showError('Error de descarga', 'Error inesperado al descargar el contrato histórico', 6000);
     } finally {
       setDescargandoContratoId(null);
     }

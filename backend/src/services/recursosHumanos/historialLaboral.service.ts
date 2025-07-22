@@ -1,7 +1,9 @@
 import { AppDataSource } from "../../config/configDB.js";
 import { HistorialLaboral } from "../../entity/recursosHumanos/historialLaboral.entity.js";
 import { Trabajador } from "../../entity/recursosHumanos/trabajador.entity.js";
+import { User } from "../../entity/user.entity.js";
 import { LicenciaPermiso, TipoSolicitud, EstadoSolicitud } from "../../entity/recursosHumanos/licenciaPermiso.entity.js";
+import { FileUploadService } from "../fileUpload.service.js";
 import { ServiceResponse } from "../../../types.js";
 
 interface HistorialUnificado {
@@ -93,6 +95,8 @@ export async function getHistorialUnificadoByTrabajadorService(trabajadorId: num
                 descripcion = 'Registro inicial del trabajador en el sistema';
             } else if (item.observaciones?.includes('Actualización de ficha')) {
                 descripcion = 'Actualización de información laboral';
+            } else if (item.observaciones?.includes('Subida de contrato PDF')) {
+                descripcion = 'Subida de contrato PDF';
             } else if (item.observaciones?.includes('Licencia médica')) {
                 descripcion = `Licencia médica aprobada (${item.fechaInicioLicenciaPermiso} - ${item.fechaFinLicenciaPermiso})`;
             } else if (item.observaciones?.includes('Permiso administrativo')) {
@@ -263,5 +267,99 @@ export async function descargarContratoService(id: number): Promise<ServiceRespo
     } catch (error) {
         console.error("Error al obtener contrato:", error);
         return [null, "Error interno del servidor"];
+    }
+}
+
+export async function descargarContratoHistorialService(
+    id: number, 
+    userId: number
+): Promise<ServiceResponse<{filePath: string, customFilename: string}>> {
+    try {
+        const historialRepo = AppDataSource.getRepository(HistorialLaboral);
+        const userRepo = AppDataSource.getRepository(User);
+
+        const historial = await historialRepo.findOne({
+            where: { id },
+            relations: ["trabajador"]
+        });
+
+        if (!historial) {
+            return [null, { message: "Registro de historial laboral no encontrado" }];
+        }
+
+        const user = await userRepo.findOne({
+            where: { id: userId },
+            relations: ["trabajador"]
+        });
+
+        if (!user) {
+            return [null, { message: "Usuario no encontrado" }];
+        }
+
+        // Permitir acceso a RRHH, Admin, Superadmin o al dueño del historial
+        const esRRHH = user.role === "RecursosHumanos";
+        const esAdmin = user.role === "Administrador";
+        const esSuperAdmin = user.role === "SuperAdministrador";
+        const esDueno = user.trabajador?.id === historial.trabajador.id;
+
+        const tienePrivilegios = esRRHH || esAdmin || esSuperAdmin || esDueno;
+
+        if (!tienePrivilegios) {
+            return [null, { message: "No tiene permiso para descargar este contrato" }];
+        }
+
+        if (!historial.contratoURL) {
+            return [null, { message: "No hay contrato disponible para descargar en este registro" }];
+        }
+
+        // Usar el servicio de archivos para obtener la ruta absoluta y correcta
+        const filePath = FileUploadService.getContratoPath(historial.contratoURL);
+
+        // Verificar si el archivo existe
+        if (!FileUploadService.fileExists(filePath)) {
+            return [null, { message: "El archivo del contrato no se encuentra en el servidor." }];
+        }
+
+        // Generar nombre personalizado
+        const trabajador = historial.trabajador;
+
+        // Función para limpiar caracteres especiales y espacios
+        const limpiarNombre = (nombre: string): string => {
+            return nombre
+                .replace(/[áàäâ]/g, 'a')
+                .replace(/[éèëê]/g, 'e')
+                .replace(/[íìïî]/g, 'i')
+                .replace(/[óòöô]/g, 'o')
+                .replace(/[úùüû]/g, 'u')
+                .replace(/[ñ]/g, 'n')
+                .replace(/[ç]/g, 'c')
+                .replace(/[^a-zA-Z0-9]/g, '_')
+                .replace(/_+/g, '_')
+                .replace(/^_|_$/g, '');
+        };
+
+        const nombresLimpios = limpiarNombre(trabajador.nombres || '');
+        const apellidoPLimpio = limpiarNombre(trabajador.apellidoPaterno || '');
+        const apellidoMLimpio = limpiarNombre(trabajador.apellidoMaterno || '');
+
+        // Construir nombre personalizado
+        let customFilename = '';
+        if (nombresLimpios && apellidoPLimpio) {
+            customFilename = `${nombresLimpios}_${apellidoPLimpio}`;
+            if (apellidoMLimpio) {
+                customFilename += `_${apellidoMLimpio}`;
+            }
+            customFilename += `-Contrato_Historial_${id}.pdf`;
+        }
+
+        // Validar que el nombre personalizado sea válido
+        if (!customFilename || customFilename.length < 5 || !customFilename.includes('-Contrato_Historial_')) {
+            customFilename = `Contrato_Historial_${id}.pdf`;
+        }
+
+        return [{ filePath, customFilename }, null];
+    } catch (error) {
+        console.error("Error en descargarContratoHistorialService:", error);
+        return [null, { message: "Error interno del servidor" }];
     }
 }

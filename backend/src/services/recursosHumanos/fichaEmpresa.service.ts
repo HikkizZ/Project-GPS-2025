@@ -559,31 +559,88 @@ export async function descargarContratoService( id: number, userId: number ): Pr
     }
 } 
 
-export async function uploadContratoService( id: number, file: Express.Multer.File ): Promise<ServiceResponse<{ contratoUrl: string }>> {
+export async function uploadContratoService( 
+    id: number, 
+    file: Express.Multer.File, 
+    usuarioAutenticado?: User 
+): Promise<ServiceResponse<{ contratoUrl: string }>> {
+    const queryRunner = AppDataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
     try {
-        const fichaRepository = AppDataSource.getRepository(FichaEmpresa);
-        const ficha = await fichaRepository.findOneBy({ id });
+        const fichaRepository = queryRunner.manager.getRepository(FichaEmpresa);
+        const ficha = await fichaRepository.findOne({
+            where: { id },
+            relations: ["trabajador", "trabajador.usuario"]
+        });
+        
         if (!ficha) {
             // Eliminar el archivo subido si la ficha no existe
             FileUploadService.deleteFile(file.path);
+            await queryRunner.rollbackTransaction();
             return [null, { message: "Ficha no encontrada." }];
         }
+
         const nuevoContratoFilename = file.filename;
+        
         // Si ya existe un contrato, eliminar el anterior
         if (ficha.contratoURL) {
             const oldFilePath = FileUploadService.getContratoPath(ficha.contratoURL);
             FileUploadService.deleteFile(oldFilePath);
         }
+        
+        // Actualizar la ficha con el nuevo contrato
         ficha.contratoURL = nuevoContratoFilename;
         await fichaRepository.save(ficha);
+
+        // Crear entrada en historial laboral para la subida de contrato
+        const historialRepo = queryRunner.manager.getRepository('HistorialLaboral');
+        
+        // Normalizar fechas para evitar problemas de zona horaria
+        const fechaInicioNormalizada = ficha.fechaInicioContrato ? 
+            new Date(ficha.fechaInicioContrato.toISOString().split('T')[0] + 'T12:00:00') : null;
+        const fechaFinNormalizada = ficha.fechaFinContrato ? 
+            new Date(ficha.fechaFinContrato.toISOString().split('T')[0] + 'T12:00:00') : null;
+        const fechaInicioLicenciaPermisoNormalizada = ficha.fechaInicioLicenciaPermiso ? 
+            new Date(ficha.fechaInicioLicenciaPermiso.toISOString().split('T')[0] + 'T12:00:00') : null;
+        const fechaFinLicenciaPermisoNormalizada = ficha.fechaFinLicenciaPermiso ? 
+            new Date(ficha.fechaFinLicenciaPermiso.toISOString().split('T')[0] + 'T12:00:00') : null;
+        
+        await historialRepo.save(historialRepo.create({
+            trabajador: ficha.trabajador,
+            cargo: ficha.cargo,
+            area: ficha.area,
+            tipoContrato: ficha.tipoContrato,
+            jornadaLaboral: ficha.jornadaLaboral,
+            sueldoBase: ficha.sueldoBase,
+            fechaInicio: fechaInicioNormalizada,
+            fechaFin: fechaFinNormalizada,
+            motivoDesvinculacion: ficha.motivoDesvinculacion,
+            observaciones: 'Subida de contrato PDF',
+            contratoURL: ficha.contratoURL,
+            afp: ficha.afp,
+            previsionSalud: ficha.previsionSalud,
+            seguroCesantia: ficha.seguroCesantia,
+            estado: ficha.estado,
+            fechaInicioLicenciaPermiso: fechaInicioLicenciaPermisoNormalizada,
+            fechaFinLicenciaPermiso: fechaFinLicenciaPermisoNormalizada,
+            motivoLicenciaPermiso: ficha.motivoLicenciaPermiso,
+            registradoPor: usuarioAutenticado || ficha.trabajador?.usuario || null
+        }));
+
+        await queryRunner.commitTransaction();
         return [{ contratoUrl: nuevoContratoFilename }, null];
     } catch (error) {
+        await queryRunner.rollbackTransaction();
         // Si ocurre un error, eliminar el archivo subido
         if (file && file.path) {
             FileUploadService.deleteFile(file.path);
         }
         console.error("Error en uploadContratoService:", error);
         return [null, { message: "Error interno al procesar la subida del archivo." }];
+    } finally {
+        await queryRunner.release();
     }
 }
 

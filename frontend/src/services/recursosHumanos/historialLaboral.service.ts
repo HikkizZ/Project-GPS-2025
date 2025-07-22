@@ -81,6 +81,51 @@ export class HistorialLaboralService {
       };
     }
   }
+
+  /**
+   * Descargar contrato histórico del historial laboral
+   */
+  async descargarContratoHistorial(historialId: number): Promise<{ success: boolean; blob?: Blob; filename?: string; error?: string }> {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_BASE_URL || 'http://localhost:3000/api'}/historial-laboral/${historialId}/contrato`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+        }
+      });
+
+      if (response.ok) {
+        const blob = await response.blob();
+        const contentDisposition = response.headers.get('Content-Disposition');
+        let filename = `contrato_historial_${historialId}.pdf`;
+        
+        if (contentDisposition) {
+          const filenameMatch = contentDisposition.match(/filename\*?=(?:"([^"]*)"|([^;,\s]*))/);
+          if (filenameMatch) {
+            filename = filenameMatch[1] || filenameMatch[2] || `contrato_historial_${historialId}.pdf`;
+          }
+        }
+
+        return {
+          success: true,
+          blob,
+          filename
+        };
+      }
+
+      const errorData = await response.json();
+      return {
+        success: false,
+        error: errorData.message || 'Error al descargar contrato'
+      };
+    } catch (error: any) {
+      console.error('Error al descargar contrato histórico:', error);
+      return {
+        success: false,
+        error: error.message || 'Error al descargar contrato'
+      };
+    }
+  }
 }
 
 const historialLaboralService = new HistorialLaboralService();

@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { handleSuccess, handleErrorClient, handleErrorServer } from "../../handlers/responseHandlers.js";
-import { getHistorialLaboralByTrabajadorService, getHistorialUnificadoByTrabajadorService, descargarContratoService } from "../../services/recursosHumanos/historialLaboral.service.js";
+import { getHistorialLaboralByTrabajadorService, getHistorialUnificadoByTrabajadorService, descargarContratoService, descargarContratoHistorialService } from "../../services/recursosHumanos/historialLaboral.service.js";
 import { User } from "../../entity/user.entity.js";
 import { AppDataSource } from "../../config/configDB.js";
 import { Trabajador } from "../../entity/recursosHumanos/trabajador.entity.js";
@@ -179,6 +179,78 @@ export async function getHistorialUnificado(req: Request, res: Response): Promis
         handleSuccess(res, 200, "Historial unificado obtenido exitosamente", historial || []);
     } catch (error) {
         console.error("Error al obtener historial unificado:", error);
+        handleErrorServer(res, 500, "Error interno del servidor.");
+    }
+}
+
+export async function descargarContratoHistorial(req: Request, res: Response): Promise<void> {
+    try {
+        const id = parseInt(req.params.id);
+        
+        if (isNaN(id)) {
+            handleErrorClient(res, 400, "ID inválido");
+            return;
+        }
+
+        if (!req.user?.id) {
+            handleErrorClient(res, 401, "Usuario no autenticado");
+            return;
+        }
+
+        const [resultado, error] = await descargarContratoHistorialService(id, req.user.id);
+
+        if (error || !resultado) {
+            const errorMessage = typeof error === 'string' ? error : error?.message || "Contrato no encontrado.";
+            handleErrorClient(res, 404, errorMessage);
+            return;
+        }
+
+        const { filePath, customFilename } = resultado;
+
+        // Verificar que el archivo existe antes de intentar enviarlo
+        const fs = await import('fs');
+        if (!fs.existsSync(filePath)) {
+            handleErrorClient(res, 404, "El archivo del contrato no se encuentra en el servidor");
+            return;
+        }
+
+        // Validar nombre personalizado
+        if (!customFilename || customFilename.trim() === '') {
+            const fallbackName = `Contrato_Historial_${id}.pdf`;
+            
+            // Configurar headers para evitar cache y forzar descarga ANTES de res.download
+            res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+            res.setHeader('Pragma', 'no-cache');
+            res.setHeader('Expires', '0');
+            res.setHeader('Content-Type', 'application/pdf');
+            res.setHeader('Content-Disposition', `attachment; filename="${fallbackName}"`);
+            res.setHeader('Access-Control-Expose-Headers', 'Content-Disposition');
+            
+            res.download(filePath, fallbackName, (err) => {
+                if (err && !res.headersSent) {
+                    handleErrorServer(res, 500, "No se pudo descargar el archivo.");
+                }
+            });
+            return;
+        }
+
+        // Configurar headers para evitar cache y forzar descarga ANTES de res.download
+        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+        res.setHeader('Pragma', 'no-cache');
+        res.setHeader('Expires', '0');
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename="${customFilename}"`);
+        res.setHeader('Access-Control-Expose-Headers', 'Content-Disposition');
+
+        // Enviar archivo con nombre personalizado
+        res.download(filePath, customFilename, (err) => {
+            if (err && !res.headersSent) {
+                handleErrorServer(res, 500, "No se pudo descargar el archivo.");
+            }
+        });
+
+    } catch (error) {
+        console.error("Error en el controlador descargarContratoHistorial:", error);
         handleErrorServer(res, 500, "Error interno del servidor.");
     }
 }
