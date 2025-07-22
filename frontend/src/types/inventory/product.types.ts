@@ -24,6 +24,11 @@ export interface UpdateProductData {
   salePrice: number;
 }
 
+export type ProductFormState = {
+  product: ProductType | "";
+  salePrice: number;
+}
+
 export interface ApiResponse<T = any> {
   success: boolean;
   message: string;
