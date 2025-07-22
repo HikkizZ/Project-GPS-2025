@@ -425,6 +425,17 @@ export async function updateFichaEmpresaService(
 
         // 8. Crear snapshot en historial laboral
         const historialRepo = queryRunner.manager.getRepository('HistorialLaboral');
+        
+        // Normalizar fechas para evitar problemas de zona horaria
+        const fechaInicioNormalizada = fichaActualizada.fechaInicioContrato ? 
+            new Date(fichaActualizada.fechaInicioContrato.toISOString().split('T')[0] + 'T12:00:00') : null;
+        const fechaFinNormalizada = fichaActualizada.fechaFinContrato ? 
+            new Date(fichaActualizada.fechaFinContrato.toISOString().split('T')[0] + 'T12:00:00') : null;
+        const fechaInicioLicenciaNormalizada = fichaActualizada.fechaInicioLicencia ? 
+            new Date(fichaActualizada.fechaInicioLicencia.toISOString().split('T')[0] + 'T12:00:00') : null;
+        const fechaFinLicenciaNormalizada = fichaActualizada.fechaFinLicencia ? 
+            new Date(fichaActualizada.fechaFinLicencia.toISOString().split('T')[0] + 'T12:00:00') : null;
+        
         await historialRepo.save(historialRepo.create({
             trabajador: fichaActualizada.trabajador,
             cargo: fichaActualizada.cargo,
@@ -432,8 +443,8 @@ export async function updateFichaEmpresaService(
             tipoContrato: fichaActualizada.tipoContrato,
             jornadaLaboral: fichaActualizada.jornadaLaboral,
             sueldoBase: fichaActualizada.sueldoBase,
-            fechaInicio: fichaActualizada.fechaInicioContrato,
-            fechaFin: fichaActualizada.fechaFinContrato,
+            fechaInicio: fechaInicioNormalizada,
+            fechaFin: fechaFinNormalizada,
             motivoTermino: fichaActualizada.motivoDesvinculacion,
             observaciones: 'Actualización de ficha de empresa',
             contratoURL: fichaActualizada.contratoURL,
@@ -441,8 +452,8 @@ export async function updateFichaEmpresaService(
             previsionSalud: fichaActualizada.previsionSalud,
             seguroCesantia: fichaActualizada.seguroCesantia,
             estado: fichaActualizada.estado,
-            fechaInicioLicencia: fichaActualizada.fechaInicioLicencia,
-            fechaFinLicencia: fichaActualizada.fechaFinLicencia,
+            fechaInicioLicencia: fechaInicioLicenciaNormalizada,
+            fechaFinLicencia: fechaFinLicenciaNormalizada,
             motivoLicencia: fichaActualizada.motivoLicencia,
             registradoPor: usuarioAutenticado || fichaActualizada.trabajador?.usuario || null
         }));

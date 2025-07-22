@@ -448,27 +448,39 @@ export async function desvincularTrabajadorService(id: number, motivo: string, u
 
             // Crear snapshot en historial laboral con estado Desvinculado
             const historialRepo = queryRunner.manager.getRepository(HistorialLaboral);
-            await historialRepo.save(historialRepo.create({
-                trabajador: trabajador,
-                cargo: trabajador.fichaEmpresa.cargo,
-                area: trabajador.fichaEmpresa.area,
-                tipoContrato: trabajador.fichaEmpresa.tipoContrato,
-                jornadaLaboral: trabajador.fichaEmpresa.jornadaLaboral,
-                sueldoBase: trabajador.fichaEmpresa.sueldoBase,
-                fechaInicio: trabajador.fichaEmpresa.fechaInicioContrato,
-                fechaFin: trabajador.fichaEmpresa.fechaFinContrato,
-                motivoTermino: trabajador.fichaEmpresa.motivoDesvinculacion,
-                observaciones: 'Desvinculación de trabajador',
-                contratoURL: trabajador.fichaEmpresa.contratoURL,
-                afp: trabajador.fichaEmpresa.afp,
-                previsionSalud: trabajador.fichaEmpresa.previsionSalud,
-                seguroCesantia: trabajador.fichaEmpresa.seguroCesantia,
-                estado: trabajador.fichaEmpresa.estado,
-                fechaInicioLicencia: trabajador.fichaEmpresa.fechaInicioLicencia,
-                fechaFinLicencia: trabajador.fichaEmpresa.fechaFinLicencia,
-                motivoLicencia: trabajador.fichaEmpresa.motivoLicencia,
-                registradoPor: userId ? await queryRunner.manager.findOne(User, { where: { id: userId } }) : null
-            }));
+            
+            // Normalizar fechas para evitar problemas de zona horaria
+            const fechaInicioNormalizada = trabajador.fichaEmpresa.fechaInicioContrato ? 
+                new Date(trabajador.fichaEmpresa.fechaInicioContrato.toISOString().split('T')[0] + 'T12:00:00') : null;
+            const fechaFinNormalizada = trabajador.fichaEmpresa.fechaFinContrato ? 
+                new Date(trabajador.fichaEmpresa.fechaFinContrato.toISOString().split('T')[0] + 'T12:00:00') : null;
+            const fechaInicioLicenciaNormalizada = trabajador.fichaEmpresa.fechaInicioLicencia ? 
+                new Date(trabajador.fichaEmpresa.fechaInicioLicencia.toISOString().split('T')[0] + 'T12:00:00') : null;
+            const fechaFinLicenciaNormalizada = trabajador.fichaEmpresa.fechaFinLicencia ? 
+                new Date(trabajador.fichaEmpresa.fechaFinLicencia.toISOString().split('T')[0] + 'T12:00:00') : null;
+            
+            const nuevoHistorial = new HistorialLaboral();
+            nuevoHistorial.trabajador = trabajador;
+            nuevoHistorial.cargo = trabajador.fichaEmpresa.cargo;
+            nuevoHistorial.area = trabajador.fichaEmpresa.area;
+            nuevoHistorial.tipoContrato = trabajador.fichaEmpresa.tipoContrato;
+            nuevoHistorial.jornadaLaboral = trabajador.fichaEmpresa.jornadaLaboral;
+            nuevoHistorial.sueldoBase = trabajador.fichaEmpresa.sueldoBase;
+            if (fechaInicioNormalizada) nuevoHistorial.fechaInicio = fechaInicioNormalizada;
+            if (fechaFinNormalizada) nuevoHistorial.fechaFin = fechaFinNormalizada;
+            nuevoHistorial.motivoTermino = trabajador.fichaEmpresa.motivoDesvinculacion;
+            nuevoHistorial.observaciones = 'Desvinculación de trabajador';
+            nuevoHistorial.contratoURL = trabajador.fichaEmpresa.contratoURL;
+            nuevoHistorial.afp = trabajador.fichaEmpresa.afp;
+            nuevoHistorial.previsionSalud = trabajador.fichaEmpresa.previsionSalud;
+            nuevoHistorial.seguroCesantia = trabajador.fichaEmpresa.seguroCesantia;
+            nuevoHistorial.estado = trabajador.fichaEmpresa.estado;
+            if (fechaInicioLicenciaNormalizada) nuevoHistorial.fechaInicioLicencia = fechaInicioLicenciaNormalizada;
+            if (fechaFinLicenciaNormalizada) nuevoHistorial.fechaFinLicencia = fechaFinLicenciaNormalizada;
+            nuevoHistorial.motivoLicencia = trabajador.fichaEmpresa.motivoLicencia;
+            nuevoHistorial.registradoPor = userId ? await queryRunner.manager.findOne(User, { where: { id: userId } }) : undefined;
+            
+            await historialRepo.save(nuevoHistorial);
         }
 
         await queryRunner.commitTransaction();

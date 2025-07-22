@@ -331,27 +331,39 @@ export async function updateLicenciaPermisoService(id: number, data: UpdateLicen
 
           // Crear snapshot en historial laboral
           const historialRepo = queryRunner.manager.getRepository(HistorialLaboral);
-          await historialRepo.save(historialRepo.create({
-            trabajador: licencia.trabajador,
-            cargo: fichaEmpresa.cargo,
-            area: fichaEmpresa.area,
-            tipoContrato: fichaEmpresa.tipoContrato,
-            jornadaLaboral: fichaEmpresa.jornadaLaboral,
-            sueldoBase: fichaEmpresa.sueldoBase,
-            fechaInicio: fichaEmpresa.fechaInicioContrato,
-            fechaFin: fichaEmpresa.fechaFinContrato,
-            motivoTermino: fichaEmpresa.motivoDesvinculacion,
-            observaciones: `Cambio de estado a ${estadoLaboral}. Motivo: ${licencia.motivoSolicitud}`,
-            contratoURL: fichaEmpresa.contratoURL,
-            afp: fichaEmpresa.afp,
-            previsionSalud: fichaEmpresa.previsionSalud,
-            seguroCesantia: fichaEmpresa.seguroCesantia,
-            estado: fichaEmpresa.estado,
-            fechaInicioLicencia: fichaEmpresa.fechaInicioLicencia,
-            fechaFinLicencia: fichaEmpresa.fechaFinLicencia,
-            motivoLicencia: fichaEmpresa.motivoLicencia,
-            registradoPor: data.revisadoPor || null
-          }));
+          
+          // Normalizar fechas para evitar problemas de zona horaria
+          const fechaInicioNormalizada = fichaEmpresa.fechaInicioContrato ? 
+              new Date(fichaEmpresa.fechaInicioContrato.toISOString().split('T')[0] + 'T12:00:00') : null;
+          const fechaFinNormalizada = fichaEmpresa.fechaFinContrato ? 
+              new Date(fichaEmpresa.fechaFinContrato.toISOString().split('T')[0] + 'T12:00:00') : null;
+          const fechaInicioLicenciaNormalizada = fichaEmpresa.fechaInicioLicencia ? 
+              new Date(fichaEmpresa.fechaInicioLicencia.toISOString().split('T')[0] + 'T12:00:00') : null;
+          const fechaFinLicenciaNormalizada = fichaEmpresa.fechaFinLicencia ? 
+              new Date(fichaEmpresa.fechaFinLicencia.toISOString().split('T')[0] + 'T12:00:00') : null;
+          
+          const nuevoHistorial = new HistorialLaboral();
+          nuevoHistorial.trabajador = licencia.trabajador;
+          nuevoHistorial.cargo = fichaEmpresa.cargo;
+          nuevoHistorial.area = fichaEmpresa.area;
+          nuevoHistorial.tipoContrato = fichaEmpresa.tipoContrato;
+          nuevoHistorial.jornadaLaboral = fichaEmpresa.jornadaLaboral;
+          nuevoHistorial.sueldoBase = fichaEmpresa.sueldoBase;
+          if (fechaInicioNormalizada) nuevoHistorial.fechaInicio = fechaInicioNormalizada;
+          if (fechaFinNormalizada) nuevoHistorial.fechaFin = fechaFinNormalizada;
+          nuevoHistorial.motivoTermino = fichaEmpresa.motivoDesvinculacion;
+          nuevoHistorial.observaciones = `Cambio de estado a ${estadoLaboral}. Motivo: ${licencia.motivoSolicitud}`;
+          nuevoHistorial.contratoURL = fichaEmpresa.contratoURL;
+          nuevoHistorial.afp = fichaEmpresa.afp;
+          nuevoHistorial.previsionSalud = fichaEmpresa.previsionSalud;
+          nuevoHistorial.seguroCesantia = fichaEmpresa.seguroCesantia;
+          nuevoHistorial.estado = fichaEmpresa.estado;
+          if (fechaInicioLicenciaNormalizada) nuevoHistorial.fechaInicioLicencia = fechaInicioLicenciaNormalizada;
+          if (fechaFinLicenciaNormalizada) nuevoHistorial.fechaFinLicencia = fechaFinLicenciaNormalizada;
+          nuevoHistorial.motivoLicencia = fichaEmpresa.motivoLicencia;
+          nuevoHistorial.registradoPor = data.revisadoPor || undefined;
+          
+          await historialRepo.save(nuevoHistorial);
         }
       }
     }
