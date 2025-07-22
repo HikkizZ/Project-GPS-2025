@@ -9,6 +9,7 @@ import { EditarTrabajadorModal } from '@/components/trabajador/EditarTrabajadorM
 import { FiltrosBusquedaHeader } from '@/components/common/FiltrosBusquedaHeader';
 import { useToast, Toast } from '@/components/common/Toast';
 import '../../styles/pages/trabajadores.css';
+import { TrabajadorDetalleModal } from '@/components/recursosHumanos/TrabajadorDetalleModal';
 
 export const TrabajadoresPage: React.FC = () => {
   const { trabajadores, isLoading, error, loadTrabajadores, searchTrabajadores, desvincularTrabajador } = useTrabajadores();
@@ -34,6 +35,8 @@ export const TrabajadoresPage: React.FC = () => {
   const [isDesvinculando, setIsDesvinculando] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [rutError, setRutError] = useState<string | null>(null);
+  const [showDetalleModal, setShowDetalleModal] = useState(false);
+  const [trabajadorDetalle, setTrabajadorDetalle] = useState<Trabajador | null>(null);
 
   // Cargar trabajadores al montar el componente
   useEffect(() => {
@@ -131,6 +134,12 @@ export const TrabajadoresPage: React.FC = () => {
     setShowReactivarModal(false);
     setTrabajadorDesvinculado(null);
     loadTrabajadores();
+  };
+
+  // Función para ver detalles
+  const handleVerDetalle = (trabajador: Trabajador) => {
+    setTrabajadorDetalle(trabajador);
+    setShowDetalleModal(true);
   };
 
   return (
@@ -457,6 +466,13 @@ export const TrabajadoresPage: React.FC = () => {
                                   >
                                     <i className="bi bi-person-x"></i>
                                   </Button>
+                                  <Button
+                                    variant="outline-secondary"
+                                    onClick={() => handleVerDetalle(trabajador)}
+                                    title="Ver detalles"
+                                  >
+                                    <i className="bi bi-eye"></i>
+                                  </Button>
                                 </div>
                               )}
                             </td>
@@ -655,6 +671,13 @@ export const TrabajadoresPage: React.FC = () => {
         />
       )}
       
+      {/* Modal de detalles de trabajador */}
+      <TrabajadorDetalleModal
+        show={showDetalleModal}
+        onHide={() => setShowDetalleModal(false)}
+        trabajador={trabajadorDetalle}
+      />
+
       {/* Sistema de notificaciones */}
       <Toast toasts={toasts} removeToast={removeToast} />
     </Container>

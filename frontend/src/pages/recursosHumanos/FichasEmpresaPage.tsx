@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useFichaEmpresa } from '@/hooks/recursosHumanos/useFichaEmpresa';
 import { useAuth, useUI } from '@/context';
 import { useRut } from '@/hooks/useRut';
@@ -13,6 +14,10 @@ import '../../styles/pages/fichasEmpresa.css';
 import { FiltrosBusquedaHeader } from '@/components/common/FiltrosBusquedaHeader';
 import { Container, Row, Col, Card, Button, Alert, Table, Form } from 'react-bootstrap';
 import { Toast, useToast } from '@/components/common/Toast';
+import { ModalHistorialLaboral } from '@/components/recursosHumanos/ModalHistorialLaboral';
+import { useHistorialLaboral } from '@/hooks/recursosHumanos/useHistorialLaboral';
+import historialLaboralService from '@/services/recursosHumanos/historialLaboral.service';
+import { TrabajadorDetalleModal } from '@/components/recursosHumanos/TrabajadorDetalleModal';
 
 interface FichasEmpresaPageProps {
   trabajadorRecienRegistrado?: Trabajador | null;
@@ -30,6 +35,7 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
   trabajadorRecienRegistrado, 
   onTrabajadorModalClosed 
 }) => {
+  const navigate = useNavigate();
   const { user, isLoading: isAuthLoading } = useAuth();
   const { setSuccess, setError } = useUI();
   const { formatRUT } = useRut();
@@ -74,6 +80,24 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
   const esAdminORecursosHumanos = user?.role === 'Administrador' || user?.role === 'RecursosHumanos';
   const puedeGestionarFichas = esSuperAdministrador || esAdminORecursosHumanos;
   const puedeAccederModulosPersonales = user && user.role !== 'SuperAdministrador';
+
+  // Estado para modal de historial laboral
+  const [showHistorialModal, setShowHistorialModal] = useState(false);
+  const [trabajadorNombreHistorial, setTrabajadorNombreHistorial] = useState('');
+  const [trabajadorIdHistorial, setTrabajadorIdHistorial] = useState<number | null>(null);
+  const [descargandoContratoId, setDescargandoContratoId] = useState<number | null>(null);
+  const {
+    historial,
+    loading: loadingHistorial,
+    error: errorHistorial,
+    fetchHistorial,
+    setHistorial,
+    setError: setErrorHistorial
+  } = useHistorialLaboral();
+
+  // Estado para modal de detalles de trabajador desde ficha
+  const [showDetalleModal, setShowDetalleModal] = useState(false);
+  const [trabajadorDetalle, setTrabajadorDetalle] = useState<any | null>(null);
 
   // Cargar datos iniciales
   useEffect(() => {
@@ -219,14 +243,51 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
     }
   };
 
+  // Handler para navegar al historial laboral
+  const handleOpenHistorialLaboral = (ficha: FichaEmpresa) => {
+    navigate('/trabajadores/historial-laboral', { state: { trabajadorId: ficha.trabajador.id } });
+  };
+
+  // Handler para descargar contrato histórico
+  const handleDescargarContratoHistorial = async (historialId: number) => {
+    try {
+      setDescargandoContratoId(historialId);
+      const result = await historialLaboralService.descargarContratoHistorial(historialId);
+      
+      if (result.success && result.blob && result.filename) {
+        // Crear URL del blob y descarga
+        const url = window.URL.createObjectURL(result.blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = result.filename;
+        document.body.appendChild(link);
+        link.click();
+        
+        // Limpiar
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+        
+        showSuccess('Descarga exitosa', 'El contrato histórico se ha descargado correctamente', 4000);
+      } else {
+        console.error('Error al descargar:', result.error);
+        showError('Error de descarga', result.error || 'Error al descargar el contrato histórico', 6000);
+      }
+    } catch (error) {
+      console.error('Error al descargar contrato histórico:', error);
+      showError('Error de descarga', 'Error inesperado al descargar el contrato histórico', 6000);
+    } finally {
+      setDescargandoContratoId(null);
+    }
+  };
+
   const getEstadoBadgeClass = (estado: EstadoLaboral) => {
     switch (estado) {
       case EstadoLaboral.ACTIVO:
         return 'bg-success';
       case EstadoLaboral.LICENCIA:
-        return 'bg-warning';
-      case EstadoLaboral.PERMISO:
         return 'bg-info';
+      case EstadoLaboral.PERMISO:
+        return 'bg-warning';
       case EstadoLaboral.DESVINCULADO:
         return 'bg-danger';
       default:
@@ -296,6 +357,17 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
     }
     
     return telefono;
+  };
+
+  // Función para ver detalles del trabajador desde ficha
+  const handleVerDetalle = (ficha: FichaEmpresa) => {
+    // Pasar el trabajador y la ficha actual como fichaEmpresa
+    const trabajador = {
+      ...ficha.trabajador,
+      fichaEmpresa: ficha
+    };
+    setTrabajadorDetalle(trabajador);
+    setShowDetalleModal(true);
   };
 
   // Si es usuario sin permisos administrativos o está en la ruta de ficha personal
@@ -598,7 +670,7 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                       <Form.Label className="fw-semibold">Área:</Form.Label>
                       <Form.Control
                         type="text"
-                        placeholder="Departamento o área"
+                        placeholder="Área"
                         value={searchQuery.area || ''}
                         onChange={(e) => setSearchQuery({ ...searchQuery, area: e.target.value })}
                         style={{ borderRadius: '8px' }}
@@ -871,6 +943,22 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                                   <i className="bi bi-download"></i>
                                 </Button>
                               )}
+                              {puedeGestionarFichas && (
+                                <Button
+                                  variant="outline-info"
+                                  onClick={() => handleOpenHistorialLaboral(ficha)}
+                                  title="Ver historial laboral"
+                                >
+                                  <i className="bi bi-clock-history"></i>
+                                </Button>
+                              )}
+                              <Button
+                                variant="outline-secondary"
+                                onClick={() => handleVerDetalle(ficha)}
+                                title="Ver detalles"
+                              >
+                                <i className="bi bi-eye"></i>
+                              </Button>
                             </div>
                           </td>
                         </tr>
@@ -894,6 +982,25 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
           onUpdate={handleUpdateSuccess}
         />
       )}
+
+      {/* Modal de historial laboral */}
+      <ModalHistorialLaboral
+        show={showHistorialModal}
+        onHide={() => setShowHistorialModal(false)}
+        historial={historial}
+        loading={loadingHistorial}
+        error={errorHistorial}
+        trabajadorNombre={trabajadorNombreHistorial}
+        onDescargarContrato={handleDescargarContratoHistorial}
+        descargandoId={descargandoContratoId}
+      />
+
+      {/* Modal de detalles de trabajador desde ficha */}
+      <TrabajadorDetalleModal
+        show={showDetalleModal}
+        onHide={() => setShowDetalleModal(false)}
+        trabajador={trabajadorDetalle}
+      />
 
       {/* Sistema de notificaciones */}
       <Toast toasts={toasts} removeToast={removeToast} />

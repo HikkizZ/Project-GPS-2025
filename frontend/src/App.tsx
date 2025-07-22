@@ -7,6 +7,7 @@ import { FichasEmpresaPage } from './pages/recursosHumanos/FichasEmpresaPage';
 import { BonosPage } from './pages/recursosHumanos/bonosPage';
 import { UsersPage } from './pages/UsersPage';
 import { TrabajadoresPage } from './pages/recursosHumanos/TrabajadoresPage';
+import HistorialLaboralPage from './pages/recursosHumanos/HistorialLaboralPage';
 import { SupplierPage } from './pages/stakeholders/SupplierPage';
 import { CustomerPage } from './pages/stakeholders/CustomerPage';
 import { InventoryPage } from './pages/inventory/InventoryPage';
@@ -733,6 +734,7 @@ function App() {
                 <Route path="dashboard" element={<Dashboard user={safeUser} />} />
                 <Route path="recursos-humanos" element={<DashboardRecursosHumanos />} />
                 <Route path="trabajadores" element={<TrabajadoresPage />} />
+                <Route path="trabajadores/historial-laboral" element={<HistorialLaboralPage />} />
                 <Route path="fichas-empresa" element={<FichasEmpresaPage />} />
                 <Route path="fichas-empresa/mi-ficha" element={<FichasEmpresaPage />} />
                 <Route path="bonos" element={<BonosPage />} />

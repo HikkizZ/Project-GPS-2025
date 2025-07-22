@@ -58,6 +58,17 @@
   filter: invert(1);
 }
 
+/* Forzar visibilidad del header y título del modal */
+.modal-header {
+  display: flex !important;
+  align-items: center !important;
+}
+.modal-title {
+  display: flex !important;
+  align-items: center !important;
+  color: inherit !important;
+}
+
 /* Secciones dentro del modal */
 .modal-section {
   padding: 1.25rem;

@@ -167,7 +167,8 @@ function limpiarCamposTexto(data: Partial<Trabajador>): Partial<Trabajador> {
     return dataCopia;
 }
 
-export async function createTrabajadorService(trabajadorData: Partial<Trabajador>): Promise<ServiceResponse<{ trabajador: Trabajador, tempPassword: string, advertencias: string[], correoUsuario: string }>> {
+// Cambiar la firma para aceptar el usuario que registra
+export async function createTrabajadorService(trabajadorData: Partial<Trabajador>, registradoPorUser?: User): Promise<ServiceResponse<{ trabajador: Trabajador, tempPassword: string, advertencias: string[], correoUsuario: string }>> {
     try {
         const trabajadorRepo = AppDataSource.getRepository(Trabajador);
         const fichaRepo = AppDataSource.getRepository(FichaEmpresa);
@@ -295,6 +296,21 @@ export async function createTrabajadorService(trabajadorData: Partial<Trabajador
                 fechaInicioContrato: trabajadorGuardado.fechaIngreso
             });
             await queryRunner.manager.save(FichaEmpresa, fichaEmpresa);
+
+            // Crear historial laboral inicial
+            const historialRepo = queryRunner.manager.getRepository(HistorialLaboral);
+            await historialRepo.save(historialRepo.create({
+                trabajador: trabajadorGuardado,
+                cargo: fichaEmpresa.cargo,
+                area: fichaEmpresa.area,
+                tipoContrato: fichaEmpresa.tipoContrato,
+                jornadaLaboral: fichaEmpresa.jornadaLaboral,
+                sueldoBase: fichaEmpresa.sueldoBase,
+                fechaInicio: trabajadorGuardado.fechaIngreso,
+                observaciones: `Registro inicial de trabajador. Cuenta de usuario: ${correoUsuario}, Rol: Usuario`,
+                estado: fichaEmpresa.estado,
+                registradoPor: registradoPorUser || newUser // Usar el usuario que registra, o el nuevo usuario si no se pasa
+            }));
 
             // Confirmar la transacción
             await queryRunner.commitTransaction();
@@ -429,6 +445,42 @@ export async function desvincularTrabajadorService(id: number, motivo: string, u
             trabajador.fichaEmpresa.fechaFinContrato = new Date();
             trabajador.fichaEmpresa.motivoDesvinculacion = motivo;
             await queryRunner.manager.save(FichaEmpresa, trabajador.fichaEmpresa);
+
+            // Crear snapshot en historial laboral con estado Desvinculado
+            const historialRepo = queryRunner.manager.getRepository(HistorialLaboral);
+            
+            // Normalizar fechas para evitar problemas de zona horaria
+            const fechaInicioNormalizada = trabajador.fichaEmpresa.fechaInicioContrato ? 
+                new Date(trabajador.fichaEmpresa.fechaInicioContrato.toISOString().split('T')[0] + 'T12:00:00') : null;
+            const fechaFinNormalizada = trabajador.fichaEmpresa.fechaFinContrato ? 
+                new Date(trabajador.fichaEmpresa.fechaFinContrato.toISOString().split('T')[0] + 'T12:00:00') : null;
+            const fechaInicioLicenciaPermisoNormalizada = trabajador.fichaEmpresa.fechaInicioLicenciaPermiso ? 
+                new Date(trabajador.fichaEmpresa.fechaInicioLicenciaPermiso.toISOString().split('T')[0] + 'T12:00:00') : null;
+            const fechaFinLicenciaPermisoNormalizada = trabajador.fichaEmpresa.fechaFinLicenciaPermiso ? 
+                new Date(trabajador.fichaEmpresa.fechaFinLicenciaPermiso.toISOString().split('T')[0] + 'T12:00:00') : null;
+            
+            const nuevoHistorial = new HistorialLaboral();
+            nuevoHistorial.trabajador = trabajador;
+            nuevoHistorial.cargo = trabajador.fichaEmpresa.cargo;
+            nuevoHistorial.area = trabajador.fichaEmpresa.area;
+            nuevoHistorial.tipoContrato = trabajador.fichaEmpresa.tipoContrato;
+            nuevoHistorial.jornadaLaboral = trabajador.fichaEmpresa.jornadaLaboral;
+            nuevoHistorial.sueldoBase = trabajador.fichaEmpresa.sueldoBase;
+            if (fechaInicioNormalizada) nuevoHistorial.fechaInicio = fechaInicioNormalizada;
+            if (fechaFinNormalizada) nuevoHistorial.fechaFin = fechaFinNormalizada;
+            nuevoHistorial.motivoDesvinculacion = trabajador.fichaEmpresa.motivoDesvinculacion;
+            nuevoHistorial.observaciones = 'Desvinculación de trabajador';
+            nuevoHistorial.contratoURL = trabajador.fichaEmpresa.contratoURL;
+            nuevoHistorial.afp = trabajador.fichaEmpresa.afp;
+            nuevoHistorial.previsionSalud = trabajador.fichaEmpresa.previsionSalud;
+            nuevoHistorial.seguroCesantia = trabajador.fichaEmpresa.seguroCesantia;
+            nuevoHistorial.estado = trabajador.fichaEmpresa.estado;
+            if (fechaInicioLicenciaPermisoNormalizada) nuevoHistorial.fechaInicioLicenciaPermiso = fechaInicioLicenciaPermisoNormalizada;
+            if (fechaFinLicenciaPermisoNormalizada) nuevoHistorial.fechaFinLicenciaPermiso = fechaFinLicenciaPermisoNormalizada;
+            nuevoHistorial.motivoLicenciaPermiso = trabajador.fichaEmpresa.motivoLicenciaPermiso;
+            nuevoHistorial.registradoPor = userId ? await queryRunner.manager.findOne(User, { where: { id: userId } }) : undefined;
+            
+            await historialRepo.save(nuevoHistorial);
         }
 
         await queryRunner.commitTransaction();
@@ -556,17 +608,19 @@ export async function updateTrabajadorService(id: number, data: any): Promise<Se
         }
 
         if (cambios.length > 0) {
-            await historialRepo.save(historialRepo.create({
-                trabajador: trabajador,
-                cargo: 'Actualización de datos personales',
-                area: 'N/A',
-                departamento: 'N/A',
-                tipoContrato: 'N/A',
-                sueldoBase: 0,
-                fechaInicio: new Date(),
-                observaciones: cambios.join(' | '),
-                registradoPor: data.registradoPor || null
-            }));
+            const nuevoHistorial = new HistorialLaboral();
+            nuevoHistorial.trabajador = trabajador;
+            nuevoHistorial.cargo = 'Actualización de datos personales';
+            nuevoHistorial.area = 'N/A';
+            nuevoHistorial.tipoContrato = 'N/A';
+            nuevoHistorial.jornadaLaboral = 'N/A';
+            nuevoHistorial.sueldoBase = 0;
+            nuevoHistorial.fechaInicio = new Date();
+            nuevoHistorial.observaciones = cambios.join(' | ');
+            nuevoHistorial.estado = 'Activo';
+            nuevoHistorial.registradoPor = data.registradoPor || undefined;
+            
+            await historialRepo.save(nuevoHistorial);
         }
 
         // Guardar cambios en trabajador y usuario
@@ -705,20 +759,28 @@ export async function reactivarTrabajadorService(
         trabajador.fichaEmpresa.fechaInicioContrato = new Date();
         trabajador.fichaEmpresa.fechaFinContrato = null;
         trabajador.fichaEmpresa.motivoDesvinculacion = null;
-        trabajador.fichaEmpresa.fechaInicioLicencia = null;
-        trabajador.fichaEmpresa.fechaFinLicencia = null;
-        trabajador.fichaEmpresa.motivoLicencia = null;
+        trabajador.fichaEmpresa.fechaInicioLicenciaPermiso = null;
+        trabajador.fichaEmpresa.fechaFinLicenciaPermiso = null;
+        trabajador.fichaEmpresa.motivoLicenciaPermiso = null;
 
         // 9. Registrar reactivación en historial laboral
         const historialReactivacion = historialRepo.create({
             trabajador: trabajador,
             cargo: trabajador.fichaEmpresa.cargo,
             area: trabajador.fichaEmpresa.area,
-            departamento: 'N/A',
             tipoContrato: trabajador.fichaEmpresa.tipoContrato,
+            jornadaLaboral: trabajador.fichaEmpresa.jornadaLaboral,
             sueldoBase: trabajador.fichaEmpresa.sueldoBase,
             fechaInicio: new Date(),
             observaciones: `Reactivación de trabajador. Nuevo correo corporativo: ${nuevoCorreoCorporativo}`,
+            contratoURL: trabajador.fichaEmpresa.contratoURL,
+            afp: trabajador.fichaEmpresa.afp,
+            previsionSalud: trabajador.fichaEmpresa.previsionSalud,
+            seguroCesantia: trabajador.fichaEmpresa.seguroCesantia,
+            estado: trabajador.fichaEmpresa.estado,
+            fechaInicioLicenciaPermiso: trabajador.fichaEmpresa.fechaInicioLicenciaPermiso,
+            fechaFinLicenciaPermiso: trabajador.fichaEmpresa.fechaFinLicenciaPermiso,
+            motivoLicenciaPermiso: trabajador.fichaEmpresa.motivoLicenciaPermiso,
             registradoPor: usuarioRegistra
         });
 

@@ -17,7 +17,8 @@ export async function createTrabajador(req: Request, res: Response): Promise<voi
             return;
         }
 
-        const [result, serviceError] = await createTrabajadorService(req.body);
+        // PASAR req.user como segundo parámetro
+        const [result, serviceError] = await createTrabajadorService(req.body, req.user);
         
         if (serviceError) {
             const errorMessage = typeof serviceError === 'string' ? serviceError : serviceError?.message || "No se pudo crear el trabajador";

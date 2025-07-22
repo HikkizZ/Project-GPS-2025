@@ -42,6 +42,16 @@ function formatSueldo(sueldo: number): string {
   }).format(sueldo);
 }
 
+// Función para formatear fecha sin problemas de zona horaria
+const formatLocalDate = (date: string | Date): string => {
+  if (!date) return '';
+  const d = new Date(date);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = ({
   show,
   onHide,
@@ -75,8 +85,8 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
     tipoContrato: (ficha.tipoContrato && ficha.tipoContrato !== 'Por Definir') ? ficha.tipoContrato : '',
     jornadaLaboral: (ficha.jornadaLaboral && ficha.jornadaLaboral !== 'Por Definir') ? ficha.jornadaLaboral : '',
     sueldoBase: ficha.sueldoBase ? formatMiles(ficha.sueldoBase) : '',
-    fechaInicioContrato: ficha.fechaInicioContrato ? new Date(ficha.fechaInicioContrato).toISOString().split('T')[0] : '',
-    fechaFinContrato: ficha.fechaFinContrato ? new Date(ficha.fechaFinContrato).toISOString().split('T')[0] : ''
+    fechaInicioContrato: formatLocalDate(ficha.fechaInicioContrato),
+    fechaFinContrato: formatLocalDate(ficha.fechaFinContrato)
   });
 
   useEffect(() => {
@@ -87,8 +97,8 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
         tipoContrato: (ficha.tipoContrato && ficha.tipoContrato !== 'Por Definir') ? ficha.tipoContrato : '',
         jornadaLaboral: (ficha.jornadaLaboral && ficha.jornadaLaboral !== 'Por Definir') ? ficha.jornadaLaboral : '',
         sueldoBase: ficha.sueldoBase ? formatMiles(ficha.sueldoBase) : '',
-        fechaInicioContrato: ficha.fechaInicioContrato ? new Date(ficha.fechaInicioContrato).toISOString().split('T')[0] : '',
-        fechaFinContrato: ficha.fechaFinContrato ? new Date(ficha.fechaFinContrato).toISOString().split('T')[0] : ''
+        fechaInicioContrato: formatLocalDate(ficha.fechaInicioContrato),
+        fechaFinContrato: formatLocalDate(ficha.fechaFinContrato)
       };
       setFormData(newFormData);
       setInitialFormData(newFormData);
@@ -210,14 +220,6 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
     try {
       const fichaId = typeof ficha.id === 'string' ? parseInt(ficha.id) : ficha.id;
 
-      // Si hay un archivo seleccionado, subirlo
-      if (selectedFile) {
-        const uploadResponse = await uploadContrato(fichaId, selectedFile);
-        if (!uploadResponse.success) {
-          throw new Error(uploadResponse.message || 'Error al subir el contrato');
-        }
-      }
-
       // Procesar los datos antes de enviarlos
       const sueldoBaseNumber = formData.sueldoBase ? parseInt(cleanNumber(formData.sueldoBase)) : 0;
 
@@ -235,8 +237,21 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
         throw new Error('El sueldo base debe ser mayor a 0');
       }
 
-      // Actualizar ficha de empresa
-      const response = await updateFichaEmpresa(fichaId, dataToSubmit);
+      let response;
+      if (selectedFile) {
+        // Enviar como FormData
+        const formDataToSend = new FormData();
+        Object.entries(dataToSubmit).forEach(([key, value]) => {
+          if (value !== undefined && value !== null) {
+            formDataToSend.append(key, value as any);
+          }
+        });
+        formDataToSend.append('contrato', selectedFile);
+        response = await updateFichaEmpresa(fichaId, formDataToSend);
+      } else {
+        // Enviar como JSON
+        response = await updateFichaEmpresa(fichaId, dataToSubmit);
+      }
       
       if (response.success) {
         if (onUpdate) onUpdate();
@@ -483,6 +498,7 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
                     ref={fileInputRef}
                     type="file"
                     accept=".pdf"
+                    name="contrato"
                     onChange={handleFileSelect}
                     style={{ borderRadius: '8px' }}
                   />

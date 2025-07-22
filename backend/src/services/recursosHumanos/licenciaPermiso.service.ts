@@ -10,6 +10,7 @@ import { FileManagementService } from "../fileManagement.service.js";
 import { FileUploadService } from "../fileUpload.service.js";
 import { sendLicenciaPermisoApprovedEmail, sendLicenciaPermisoRejectedEmail } from "../email.service.js";
 import { FichaEmpresa } from "../../entity/recursosHumanos/fichaEmpresa.entity.js";
+import { HistorialLaboral } from "../../entity/recursosHumanos/historialLaboral.entity.js";
 
 /**
  * Normaliza el tipo de solicitud - solo acepta valores exactos para mayor profesionalismo
@@ -307,20 +308,19 @@ export async function updateLicenciaPermisoService(id: number, data: UpdateLicen
       const fichaEmpresa = licencia.trabajador.fichaEmpresa;
       
       // Solo guardar las fechas y motivo, NO cambiar el estado inmediatamente
-      fichaEmpresa.fechaInicioLicencia = licencia.fechaInicio;
-      fichaEmpresa.fechaFinLicencia = licencia.fechaFin;
-      fichaEmpresa.motivoLicencia = licencia.motivoSolicitud;
+      fichaEmpresa.fechaInicioLicenciaPermiso = licencia.fechaInicio;
+      fichaEmpresa.fechaFinLicenciaPermiso = licencia.fechaFin;
+      fichaEmpresa.motivoLicenciaPermiso = licencia.motivoSolicitud;
       
       // Guardar los cambios en la ficha
       await fichaRepo.save(fichaEmpresa);
       
       // Procesar inmediatamente si la fecha de inicio es hoy
       const hoy = new Date();
-      hoy.setHours(0, 0, 0, 0);
-      const fechaInicio = new Date(licencia.fechaInicio);
-      fechaInicio.setHours(0, 0, 0, 0);
+      const fechaHoyString = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
+      const fechaInicioString = licencia.fechaInicio.toISOString().split('T')[0];
       
-      if (fechaInicio.getTime() === hoy.getTime()) {
+      if (fechaInicioString === fechaHoyString) {
         // Si la fecha de inicio es hoy, cambiar el estado inmediatamente
         const estadoLaboral = licencia.tipo === TipoSolicitud.LICENCIA ? 
           EstadoLaboral.LICENCIA : EstadoLaboral.PERMISO;
@@ -328,6 +328,42 @@ export async function updateLicenciaPermisoService(id: number, data: UpdateLicen
         if (fichaEmpresa.estado !== EstadoLaboral.DESVINCULADO) {
           fichaEmpresa.estado = estadoLaboral;
           await fichaRepo.save(fichaEmpresa);
+
+          // Crear snapshot en historial laboral
+          const historialRepo = queryRunner.manager.getRepository(HistorialLaboral);
+          
+          // Normalizar fechas para evitar problemas de zona horaria
+          const fechaInicioNormalizada = fichaEmpresa.fechaInicioContrato ? 
+              new Date(fichaEmpresa.fechaInicioContrato.toISOString().split('T')[0] + 'T12:00:00') : null;
+          const fechaFinNormalizada = fichaEmpresa.fechaFinContrato ? 
+              new Date(fichaEmpresa.fechaFinContrato.toISOString().split('T')[0] + 'T12:00:00') : null;
+          const fechaInicioLicenciaPermisoNormalizada = fichaEmpresa.fechaInicioLicenciaPermiso ? 
+              new Date(fichaEmpresa.fechaInicioLicenciaPermiso.toISOString().split('T')[0] + 'T12:00:00') : null;
+          const fechaFinLicenciaPermisoNormalizada = fichaEmpresa.fechaFinLicenciaPermiso ? 
+              new Date(fichaEmpresa.fechaFinLicenciaPermiso.toISOString().split('T')[0] + 'T12:00:00') : null;
+          
+          const nuevoHistorial = new HistorialLaboral();
+          nuevoHistorial.trabajador = licencia.trabajador;
+          nuevoHistorial.cargo = fichaEmpresa.cargo;
+          nuevoHistorial.area = fichaEmpresa.area;
+          nuevoHistorial.tipoContrato = fichaEmpresa.tipoContrato;
+          nuevoHistorial.jornadaLaboral = fichaEmpresa.jornadaLaboral;
+          nuevoHistorial.sueldoBase = fichaEmpresa.sueldoBase;
+          if (fechaInicioNormalizada) nuevoHistorial.fechaInicio = fechaInicioNormalizada;
+          if (fechaFinNormalizada) nuevoHistorial.fechaFin = fechaFinNormalizada;
+          nuevoHistorial.motivoDesvinculacion = fichaEmpresa.motivoDesvinculacion;
+          nuevoHistorial.observaciones = `Cambio de estado a ${estadoLaboral}. Motivo: ${licencia.motivoSolicitud}`;
+          nuevoHistorial.contratoURL = fichaEmpresa.contratoURL;
+          nuevoHistorial.afp = fichaEmpresa.afp;
+          nuevoHistorial.previsionSalud = fichaEmpresa.previsionSalud;
+          nuevoHistorial.seguroCesantia = fichaEmpresa.seguroCesantia;
+          nuevoHistorial.estado = fichaEmpresa.estado;
+          if (fechaInicioLicenciaPermisoNormalizada) nuevoHistorial.fechaInicioLicenciaPermiso = fechaInicioLicenciaPermisoNormalizada;
+          if (fechaFinLicenciaPermisoNormalizada) nuevoHistorial.fechaFinLicenciaPermiso = fechaFinLicenciaPermisoNormalizada;
+          nuevoHistorial.motivoLicenciaPermiso = fichaEmpresa.motivoLicenciaPermiso;
+          nuevoHistorial.registradoPor = data.revisadoPor || undefined;
+          
+          await historialRepo.save(nuevoHistorial);
         }
       }
     }
@@ -444,9 +480,9 @@ export async function verificarEstadosLicenciasService(): Promise<ServiceRespons
             // Solo cambiar a ACTIVO si no hay licencias vigentes Y el estado es distinto y NO está desvinculado
             if (!licenciaVigente && fichaEmpresa.estado !== EstadoLaboral.ACTIVO && fichaEmpresa.estado !== EstadoLaboral.DESVINCULADO) {
                 fichaEmpresa.estado = EstadoLaboral.ACTIVO;
-                fichaEmpresa.fechaInicioLicencia = null;
-                fichaEmpresa.fechaFinLicencia = null;
-                fichaEmpresa.motivoLicencia = null;
+                fichaEmpresa.fechaInicioLicenciaPermiso = null;
+                fichaEmpresa.fechaFinLicenciaPermiso = null;
+                fichaEmpresa.motivoLicenciaPermiso = null;
                 
                 await fichaRepo.save(fichaEmpresa);
                 desactivadas++;

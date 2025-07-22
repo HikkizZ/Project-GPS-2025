@@ -16,7 +16,7 @@ export interface HistorialLaboral {
   sueldoBase: number;
   fechaInicio: string | Date;
   fechaFin?: string | Date;
-  motivoTermino?: string;
+  motivoDesvinculacion?: string;
   contratoURL?: string;
   fechaRegistro: string | Date;
 }
