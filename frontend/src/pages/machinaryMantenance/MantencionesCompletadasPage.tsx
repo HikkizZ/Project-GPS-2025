@@ -2,6 +2,9 @@ import React from "react";
 import { useMaintenanceRecords } from "@/hooks/MachinaryMaintenance/MaintenanceRecord/useMaintenanceRecords";
 import CompletedMaintenanceList from "@/components/MachineryMaintenance/MaintenanceRecord/ListCompleteMaintenance";
 import { Container, Row, Col, Card, Button, Spinner, Alert } from "react-bootstrap"
+import MaintenanceSidebar from "@/components/MachineryMaintenance/MaintenanceSidebar";
+
+
 
 const MantencionesCompletadasPage: React.FC = () => {
   const { records, loading, error } = useMaintenanceRecords();
@@ -9,6 +12,9 @@ const MantencionesCompletadasPage: React.FC = () => {
   const mantencionesCompletadas = records.filter((record) => record.estado === "completada");
 
   return (
+     <div className="d-flex">
+      <MaintenanceSidebar />
+      <div className="flex-grow-1"></div>
     <Container fluid className="py-4">
       <Row>
         <Col>
@@ -56,6 +62,7 @@ const MantencionesCompletadasPage: React.FC = () => {
         </Col>
       </Row>
     </Container>
+    </div>
   );
 };
 

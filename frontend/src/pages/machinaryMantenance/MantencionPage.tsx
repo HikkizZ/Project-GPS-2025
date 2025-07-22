@@ -15,6 +15,7 @@ import "@/styles/pages/mantencionMaquinaria.css"
 import { Toast, useToast } from "@/components/common/Toast"
 import MaintenanceSparePartPanel from "@/components/MachineryMaintenance/MaintenanceSpareParts/MaintenanceSparePartPanel"
 import FinalizeMaintenanceModal from '@/components/MachineryMaintenance/MaintenanceRecord/FinalizeMaintenanceModal';
+import MaintenanceSidebar from "@/components/MachineryMaintenance/MaintenanceSidebar";
 
 const MantencionPage: React.FC = () => {
   const { records, loading, error, reload } = useMaintenanceRecords()
@@ -120,6 +121,9 @@ const MantencionPage: React.FC = () => {
     }
 
    return (
+     <div className="d-flex">
+      <MaintenanceSidebar />
+      <div className="flex-grow-1"></div>
     <Container fluid className="py-4">
       <Row>
         <Col>
@@ -219,6 +223,7 @@ const MantencionPage: React.FC = () => {
         </Col>
       </Row>
     </Container>
+    </div>
   );
 }
 

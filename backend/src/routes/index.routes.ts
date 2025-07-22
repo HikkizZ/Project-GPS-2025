@@ -1,3 +1,4 @@
+
 import { Router } from 'express';
 import authRoutes from './auth.routes.js';
 import userRoutes from './user.routes.js';
@@ -19,30 +20,33 @@ import maquinariaRoutes from "./maquinaria/maquinaria.routes.js"
 import compraMaquinariaRoutes from "./maquinaria/compraMaquinaria.routes.js"
 import ventaMaquinariaRoutes from "./maquinaria/ventaMaquinaria.routes.js"
 import arriendoMaquinariaRoutes from "./maquinaria/arriendoMaquinaria.routes.js"
+import clienteMaquinariaRoutes from "./maquinaria/clienteMaquinaria.routes.js"
+import updateImageRoutes from "./updateImage.routes.js" // ✅ NUEVA RUTA
 import inventoryEntryRoutes from './inventory/inventoryEntry.routes.js';
 import bonosRoutes from './recursosHumanos/remuneraciones/bonos.routes.js';
 
-const router: Router = Router();
+
+const router: Router = Router()
 
 /* Test route */
-router.get('/', (_req, res) => {
-    res.status(200).json({
-        msg: "API Working",
-        version: "1.0.0",
-        timestamp: new Date().toISOString()
-    });
-});
+router.get("/", (_req, res) => {
+  res.status(200).json({
+    msg: "API Working",
+    version: "1.0.0",
+    timestamp: new Date().toISOString(),
+  })
+})
 
 // Rutas de autenticación (públicas)
-router.use('/auth', authRoutes);
+router.use("/auth", authRoutes)
 
 // Middleware de autenticación para todas las rutas protegidas
-router.use(authenticateJWT);
+router.use(authenticateJWT)
 
 // Rutas protegidas
 router.use('/users', userRoutes);
 router.use('/products', productRoutes);
-router.use('/customers', customerRoutes);
+router.use('/customers', customerRoutes); 
 router.use('/suppliers', supplierRoutes);
 router.use('/fichas-empresa', fichaEmpresaRoutes);
 router.use('/licencia-permiso', licenciaPermisoRoutes);
@@ -66,4 +70,14 @@ router.use("/compra-maquinaria", compraMaquinariaRoutes)
 router.use("/ventas-maquinaria", ventaMaquinariaRoutes)
 router.use("/arriendos-maquinaria", arriendoMaquinariaRoutes)
 
-export default router;
+//MAQUINARIA
+router.use("/maquinaria", maquinariaRoutes)
+router.use("/compra-maquinaria", compraMaquinariaRoutes)
+router.use("/ventas-maquinaria", ventaMaquinariaRoutes)
+router.use("/arriendos-maquinaria", arriendoMaquinariaRoutes)
+router.use("/clientes-maquinaria", clienteMaquinariaRoutes) // cliente de maquinaria
+
+/* Nueva ruta para subir imágenes */
+router.use("/update-image", updateImageRoutes) // ✅ Agregada
+
+export default router

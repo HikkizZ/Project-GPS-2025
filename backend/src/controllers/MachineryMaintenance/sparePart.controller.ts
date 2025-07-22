@@ -11,7 +11,7 @@ import {
   createSparePartValidation,
   updateSparePartValidation,
   sparePartQueryValidation
-} from "../../validations/MachineryMaintenance/sparePart.validation.js";
+} from "../../validations/MachineryMaintenance/SparePart.validation.js";
 
 import {
   handleSuccess,
