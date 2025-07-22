@@ -41,8 +41,21 @@ export async function createProductService(productData: CreateProductDTO): Promi
     try {
         const productRepository = AppDataSource.getRepository(Product);
 
-        const existingProduct = await productRepository.findOne({ where: { product: productData.product, isActive: true } });
-        if (existingProduct) return [null, "El producto ya existe."];
+        const existingProduct = await productRepository.findOne({
+            where: { product: productData.product }
+        });
+
+        if (existingProduct) {
+            if (!existingProduct.isActive) {
+                existingProduct.isActive = true;
+                existingProduct.salePrice = productData.salePrice;
+
+                const reactivatedProduct = await productRepository.save(existingProduct);
+                return [reactivatedProduct, null];
+            }
+
+            return [null, "El producto ya existe y está activo."];
+        }
 
         const newProduct = productRepository.create(productData);
         const savedProduct = await productRepository.save(newProduct);
@@ -55,40 +68,40 @@ export async function createProductService(productData: CreateProductDTO): Promi
 }
 
 export async function updateProductService(id: number, productData: UpdateProductDTO): Promise<ServiceResponse<Product>> {
-    try {
-        const productRepository = AppDataSource.getRepository(Product);
+        try {
+            const productRepository = AppDataSource.getRepository(Product);
 
-        const product = await productRepository.findOne({ where: { id } });
+            const product = await productRepository.findOne({ where: { id } });
 
-        if (!product) return [null, "Producto no encontrado."];
+            if (!product) return [null, "Producto no encontrado."];
 
-        const updatedProduct = { ...product, ...productData };
+            const updatedProduct = { ...product, ...productData };
 
-        const savedProduct = await productRepository.save(updatedProduct);
+            const savedProduct = await productRepository.save(updatedProduct);
 
-        return [savedProduct, null];
-    } catch (error) {
-        console.error("Error updating product:", error);
-        return [null, "Error interno del servidor"];
+            return [savedProduct, null];
+        } catch (error) {
+            console.error("Error updating product:", error);
+            return [null, "Error interno del servidor"];
+        }
     }
-}
 
-export async function deleteProductService(id: number): Promise<ServiceResponse<Product>> {
-    try {
-        const productRepository = AppDataSource.getRepository(Product);
+    export async function deleteProductService(id: number): Promise<ServiceResponse<Product>> {
+        try {
+            const productRepository = AppDataSource.getRepository(Product);
 
-        const product = await productRepository.findOne({ where: { id } });
+            const product = await productRepository.findOne({ where: { id } });
 
-        if (!product) return [null, "Producto no encontrado."];
+            if (!product) return [null, "Producto no encontrado."];
 
-        product.isActive = false;
-        
-        const updatedProduct = await productRepository.save(product);
-        
-        return [updatedProduct, null];
+            product.isActive = false;
 
-    } catch (error) {
-        console.error("Error deleting product:", error);
-        return [null, "Error interno del servidor"];
+            const updatedProduct = await productRepository.save(product);
+
+            return [updatedProduct, null];
+
+        } catch (error) {
+            console.error("Error deleting product:", error);
+            return [null, "Error interno del servidor"];
+        }
     }
-}
