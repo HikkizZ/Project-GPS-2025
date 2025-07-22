@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useRut } from './hooks/useRut';
 import { useTrabajadores } from './hooks/recursosHumanos/useTrabajadores';
@@ -27,95 +28,102 @@ import MantencionesCompletadasPage from '@/pages/machinaryMantenance/Mantencione
 import { CompraMaquinariaPage } from "./pages/maquinaria/compraMaquinariaPage"
 import { VentaMaquinariaPage } from "./pages/maquinaria/ventaMaquinariaPage"
 import { MaquinariaPage } from "./pages/maquinaria/maquinariaPage"
+import { ArriendoMaquinariaPage} from "./pages/maquinaria/arriendoMaquinariaPage"
+import { ClienteMaquinariaPage } from "./pages/maquinaria/clienteMaquinariaPage"
 
-// Componente de Registro de Trabajadores
 const RegistrarTrabajadorPage: React.FC<{
-  onSuccess: (trabajador: Trabajador) => void;
-  onCancel: () => void;
+  onSuccess: (trabajador: Trabajador) => void
+  onCancel: () => void
 }> = ({ onSuccess, onCancel }) => {
-  const { createTrabajador: createTrabajadorService, isLoading: isCreating, error: createError, clearError } = useTrabajadores();
-  const { validateRUT, formatRUT } = useRut();
-  
-  const [formData, setFormData] = useState<CreateTrabajadorData>({
-    rut: '',
-    nombres: '',
-    apellidoPaterno: '',
-    apellidoMaterno: '',
-    fechaNacimiento: '',
-    telefono: '',
-    correoPersonal: '',
-    numeroEmergencia: '',
-    direccion: '',
-    fechaIngreso: new Date().toISOString().split('T')[0],
-  });
+  // ... código existente sin cambios
+  const {
+    createTrabajador: createTrabajadorService,
+    isLoading: isCreating,
+    error: createError,
+    clearError,
+  } = useTrabajadores()
+  const { validateRUT, formatRUT } = useRut()
 
-  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+  const [formData, setFormData] = useState<CreateTrabajadorData>({
+    rut: "",
+    nombres: "",
+    apellidoPaterno: "",
+    apellidoMaterno: "",
+    fechaNacimiento: "",
+    telefono: "",
+    correoPersonal: "",
+    numeroEmergencia: "",
+    direccion: "",
+    fechaIngreso: new Date().toISOString().split("T")[0],
+  })
+
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({})
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
+    e.preventDefault()
+
     // Validaciones del frontend
-    const errors: Record<string, string> = {};
-    
+    const errors: Record<string, string> = {}
+
     if (!validateRUT(formData.rut)) {
-      errors.rut = 'RUT inválido';
+      errors.rut = "RUT inválido"
     }
-    
+
     if (formData.nombres.length < 2) {
-      errors.nombres = 'Nombres debe tener al menos 2 caracteres';
+      errors.nombres = "Nombres debe tener al menos 2 caracteres"
     }
-    
+
     if (formData.apellidoPaterno.length < 2) {
-      errors.apellidoPaterno = 'Apellido paterno debe tener al menos 2 caracteres';
+      errors.apellidoPaterno = "Apellido paterno debe tener al menos 2 caracteres"
     }
-    
+
     if (formData.apellidoMaterno.length < 2) {
-      errors.apellidoMaterno = 'Apellido materno debe tener al menos 2 caracteres';
+      errors.apellidoMaterno = "Apellido materno debe tener al menos 2 caracteres"
     }
-    
+
     const correoPersonalRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!correoPersonalRegex.test(formData.correoPersonal)) {
       errors.correoPersonal = 'Correo personal inválido';
     }
-    
+
     if (formData.telefono.length < 9) {
-      errors.telefono = 'Teléfono debe tener al menos 9 dígitos';
+      errors.telefono = "Teléfono debe tener al menos 9 dígitos"
     }
-    
+
     if (Object.keys(errors).length > 0) {
-      setValidationErrors(errors);
-      return;
+      setValidationErrors(errors)
+      return
     }
-    
-    setValidationErrors({});
-    
+
+    setValidationErrors({})
+
     try {
-      const result = await createTrabajadorService(formData);
+      const result = await createTrabajadorService(formData)
       if (result.success && result.trabajador) {
-        onSuccess(result.trabajador);
+        onSuccess(result.trabajador)
       } else {
-        setValidationErrors({ submit: result.error || 'Error al crear trabajador' });
+        setValidationErrors({ submit: result.error || "Error al crear trabajador" })
       }
     } catch (error) {
-      console.error('Error al crear trabajador:', error);
-      setValidationErrors({ submit: 'Error al crear trabajador' });
+      console.error("Error al crear trabajador:", error)
+      setValidationErrors({ submit: "Error al crear trabajador" })
     }
-  };
+  }
 
   const handleChange = (field: keyof CreateTrabajadorData, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-    
+    setFormData((prev) => ({ ...prev, [field]: value }))
+
     // Limpiar error del campo específico
     if (validationErrors[field]) {
-      setValidationErrors(prev => ({ ...prev, [field]: '' }));
+      setValidationErrors((prev) => ({ ...prev, [field]: "" }))
     }
-    
+
     // Auto-formatear RUT
-    if (field === 'rut') {
-      const formattedRUT = formatRUT(value);
-      setFormData(prev => ({ ...prev, rut: formattedRUT }));
+    if (field === "rut") {
+      const formattedRUT = formatRUT(value)
+      setFormData((prev) => ({ ...prev, rut: formattedRUT }))
     }
-  };
+  }
 
   return (
     <div className="container py-4">
@@ -139,33 +147,35 @@ const RegistrarTrabajadorPage: React.FC<{
 
               <div className="alert alert-info">
                 <i className="bi bi-info-circle me-2"></i>
-                <strong>Nota:</strong> Al registrar un trabajador se creará automáticamente una ficha de empresa 
-                con valores por defecto que podrás editar inmediatamente.
+                <strong>Nota:</strong> Al registrar un trabajador se creará automáticamente una ficha de empresa con
+                valores por defecto que podrás editar inmediatamente.
               </div>
 
               <form onSubmit={handleSubmit}>
                 <div className="row">
                   <div className="col-md-6 mb-3">
-                    <label className="form-label">RUT: <span className="text-danger">*</span></label>
+                    <label className="form-label">
+                      RUT: <span className="text-danger">*</span>
+                    </label>
                     <input
                       type="text"
-                      className={`form-control ${validationErrors.rut ? 'is-invalid' : ''}`}
+                      className={`form-control ${validationErrors.rut ? "is-invalid" : ""}`}
                       value={formData.rut}
-                      onChange={(e) => handleChange('rut', e.target.value)}
+                      onChange={(e) => handleChange("rut", e.target.value)}
                       placeholder="12.345.678-9"
                       required
                     />
-                    {validationErrors.rut && (
-                      <div className="invalid-feedback">{validationErrors.rut}</div>
-                    )}
+                    {validationErrors.rut && <div className="invalid-feedback">{validationErrors.rut}</div>}
                   </div>
                   <div className="col-md-6 mb-3">
-                    <label className="form-label">Fecha de Ingreso: <span className="text-danger">*</span></label>
+                    <label className="form-label">
+                      Fecha de Ingreso: <span className="text-danger">*</span>
+                    </label>
                     <input
                       type="date"
                       className="form-control"
                       value={formData.fechaIngreso}
-                      onChange={(e) => handleChange('fechaIngreso', e.target.value)}
+                      onChange={(e) => handleChange("fechaIngreso", e.target.value)}
                       required
                     />
                   </div>
@@ -173,18 +183,18 @@ const RegistrarTrabajadorPage: React.FC<{
 
                 <div className="row">
                   <div className="col-md-6 mb-3">
-                    <label className="form-label">Nombres: <span className="text-danger">*</span></label>
+                    <label className="form-label">
+                      Nombres: <span className="text-danger">*</span>
+                    </label>
                     <input
                       type="text"
-                      className={`form-control ${validationErrors.nombres ? 'is-invalid' : ''}`}
+                      className={`form-control ${validationErrors.nombres ? "is-invalid" : ""}`}
                       value={formData.nombres}
-                      onChange={(e) => handleChange('nombres', e.target.value)}
+                      onChange={(e) => handleChange("nombres", e.target.value)}
                       placeholder="Juan Carlos"
                       required
                     />
-                    {validationErrors.nombres && (
-                      <div className="invalid-feedback">{validationErrors.nombres}</div>
-                    )}
+                    {validationErrors.nombres && <div className="invalid-feedback">{validationErrors.nombres}</div>}
                   </div>
                   <div className="col-md-6 mb-3">
                     <label className="form-label">Fecha de Nacimiento:</label>
@@ -192,19 +202,21 @@ const RegistrarTrabajadorPage: React.FC<{
                       type="date"
                       className="form-control"
                       value={formData.fechaNacimiento}
-                      onChange={(e) => handleChange('fechaNacimiento', e.target.value)}
+                      onChange={(e) => handleChange("fechaNacimiento", e.target.value)}
                     />
                   </div>
                 </div>
 
                 <div className="row">
                   <div className="col-md-6 mb-3">
-                    <label className="form-label">Apellido Paterno: <span className="text-danger">*</span></label>
+                    <label className="form-label">
+                      Apellido Paterno: <span className="text-danger">*</span>
+                    </label>
                     <input
                       type="text"
-                      className={`form-control ${validationErrors.apellidoPaterno ? 'is-invalid' : ''}`}
+                      className={`form-control ${validationErrors.apellidoPaterno ? "is-invalid" : ""}`}
                       value={formData.apellidoPaterno}
-                      onChange={(e) => handleChange('apellidoPaterno', e.target.value)}
+                      onChange={(e) => handleChange("apellidoPaterno", e.target.value)}
                       placeholder="Pérez"
                       required
                     />
@@ -213,12 +225,14 @@ const RegistrarTrabajadorPage: React.FC<{
                     )}
                   </div>
                   <div className="col-md-6 mb-3">
-                    <label className="form-label">Apellido Materno: <span className="text-danger">*</span></label>
+                    <label className="form-label">
+                      Apellido Materno: <span className="text-danger">*</span>
+                    </label>
                     <input
                       type="text"
-                      className={`form-control ${validationErrors.apellidoMaterno ? 'is-invalid' : ''}`}
+                      className={`form-control ${validationErrors.apellidoMaterno ? "is-invalid" : ""}`}
                       value={formData.apellidoMaterno}
-                      onChange={(e) => handleChange('apellidoMaterno', e.target.value)}
+                      onChange={(e) => handleChange("apellidoMaterno", e.target.value)}
                       placeholder="González"
                       required
                     />
@@ -233,9 +247,9 @@ const RegistrarTrabajadorPage: React.FC<{
                     <label className="form-label">Correo Personal: <span className="text-danger">*</span></label>
                     <input
                       type="email"
-                      className={`form-control ${validationErrors.correoPersonal ? 'is-invalid' : ''}`}
+                      className={`form-control ${validationErrors.correoPersonal ? "is-invalid" : ""}`}
                       value={formData.correoPersonal}
-                      onChange={(e) => handleChange('correoPersonal', e.target.value)}
+                      onChange={(e) => handleChange("correoPersonal", e.target.value)}
                       placeholder="juan.perez@gmail.com"
                       required
                     />
@@ -244,18 +258,18 @@ const RegistrarTrabajadorPage: React.FC<{
                     )}
                   </div>
                   <div className="col-md-6 mb-3">
-                    <label className="form-label">Teléfono: <span className="text-danger">*</span></label>
+                    <label className="form-label">
+                      Teléfono: <span className="text-danger">*</span>
+                    </label>
                     <input
                       type="tel"
-                      className={`form-control ${validationErrors.telefono ? 'is-invalid' : ''}`}
+                      className={`form-control ${validationErrors.telefono ? "is-invalid" : ""}`}
                       value={formData.telefono}
-                      onChange={(e) => handleChange('telefono', e.target.value)}
+                      onChange={(e) => handleChange("telefono", e.target.value)}
                       placeholder="+56912345678"
                       required
                     />
-                    {validationErrors.telefono && (
-                      <div className="invalid-feedback">{validationErrors.telefono}</div>
-                    )}
+                    {validationErrors.telefono && <div className="invalid-feedback">{validationErrors.telefono}</div>}
                   </div>
                 </div>
 
@@ -266,17 +280,19 @@ const RegistrarTrabajadorPage: React.FC<{
                       type="tel"
                       className="form-control"
                       value={formData.numeroEmergencia}
-                      onChange={(e) => handleChange('numeroEmergencia', e.target.value)}
+                      onChange={(e) => handleChange("numeroEmergencia", e.target.value)}
                       placeholder="+56987654321"
                     />
                   </div>
                   <div className="col-md-6 mb-3">
-                    <label className="form-label">Dirección: <span className="text-danger">*</span></label>
+                    <label className="form-label">
+                      Dirección: <span className="text-danger">*</span>
+                    </label>
                     <input
                       type="text"
                       className="form-control"
                       value={formData.direccion}
-                      onChange={(e) => handleChange('direccion', e.target.value)}
+                      onChange={(e) => handleChange("direccion", e.target.value)}
                       placeholder="Av. Principal 123, Comuna, Ciudad"
                       required
                     />
@@ -308,59 +324,56 @@ const RegistrarTrabajadorPage: React.FC<{
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-// Dashboard principal simplificado
+// Dashboard principal con la tarjeta de Maquinaria actualizada
 interface DashboardProps {
-  user: { name: string; role: string; rut: string };
+  user: { name: string; role: string; rut: string }
 }
 const Dashboard: React.FC<DashboardProps> = ({ user }) => {
-  const [currentPage, setCurrentPage] = useState('home');
-  const [successMessage, setSuccessMessage] = useState('');
-  const [recienRegistrado, setRecienRegistrado] = useState<Trabajador | null>(null);
-  const navigate = useNavigate();
+  const [currentPage, setCurrentPage] = useState("home")
+  const [successMessage, setSuccessMessage] = useState("")
+  const [recienRegistrado, setRecienRegistrado] = useState<Trabajador | null>(null)
+  const navigate = useNavigate()
 
   // Roles que tienen acceso completo a todas las funcionalidades
-  const rolesPrivilegiados: UserRole[] = ['SuperAdministrador', 'Administrador', 'RecursosHumanos'];
-  
+  const rolesPrivilegiados: UserRole[] = ["SuperAdministrador", "Administrador", "RecursosHumanos"]
+
   // Verificar si el usuario tiene permisos completos
-  const tienePermisosCompletos = rolesPrivilegiados.includes(user.role as UserRole);
+  const tienePermisosCompletos = rolesPrivilegiados.includes(user.role as UserRole)
 
   const handleTrabajadorCreated = (trabajador: Trabajador) => {
-    setSuccessMessage(`Trabajador ${trabajador.nombres} ${trabajador.apellidoPaterno} registrado exitosamente. Completa ahora su información laboral.`);
-    setRecienRegistrado(trabajador);
-    setCurrentPage('ficha-empresa');
-    setTimeout(() => setSuccessMessage(''), 5000);
-  };
+    setSuccessMessage(
+      `Trabajador ${trabajador.nombres} ${trabajador.apellidoPaterno} registrado exitosamente. Completa ahora su información laboral.`,
+    )
+    setRecienRegistrado(trabajador)
+    setCurrentPage("ficha-empresa")
+    setTimeout(() => setSuccessMessage(""), 5000)
+  }
 
   const renderPage = () => {
     switch (currentPage) {
-      case 'users':
-        return <UsersPage />;
-      case 'registrar-trabajador':
+      case "users":
+        return <UsersPage />
+      case "registrar-trabajador":
+        return <RegistrarTrabajadorPage onSuccess={handleTrabajadorCreated} onCancel={() => setCurrentPage("home")} />
+      case "ficha-empresa":
         return (
-          <RegistrarTrabajadorPage
-            onSuccess={handleTrabajadorCreated}
-            onCancel={() => setCurrentPage('home')}
-          />
-        );
-      case 'ficha-empresa':
-        return (
-          <FichasEmpresaPage 
+          <FichasEmpresaPage
             trabajadorRecienRegistrado={recienRegistrado}
             onTrabajadorModalClosed={() => setRecienRegistrado(null)}
           />
-        );
-      case 'ficha-empresa/mi-ficha':
+        )
+      case "ficha-empresa/mi-ficha":
         return (
-          <FichasEmpresaPage 
+          <FichasEmpresaPage
             trabajadorRecienRegistrado={recienRegistrado}
             onTrabajadorModalClosed={() => setRecienRegistrado(null)}
           />
-        );
-      case 'trabajadores':
-        return <TrabajadoresPage />;
+        )
+      case "trabajadores":
+        return <TrabajadoresPage />
       default:
         return (
           <>
@@ -370,28 +383,38 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
                   <div className="alert alert-success alert-dismissible fade show">
                     <i className="bi bi-check-circle me-2"></i>
                     {successMessage}
-                    <button 
-                      type="button" 
-                      className="btn-close" 
-                      onClick={() => setSuccessMessage('')}
-                    ></button>
+                    <button type="button" className="btn-close" onClick={() => setSuccessMessage("")}></button>
                   </div>
                 )}
-                <div className="card shadow-lg border-0" style={{ borderRadius: '12px', overflow: 'hidden' }}>
-                  <div className="card-header bg-gradient-primary text-white border-0 header-text-white" style={{ padding: '0.75rem 1.25rem' }}>
+                <div className="card shadow-lg border-0" style={{ borderRadius: "12px", overflow: "hidden" }}>
+                  <div
+                    className="card-header bg-gradient-primary text-white border-0 header-text-white"
+                    style={{ padding: "0.75rem 1.25rem" }}
+                  >
                     <div className="d-flex align-items-center">
                       <i className="bi bi-house fs-5 me-2"></i>
                       <div>
                         <h5 className="mb-0 fw-bold">Página de Inicio</h5>
-                        <small className="opacity-75" style={{ fontSize: '0.75rem' }}>Centro de control y navegación del sistema</small>
+                        <small className="opacity-75" style={{ fontSize: "0.75rem" }}>
+                          Centro de control y navegación del sistema
+                        </small>
                       </div>
                     </div>
                   </div>
-                  <div className="card-body" style={{ padding: '1.5rem' }}>
-                    <div className="mb-3 p-3 rounded-3" style={{ background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)', border: '1px solid #e9ecef' }}>
+                  <div className="card-body" style={{ padding: "1.5rem" }}>
+                    <div
+                      className="mb-3 p-3 rounded-3"
+                      style={{
+                        background: "linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)",
+                        border: "1px solid #e9ecef",
+                      }}
+                    >
                       <h6 className="mb-2 fw-bold text-dark">¡Bienvenido, {user.name}!</h6>
                       <div className="d-flex flex-wrap gap-2 align-items-center">
-                        <span className="badge bg-primary px-2 py-1" style={{ borderRadius: '20px', fontSize: '0.8rem' }}>
+                        <span
+                          className="badge bg-primary px-2 py-1"
+                          style={{ borderRadius: "20px", fontSize: "0.8rem" }}
+                        >
                           <i className="bi bi-person-badge me-1"></i>
                           {user.role}
                         </span>
@@ -401,7 +424,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
                         </span>
                       </div>
                     </div>
-                    
+
                     {/* Sección de Recursos Humanos */}
                     <div className="mb-3">
                       <div className="d-flex align-items-center mb-3">
@@ -416,56 +439,56 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
                     </div>
                     <Row>
                       <Col md={3} className="mb-4">
-                        <Card 
-                          className="h-100 border-0 shadow-lg" 
-                          style={{ 
-                            cursor: 'pointer', 
-                            borderRadius: '20px',
-                            transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
-                            background: 'white',
-                            border: '1px solid #e3f2fd'
-                          }} 
-                          onClick={() => navigate('/recursos-humanos')}
+                        <Card
+                          className="h-100 border-0 shadow-lg"
+                          style={{
+                            cursor: "pointer",
+                            borderRadius: "20px",
+                            transition: "all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
+                            background: "white",
+                            border: "1px solid #e3f2fd",
+                          }}
+                          onClick={() => navigate("/recursos-humanos")}
                           onMouseEnter={(e) => {
-                            e.currentTarget.style.transform = 'translateY(-12px) scale(1.02)';
-                            e.currentTarget.style.boxShadow = '0 25px 50px rgba(13, 110, 253, 0.25)';
-                            e.currentTarget.style.borderColor = '#0d6efd';
+                            e.currentTarget.style.transform = "translateY(-12px) scale(1.02)"
+                            e.currentTarget.style.boxShadow = "0 25px 50px rgba(13, 110, 253, 0.25)"
+                            e.currentTarget.style.borderColor = "#0d6efd"
                           }}
                           onMouseLeave={(e) => {
-                            e.currentTarget.style.transform = 'translateY(0) scale(1)';
-                            e.currentTarget.style.boxShadow = '0 10px 30px rgba(0, 0, 0, 0.1)';
-                            e.currentTarget.style.borderColor = '#e3f2fd';
+                            e.currentTarget.style.transform = "translateY(0) scale(1)"
+                            e.currentTarget.style.boxShadow = "0 10px 30px rgba(0, 0, 0, 0.1)"
+                            e.currentTarget.style.borderColor = "#e3f2fd"
                           }}
                         >
                           <Card.Body className="p-4 text-center">
-                            <div 
+                            <div
                               className="d-inline-flex align-items-center justify-content-center mb-4"
                               style={{
-                                width: '80px',
-                                height: '80px',
-                                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                                borderRadius: '24px',
-                                position: 'relative',
-                                boxShadow: '0 8px 32px rgba(102, 126, 234, 0.3)'
+                                width: "80px",
+                                height: "80px",
+                                background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                                borderRadius: "24px",
+                                position: "relative",
+                                boxShadow: "0 8px 32px rgba(102, 126, 234, 0.3)",
                               }}
                             >
-                              <i className="bi bi-people-fill text-white" style={{ fontSize: '2.5rem' }}></i>
-                              <div 
+                              <i className="bi bi-people-fill text-white" style={{ fontSize: "2.5rem" }}></i>
+                              <div
                                 style={{
-                                  position: 'absolute',
-                                  top: '-8px',
-                                  right: '-8px',
-                                  width: '24px',
-                                  height: '24px',
-                                  background: '#28a745',
-                                  borderRadius: '50%',
-                                  border: '3px solid white',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center'
+                                  position: "absolute",
+                                  top: "-8px",
+                                  right: "-8px",
+                                  width: "24px",
+                                  height: "24px",
+                                  background: "#28a745",
+                                  borderRadius: "50%",
+                                  border: "3px solid white",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
                                 }}
                               >
-                                <i className="bi bi-check text-white" style={{ fontSize: '0.7rem' }}></i>
+                                <i className="bi bi-check text-white" style={{ fontSize: "0.7rem" }}></i>
                               </div>
                             </div>
                             <Card.Title className="fw-bold text-dark mb-2 fs-5">Recursos Humanos</Card.Title>
@@ -481,29 +504,29 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
                           </Card.Body>
                         </Card>
                       </Col>
-                      
+
                       <Col md={3} className="mb-4">
-                        <Card 
-                          className="h-100 border-0 shadow-sm" 
-                          style={{ 
-                            borderRadius: '20px',
-                            background: 'white',
-                            border: '1px solid #f1f5f9',
-                            opacity: 0.8
+                        <Card
+                          className="h-100 border-0 shadow-sm"
+                          style={{
+                            borderRadius: "20px",
+                            background: "white",
+                            border: "1px solid #f1f5f9",
+                            opacity: 0.8,
                           }}
                         >
                           <Card.Body className="p-4 text-center">
-                            <div 
+                            <div
                               className="d-inline-flex align-items-center justify-content-center mb-4"
                               style={{
-                                width: '80px',
-                                height: '80px',
-                                background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                                borderRadius: '24px',
-                                boxShadow: '0 8px 32px rgba(16, 185, 129, 0.2)'
+                                width: "80px",
+                                height: "80px",
+                                background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
+                                borderRadius: "24px",
+                                boxShadow: "0 8px 32px rgba(16, 185, 129, 0.2)",
                               }}
                             >
-                              <i className="bi bi-box-seam text-white" style={{ fontSize: '2.5rem' }}></i>
+                              <i className="bi bi-box-seam text-white" style={{ fontSize: "2.5rem" }}></i>
                             </div>
                             <Card.Title className="fw-bold text-dark mb-2 fs-5">Inventario</Card.Title>
                             <Card.Text className="text-muted small mb-3">Control de stock y productos</Card.Text>
@@ -516,64 +539,97 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
                           </Card.Body>
                         </Card>
                       </Col>
-                      
+
+                      {/* TARJETA DE MAQUINARIA ACTUALIZADA - AHORA FUNCIONAL */}
                       <Col md={3} className="mb-4">
-                        <Card 
-                          className="h-100 border-0 shadow-sm" 
-                          style={{ 
-                            borderRadius: '20px',
-                            background: 'white',
-                            border: '1px solid #f1f5f9',
-                            opacity: 0.8
+                        <Card
+                          className="h-100 border-0 shadow-lg"
+                          style={{
+                            cursor: "pointer",
+                            borderRadius: "20px",
+                            transition: "all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
+                            background: "white",
+                            border: "1px solid #e0f2fe",
+                          }}
+                          onClick={() => navigate("/maquinaria")}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.transform = "translateY(-12px) scale(1.02)"
+                            e.currentTarget.style.boxShadow = "0 25px 50px rgba(6, 182, 212, 0.25)"
+                            e.currentTarget.style.borderColor = "#06b6d4"
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.transform = "translateY(0) scale(1)"
+                            e.currentTarget.style.boxShadow = "0 10px 30px rgba(0, 0, 0, 0.1)"
+                            e.currentTarget.style.borderColor = "#e0f2fe"
                           }}
                         >
                           <Card.Body className="p-4 text-center">
-                            <div 
+                            <div
                               className="d-inline-flex align-items-center justify-content-center mb-4"
                               style={{
-                                width: '80px',
-                                height: '80px',
-                                background: 'linear-gradient(135deg, #06b6d4 0%, #0891b2 100%)',
-                                borderRadius: '24px',
-                                boxShadow: '0 8px 32px rgba(6, 182, 212, 0.2)'
+                                width: "80px",
+                                height: "80px",
+                                background: "linear-gradient(135deg, #06b6d4 0%, #0891b2 100%)",
+                                borderRadius: "24px",
+                                position: "relative",
+                                boxShadow: "0 8px 32px rgba(6, 182, 212, 0.3)",
                               }}
                             >
-                              <i className="bi bi-truck text-white" style={{ fontSize: '2.5rem' }}></i>
+                              <i className="bi bi-truck text-white" style={{ fontSize: "2.5rem" }}></i>
+                              <div
+                                style={{
+                                  position: "absolute",
+                                  top: "-8px",
+                                  right: "-8px",
+                                  width: "24px",
+                                  height: "24px",
+                                  background: "#28a745",
+                                  borderRadius: "50%",
+                                  border: "3px solid white",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                }}
+                              >
+                                <i className="bi bi-check text-white" style={{ fontSize: "0.7rem" }}></i>
+                              </div>
                             </div>
                             <Card.Title className="fw-bold text-dark mb-2 fs-5">Maquinaria</Card.Title>
-                            <Card.Text className="text-muted small mb-3">Gestión de equipos y mantención</Card.Text>
+                            <Card.Text className="text-muted small mb-3">
+                              Inventario, compra y venta de equipos
+                            </Card.Text>
                             <div className="d-flex align-items-center justify-content-center">
-                              <small className="text-muted">
-                                <i className="bi bi-clock me-1"></i>
-                                Próximamente
+                              <small className="text-primary fw-semibold">
+                                <i className="bi bi-arrow-right me-1"></i>
+                                Acceder
                               </small>
                             </div>
                           </Card.Body>
                         </Card>
                       </Col>
-                      
+
                       <Col md={3} className="mb-4">
-                        <Card 
-                          className="h-100 border-0 shadow-sm" 
-                          style={{ 
-                            borderRadius: '20px',
-                            background: 'white',
-                            border: '1px solid #f1f5f9',
-                            opacity: 0.8
+                        <Card
+                          className="h-100 border-0 shadow-sm"
+                          style={{
+                            borderRadius: "20px",
+                            background: "white",
+                            border: "1px solid #f1f5f9",
+                            opacity: 0.8,
                           }}
                         >
                           <Card.Body className="p-4 text-center">
-                            <div 
+                            <div
                               className="d-inline-flex align-items-center justify-content-center mb-4"
                               style={{
-                                width: '80px',
-                                height: '80px',
-                                background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
-                                borderRadius: '24px',
-                                boxShadow: '0 8px 32px rgba(245, 158, 11, 0.2)'
+                                width: "80px",
+                                height: "80px",
+                                background: "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)",
+                                borderRadius: "24px",
+                                boxShadow: "0 8px 32px rgba(245, 158, 11, 0.2)",
                               }}
                             >
-                              <i className="bi bi-bar-chart text-white" style={{ fontSize: '2.5rem' }}></i>
+                              <i className="bi bi-bar-chart text-white" style={{ fontSize: "2.5rem" }}></i>
                             </div>
                             <Card.Title className="fw-bold text-dark mb-2 fs-5">Reportes</Card.Title>
                             <Card.Text className="text-muted small mb-3">Análisis y estadísticas</Card.Text>
@@ -592,46 +648,46 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
               </div>
             </div>
           </>
-        );
+        )
     }
-  };
+  }
 
-  return renderPage();
-};
-
-function PublicRoute({ children }: { children: JSX.Element }) {
-  const { isAuthenticated } = useAuth();
-  return isAuthenticated ? <Navigate to="/dashboard" replace /> : children;
+  return renderPage()
 }
 
-// App principal
+function PublicRoute({ children }: { children: JSX.Element }) {
+  const { isAuthenticated } = useAuth()
+  return isAuthenticated ? <Navigate to="/dashboard" replace /> : children
+}
+
+// App principal CON LAS NUEVAS RUTAS DE MAQUINARIA
 function App() {
-  const { isAuthenticated, user, logout, isLoading } = useAuth();
-  const location = useLocation();
-  const safeUser = user ?? { name: 'Usuario', role: 'Invitado', rut: 'N/A' };
+  const { isAuthenticated, user, logout, isLoading } = useAuth()
+  const location = useLocation()
+  const safeUser = user ?? { name: "Usuario", role: "Invitado", rut: "N/A" }
 
   if (isLoading) {
     return (
       <div className="loading-overlay">
         <div className="loading-content">
-          <div className="spinner-border text-primary" style={{ width: '3rem', height: '3rem' }} role="status">
+          <div className="spinner-border text-primary" style={{ width: "3rem", height: "3rem" }} role="status">
             <span className="visually-hidden">Cargando...</span>
           </div>
           <p className="mt-3 mb-0 text-muted fw-medium">Cargando dashboard...</p>
         </div>
       </div>
-    );
+    )
   }
 
   return (
     <Routes>
-      <Route 
-        path="/login" 
+      <Route
+        path="/login"
         element={
           <PublicRoute>
             <LoginPage />
           </PublicRoute>
-        } 
+        }
       />
       <Route
         path="/*"
@@ -649,9 +705,16 @@ function App() {
                 <Route path="gestion-personal" element={<GestionPersonalPage />} />
                 <Route path="gestion-licencias-permisos" element={<GestionLicenciasPermisosPage />} />
                 <Route path="mis-licencias-permisos" element={<MisLicenciasPermisosPage />} />
-                <Route path="/" element={<Navigate to="dashboard" replace />} />
+
+                {/* RUTAS DE MAQUINARIA ACTUALIZADAS */}
+                <Route path="maquinaria" element={<MaquinariaPage />} />
+                <Route path="maquinaria/compras" element={<CompraMaquinariaPage />} />
+                <Route path="maquinaria/ventas" element={<VentaMaquinariaPage />} />
+                <Route path="maquinaria/arriendos" element={<ArriendoMaquinariaPage />} />
+                <Route path="maquinaria/clientes" element={<ClienteMaquinariaPage />} />
+
+                <Route path="*" element={<Navigate to="dashboard" replace />} />
                 <Route path="*" element={<div className="container py-4"><div className="alert alert-warning"><h4>Página no encontrada</h4><p>La página que buscas no existe. <a href="/dashboard">Volver al dashboard</a></p></div></div>} />
-              
 
               {/* Mantención maquinaria */ }
                 <Route path="spare-parts" element={<SparePartsPage />} />
@@ -662,8 +725,6 @@ function App() {
                 <Route path="maquinaria" element={<MaquinariaPage />} />
                 <Route path="maquinaria/compras" element={<CompraMaquinariaPage />} />
                 <Route path="maquinaria/ventas" element={<VentaMaquinariaPage />} />
-              
-              
               </Routes>
             </MainLayout>
           ) : (
@@ -672,7 +733,7 @@ function App() {
         }
       />
     </Routes>
-  );
+  )
 }
 
-export default App; 
+export default App
