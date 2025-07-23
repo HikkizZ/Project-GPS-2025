@@ -74,6 +74,17 @@ export const TrabajadoresPage: React.FC = () => {
 
   // Función para manejar la desvinculación
   const handleDesvincularClick = (trabajador: Trabajador) => {
+    // Validación: no permitir si está en licencia médica o permiso administrativo
+    if (
+      trabajador.fichaEmpresa &&
+      (trabajador.fichaEmpresa.estado === 'Licencia médica' || trabajador.fichaEmpresa.estado === 'Permiso administrativo')
+    ) {
+      showError(
+        'No permitido',
+        'No se puede desvincular a un trabajador mientras esté con licencia médica o permiso administrativo.'
+      );
+      return;
+    }
     setTrabajadorToDesvincular(trabajador);
     setShowDesvincularModal(true);
     setDesvincularError('');
