@@ -35,7 +35,7 @@ export class FileUploadService {
 
       if (req.baseUrl.includes("licencia-permiso")) {
         uploadDir = path.join(uploadDir, "licencias")
-      } else if (req.baseUrl.includes("ficha-empresa")) {
+      } else if (req.baseUrl.includes("fichas-empresa")) {
         uploadDir = path.join(uploadDir, "contratos")
       } else if (req.baseUrl.includes("historial-laboral")) {
         uploadDir = path.join(uploadDir, "historial")
