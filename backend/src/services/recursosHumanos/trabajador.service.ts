@@ -427,6 +427,16 @@ export async function desvincularTrabajadorService(id: number, motivo: string, u
             return [null, "Trabajador no encontrado o ya desvinculado"];
         }
 
+        // Validación: No permitir desvinculación si está en licencia médica o permiso administrativo
+        if (
+            trabajador.fichaEmpresa &&
+            (trabajador.fichaEmpresa.estado === EstadoLaboral.LICENCIA ||
+             trabajador.fichaEmpresa.estado === EstadoLaboral.PERMISO)
+        ) {
+            await queryRunner.rollbackTransaction();
+            await queryRunner.release();
+            return [null, "No se puede desvincular a un trabajador mientras esté con licencia médica o permiso administrativo."];
+        }
 
 
         // Soft delete del trabajador
