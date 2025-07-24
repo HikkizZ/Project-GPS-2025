@@ -328,6 +328,33 @@ export default function HistorialLaboralPage() {
     seguroCesantia: 'Seguro Cesantía',
   };
 
+  // Función para formatear la descripción de observaciones con nombres formales
+  function formatearDescripcionObservaciones(observaciones: string, traduccionCampos: Record<string, string>): string {
+    if (!observaciones || !observaciones.startsWith('Actualización de información laboral:')) return observaciones;
+    // Extraer la parte de cambios
+    const partes = observaciones.split(':');
+    if (partes.length < 2) return observaciones;
+    let cambiosStr = partes.slice(1).join(':');
+    let sufijo = '';
+    // Si contiene '+ subida de contrato PDF', separarlo
+    if (cambiosStr.includes('+ subida de contrato PDF')) {
+      sufijo = ' + Subida de Contrato PDF';
+      cambiosStr = cambiosStr.replace('+ subida de contrato PDF', '').trim();
+      if (cambiosStr.endsWith(',')) cambiosStr = cambiosStr.slice(0, -1);
+    }
+    // Reemplazar nombres de campo por su versión formal
+    const cambios = cambiosStr.split(',').map(s => {
+      const match = s.match(/([a-zA-ZñÑáéíóúÁÉÍÓÚ]+) \(de '([^']*)' a '([^']*)'\)/);
+      if (match) {
+        const campo = match[1];
+        const campoFormal = traduccionCampos[campo] || campo.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+        return s.replace(campo, campoFormal);
+      }
+      return s;
+    });
+    return `Actualización de información laboral: ${cambios.join(', ')}${sufijo}`;
+  }
+
   // Reemplazar la función renderCamposManuales por una versión que parsea los campos modificados desde observaciones si corresponde
   const renderCamposManuales = (item: any) => {
     const campos: string[] = [];
@@ -336,9 +363,17 @@ export default function HistorialLaboralPage() {
     // Si las observaciones contienen el patrón de actualización laboral, parsear los campos modificados
     if (obs && obs.startsWith('Actualización de información laboral:')) {
       // Extraer la parte después de ':'
-      const cambiosStr = obs.split(':')[1];
+      let cambiosStr = obs.split(':')[1];
+      // Si contiene '+ subida de contrato PDF', quitarlo para parsear los campos
+      let contieneSubidaContrato = false;
+      if (cambiosStr.includes('+ subida de contrato PDF')) {
+        contieneSubidaContrato = true;
+        cambiosStr = cambiosStr.replace('+ subida de contrato PDF', '').trim();
+        // Si termina en una coma, quitarla
+        if (cambiosStr.endsWith(',')) cambiosStr = cambiosStr.slice(0, -1);
+      }
       // Separar por coma los cambios
-      const cambios = cambiosStr.split(',').map(s => s.trim());
+      const cambios = cambiosStr.split(',').map(s => s.trim()).filter(Boolean);
       cambios.forEach(cambio => {
         // Ejemplo: cargo (de 'Encargado' a 'Encar')
         const match = cambio.match(/([a-zA-ZñÑáéíóúÁÉÍÓÚ]+) \(de '([^']*)' a '([^']*)'\)/);
@@ -351,6 +386,10 @@ export default function HistorialLaboralPage() {
           campos.push(`${campoFormal}: ${valorNuevo}`);
         }
       });
+      // Si la observación contenía subida de contrato, agregar el badge
+      if (contieneSubidaContrato) {
+        campos.push('Subida de Contrato');
+      }
       return campos;
     }
 
@@ -869,7 +908,7 @@ export default function HistorialLaboralPage() {
                                 </div>
                                 <p className="mb-0 small bg-light p-2 rounded">
                                   <i className="bi bi-info-circle me-1"></i>
-                                  {observacionesItem}
+                                  {formatearDescripcionObservaciones(observacionesItem, traduccionCampos)}
                                 </p>
                               </div>
                             )}
