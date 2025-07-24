@@ -338,7 +338,7 @@ export default function HistorialLaboralPage() {
     let sufijo = '';
     // Si contiene '+ subida de contrato PDF', separarlo
     if (cambiosStr.includes('+ subida de contrato PDF')) {
-      sufijo = ' + subida de contrato PDF';
+      sufijo = ' + Subida de Contrato PDF';
       cambiosStr = cambiosStr.replace('+ subida de contrato PDF', '').trim();
       if (cambiosStr.endsWith(',')) cambiosStr = cambiosStr.slice(0, -1);
     }
