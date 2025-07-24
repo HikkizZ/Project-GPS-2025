@@ -287,6 +287,7 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
         centered
         backdrop={contratoEliminado ? 'static' : true}
         keyboard={!contratoEliminado}
+        className="editar-ficha-empresa-modal"
       >
         <Modal.Header 
           closeButton={!contratoEliminado}
@@ -439,6 +440,7 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
                   <Form.Label className="fw-semibold">Fecha Inicio <span className="text-danger">*</span></Form.Label>
                   <Form.Control
                     type="date"
+                    id="editar-ficha-empresa-fecha-inicio"
                     name="fechaInicioContrato"
                     value={formData.fechaInicioContrato}
                     onChange={handleInputChange}
