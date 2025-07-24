@@ -443,6 +443,9 @@ export async function updateFichaEmpresaService(
 
         if ('fechaFinContrato' in fichaData && fichaData.fechaFinContrato) {
             const fechaFin = new Date(fichaData.fechaFinContrato);
+            if (!fichaActual.fechaInicioContrato) {
+                return [null, { message: "No existe fecha de inicio de contrato para comparar" }];
+            }
             if (fechaFin <= fichaActual.fechaInicioContrato) {
                 return [null, { message: "La fecha de fin de contrato debe ser posterior a la fecha de inicio" }];
             }
