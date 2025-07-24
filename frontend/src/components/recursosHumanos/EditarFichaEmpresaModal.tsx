@@ -231,6 +231,7 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
     // (opcional: puedes dejar la validación actual para updates normales)
 
     if (!isValid) {
+      // No mostrar toast de error, solo dejar los mensajes en rojo bajo los campos
       return;
     }
     setLoading(true);
@@ -247,7 +248,8 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
         fechaFinContrato: esIndefinido ? undefined : formData.fechaFinContrato || undefined
       };
       if (!dataToSubmit.sueldoBase || dataToSubmit.sueldoBase <= 0) {
-        throw new Error('El sueldo base debe ser mayor a 0');
+        // No mostrar toast de error, solo dejar los mensajes en rojo bajo los campos
+        return;
       }
       let response;
       if (selectedFile) {
@@ -266,14 +268,19 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
         if (onUpdate) onUpdate();
         onHide();
       } else {
+        // Solo mostrar toast si es un error general del backend
         showError('Error al actualizar', response.message || 'Error al actualizar la ficha', 6000);
       }
     } catch (error: any) {
+      // Solo mostrar toast si es un error inesperado del backend
       showError('Error inesperado', error.message || 'Error inesperado al actualizar la ficha', 6000);
     } finally {
       setLoading(false);
     }
   };
+
+  // Helper para el tipo correcto de backdrop
+  const getBackdropValue = (): true | 'static' => (contratoEliminado ? 'static' : true);
 
   return (
     <>
@@ -651,40 +658,43 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
       </Modal>
 
       {/* Sistema de notificaciones */}
-      <div 
-        style={{ 
-          position: 'fixed', 
-          top: '20px', 
-          left: '50%',
-          transform: 'translateX(-50%)',
-          zIndex: 10000,
-          width: 'auto',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center'
-        }}
-      >
-        {toasts.map((toast) => (
-          <BootstrapToast
-            key={toast.id}
-            onClose={() => removeToast(toast.id)}
-            show={true}
-            delay={toast.duration || 5000}
-            autohide
-            className="toast-custom mb-2"
-          >
-            <BootstrapToast.Header className={`toast-header-${toast.type}`}>
-              <div className="d-flex align-items-center">
-                <i className={`bi ${toast.type === 'success' ? 'bi-check-circle-fill' : toast.type === 'error' ? 'bi-exclamation-triangle-fill' : 'bi-info-circle-fill'} me-2`}></i>
-                <strong className="me-auto">{toast.title}</strong>
-              </div>
-            </BootstrapToast.Header>
-            <BootstrapToast.Body className="toast-body">
-              {toast.message}
-            </BootstrapToast.Body>
-          </BootstrapToast>
-        ))}
-      </div>
+      {/* Solo mostrar los toasts si hay mensajes de archivos o errores generales, no por validaciones de formulario */}
+      {toasts.length > 0 && (
+        <div
+          style={{ 
+            position: 'fixed', 
+            top: '20px', 
+            left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 10000,
+            width: 'auto',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center'
+          }}
+        >
+          {toasts.map((toast) => (
+            <BootstrapToast
+              key={toast.id}
+              onClose={() => removeToast(toast.id)}
+              show={true}
+              delay={toast.duration || 5000}
+              autohide
+              className="toast-custom mb-2"
+            >
+              <BootstrapToast.Header className={`toast-header-${toast.type}`}>
+                <div className="d-flex align-items-center">
+                  <i className={`bi ${toast.type === 'success' ? 'bi-check-circle-fill' : toast.type === 'error' ? 'bi-exclamation-triangle-fill' : 'bi-info-circle-fill'} me-2`}></i>
+                  <strong className="me-auto">{toast.title}</strong>
+                </div>
+              </BootstrapToast.Header>
+              <BootstrapToast.Body className="toast-body">
+                {toast.message}
+              </BootstrapToast.Body>
+            </BootstrapToast>
+          ))}
+        </div>
+      )}
     </>
   );
 }; 
