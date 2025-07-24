@@ -243,7 +243,10 @@ export class FichaEmpresaService {
   }
 
   static formatFecha(fecha: Date | string): string {
-    return new Date(fecha).toLocaleDateString('es-CL');
+    if (!fecha) return '-';
+    const d = new Date(fecha);
+    if (isNaN(d.getTime())) return '-';
+    return d.toLocaleDateString('es-CL');
   }
 
   static getEstadoLaboralColor(estado: EstadoLaboral): string {

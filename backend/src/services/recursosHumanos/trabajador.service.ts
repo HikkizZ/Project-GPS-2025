@@ -293,7 +293,8 @@ export async function createTrabajadorService(trabajadorData: Partial<Trabajador
                 sueldoBase: 0,
                 trabajador: trabajadorGuardado,
                 estado: EstadoLaboral.ACTIVO,
-                fechaInicioContrato: trabajadorGuardado.fechaIngreso
+                fechaInicioContrato: undefined,
+                fechaFinContrato: undefined
             });
             await queryRunner.manager.save(FichaEmpresa, fichaEmpresa);
 

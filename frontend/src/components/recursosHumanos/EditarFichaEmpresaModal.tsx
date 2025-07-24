@@ -85,8 +85,8 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
     tipoContrato: (ficha.tipoContrato && ficha.tipoContrato !== 'Por Definir') ? ficha.tipoContrato : '',
     jornadaLaboral: (ficha.jornadaLaboral && ficha.jornadaLaboral !== 'Por Definir') ? ficha.jornadaLaboral : '',
     sueldoBase: ficha.sueldoBase ? formatMiles(ficha.sueldoBase) : '',
-    fechaInicioContrato: formatLocalDate(ficha.fechaInicioContrato),
-    fechaFinContrato: formatLocalDate(ficha.fechaFinContrato)
+    fechaInicioContrato: ficha.fechaInicioContrato ? formatLocalDate(ficha.fechaInicioContrato) : '',
+    fechaFinContrato: ficha.fechaFinContrato ? formatLocalDate(ficha.fechaFinContrato) : ''
   });
 
   useEffect(() => {
@@ -97,8 +97,8 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
         tipoContrato: (ficha.tipoContrato && ficha.tipoContrato !== 'Por Definir') ? ficha.tipoContrato : '',
         jornadaLaboral: (ficha.jornadaLaboral && ficha.jornadaLaboral !== 'Por Definir') ? ficha.jornadaLaboral : '',
         sueldoBase: ficha.sueldoBase ? formatMiles(ficha.sueldoBase) : '',
-        fechaInicioContrato: formatLocalDate(ficha.fechaInicioContrato),
-        fechaFinContrato: formatLocalDate(ficha.fechaFinContrato)
+        fechaInicioContrato: ficha.fechaInicioContrato ? formatLocalDate(ficha.fechaInicioContrato) : '',
+        fechaFinContrato: ficha.fechaFinContrato ? formatLocalDate(ficha.fechaFinContrato) : ''
       };
       setFormData(newFormData);
       setInitialFormData(newFormData);
@@ -448,7 +448,7 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
                     onChange={handleInputChange}
                     required
                     style={{ borderRadius: '8px' }}
-                    isInvalid={validated && !formData.fechaInicioContrato}
+                    isInvalid={!!validated && !formData.fechaInicioContrato}
                   />
                   <Form.Control.Feedback type="invalid">
                     {validated && !formData.fechaInicioContrato && 'Completa este campo'}
