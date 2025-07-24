@@ -464,6 +464,7 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
                   <Form.Label className="fw-semibold">Fecha Fin {((tipoContratoActual === 'Plazo Fijo' || tipoContratoActual === 'Por Obra' || tipoContratoActual === 'Part-Time') && esPrimerUpdate) && <span className="text-danger">*</span>}</Form.Label>
                   <Form.Control
                     type="date"
+                    id="editar-ficha-empresa-fecha-fin"
                     name="fechaFinContrato"
                     value={formData.fechaFinContrato}
                     onChange={handleInputChange}
