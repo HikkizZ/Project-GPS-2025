@@ -336,9 +336,17 @@ export default function HistorialLaboralPage() {
     // Si las observaciones contienen el patrón de actualización laboral, parsear los campos modificados
     if (obs && obs.startsWith('Actualización de información laboral:')) {
       // Extraer la parte después de ':'
-      const cambiosStr = obs.split(':')[1];
+      let cambiosStr = obs.split(':')[1];
+      // Si contiene '+ subida de contrato PDF', quitarlo para parsear los campos
+      let contieneSubidaContrato = false;
+      if (cambiosStr.includes('+ subida de contrato PDF')) {
+        contieneSubidaContrato = true;
+        cambiosStr = cambiosStr.replace('+ subida de contrato PDF', '').trim();
+        // Si termina en una coma, quitarla
+        if (cambiosStr.endsWith(',')) cambiosStr = cambiosStr.slice(0, -1);
+      }
       // Separar por coma los cambios
-      const cambios = cambiosStr.split(',').map(s => s.trim());
+      const cambios = cambiosStr.split(',').map(s => s.trim()).filter(Boolean);
       cambios.forEach(cambio => {
         // Ejemplo: cargo (de 'Encargado' a 'Encar')
         const match = cambio.match(/([a-zA-ZñÑáéíóúÁÉÍÓÚ]+) \(de '([^']*)' a '([^']*)'\)/);
@@ -351,6 +359,10 @@ export default function HistorialLaboralPage() {
           campos.push(`${campoFormal}: ${valorNuevo}`);
         }
       });
+      // Si la observación contenía subida de contrato, agregar el badge
+      if (contieneSubidaContrato) {
+        campos.push('Subida de Contrato');
+      }
       return campos;
     }
 
