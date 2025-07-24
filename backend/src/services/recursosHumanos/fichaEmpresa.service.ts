@@ -9,7 +9,7 @@ import { FileUploadService } from "../../services/fileUpload.service.js";
 import path from 'path';
 import { get } from "http";
 import { Bono } from "../../entity/recursosHumanos/Remuneraciones/Bono.entity.js";
-import { AsignarBono } from "entity/recursosHumanos/Remuneraciones/asignarBono.entity.js"; 
+import { AsignarBono } from "../../entity/recursosHumanos/Remuneraciones/asignarBono.entity.js"; 
 import { 
     AsignarBonoDTO,
     UpdateAsignarBonoDTO, 
