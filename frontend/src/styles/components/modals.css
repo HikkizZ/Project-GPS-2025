@@ -260,6 +260,53 @@
   border: 1px solid #ffeaa7;
 }
 
+/* Quitar el ícono de advertencia en el input de fecha de inicio cuando está inválido en EditarFichaEmpresaModal */
+#editar-ficha-empresa-fecha-inicio.is-invalid::-webkit-calendar-picker-indicator {
+  filter: none !important;
+  box-shadow: none !important;
+  border: none !important;
+  outline: none !important;
+}
+#editar-ficha-empresa-fecha-inicio.is-invalid {
+  background-image: none !important;
+}
+/* Para Firefox */
+#editar-ficha-empresa-fecha-inicio.is-invalid::-moz-focus-inner,
+#editar-ficha-empresa-fecha-inicio.is-invalid::-moz-focus-outer {
+  border: none !important;
+}
+
+/* Quitar el ícono de advertencia en el input de fecha de nacimiento cuando está inválido en el registro de trabajador (modal) */
+#register-trabajador-fecha-nacimiento.is-invalid::-webkit-calendar-picker-indicator {
+  filter: none !important;
+  box-shadow: none !important;
+  border: none !important;
+  outline: none !important;
+}
+#register-trabajador-fecha-nacimiento.is-invalid {
+  background-image: none !important;
+}
+#register-trabajador-fecha-nacimiento.is-invalid::-moz-focus-inner,
+#register-trabajador-fecha-nacimiento.is-invalid::-moz-focus-outer {
+  border: none !important;
+}
+
+/* Quitar el ícono de advertencia en el input de fecha de fin cuando está inválido en EditarFichaEmpresaModal */
+#editar-ficha-empresa-fecha-fin.is-invalid::-webkit-calendar-picker-indicator {
+  filter: none !important;
+  box-shadow: none !important;
+  border: none !important;
+  outline: none !important;
+}
+#editar-ficha-empresa-fecha-fin.is-invalid {
+  background-image: none !important;
+}
+/* Para Firefox */
+#editar-ficha-empresa-fecha-fin.is-invalid::-moz-focus-inner,
+#editar-ficha-empresa-fecha-fin.is-invalid::-moz-focus-outer {
+  border: none !important;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .modal-dialog {

@@ -314,13 +314,50 @@ export default function HistorialLaboralPage() {
     }).length;
   };
 
+  // Diccionario de traducción para los nombres de los campos
+  const traduccionCampos: Record<string, string> = {
+    cargo: 'Cargo',
+    area: 'Área',
+    tipoContrato: 'Tipo de Contrato',
+    jornadaLaboral: 'Jornada Laboral',
+    sueldoBase: 'Sueldo Base',
+    fechaFinContrato: 'Fecha Fin Contrato',
+    fechaInicioContrato: 'Fecha Inicio Contrato',
+    afp: 'AFP',
+    previsionSalud: 'Previsión Salud',
+    seguroCesantia: 'Seguro Cesantía',
+  };
+
+  // Reemplazar la función renderCamposManuales por una versión que parsea los campos modificados desde observaciones si corresponde
   const renderCamposManuales = (item: any) => {
-    const campos = [];
-    
+    const campos: string[] = [];
+    const obs = modoVista === 'unificado' ? (item as HistorialUnificado).descripcion : (item as HistorialLaboral).observaciones;
+
+    // Si las observaciones contienen el patrón de actualización laboral, parsear los campos modificados
+    if (obs && obs.startsWith('Actualización de información laboral:')) {
+      // Extraer la parte después de ':'
+      const cambiosStr = obs.split(':')[1];
+      // Separar por coma los cambios
+      const cambios = cambiosStr.split(',').map(s => s.trim());
+      cambios.forEach(cambio => {
+        // Ejemplo: cargo (de 'Encargado' a 'Encar')
+        const match = cambio.match(/([a-zA-ZñÑáéíóúÁÉÍÓÚ]+) \(de '([^']*)' a '([^']*)'\)/);
+        if (match) {
+          let campo = match[1];
+          const valorAnterior = match[2];
+          const valorNuevo = match[3];
+          // Usar el diccionario de traducción si existe
+          const campoFormal = traduccionCampos[campo] || campo.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+          campos.push(`${campoFormal}: ${valorNuevo}`);
+        }
+      });
+      return campos;
+    }
+
+    // Lógica anterior para otros casos
     if (modoVista === 'unificado') {
       const itemUnificado = item as HistorialUnificado;
       const detalles = itemUnificado.detalles;
-      const obs = itemUnificado.descripcion;
       const esActualizacionLaboral = obs === 'Actualización de información laboral';
       const esSubidaContrato = obs === 'Subida de contrato PDF';
       const esAmbos = obs === 'Actualización de información laboral y subida de contrato PDF';

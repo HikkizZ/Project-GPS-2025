@@ -83,7 +83,7 @@ export class FichaEmpresa {
 
   @Column({
     type: "date",
-    nullable: false,
+    nullable: true,
     transformer: {
       to: (value: Date | string | null): string | null => {
         if (!value) return null;
@@ -106,7 +106,7 @@ export class FichaEmpresa {
       }
     }
   })
-  fechaInicioContrato!: Date;
+  fechaInicioContrato?: Date | null;
 
   @Column({
     type: "date",

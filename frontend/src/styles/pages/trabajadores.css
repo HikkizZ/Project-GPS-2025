@@ -59,19 +59,3 @@
     margin-bottom: 0.5rem;
   }
 }
-
-/* Quitar el ícono de advertencia en el input de fecha de nacimiento cuando está inválido en el registro de trabajador */
-#register-trabajador-fecha-nacimiento.is-invalid::-webkit-calendar-picker-indicator {
-  filter: none !important;
-  box-shadow: none !important;
-  border: none !important;
-  outline: none !important;
-}
-#register-trabajador-fecha-nacimiento.is-invalid {
-  background-image: none !important;
-}
-/* Para Firefox */
-#register-trabajador-fecha-nacimiento.is-invalid::-moz-focus-inner,
-#register-trabajador-fecha-nacimiento.is-invalid::-moz-focus-outer {
-  border: none !important;
-} 

@@ -90,7 +90,7 @@ export class FichaEmpresaService {
   // Actualizar ficha
   async updateFichaEmpresa(id: number, data: any): Promise<ApiResponse<FichaEmpresa>> {
     try {
-      const response = await apiClient.put<{ data: FichaEmpresa }>(`${this.baseURL}/${id}`, data);
+      const response = await apiClient.patch<{ data: FichaEmpresa }>(`${this.baseURL}/${id}`, data);
       return {
         success: true,
         message: 'Ficha actualizada exitosamente',
@@ -243,7 +243,10 @@ export class FichaEmpresaService {
   }
 
   static formatFecha(fecha: Date | string): string {
-    return new Date(fecha).toLocaleDateString('es-CL');
+    if (!fecha) return '-';
+    const d = new Date(fecha);
+    if (isNaN(d.getTime())) return '-';
+    return d.toLocaleDateString('es-CL');
   }
 
   static getEstadoLaboralColor(estado: EstadoLaboral): string {
