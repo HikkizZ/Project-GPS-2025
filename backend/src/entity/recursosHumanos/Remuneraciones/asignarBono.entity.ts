@@ -5,7 +5,6 @@ import {
     ManyToOne
 } from "typeorm";
 import { FichaEmpresa } from "../fichaEmpresa.entity.js";
-import { Bono } from "./Bono.entity.js";
 
 @Entity("asignar_bono")
 export class AsignarBono {
@@ -17,8 +16,8 @@ export class AsignarBono {
         fichaEmpresa!: FichaEmpresa;
         
     // Relación con el bono asignado
-    @ManyToOne(() => Bono, bono => bono.asignaciones, { nullable: false })
-        bono!: Bono;
+    @ManyToOne("bonos", { nullable: false })
+        bono!: any;
 
     // Fecha de asignación del bono
     @Column({ 

@@ -7,7 +7,6 @@ import {
   ManyToOne,
   JoinColumn,
 } from "typeorm"
-import { Maquinaria } from "./maquinaria.entity.js"
 
 export enum GrupoMaquinaria {
   CAMION_TOLVA = "camion_tolva",
@@ -88,15 +87,15 @@ export class CompraMaquinaria {
 
   // Relación con Maquinaria
   @ManyToOne(
-    () => Maquinaria,
-    (maquinaria) => maquinaria.compras,
+    "maquinarias",
+    (maquinarias: any) => maquinarias.compras,
     {
       nullable: true,
       onDelete: "CASCADE",
     },
   )
   @JoinColumn({ name: "maquinaria_id" })
-  maquinaria?: Maquinaria
+  maquinaria?: any;
 
   @Column({ type: "int", nullable: true })
   maquinaria_id?: number

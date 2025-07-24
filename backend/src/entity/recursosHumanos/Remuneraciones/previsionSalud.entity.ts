@@ -5,8 +5,6 @@ import {
     OneToMany
 } from "typeorm";
 
-import { DatosPrevisionalesTrabajador } from "./datosPrevisionalesTrabajador.entity.js";
-
 export enum TipoPrevisionSalud {
     ISAPRE = "ISAPRE",
     FONASA = "FONASA"
@@ -17,8 +15,8 @@ export class PrevisionSalud {
     @PrimaryGeneratedColumn()
     id!: number;
 
-    @OneToMany(() => DatosPrevisionalesTrabajador, asignacion => asignacion.salud)
-        asignacionesS!: DatosPrevisionalesTrabajador;
+    @OneToMany("datosPrevisionalesTrabajadores", (asignacion: any)=> asignacion.salud)
+        asignacionesS!: any;
 
     @Column({ type: "enum", enum: TipoPrevisionSalud, default: TipoPrevisionSalud.FONASA })
     tipo!: TipoPrevisionSalud;
