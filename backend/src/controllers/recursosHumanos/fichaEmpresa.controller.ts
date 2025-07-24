@@ -24,7 +24,7 @@ import {
 } from "../../validations/recursosHumanos/remuneraciones/bono.validation.js";
 import path from 'path';
 import fs from 'fs';
-import { AsignarBono } from "entity/recursosHumanos/Remuneraciones/asignarBono.entity.js";
+import { AsignarBono } from "../../entity/recursosHumanos/Remuneraciones/asignarBono.entity.js";
 
 export async function getFichasEmpresa(req: Request, res: Response) {
     try {

@@ -13,7 +13,7 @@ import { AsignarBono } from "entity/recursosHumanos/Remuneraciones/asignarBono.e
 import { 
     AsignarBonoDTO,
     UpdateAsignarBonoDTO, 
-} from "types/recursosHumanos/bono.dto.js";
+} from "../../types/recursosHumanos/bono.dto.js";
 
 // Interfaz para los parámetros de búsqueda
 interface SearchFichaParams {

@@ -1,5 +1,4 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from "typeorm"
-import { Maquinaria } from "./maquinaria.entity.js"
 
 @Entity("ventas_maquinaria")
 export class VentaMaquinaria {
@@ -33,9 +32,9 @@ export class VentaMaquinaria {
   fechaRegistro!: Date
 
   @ManyToOne(
-    () => Maquinaria,
-    (maquinaria) => maquinaria.ventas,
+    "maquinarias",
+    (maquinarias: any) => maquinarias.ventas,
   )
   @JoinColumn({ name: "maquinariaId" })
-  maquinaria!: Maquinaria
+  maquinaria!: any
 }

@@ -7,7 +7,6 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
 } from "typeorm"
-import { Maquinaria } from "./maquinaria.entity.js"
 
 @Entity("arriendos_maquinaria")
 export class ArriendoMaquinaria {
@@ -18,9 +17,9 @@ export class ArriendoMaquinaria {
   numeroReporte!: string
 
   // Relación con Maquinaria
-  @ManyToOne(() => Maquinaria, { nullable: false })
+  @ManyToOne("maquinarias", { nullable: false })
   @JoinColumn({ name: "maquinaria_id" })
-  maquinaria!: Maquinaria
+  maquinaria!: any;
 
   @Column({ type: "int", name: "maquinaria_id" })
   maquinariaId!: number

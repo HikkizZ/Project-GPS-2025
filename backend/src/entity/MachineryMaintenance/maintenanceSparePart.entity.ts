@@ -6,9 +6,6 @@ import {
   JoinColumn
 } from 'typeorm';
 
-import { SparePart } from '../MachineryMaintenance/SparePart.entity.js';
-import { MaintenanceRecord } from './maintenanceRecord.entity.js';
-
 @Entity('maintenance_spare_parts')
 export class MaintenanceSparePart {
   @PrimaryGeneratedColumn()
@@ -20,11 +17,11 @@ export class MaintenanceSparePart {
   })
   cantidadUtilizada!: number;
 
-  @ManyToOne(() => SparePart, { nullable: false })
+  @ManyToOne("spare_parts", { nullable: false })
   @JoinColumn({ name: 'repuestoId' })
-  repuesto!: SparePart;
+  repuesto!: any;
 
-  @ManyToOne(() => MaintenanceRecord, mantencion => mantencion.repuestosUtilizados, { nullable: false, onDelete: 'CASCADE' })
+  @ManyToOne("maintenance_records", (mantencion: any) => mantencion.repuestosUtilizados, { nullable: false, onDelete: 'CASCADE' })
   @JoinColumn({ name: 'mantencionId' })
-  mantencion!: MaintenanceRecord;
+  mantencion!: any;
 }
