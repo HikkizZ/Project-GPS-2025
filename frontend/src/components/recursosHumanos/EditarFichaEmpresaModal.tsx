@@ -469,7 +469,12 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
                     value={formData.fechaFinContrato}
                     onChange={handleInputChange}
                     style={{ borderRadius: '8px' }}
-                    disabled={!tipoContratoActual || tipoContratoActual === 'Indefinido'}
+                    disabled={
+                      !tipoContratoActual ||
+                      tipoContratoActual === 'Indefinido' ||
+                      !formData.fechaInicioContrato ||
+                      !/^\d{4}-\d{2}-\d{2}$/.test(formData.fechaInicioContrato)
+                    }
                     required={tipoContratoActual === 'Plazo Fijo' || tipoContratoActual === 'Por Obra' || tipoContratoActual === 'Part-Time'}
                     isInvalid={
                       validated && (
@@ -478,10 +483,22 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
                       (validated && (tipoContratoActual === 'Plazo Fijo' || tipoContratoActual === 'Por Obra' || tipoContratoActual === 'Part-Time') && formData.fechaFinContrato && !/^\d{4}-\d{2}-\d{2}$/.test(formData.fechaFinContrato)) ||
                       (validated && tipoContratoActual === 'Indefinido' && !!formData.fechaFinContrato)
                     }
+                    min={
+                      formData.fechaInicioContrato && /^\d{4}-\d{2}-\d{2}$/.test(formData.fechaInicioContrato)
+                        ? formData.fechaInicioContrato
+                        : undefined
+                    }
                   />
                   <Form.Text className="text-muted small">
                     <i className="bi bi-info-circle me-1"></i>
-                    {!tipoContratoActual ? 'Seleccione primero un tipo de contrato' : tipoContratoActual === 'Indefinido' ? 'No debe ingresar fecha fin para contratos indefinidos' : 'Obligatorio para contratos no indefinidos'}
+                    {!tipoContratoActual ? 'Seleccione primero un tipo de contrato' :
+                      tipoContratoActual === 'Indefinido' ? 'No debe ingresar fecha fin para contratos indefinidos' :
+                      'Obligatorio para contratos no indefinidos'}
+                    {((tipoContratoActual === 'Plazo Fijo' || tipoContratoActual === 'Por Obra' || tipoContratoActual === 'Part-Time') && (!formData.fechaInicioContrato || !/^\d{4}-\d{2}-\d{2}$/.test(formData.fechaInicioContrato))) && (
+                      <>
+                        <br/>( La Fecha Fin se habilita después de ingresar una Fecha de Inicio ).
+                      </>
+                    )}
                   </Form.Text>
                   <Form.Control.Feedback type="invalid">
                     {validated && (tipoContratoActual === 'Plazo Fijo' || tipoContratoActual === 'Por Obra' || tipoContratoActual === 'Part-Time') && !formData.fechaFinContrato && 'Completa este campo'}
