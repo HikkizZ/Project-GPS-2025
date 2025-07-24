@@ -314,6 +314,20 @@ export default function HistorialLaboralPage() {
     }).length;
   };
 
+  // Diccionario de traducción para los nombres de los campos
+  const traduccionCampos: Record<string, string> = {
+    cargo: 'Cargo',
+    area: 'Área',
+    tipoContrato: 'Tipo de Contrato',
+    jornadaLaboral: 'Jornada Laboral',
+    sueldoBase: 'Sueldo Base',
+    fechaFinContrato: 'Fecha Fin Contrato',
+    fechaInicioContrato: 'Fecha Inicio Contrato',
+    afp: 'AFP',
+    previsionSalud: 'Previsión Salud',
+    seguroCesantia: 'Seguro Cesantía',
+  };
+
   // Reemplazar la función renderCamposManuales por una versión que parsea los campos modificados desde observaciones si corresponde
   const renderCamposManuales = (item: any) => {
     const campos: string[] = [];
@@ -329,11 +343,12 @@ export default function HistorialLaboralPage() {
         // Ejemplo: cargo (de 'Encargado' a 'Encar')
         const match = cambio.match(/([a-zA-ZñÑáéíóúÁÉÍÓÚ]+) \(de '([^']*)' a '([^']*)'\)/);
         if (match) {
-          const campo = match[1];
+          let campo = match[1];
           const valorAnterior = match[2];
           const valorNuevo = match[3];
-          // Mostrar el campo y el nuevo valor como chip
-          campos.push(`${campo}: ${valorNuevo}`);
+          // Usar el diccionario de traducción si existe
+          const campoFormal = traduccionCampos[campo] || campo.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+          campos.push(`${campoFormal}: ${valorNuevo}`);
         }
       });
       return campos;

@@ -378,7 +378,8 @@ export async function updateFichaEmpresaService(
                 { key: 'area', label: 'Área' },
                 { key: 'tipoContrato', label: 'Tipo de contrato' },
                 { key: 'jornadaLaboral', label: 'Jornada laboral' },
-                { key: 'sueldoBase', label: 'Sueldo base' }
+                { key: 'sueldoBase', label: 'Sueldo base' },
+                { key: 'fechaInicioContrato', label: 'Fecha de inicio de contrato' }
             ];
             const faltantes = camposObligatorios.filter(campo => {
                 const nuevoValor = (fichaData as any)[campo.key];
