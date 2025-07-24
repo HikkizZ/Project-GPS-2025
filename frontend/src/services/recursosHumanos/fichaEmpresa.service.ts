@@ -90,7 +90,7 @@ export class FichaEmpresaService {
   // Actualizar ficha
   async updateFichaEmpresa(id: number, data: any): Promise<ApiResponse<FichaEmpresa>> {
     try {
-      const response = await apiClient.put<{ data: FichaEmpresa }>(`${this.baseURL}/${id}`, data);
+      const response = await apiClient.patch<{ data: FichaEmpresa }>(`${this.baseURL}/${id}`, data);
       return {
         success: true,
         message: 'Ficha actualizada exitosamente',

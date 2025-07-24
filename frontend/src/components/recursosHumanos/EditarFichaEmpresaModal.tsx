@@ -198,31 +198,45 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
     }
   };
 
+  // Detectar si es el primer update (todos los campos clave vacíos o por defecto)
+  const esPrimerUpdate = !ficha.cargo && !ficha.area && !ficha.tipoContrato && !ficha.jornadaLaboral && (!ficha.sueldoBase || ficha.sueldoBase === 0);
+
+  // Lógica para habilitar/deshabilitar fecha fin según tipo de contrato
+  const tipoContratoActual = formData.tipoContrato;
+  const esIndefinido = tipoContratoActual === 'Indefinido';
+
+  // Validación dinámica en el submit
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setValidated(true);
-    
-    // Validar campos requeridos
-    const isValid = formData.cargo.trim() && formData.cargo.trim() !== 'Por Definir' &&
-                   formData.area.trim() && formData.area.trim() !== 'Por Definir' &&
-                   formData.tipoContrato && formData.tipoContrato !== 'Por Definir' &&
-                   formData.jornadaLaboral && formData.jornadaLaboral !== 'Por Definir' &&
-                   formData.sueldoBase && 
-                   parseInt(cleanNumber(formData.sueldoBase)) > 0 && 
-                   formData.fechaInicioContrato;
-    
-    if (!isValid) {
-      return; // No mostrar mensaje de error general, dejar que los campos individuales muestren sus errores
-    }
-    
-    setLoading(true);
 
+    // Validar campos requeridos SOLO en el primer update
+    let isValid = true;
+    if (esPrimerUpdate) {
+      isValid = formData.cargo.trim() && formData.cargo.trim() !== 'Por Definir' &&
+                formData.area.trim() && formData.area.trim() !== 'Por Definir' &&
+                formData.tipoContrato && formData.tipoContrato !== 'Por Definir' &&
+                formData.jornadaLaboral && formData.jornadaLaboral !== 'Por Definir' &&
+                formData.sueldoBase && parseInt(cleanNumber(formData.sueldoBase)) > 0 &&
+                formData.fechaInicioContrato;
+      // Validar fecha fin según tipo de contrato
+      if (esIndefinido && formData.fechaFinContrato) {
+        isValid = false;
+      }
+      if (!esIndefinido && !formData.fechaFinContrato) {
+        isValid = false;
+      }
+    }
+    // En updates posteriores, solo validar campos editados si existen
+    // (opcional: puedes dejar la validación actual para updates normales)
+
+    if (!isValid) {
+      return;
+    }
+    setLoading(true);
     try {
       const fichaId = typeof ficha.id === 'string' ? parseInt(ficha.id) : ficha.id;
-
-      // Procesar los datos antes de enviarlos
       const sueldoBaseNumber = formData.sueldoBase ? parseInt(cleanNumber(formData.sueldoBase)) : 0;
-
       const dataToSubmit = {
         cargo: formData.cargo.trim(),
         area: formData.area.trim(),
@@ -230,16 +244,13 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
         jornadaLaboral: formData.jornadaLaboral,
         sueldoBase: sueldoBaseNumber,
         fechaInicioContrato: formData.fechaInicioContrato,
-        fechaFinContrato: formData.fechaFinContrato || undefined
+        fechaFinContrato: esIndefinido ? undefined : formData.fechaFinContrato || undefined
       };
-
       if (!dataToSubmit.sueldoBase || dataToSubmit.sueldoBase <= 0) {
         throw new Error('El sueldo base debe ser mayor a 0');
       }
-
       let response;
       if (selectedFile) {
-        // Enviar como FormData
         const formDataToSend = new FormData();
         Object.entries(dataToSubmit).forEach(([key, value]) => {
           if (value !== undefined && value !== null) {
@@ -249,13 +260,11 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
         formDataToSend.append('contrato', selectedFile);
         response = await updateFichaEmpresa(fichaId, formDataToSend);
       } else {
-        // Enviar como JSON
         response = await updateFichaEmpresa(fichaId, dataToSubmit);
       }
-      
       if (response.success) {
         if (onUpdate) onUpdate();
-        onHide(); // Cerrar inmediatamente
+        onHide();
       } else {
         showError('Error al actualizar', response.message || 'Error al actualizar la ficha', 6000);
       }
@@ -442,18 +451,25 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
               {/* Fecha Fin Contrato */}
               <Col md={4}>
                 <Form.Group>
-                  <Form.Label className="fw-semibold">Fecha Fin</Form.Label>
+                  <Form.Label className="fw-semibold">Fecha Fin {(!esIndefinido && esPrimerUpdate) && <span className="text-danger">*</span>}</Form.Label>
                   <Form.Control
                     type="date"
                     name="fechaFinContrato"
                     value={formData.fechaFinContrato}
                     onChange={handleInputChange}
                     style={{ borderRadius: '8px' }}
+                    disabled={esIndefinido}
+                    required={!esIndefinido && esPrimerUpdate}
+                    isInvalid={validated && !esIndefinido && esPrimerUpdate && !formData.fechaFinContrato}
                   />
                   <Form.Text className="text-muted small">
                     <i className="bi bi-info-circle me-1"></i>
-                    Opcional para contratos indefinidos
+                    {esIndefinido ? 'No debe ingresar fecha fin para contratos indefinidos' : 'Obligatorio para contratos no indefinidos'}
                   </Form.Text>
+                  <Form.Control.Feedback type="invalid">
+                    {validated && !esIndefinido && esPrimerUpdate && !formData.fechaFinContrato && 'Completa este campo'}
+                    {validated && esIndefinido && formData.fechaFinContrato && 'No debe ingresar fecha fin para contratos indefinidos'}
+                  </Form.Control.Feedback>
                 </Form.Group>
               </Col>
             </Row>

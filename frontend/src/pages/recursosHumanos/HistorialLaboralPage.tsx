@@ -314,13 +314,35 @@ export default function HistorialLaboralPage() {
     }).length;
   };
 
+  // Reemplazar la función renderCamposManuales por una versión que parsea los campos modificados desde observaciones si corresponde
   const renderCamposManuales = (item: any) => {
-    const campos = [];
-    
+    const campos: string[] = [];
+    const obs = modoVista === 'unificado' ? (item as HistorialUnificado).descripcion : (item as HistorialLaboral).observaciones;
+
+    // Si las observaciones contienen el patrón de actualización laboral, parsear los campos modificados
+    if (obs && obs.startsWith('Actualización de información laboral:')) {
+      // Extraer la parte después de ':'
+      const cambiosStr = obs.split(':')[1];
+      // Separar por coma los cambios
+      const cambios = cambiosStr.split(',').map(s => s.trim());
+      cambios.forEach(cambio => {
+        // Ejemplo: cargo (de 'Encargado' a 'Encar')
+        const match = cambio.match(/([a-zA-ZñÑáéíóúÁÉÍÓÚ]+) \(de '([^']*)' a '([^']*)'\)/);
+        if (match) {
+          const campo = match[1];
+          const valorAnterior = match[2];
+          const valorNuevo = match[3];
+          // Mostrar el campo y el nuevo valor como chip
+          campos.push(`${campo}: ${valorNuevo}`);
+        }
+      });
+      return campos;
+    }
+
+    // Lógica anterior para otros casos
     if (modoVista === 'unificado') {
       const itemUnificado = item as HistorialUnificado;
       const detalles = itemUnificado.detalles;
-      const obs = itemUnificado.descripcion;
       const esActualizacionLaboral = obs === 'Actualización de información laboral';
       const esSubidaContrato = obs === 'Subida de contrato PDF';
       const esAmbos = obs === 'Actualización de información laboral y subida de contrato PDF';

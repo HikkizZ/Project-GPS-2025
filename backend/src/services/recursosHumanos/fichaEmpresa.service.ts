@@ -369,6 +369,50 @@ export async function updateFichaEmpresaService(
             }
         }
 
+        // === INICIO: Validación de primer update y coherencia de fecha fin ===
+        // Detectar si es el primer update (campos clave vacíos o por defecto)
+        const esPrimerUpdate = !fichaActual.cargo && !fichaActual.area && !fichaActual.tipoContrato && !fichaActual.jornadaLaboral && (!fichaActual.sueldoBase || fichaActual.sueldoBase === 0);
+        if (esPrimerUpdate) {
+            const camposObligatorios = [
+                { key: 'cargo', label: 'Cargo' },
+                { key: 'area', label: 'Área' },
+                { key: 'tipoContrato', label: 'Tipo de contrato' },
+                { key: 'jornadaLaboral', label: 'Jornada laboral' },
+                { key: 'sueldoBase', label: 'Sueldo base' }
+            ];
+            const faltantes = camposObligatorios.filter(campo => {
+                const nuevoValor = (fichaData as any)[campo.key];
+                return nuevoValor === undefined || nuevoValor === null || nuevoValor === '' || (campo.key === 'sueldoBase' && (!nuevoValor || nuevoValor === 0));
+            });
+            if (faltantes.length > 0) {
+                return [null, { message: `En el primer update debe completar los siguientes campos obligatorios: ${faltantes.map(f => f.label).join(', ')}` }];
+            }
+        }
+
+        // Validar coherencia de fecha fin según tipo de contrato
+        const tipoContratoNuevo = fichaData.tipoContrato || fichaActual.tipoContrato;
+        const fechaFinNueva = fichaData.fechaFinContrato !== undefined ? fichaData.fechaFinContrato : fichaActual.fechaFinContrato;
+        if (tipoContratoNuevo === 'Indefinido') {
+            // No debe permitirse fecha fin
+            if (fechaFinNueva) {
+                return [null, { message: "No se debe ingresar fecha de fin para contratos indefinidos" }];
+            }
+        } else {
+            // Para otros tipos, la fecha fin es obligatoria y debe ser posterior a la de inicio
+            const fechaInicio = fichaData.fechaInicioContrato || fichaActual.fechaInicioContrato;
+            if (!fechaFinNueva) {
+                return [null, { message: "Debe ingresar fecha de fin para contratos que no son indefinidos" }];
+            }
+            if (fechaInicio && fechaFinNueva) {
+                const fechaFinDate = new Date(fechaFinNueva);
+                const fechaInicioDate = new Date(fechaInicio);
+                if (fechaFinDate <= fechaInicioDate) {
+                    return [null, { message: "La fecha de fin de contrato debe ser posterior a la fecha de inicio" }];
+                }
+            }
+        }
+        // === FIN: Validación de primer update y coherencia de fecha fin ===
+
         // 4. Validar cambios específicos
         if ('sueldoBase' in fichaData && fichaData.sueldoBase !== undefined) {
             if (fichaData.sueldoBase <= 0) {
@@ -514,10 +558,23 @@ export async function updateFichaEmpresaService(
 
         // Determinar observaciones
         let observaciones = '';
-        if (camposRealmenteModificados.length > 0 && huboSubidaContrato) {
-            observaciones = 'Actualización de información laboral y subida de contrato PDF';
-        } else if (camposRealmenteModificados.length > 0) {
-            observaciones = 'Actualización de información laboral';
+        if (camposRealmenteModificados.length > 0) {
+            // Listar los cambios con valores anteriores y nuevos
+            const cambios = camposRealmenteModificados.map(campo => {
+                const valorAnterior = valoresOriginales[campo];
+                const valorNuevo = (fichaData as any)[campo];
+                // Formatear fechas
+                if (campo.toLowerCase().includes('fecha')) {
+                    const va = valorAnterior ? new Date(valorAnterior).toISOString().split('T')[0] : '';
+                    const vn = valorNuevo ? new Date(valorNuevo).toISOString().split('T')[0] : '';
+                    return `${campo} (de '${va}' a '${vn}')`;
+                }
+                return `${campo} (de '${valorAnterior ?? ''}' a '${valorNuevo ?? ''}')`;
+            });
+            observaciones = `Actualización de información laboral: ${cambios.join(', ')}`;
+            if (huboSubidaContrato) {
+                observaciones += ' + subida de contrato PDF';
+            }
         } else if (huboSubidaContrato) {
             observaciones = 'Subida de contrato PDF';
         } else {
