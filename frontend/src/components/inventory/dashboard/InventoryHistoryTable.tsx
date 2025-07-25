@@ -1,20 +1,25 @@
-import React, { useState, useMemo } from "react"
-import { Table, Button, Spinner, Card } from "react-bootstrap"
-import type { InventoryEntry } from "@/types/inventory/inventory.types"
-import type { Product } from "@/types/inventory/product.types"
-import type { Supplier } from "@/types/stakeholders/supplier.types"
-import type { InventoryExit, MovementDetail } from "@/types/inventory/inventory.types"
+"use client";
+
+import React, { useState, useMemo } from "react";
+import { Table, Button, Spinner, Card } from "react-bootstrap";
+import type { InventoryEntry } from "@/types/inventory/inventory.types";
+import type { Product } from "@/types/inventory/product.types";
+import type { Supplier } from "@/types/stakeholders/supplier.types";
+import type {
+  InventoryExit,
+  MovementDetail,
+} from "@/types/inventory/inventory.types";
 
 interface InventoryHistoryTableProps {
-  entries: InventoryEntry[]
-  exits: InventoryExit[]
-  products: Product[]
-  suppliers: Supplier[]
-  isLoading: boolean
-  onViewDetails: (entry: InventoryEntry) => void
-  onDeleteEntry: (entry: InventoryEntry) => void
-  onDeleteExit: (exit: InventoryExit) => void
-  allEntriesCount: number
+  entries: InventoryEntry[];
+  exits: InventoryExit[];
+  products: Product[];
+  suppliers: Supplier[];
+  isLoading: boolean;
+  onViewDetails: (entry: InventoryEntry) => void;
+  onDeleteEntry: (entry: InventoryEntry) => void;
+  onDeleteExit: (exit: InventoryExit) => void;
+  allEntriesCount: number;
 }
 
 const InventoryHistoryTable: React.FC<InventoryHistoryTableProps> = ({
@@ -28,39 +33,65 @@ const InventoryHistoryTable: React.FC<InventoryHistoryTableProps> = ({
   onDeleteExit,
   allEntriesCount,
 }) => {
-  const [expandedMovementKey, setExpandedMovementKey] = useState<string | null>(null)
+  const [expandedMovementKey, setExpandedMovementKey] = useState<string | null>(
+    null
+  );
 
-
-  const getProductNameFromDetail = (detailProduct: { id: number; product: string; salePrice: number }): string => {
-    return detailProduct.product
-  }
+  const getProductNameFromDetail = (detailProduct: {
+    id: number;
+    product: string;
+    salePrice: number;
+  }): string => {
+    return detailProduct.product;
+  };
 
   const getPartyName = (party: { rut: string; name: string }): string => {
-    return party.name
-  }
+    return party.name;
+  };
 
-  const calculateMovementGrandTotal = (movement: InventoryEntry | InventoryExit): number => {
-    const details = movement.details as MovementDetail[]
-    return details.reduce((sum, detail) => sum + detail.totalPrice, 0)
-  }
+  const calculateMovementGrandTotal = (
+    movement: InventoryEntry | InventoryExit
+  ): number => {
+    const details = movement.details as MovementDetail[];
+    return details.reduce((sum, detail) => sum + detail.totalPrice, 0);
+  };
 
   const toggleDetails = (movementId: number, type: "entry" | "exit") => {
-    const key = `${type}-${movementId}`
-    setExpandedMovementKey(expandedMovementKey === key ? null : key)
-  }
-
+    const key = `${type}-${movementId}`;
+    setExpandedMovementKey(expandedMovementKey === key ? null : key);
+  };
 
   const combinedMovements = useMemo(() => {
     const allMovements = [
-      ...entries.map((e) => ({ ...e, type: "entry" as const })),
-      ...exits.map((x) => ({ ...x, type: "exit" as const })),
-    ]
+      ...entries.map((e) => ({
+        ...e,
+        type: "entry" as const,
+        // Usar createdAt si existe, sino usar entryDate como fallback
+        sortDate: (e as any).createdAt || e.entryDate,
+        displayDate: e.entryDate,
+      })),
+      ...exits.map((x) => ({
+        ...x,
+        type: "exit" as const,
+        // Usar createdAt si existe, sino usar exitDate como fallback
+        sortDate: (x as any).createdAt || x.exitDate,
+        displayDate: x.exitDate,
+      })),
+    ];
+
+    // Ordenar por fecha de creación (más reciente primero)
     return allMovements.sort((a, b) => {
-      const dateA = a.type === "entry" ? a.entryDate : a.exitDate
-      const dateB = b.type === "entry" ? b.entryDate : b.exitDate
-      return new Date(dateB!).getTime() - new Date(dateA!).getTime()
-    })
-  }, [entries, exits])
+      const dateA = new Date(a.sortDate!);
+      const dateB = new Date(b.sortDate!);
+
+      // Si las fechas son iguales, usar el ID como criterio secundario (más alto = más reciente)
+      if (dateA.getTime() === dateB.getTime()) {
+        return b.id - a.id;
+      }
+
+      return dateB.getTime() - dateA.getTime();
+    });
+  }, [entries, exits]);
 
   if (isLoading) {
     return (
@@ -70,7 +101,7 @@ const InventoryHistoryTable: React.FC<InventoryHistoryTableProps> = ({
         </Spinner>
         <p className="mt-3 text-muted">Cargando historial de movimientos...</p>
       </div>
-    )
+    );
   }
 
   return (
@@ -79,16 +110,24 @@ const InventoryHistoryTable: React.FC<InventoryHistoryTableProps> = ({
         {combinedMovements.length === 0 ? (
           <div className="text-center py-5">
             <i className="bi bi-journal-text fs-1 text-muted mb-3 d-block"></i>
-            <h5 className="text-muted">No hay movimientos de inventario registrados</h5>
-            <p className="text-muted">Los movimientos de compra y venta aparecerán aquí.</p>
+            <h5 className="text-muted">
+              No hay movimientos de inventario registrados
+            </h5>
+            <p className="text-muted">
+              Los movimientos de compra y venta aparecerán aquí.
+            </p>
           </div>
         ) : (
           <>
             <div className="d-flex justify-content-between align-items-center mb-3">
               <h6 className="mb-0">
                 <i className="bi bi-list-ul me-2"></i>
-                Movimientos Registrados ({combinedMovements.length} de {allEntriesCount})
+                Movimientos Registrados ({combinedMovements.length} de{" "}
+                {allEntriesCount})
               </h6>
+              <small className="text-muted">
+                Ordenados por fecha de creación (más reciente primero)
+              </small>
             </div>
             <div className="table-responsive">
               <Table hover>
@@ -102,29 +141,75 @@ const InventoryHistoryTable: React.FC<InventoryHistoryTableProps> = ({
                   </tr>
                 </thead>
                 <tbody>
-                  {combinedMovements.map((movement) => (
+                  {combinedMovements.map((movement, index) => (
                     <React.Fragment key={`${movement.type}-${movement.id}`}>
                       <tr>
                         <td>
-                          {movement.type === "entry" ? (
-                            <span className="badge bg-secondary">Compra (Entrada)</span>
-                          ) : (
-                            <span className="badge bg-success">Venta (Salida)</span>
-                          )}
+                          <div className="d-flex align-items-center">
+                            {movement.type === "entry" ? (
+                              <>
+                                <span className="badge bg-secondary me-2">
+                                  Compra (Entrada)
+                                </span>
+                                <i className="bi bi-arrow-down-circle text-secondary"></i>
+                              </>
+                            ) : (
+                              <>
+                                <span className="badge bg-success me-2">
+                                  Venta (Salida)
+                                </span>
+                                <i className="bi bi-arrow-up-circle text-success"></i>
+                              </>
+                            )}
+                          </div>
                         </td>
                         <td>
-                          {new Date(
-                            movement.type === "entry" ? movement.entryDate! : movement.exitDate!,
-                          ).toLocaleDateString()}
+                          <div>
+                            <div>
+                              {new Date(
+                                movement.displayDate!
+                              ).toLocaleDateString("es-ES", {
+                                year: "numeric",
+                                month: "short",
+                                day: "numeric",
+                              })}
+                            </div>
+                            <small className="text-muted">
+                              {new Date(
+                                movement.displayDate!
+                              ).toLocaleTimeString("es-ES", {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
+                            </small>
+                          </div>
                         </td>
                         <td>
-                          {movement.type === "entry"
-                            ? getPartyName(movement.supplier)
-                            : getPartyName(movement.customer)}
+                          <div>
+                            <div className="fw-medium">
+                              {movement.type === "entry"
+                                ? getPartyName(movement.supplier)
+                                : getPartyName(movement.customer)}
+                            </div>
+                            <small className="text-muted">
+                              {movement.type === "entry"
+                                ? "Proveedor"
+                                : "Cliente"}
+                            </small>
+                          </div>
                         </td>
                         <td>
-                          <span className={`fw-bold ${movement.type === "entry" ? "text-secondary" : "text-success"}`}>
-                            ${calculateMovementGrandTotal(movement).toLocaleString()}
+                          <span
+                            className={`fw-bold ${
+                              movement.type === "entry"
+                                ? "text-secondary"
+                                : "text-success"
+                            }`}
+                          >
+                            $
+                            {calculateMovementGrandTotal(
+                              movement
+                            ).toLocaleString("es-ES")}
                           </span>
                         </td>
                         <td className="text-center">
@@ -133,10 +218,24 @@ const InventoryHistoryTable: React.FC<InventoryHistoryTableProps> = ({
                               variant="outline-info"
                               size="sm"
                               className="me-2"
-                              onClick={() => toggleDetails(movement.id, movement.type)}
-                              title={expandedMovementKey === `${movement.type}-${movement.id}` ? "Ocultar detalles" : "Ver detalles"}
+                              onClick={() =>
+                                toggleDetails(movement.id, movement.type)
+                              }
+                              title={
+                                expandedMovementKey ===
+                                `${movement.type}-${movement.id}`
+                                  ? "Ocultar detalles"
+                                  : "Ver detalles"
+                              }
                             >
-                              <i className={`bi ${expandedMovementKey === `${movement.type}-${movement.id}` ? "bi-eye-slash" : "bi-eye"}`}></i>
+                              <i
+                                className={`bi ${
+                                  expandedMovementKey ===
+                                  `${movement.type}-${movement.id}`
+                                    ? "bi-eye-slash"
+                                    : "bi-eye"
+                                }`}
+                              ></i>
                             </Button>
                             <Button
                               variant="outline-danger"
@@ -153,39 +252,103 @@ const InventoryHistoryTable: React.FC<InventoryHistoryTableProps> = ({
                           </div>
                         </td>
                       </tr>
-                      {expandedMovementKey === `${movement.type}-${movement.id}` && (
+                      {expandedMovementKey ===
+                        `${movement.type}-${movement.id}` && (
                         <tr>
                           <td colSpan={5} className="p-0">
                             <div className="bg-light p-3 border-top">
-                              <h6 className="mb-3">
-
-                              </h6>
-                              <Table striped bordered size="sm" className="mb-0">
+                              <div className="d-flex justify-content-between align-items-center mb-3">
+                                <h6 className="mb-0">
+                                  <i className="bi bi-list-check me-2"></i>
+                                  Detalles del{" "}
+                                  {movement.type === "entry"
+                                    ? "Compra"
+                                    : "Venta"}
+                                </h6>
+                              </div>
+                              <Table
+                                striped
+                                bordered
+                                size="sm"
+                                className="mb-0 inventory-history-subtable"
+                              >
                                 <thead>
                                   <tr>
                                     <th>Producto</th>
                                     <th>Cantidad (m³)</th>
-                                    <th>{movement.type === "entry" ? "Precio Compra (m³)" : "Precio Venta (m³)"}</th>
+                                    <th>
+                                      {movement.type === "entry"
+                                        ? "Precio Compra (m³)"
+                                        : "Precio Venta (m³)"}
+                                    </th>
                                     <th>Total por Producto</th>
                                   </tr>
                                 </thead>
                                 <tbody>
-                                  {movement.details.map((detail) => (
-                                    <tr key={detail.id}>
-                                      <td>{getProductNameFromDetail(detail.product)}</td>
-                                      <td>{detail.quantity}</td>
-                                      <td>
-                                        $
-                                        {(movement.type === "entry"
-                                          ? (detail as any).purchasePrice
-                                          : (detail as any).salePrice
-                                        ) 
-                                          ?.toLocaleString()}
-                                      </td>
-                                      <td>${detail.totalPrice.toLocaleString()}</td>
-                                    </tr>
-                                  ))}
+                                  {movement.details.map(
+                                    (detail, detailIndex) => (
+                                      <tr key={detail.id}>
+                                        <td>
+                                          <div className="d-flex align-items-center">
+                                            <i className="bi bi-box me-2 text-muted"></i>
+                                            {getProductNameFromDetail(
+                                              detail.product
+                                            )}
+                                          </div>
+                                        </td>
+                                        <td>
+                                          <span className="badge bg-light text-dark">
+                                            {detail.quantity} m³
+                                          </span>
+                                        </td>
+                                        <td>
+                                          <span className="fw-medium">
+                                            $
+                                            {(movement.type === "entry"
+                                              ? (detail as any).purchasePrice
+                                              : (detail as any).salePrice
+                                            )?.toLocaleString("es-ES")}
+                                          </span>
+                                        </td>
+                                        <td>
+                                          <span
+                                            className={`fw-bold ${
+                                              movement.type === "entry"
+                                                ? "text-secondary"
+                                                : "text-success"
+                                            }`}
+                                          >
+                                            $
+                                            {detail.totalPrice.toLocaleString(
+                                              "es-ES"
+                                            )}
+                                          </span>
+                                        </td>
+                                      </tr>
+                                    )
+                                  )}
                                 </tbody>
+                                <tfoot>
+                                  <tr className="table-active">
+                                    <th colSpan={3} className="text-end">
+                                      Total General:
+                                    </th>
+                                    <th>
+                                      <span
+                                        className={`fw-bold ${
+                                          movement.type === "entry"
+                                            ? "text-secondary"
+                                            : "text-success"
+                                        }`}
+                                      >
+                                        $
+                                        {calculateMovementGrandTotal(
+                                          movement
+                                        ).toLocaleString("es-ES")}
+                                      </span>
+                                    </th>
+                                  </tr>
+                                </tfoot>
                               </Table>
                             </div>
                           </td>
@@ -200,7 +363,7 @@ const InventoryHistoryTable: React.FC<InventoryHistoryTableProps> = ({
         )}
       </Card.Body>
     </Card>
-  )
-}
+  );
+};
 
-export default InventoryHistoryTable
+export default InventoryHistoryTable;

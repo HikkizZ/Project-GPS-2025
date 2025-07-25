@@ -1,21 +1,16 @@
-"use client"
-
-import type React from "react"
-import { Modal, Button, Row, Col } from "react-bootstrap"
+import type React from "react";
+import { Modal, Button, Row, Col } from "react-bootstrap";
 
 interface InventoryMovementSelectionModalProps {
-  show: boolean
-  onClose: () => void
-  onSelectPurchase: () => void
-  onSelectSale: () => void
+  show: boolean;
+  onClose: () => void;
+  onSelectPurchase: () => void;
+  onSelectSale: () => void;
 }
 
-export const InventoryMovementSelectionModal: React.FC<InventoryMovementSelectionModalProps> = ({
-  show,
-  onClose,
-  onSelectPurchase,
-  onSelectSale,
-}) => {
+export const InventoryMovementSelectionModal: React.FC<
+  InventoryMovementSelectionModalProps
+> = ({ show, onClose, onSelectPurchase, onSelectSale }) => {
   return (
     <Modal show={show} onHide={onClose} centered size="lg">
       <Modal.Header className="bg-gradient-primary text-white" closeButton>
@@ -25,7 +20,9 @@ export const InventoryMovementSelectionModal: React.FC<InventoryMovementSelectio
         </Modal.Title>
       </Modal.Header>
       <Modal.Body className="p-4">
-        <p className="text-center mb-4 text-muted">¿Qué tipo de movimiento de inventario deseas registrar?</p>
+        <p className="text-center mb-4 text-muted">
+          ¿Qué tipo de movimiento de inventario deseas registrar?
+        </p>
         <Row className="justify-content-center g-3">
           <Col md={6}>
             <Button
@@ -35,7 +32,9 @@ export const InventoryMovementSelectionModal: React.FC<InventoryMovementSelectio
             >
               <i className="bi bi-box-arrow-in-down fs-1 mb-2"></i>
               <span className="fs-5 fw-bold">Comprar Materiales</span>
-              <small className="text-white-75">Registrar entrada de stock</small>
+              <small className="text-white-75">
+                Registrar entrada de stock
+              </small>
             </Button>
           </Col>
           <Col md={6}>
@@ -52,5 +51,5 @@ export const InventoryMovementSelectionModal: React.FC<InventoryMovementSelectio
         </Row>
       </Modal.Body>
     </Modal>
-  )
-}
+  );
+};
