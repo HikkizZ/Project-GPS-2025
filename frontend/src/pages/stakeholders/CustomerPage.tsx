@@ -233,25 +233,41 @@ export const CustomerPage: React.FC = () => {
             />
 
             <ConfirmModal
-            show={!!customerToDelete}
-            onClose={() => setCustomerToDelete(null)}
-            onConfirm={confirmDeleteCustomer}
-            title="Eliminar cliente"
-            message={`¿Estás seguro que deseas eliminar al cliente "${customerToDelete?.name}"?`}
-            confirmText="Eliminar"
-            cancelText="Cancelar"
-            headerVariant="danger" 
-            warningContent={
-              <>
-                <p className="mb-0">Esta acción:</p>
-                <ul>
+              show={!!customerToDelete}
+              onClose={() => setCustomerToDelete(null)}
+              onConfirm={confirmDeleteCustomer}
+              title="Eliminar cliente"
+              confirmText="Eliminar"
+              cancelText="Cancelar"
+              headerVariant="danger"
+              headerIcon="bi-exclamation-triangle-fill"
+              confirmIcon="bi-trash"
+              cancelIcon="bi-x-circle"
+              warningContent={
+                <>
+                  <p className="mb-2 mt-1">Esta acción:</p>
+                  <ul className="mb-0">
                     <li>Marcará el cliente como eliminado en el sistema.</li>
                     <li>No podrá ser utilizado hasta que sea restaurado.</li>
                     <li>Las transacciones asociadas no se verán afectadas.</li>
-                </ul>
-              </>
-            }
-          />
+                  </ul>
+                </>
+              }
+            >
+              <div className="mb-3 p-3 bg-light rounded-3">
+                <p className="mb-2 fw-semibold">¿Estás seguro que deseas eliminar al cliente?</p>
+                <div className="d-flex flex-column gap-1">
+                  <div>
+                    <span className="fw-semibold text-muted">Nombre:</span>{" "}
+                    <span className="ms-2">{customerToDelete?.name || "N/A"}</span>
+                  </div>
+                  <div>
+                    <span className="fw-semibold text-muted">RUT:</span>{" "}
+                    <span className="ms-2">{customerToDelete?.rut || "N/A"}</span>
+                  </div>
+                </div>
+              </div>
+            </ConfirmModal>
 
 
             {/* Sistema de notificaciones */}
