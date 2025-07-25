@@ -396,7 +396,11 @@ export default function HistorialLaboralPage() {
           const valorNuevo = match[3];
           // Usar el diccionario de traducción si existe
           const campoFormal = traduccionCampos[campo] || campo.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
-          campos.push(`${campoFormal}: ${valorNuevo}`);
+          if (campo === 'fechaInicioContrato' || campo === 'fechaFinContrato') {
+            campos.push(`${campoFormal}: ${formatFecha(valorNuevo)}`);
+          } else {
+            campos.push(`${campoFormal}: ${valorNuevo}`);
+          }
         }
       });
       // Si la observación contenía subida de contrato, agregar el badge
