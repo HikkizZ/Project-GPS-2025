@@ -655,8 +655,8 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
                       </Col>
                       )}
 
-                      {/* Tarjeta de Mi Área Personal - Para usuarios básicos */}
-                      {canAccessPersonalModules && !canAccessRRHH && (
+                      {/* Tarjeta de Mi Área Personal - Para usuarios básicos y administradores */}
+                      {canAccessPersonalModules && (
                         <Col md={3} className="mb-4">
                           <Card
                             className="h-100 border-0 shadow-lg"

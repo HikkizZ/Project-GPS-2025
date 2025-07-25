@@ -235,7 +235,7 @@ const MiAreaPersonalPage: React.FC = () => {
 // Componente envuelto con protección de ruta
 const MiAreaPersonalPageProtected: React.FC = () => {
   return (
-    <ProtectedRoute allowedRoles={["Usuario", "Gerencia", "Ventas", "Arriendo", "Finanzas", "Mecánico", "Mantenciones de Maquinaria"]}>
+    <ProtectedRoute allowedRoles={["SuperAdministrador", "Administrador", "RecursosHumanos", "Usuario", "Gerencia", "Ventas", "Arriendo", "Finanzas", "Mecánico", "Mantenciones de Maquinaria"]}>
       <MiAreaPersonalPage />
     </ProtectedRoute>
   );
