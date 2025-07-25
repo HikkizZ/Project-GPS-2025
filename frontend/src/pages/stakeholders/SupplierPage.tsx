@@ -1,12 +1,14 @@
 import type React from "react"
-import { useState, useEffect } from "react"
-import { Container, Row, Col, Button, Card, Form } from "react-bootstrap"
+import { useState, useEffect, useCallback } from "react"
+import { Container, Row, Col, Button, Card } from "react-bootstrap"
 import InventorySidebar from "@/components/inventory/layout/InventorySidebar"
 import SupplierModal from "@/components/stakeholders/SupplierModal"
-import ConfirmModal from "@/components/stakeholders/ConfirmModal"
+import ConfirmModal from "@/components/common/ConfirmModal"
 import { FiltersPanel } from "@/components/stakeholders/filters/FiltersPanel"
 import { SupplierTable } from "@/components/stakeholders/SupplierTable"
 import { useSuppliers } from "@/hooks/stakeholders/useSuppliers"
+import { usePdfExport } from "@/hooks/usePdfExport"
+import { useExcelExport } from "@/hooks/useExcelExport"
 import type { Supplier, CreateSupplierData, UpdateSupplierData } from "@/types/stakeholders/supplier.types"
 import { useToast, Toast } from "@/components/common/Toast"
 import "../../styles/pages/suppliers.css"
@@ -23,7 +25,10 @@ export const SupplierPage: React.FC = () => {
     isUpdating,
     isDeleting,
   } = useSuppliers()
+
   const { toasts, removeToast, showSuccess, showError } = useToast()
+  const { exportToPdf, isExporting: isExportingPdf } = usePdfExport()
+  const { exportToExcel, isExporting: isExportingExcel } = useExcelExport()
 
   const [allSuppliers, setAllSuppliers] = useState<Supplier[]>([])
   const [filteredSuppliers, setFilteredSuppliers] = useState<Supplier[]>([])
@@ -34,7 +39,6 @@ export const SupplierPage: React.FC = () => {
     address: "",
     phone: "",
   })
-
   const [showModal, setShowModal] = useState(false)
   const [editingSupplier, setEditingSupplier] = useState<Supplier | undefined>(undefined)
   const [filters, setFilters] = useState({ rut: "", email: "" })
@@ -48,7 +52,6 @@ export const SupplierPage: React.FC = () => {
 
   useEffect(() => {
     let filtered = [...allSuppliers]
-
     if (localFilters.name) {
       filtered = filtered.filter((supplier) => supplier.name.toLowerCase().includes(localFilters.name.toLowerCase()))
     }
@@ -106,7 +109,6 @@ export const SupplierPage: React.FC = () => {
     }
   }
 
-  // Manejo de filtros del servidor
   const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
     setFilters((prev) => ({ ...prev, [name]: value }))
@@ -122,7 +124,6 @@ export const SupplierPage: React.FC = () => {
     await loadSuppliers({})
   }
 
-  // Manejo de filtros locales
   const handleLocalFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
     setLocalFilters((prev) => ({ ...prev, [name]: value }))
@@ -137,6 +138,295 @@ export const SupplierPage: React.FC = () => {
       phone: "",
     })
   }
+
+  const handleExportToPdf = useCallback(async () => {
+    if (filteredSuppliers.length === 0) {
+      showError("Sin datos para exportar", "No hay proveedores para exportar.")
+      return
+    }
+
+    const tempDiv = document.createElement("div")
+    tempDiv.id = "temp-suppliers-export"
+    tempDiv.style.position = "absolute"
+    tempDiv.style.left = "-9999px"
+    tempDiv.style.top = "0"
+    tempDiv.style.width = "1400px"
+    tempDiv.style.backgroundColor = "white"
+    tempDiv.style.padding = "20px"
+    document.body.appendChild(tempDiv)
+
+    try {
+      const { createRoot } = await import("react-dom/client")
+      const root = createRoot(tempDiv)
+      const React = await import("react")
+
+      const ExportTable = React.createElement(
+        "div",
+        {
+          id: "temp-suppliers-export-content",
+          style: { fontFamily: "Arial, sans-serif" },
+        },
+        [
+          React.createElement(
+            "div",
+            {
+              key: "header",
+              style: { marginBottom: "20px", textAlign: "center" },
+            },
+            [
+              React.createElement("h2", { key: "title" }, "Directorio de Proveedores"),
+              React.createElement(
+                "p",
+                {
+                  key: "date",
+                  style: { color: "#666", margin: "5px 0" },
+                },
+                `Generado el: ${new Date().toLocaleDateString("es-ES")}`,
+              ),
+              React.createElement(
+                "p",
+                {
+                  key: "count",
+                  style: { color: "#666", margin: "5px 0" },
+                },
+                `Total de proveedores: ${filteredSuppliers.length}`,
+              ),
+            ],
+          ),
+          React.createElement(
+            "table",
+            {
+              key: "table",
+              style: {
+                width: "100%",
+                borderCollapse: "collapse",
+                border: "1px solid #ddd",
+                fontSize: "12px",
+              },
+            },
+            [
+              React.createElement(
+                "thead",
+                { key: "thead" },
+                React.createElement(
+                  "tr",
+                  {
+                    style: { backgroundColor: "#f8f9fa" },
+                  },
+                  [
+                    React.createElement(
+                      "th",
+                      {
+                        key: "name-header",
+                        style: {
+                          border: "1px solid #ddd",
+                          padding: "8px",
+                          textAlign: "left",
+                          fontWeight: "bold",
+                          width: "20%",
+                        },
+                      },
+                      "Nombre",
+                    ),
+                    React.createElement(
+                      "th",
+                      {
+                        key: "rut-header",
+                        style: {
+                          border: "1px solid #ddd",
+                          padding: "8px",
+                          textAlign: "left",
+                          fontWeight: "bold",
+                          width: "15%",
+                        },
+                      },
+                      "RUT",
+                    ),
+                    React.createElement(
+                      "th",
+                      {
+                        key: "address-header",
+                        style: {
+                          border: "1px solid #ddd",
+                          padding: "8px",
+                          textAlign: "left",
+                          fontWeight: "bold",
+                          width: "25%",
+                        },
+                      },
+                      "Dirección",
+                    ),
+                    React.createElement(
+                      "th",
+                      {
+                        key: "phone-header",
+                        style: {
+                          border: "1px solid #ddd",
+                          padding: "8px",
+                          textAlign: "left",
+                          fontWeight: "bold",
+                          width: "15%",
+                        },
+                      },
+                      "Teléfono",
+                    ),
+                    React.createElement(
+                      "th",
+                      {
+                        key: "email-header",
+                        style: {
+                          border: "1px solid #ddd",
+                          padding: "8px",
+                          textAlign: "left",
+                          fontWeight: "bold",
+                          width: "25%",
+                        },
+                      },
+                      "Correo Electrónico",
+                    ),
+                  ],
+                ),
+              ),
+              React.createElement(
+                "tbody",
+                { key: "tbody" },
+                filteredSuppliers.map((supplier, index) =>
+                  React.createElement(
+                    "tr",
+                    {
+                      key: supplier.id,
+                      style: { backgroundColor: index % 2 === 0 ? "#fff" : "#f8f9fa" },
+                    },
+                    [
+                      React.createElement(
+                        "td",
+                        {
+                          key: "name",
+                          style: {
+                            border: "1px solid #ddd",
+                            padding: "8px",
+                            fontWeight: "bold",
+                          },
+                        },
+                        supplier.name,
+                      ),
+                      React.createElement(
+                        "td",
+                        {
+                          key: "rut",
+                          style: {
+                            border: "1px solid #ddd",
+                            padding: "8px",
+                          },
+                        },
+                        supplier.rut,
+                      ),
+                      React.createElement(
+                        "td",
+                        {
+                          key: "address",
+                          style: {
+                            border: "1px solid #ddd",
+                            padding: "8px",
+                          },
+                        },
+                        supplier.address,
+                      ),
+                      React.createElement(
+                        "td",
+                        {
+                          key: "phone",
+                          style: {
+                            border: "1px solid #ddd",
+                            padding: "8px",
+                          },
+                        },
+                        supplier.phone,
+                      ),
+                      React.createElement(
+                        "td",
+                        {
+                          key: "email",
+                          style: {
+                            border: "1px solid #ddd",
+                            padding: "8px",
+                          },
+                        },
+                        supplier.email,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      )
+
+      root.render(ExportTable)
+      await new Promise((resolve) => setTimeout(resolve, 1000))
+
+      const currentDate = new Date().toLocaleDateString("es-ES")
+      const filename = `directorio-proveedores-${currentDate.replace(/\//g, "-")}.pdf`
+      const success = await exportToPdf("temp-suppliers-export-content", filename)
+
+      if (success) {
+        showSuccess("¡Exportación exitosa!", "El directorio PDF se ha exportado correctamente.", 4000)
+      } else {
+        showError("Error en la exportación", "No se pudo exportar el directorio PDF. Por favor, inténtalo de nuevo.")
+      }
+    } catch (error) {
+      console.error("Error en exportación PDF:", error)
+      showError("Error en la exportación", "No se pudo exportar el directorio PDF. Por favor, inténtalo de nuevo.")
+    } finally {
+      if (document.body.contains(tempDiv)) {
+        document.body.removeChild(tempDiv)
+      }
+    }
+  }, [filteredSuppliers, exportToPdf, showSuccess, showError])
+
+  const handleExportToExcel = useCallback(async () => {
+    if (filteredSuppliers.length === 0) {
+      showError("Sin datos para exportar", "No hay proveedores para exportar.")
+      return
+    }
+
+    try {
+      const excelData = filteredSuppliers.map((supplier, index) => ({
+        "N°": index + 1,
+        "Nombre de la Empresa": supplier.name,
+        RUT: supplier.rut,
+        Dirección: supplier.address,
+        Teléfono: supplier.phone,
+        "Correo Electrónico": supplier.email,
+      }))
+
+      const summaryData = [
+        { Métrica: "Total de Proveedores", Valor: filteredSuppliers.length },
+        {
+          Métrica: "Proveedores con Email",
+          Valor: filteredSuppliers.filter((s) => s.email && s.email.trim() !== "").length,
+        },
+        {
+          Métrica: "Proveedores con Teléfono",
+          Valor: filteredSuppliers.filter((s) => s.phone && s.phone.trim() !== "").length,
+        },
+        {
+          Métrica: "Proveedores con Dirección",
+          Valor: filteredSuppliers.filter((s) => s.address && s.address.trim() !== "").length,
+        },
+        { Métrica: "Fecha de Exportación", Valor: new Date().toLocaleDateString("es-ES") },
+      ]
+
+      const filename = "directorio-proveedores"
+      await exportToExcel(excelData, filename, "Proveedores")
+
+      showSuccess("¡Exportación exitosa!", "El directorio Excel se ha exportado correctamente.", 4000)
+    } catch (error) {
+      console.error("Error en exportación Excel:", error)
+      showError("Error en la exportación", "No se pudo exportar el directorio Excel. Por favor, inténtalo de nuevo.")
+    }
+  }, [filteredSuppliers, exportToExcel, showSuccess, showError])
 
   const hasActiveFilters = Object.values(filters).some((value) => value.trim() !== "")
   const hasActiveLocalFilters = Object.values(localFilters).some((value) => value.trim() !== "")
@@ -164,7 +454,52 @@ export const SupplierPage: React.FC = () => {
                           <p className="mb-0 opacity-75">Administrar información de proveedores del sistema</p>
                         </div>
                       </div>
-                      <div>
+                      <div className="d-flex gap-2">
+                        {/* Botones de exportación */}
+                        <Button
+                          variant="outline-light"
+                          onClick={handleExportToPdf}
+                          disabled={isExportingPdf || filteredSuppliers.length === 0 || isLoading}
+                          title="Exportar directorio a PDF"
+                        >
+                          {isExportingPdf ? (
+                            <>
+                              <span
+                                className="spinner-border spinner-border-sm me-2"
+                                role="status"
+                                aria-hidden="true"
+                              ></span>
+                              Exportando PDF...
+                            </>
+                          ) : (
+                            <>
+                              <i className="bi bi-file-earmark-pdf me-2"></i>
+                              Exportar PDF
+                            </>
+                          )}
+                        </Button>
+                        <Button
+                          variant="outline-light"
+                          onClick={handleExportToExcel}
+                          disabled={isExportingExcel || filteredSuppliers.length === 0 || isLoading}
+                          title="Exportar directorio a Excel"
+                        >
+                          {isExportingExcel ? (
+                            <>
+                              <span
+                                className="spinner-border spinner-border-sm me-2"
+                                role="status"
+                                aria-hidden="true"
+                              ></span>
+                              Exportando Excel...
+                            </>
+                          ) : (
+                            <>
+                              <i className="bi bi-file-earmark-excel me-2"></i>
+                              Exportar Excel
+                            </>
+                          )}
+                        </Button>
                         <Button
                           variant={showFilters ? "outline-light" : "light"}
                           className="me-2"
@@ -251,7 +586,6 @@ export const SupplierPage: React.FC = () => {
                 </div>
               </div>
             </ConfirmModal>
-
             <Toast toasts={toasts} removeToast={removeToast} />
           </Container>
         </div>

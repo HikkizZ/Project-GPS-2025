@@ -12,6 +12,7 @@ import { SupplierPage } from './pages/stakeholders/SupplierPage';
 import { CustomerPage } from './pages/stakeholders/CustomerPage';
 import { InventoryPage } from './pages/inventory/InventoryPage';
 import { ProductPage } from './pages/inventory/ProductPage';
+import { ReportsPage } from './pages/inventory/ReportsPage';
 import { authService } from './services/auth.service';
 import { Card, Row, Col } from 'react-bootstrap';
 import { useNavigate, Routes, Route, Navigate, useLocation } from 'react-router-dom';
@@ -792,121 +793,129 @@ function App() {
         element={
           isAuthenticated ? (
             <MainLayout user={safeUser} onLogout={logout}>
-              <Routes>
-                <Route path="dashboard" element={<Dashboard user={safeUser} />} />
-                <Route path="mi-area-personal" element={<MiAreaPersonalPage />} />
-                <Route 
-                  path="recursos-humanos" 
-                  element={
-                    <ProtectedRoute allowedRoles={["SuperAdministrador", "Administrador", "RecursosHumanos"]}>
-                      <DashboardRecursosHumanos />
-                    </ProtectedRoute>
-                  } 
-                />
-                <Route 
-                  path="trabajadores" 
-                  element={
-                    <ProtectedRoute allowedRoles={["SuperAdministrador", "Administrador", "RecursosHumanos"]}>
-                      <TrabajadoresPage />
-                    </ProtectedRoute>
-                  } 
-                />
-                <Route 
-                  path="trabajadores/historial-laboral" 
-                  element={
-                    <ProtectedRoute allowedRoles={["SuperAdministrador", "Administrador", "RecursosHumanos"]}>
-                      <HistorialLaboralPage />
-                    </ProtectedRoute>
-                  } 
-                />
-                <Route 
-                  path="fichas-empresa" 
-                  element={
-                    <ProtectedRoute allowedRoles={["SuperAdministrador", "Administrador", "RecursosHumanos"]}>
-                      <FichasEmpresaPage />
-                    </ProtectedRoute>
-                  } 
-                />
-                <Route 
-                  path="fichas-empresa/mi-ficha" 
-                  element={
-                    <ProtectedRoute allowedRoles={["SuperAdministrador", "Administrador", "RecursosHumanos", "Usuario", "Gerencia", "Ventas", "Arriendo", "Finanzas", "Mecánico", "Mantenciones de Maquinaria"]}>
-                      <FichasEmpresaPage />
-                    </ProtectedRoute>
-                  } 
-                />
-                <Route 
-                  path="bonos" 
-                  element={
-                    <ProtectedRoute allowedRoles={["SuperAdministrador", "Administrador", "RecursosHumanos"]}>
-                      <BonosPage />
-                    </ProtectedRoute>
-                  } 
-                />
-                <Route 
-                  path="usuarios" 
-                  element={
-                    <ProtectedRoute allowedRoles={["SuperAdministrador", "Administrador", "RecursosHumanos"]}>
-                      <UsersPage />
-                    </ProtectedRoute>
-                  } 
-                />
-                <Route 
-                  path="gestion-personal" 
-                  element={
-                    <ProtectedRoute allowedRoles={["SuperAdministrador", "Administrador", "RecursosHumanos"]}>
-                      <GestionPersonalPage />
-                    </ProtectedRoute>
-                  } 
-                />
-                <Route 
-                  path="gestion-licencias-permisos" 
-                  element={
-                    <ProtectedRoute allowedRoles={["SuperAdministrador", "Administrador", "RecursosHumanos"]}>
-                      <GestionLicenciasPermisosPage />
-                    </ProtectedRoute>
-                  } 
-                />
-                <Route 
-                  path="mis-licencias-permisos" 
-                  element={
-                    <ProtectedRoute allowedRoles={["SuperAdministrador", "Administrador", "RecursosHumanos", "Usuario", "Gerencia", "Ventas", "Arriendo", "Finanzas", "Mecánico", "Mantenciones de Maquinaria"]}>
-                      <MisLicenciasPermisosPage />
-                    </ProtectedRoute>
-                  } 
-                />
-                <Route 
-                  path="inventario/proveedores" 
-                  element={
-                    <ProtectedRoute allowedRoles={["Administrador", "SuperAdministrador", "Ventas", "Gerencia", "Finanzas"]}>
-                      <SupplierPage />
-                    </ProtectedRoute>
-                  } 
-                />
-                <Route 
-                  path="inventario/clientes" 
-                  element={
-                    <ProtectedRoute allowedRoles={["Administrador", "SuperAdministrador", "Ventas", "Gerencia", "Finanzas"]}>
-                      <CustomerPage />
-                    </ProtectedRoute>
-                  } 
-                />
-                <Route 
-                  path="inventario/productos" 
-                  element={
-                    <ProtectedRoute allowedRoles={["Administrador", "SuperAdministrador", "Ventas", "Gerencia", "Finanzas"]}>
-                      <ProductPage />
-                    </ProtectedRoute>
-                  } 
-                />
-                <Route 
-                  path="inventario" 
-                  element={
-                    <ProtectedRoute allowedRoles={["Administrador", "SuperAdministrador", "Ventas", "Gerencia", "Finanzas"]}>
-                      <InventoryPage />
-                    </ProtectedRoute>
-                  } 
-                />
+                              <Routes>
+                  <Route path="dashboard" element={<Dashboard user={safeUser} />} />
+                  <Route path="mi-area-personal" element={<MiAreaPersonalPage />} />
+                  <Route 
+                    path="recursos-humanos" 
+                    element={
+                      <ProtectedRoute allowedRoles={["SuperAdministrador", "Administrador", "RecursosHumanos"]}>
+                        <DashboardRecursosHumanos />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  <Route 
+                    path="trabajadores" 
+                    element={
+                      <ProtectedRoute allowedRoles={["SuperAdministrador", "Administrador", "RecursosHumanos"]}>
+                        <TrabajadoresPage />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  <Route 
+                    path="trabajadores/historial-laboral" 
+                    element={
+                      <ProtectedRoute allowedRoles={["SuperAdministrador", "Administrador", "RecursosHumanos"]}>
+                        <HistorialLaboralPage />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  <Route 
+                    path="fichas-empresa" 
+                    element={
+                      <ProtectedRoute allowedRoles={["SuperAdministrador", "Administrador", "RecursosHumanos"]}>
+                        <FichasEmpresaPage />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  <Route 
+                    path="fichas-empresa/mi-ficha" 
+                    element={
+                      <ProtectedRoute allowedRoles={["SuperAdministrador", "Administrador", "RecursosHumanos", "Usuario", "Gerencia", "Ventas", "Arriendo", "Finanzas", "Mecánico", "Mantenciones de Maquinaria"]}>
+                        <FichasEmpresaPage />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  <Route 
+                    path="bonos" 
+                    element={
+                      <ProtectedRoute allowedRoles={["SuperAdministrador", "Administrador", "RecursosHumanos"]}>
+                        <BonosPage />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  <Route 
+                    path="usuarios" 
+                    element={
+                      <ProtectedRoute allowedRoles={["SuperAdministrador", "Administrador", "RecursosHumanos"]}>
+                        <UsersPage />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  <Route 
+                    path="gestion-personal" 
+                    element={
+                      <ProtectedRoute allowedRoles={["SuperAdministrador", "Administrador", "RecursosHumanos"]}>
+                        <GestionPersonalPage />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  <Route 
+                    path="gestion-licencias-permisos" 
+                    element={
+                      <ProtectedRoute allowedRoles={["SuperAdministrador", "Administrador", "RecursosHumanos"]}>
+                        <GestionLicenciasPermisosPage />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  <Route 
+                    path="mis-licencias-permisos" 
+                    element={
+                      <ProtectedRoute allowedRoles={["SuperAdministrador", "Administrador", "RecursosHumanos", "Usuario", "Gerencia", "Ventas", "Arriendo", "Finanzas", "Mecánico", "Mantenciones de Maquinaria"]}>
+                        <MisLicenciasPermisosPage />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  <Route 
+                    path="inventario/proveedores" 
+                    element={
+                      <ProtectedRoute allowedRoles={["Administrador", "SuperAdministrador", "Ventas", "Gerencia", "Finanzas"]}>
+                        <SupplierPage />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  <Route 
+                    path="inventario/clientes" 
+                    element={
+                      <ProtectedRoute allowedRoles={["Administrador", "SuperAdministrador", "Ventas", "Gerencia", "Finanzas"]}>
+                        <CustomerPage />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  <Route 
+                    path="inventario/productos" 
+                    element={
+                      <ProtectedRoute allowedRoles={["Administrador", "SuperAdministrador", "Ventas", "Gerencia", "Finanzas"]}>
+                        <ProductPage />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  <Route 
+                    path="inventario/reportes" 
+                    element={
+                      <ProtectedRoute allowedRoles={["Administrador", "SuperAdministrador", "Ventas", "Gerencia", "Finanzas"]}>
+                        <ReportsPage />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  <Route 
+                    path="inventario" 
+                    element={
+                      <ProtectedRoute allowedRoles={["Administrador", "SuperAdministrador", "Ventas", "Gerencia", "Finanzas"]}>
+                        <InventoryPage />
+                      </ProtectedRoute>
+                    } 
+                  />
                 <Route path="/" element={<Navigate to="dashboard" replace />} />
 
                 {/* RUTAS DE MAQUINARIA PROTEGIDAS */}
