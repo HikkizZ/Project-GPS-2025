@@ -838,7 +838,7 @@ function App() {
                 <Route 
                   path="bonos" 
                   element={
-                    <ProtectedRoute allowedRoles={["SuperAdministrador"]}>
+                    <ProtectedRoute allowedRoles={["SuperAdministrador", "Administrador", "RecursosHumanos"]}>
                       <BonosPage />
                     </ProtectedRoute>
                   } 

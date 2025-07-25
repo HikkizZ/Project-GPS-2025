@@ -255,8 +255,8 @@ const DashboardRecursosHumanos: React.FC = () => {
                 </>
               )}
 
-              {/* Tarjeta de Gestión de Bonos - Visible para SuperAdministrador */}
-              {user && user.role === 'SuperAdministrador' && (
+              {/* Tarjeta de Gestión de Bonos - Visible para roles administrativos */}
+              {user && (user.role === 'SuperAdministrador' || user.role === 'Administrador' || user.role === 'RecursosHumanos') && (
                 <Col md={3}>
                   <Link to="/bonos" style={{ textDecoration: 'none' }}>
                     <Card
