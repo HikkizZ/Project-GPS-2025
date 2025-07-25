@@ -352,7 +352,15 @@ export default function HistorialLaboralPage() {
       }
       return s;
     });
-    return `Actualización de información laboral: ${cambios.join(', ')}${sufijo}`;
+    // Reemplazar fechas aaaa-mm-dd por dd-mm-aaaa en toda la descripción
+    const formatFechaTexto = (fecha: string) => {
+      if (!fecha) return '';
+      const [year, month, day] = fecha.split('-');
+      return `${day}-${month}-${year}`;
+    };
+    let descripcion = `Actualización de información laboral: ${cambios.join(', ')}${sufijo}`;
+    descripcion = descripcion.replace(/(\d{4})-(\d{2})-(\d{2})/g, (_m, y, m, d) => `${d}-${m}-${y}`);
+    return descripcion;
   }
 
   // Reemplazar la función renderCamposManuales por una versión que parsea los campos modificados desde observaciones si corresponde
