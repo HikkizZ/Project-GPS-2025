@@ -772,7 +772,7 @@ export default function HistorialLaboralPage() {
                 const licenciaIdItem = modoVista === 'unificado' ? (item as HistorialUnificado).detalles.licenciaId : null;
                 const archivoAdjuntoURLItem = modoVista === 'unificado' ? (item as HistorialUnificado).detalles.archivoAdjuntoURL : null;
                 const esLicenciaMedica = observacionesItem?.includes('Licencia médica') || observacionesItem?.includes('licencia médica');
-                const esSubidaContrato = observacionesItem?.includes('Subida de contrato PDF');
+                const esSubidaContrato = observacionesItem?.toLowerCase().includes('subida de contrato pdf');
                 
                 return (
                   <div key={itemId} className="timeline-item">
@@ -798,7 +798,7 @@ export default function HistorialLaboralPage() {
                           </small>
                         </div>
                         <div className="d-flex align-items-center">
-                          {contratoURLItem && modoVista === 'tradicional' && (
+                          {contratoURLItem && esSubidaContrato && modoVista === 'tradicional' && (
                             <Button
                               variant="outline-success"
                               size="sm"
@@ -856,7 +856,7 @@ export default function HistorialLaboralPage() {
                                     {modoVista === 'unificado' ? 'Descripción' : 'Observaciones'}
                                   </h6>
                                   {/* Mostrar SIEMPRE el botón de descarga si hay contratoURL */}
-                                  {contratoURLItem && (
+                                  {contratoURLItem && esSubidaContrato && (
                                     <Button
                                       variant="outline-success"
                                       size="sm"

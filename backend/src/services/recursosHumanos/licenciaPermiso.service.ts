@@ -333,8 +333,10 @@ export async function updateLicenciaPermisoService(id: number, data: UpdateLicen
           const historialRepo = queryRunner.manager.getRepository(HistorialLaboral);
           
           // Normalizar fechas para evitar problemas de zona horaria
-          const fechaInicioNormalizada = fichaEmpresa.fechaInicioContrato ? 
-              new Date(fichaEmpresa.fechaInicioContrato.toISOString().split('T')[0] + 'T12:00:00') : null;
+          // La fecha de inicio del historial laboral debe ser la de inicio de la licencia médica
+          const fechaInicioHistorial = licencia.fechaInicio
+            ? new Date(licencia.fechaInicio.toISOString().split('T')[0] + 'T12:00:00')
+            : null;
           const fechaFinNormalizada = fichaEmpresa.fechaFinContrato ? 
               new Date(fichaEmpresa.fechaFinContrato.toISOString().split('T')[0] + 'T12:00:00') : null;
           const fechaInicioLicenciaPermisoNormalizada = fichaEmpresa.fechaInicioLicenciaPermiso ? 
@@ -349,7 +351,10 @@ export async function updateLicenciaPermisoService(id: number, data: UpdateLicen
           nuevoHistorial.tipoContrato = fichaEmpresa.tipoContrato;
           nuevoHistorial.jornadaLaboral = fichaEmpresa.jornadaLaboral;
           nuevoHistorial.sueldoBase = fichaEmpresa.sueldoBase;
-          if (fechaInicioNormalizada) nuevoHistorial.fechaInicio = fechaInicioNormalizada;
+          if (!fechaInicioHistorial) {
+            throw new Error("No se puede determinar la fecha de inicio de la licencia médica para el historial laboral");
+          }
+          nuevoHistorial.fechaInicio = fechaInicioHistorial;
           if (fechaFinNormalizada) nuevoHistorial.fechaFin = fechaFinNormalizada;
           nuevoHistorial.motivoDesvinculacion = fichaEmpresa.motivoDesvinculacion;
           nuevoHistorial.observaciones = `Cambio de estado a ${estadoLaboral}. Motivo: ${licencia.motivoSolicitud}`;
