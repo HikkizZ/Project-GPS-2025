@@ -496,6 +496,16 @@ export const TrabajadoresPage: React.FC = () => {
                                       >
                                         <i className="bi bi-person-x"></i>
                                       </Button>
+                                      {/* Botón de reactivar solo si está desvinculado */}
+                                      {!trabajador.enSistema && (
+                                        <Button
+                                          variant="outline-success"
+                                          onClick={() => handleReactivacion(trabajador)}
+                                          title="Reactivar trabajador"
+                                        >
+                                          <i className="bi bi-person-check"></i>
+                                        </Button>
+                                      )}
                                       <Button
                                         variant="outline-secondary"
                                         onClick={() => handleVerDetalle(trabajador)}
