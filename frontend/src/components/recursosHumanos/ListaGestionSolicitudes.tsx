@@ -803,26 +803,22 @@ export const ListaGestionSolicitudes: React.FC = () => {
                 <strong>Tipo:</strong> {solicitudSeleccionada.tipo} | 
                 <strong className="ms-2">Período:</strong> {formatearFecha(solicitudSeleccionada.fechaInicio)} - {formatearFecha(solicitudSeleccionada.fechaFin)}
               </div>
-              
-              <Form.Group>
-                <Form.Label>
-                  {accionRespuesta === 'aprobar' ? 'Comentarios adicionales' : 'Motivo del rechazo *'}
-                </Form.Label>
-                <Form.Control
-                  as="textarea"
-                  rows={4}
-                  placeholder={accionRespuesta === 'aprobar' 
-                    ? 'Comentarios opcionales sobre la aprobación...' 
-                    : 'Explique el motivo del rechazo...'
-                  }
-                  value={respuestaTexto}
-                  onChange={(e) => setRespuestaTexto(e.target.value)}
-                  maxLength={500}
-                />
-                <Form.Text className="text-muted">
-                  {respuestaTexto.length}/500 caracteres
-                </Form.Text>
-              </Form.Group>
+              {accionRespuesta === 'rechazar' && (
+                <Form.Group>
+                  <Form.Label>Motivo del rechazo *</Form.Label>
+                  <Form.Control
+                    as="textarea"
+                    rows={4}
+                    placeholder="Explique el motivo del rechazo..."
+                    value={respuestaTexto}
+                    onChange={(e) => setRespuestaTexto(e.target.value)}
+                    maxLength={500}
+                  />
+                  <Form.Text className="text-muted">
+                    {respuestaTexto.length}/500 caracteres
+                  </Form.Text>
+                </Form.Group>
+              )}
             </div>
           )}
         </Modal.Body>
