@@ -16,6 +16,8 @@ interface HistorialUnificado {
     id: number;
     name: string;
     role: string;
+    rut?: string | null;
+    corporateEmail?: string | null;
   } | null;
   trabajadorId: number;
 }
