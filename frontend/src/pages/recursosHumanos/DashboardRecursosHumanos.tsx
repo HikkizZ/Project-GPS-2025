@@ -255,8 +255,8 @@ const DashboardRecursosHumanos: React.FC = () => {
                 </>
               )}
 
-              {/* Tarjeta de Gestión de Bonos - Visible para SuperAdministrador */}
-              {user && user.role === 'SuperAdministrador' && (
+              {/* Tarjeta de Gestión de Bonos - Visible para roles administrativos */}
+              {user && (user.role === 'SuperAdministrador' || user.role === 'Administrador' || user.role === 'RecursosHumanos') && (
                 <Col md={3}>
                   <Link to="/bonos" style={{ textDecoration: 'none' }}>
                     <Card
@@ -307,107 +307,7 @@ const DashboardRecursosHumanos: React.FC = () => {
               )}
               
 
-              {/* Tarjeta de Mi Ficha de Empresa - Visible para todos excepto SuperAdministrador */}
-              {puedeAccederModulosPersonales && (
-                <Col md={3}>
-                  <Link to="/fichas-empresa/mi-ficha" style={{ textDecoration: 'none' }}>
-                    <Card 
-                      className="h-100 border-0 shadow-lg" 
-                      style={{ 
-                        cursor: 'pointer', 
-                        borderRadius: '20px',
-                        transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
-                        background: 'white',
-                        border: '1px solid #dcfce7'
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.transform = 'translateY(-12px) scale(1.02)';
-                        e.currentTarget.style.boxShadow = '0 25px 50px rgba(34, 197, 94, 0.25)';
-                        e.currentTarget.style.borderColor = '#22c55e';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.transform = 'translateY(0) scale(1)';
-                        e.currentTarget.style.boxShadow = '0 10px 30px rgba(0, 0, 0, 0.1)';
-                        e.currentTarget.style.borderColor = '#dcfce7';
-                      }}
-                    >
-                      <Card.Body className="p-4 text-center">
-                        <div 
-                          className="d-inline-flex align-items-center justify-content-center mb-4"
-                          style={{
-                            width: '80px',
-                            height: '80px',
-                            background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
-                            borderRadius: '24px',
-                            boxShadow: '0 8px 32px rgba(34, 197, 94, 0.3)'
-                          }}
-                        >
-                          <i className="bi bi-person-vcard text-white" style={{ fontSize: '2.5rem' }}></i>
-                        </div>
-                        <Card.Title className="fw-bold text-dark mb-2 fs-5">Mi Ficha de Empresa</Card.Title>
-                        <Card.Text className="text-muted small mb-3">Consulta tu información laboral y personal</Card.Text>
-                        <div className="d-flex align-items-center justify-content-center">
-                          <small className="text-primary fw-semibold">
-                            <i className="bi bi-arrow-right me-1"></i>
-                            Acceder
-                          </small>
-                        </div>
-                      </Card.Body>
-                    </Card>
-                  </Link>
-                </Col>
-              )}
 
-              {/* Tarjeta de Mis Licencias y Permisos - Visible para todos excepto SuperAdministrador */}
-              {puedeAccederModulosPersonales && (
-                <Col md={3}>
-                  <Link to="/mis-licencias-permisos" style={{ textDecoration: 'none' }}>
-                    <Card 
-                      className="h-100 border-0 shadow-lg" 
-                      style={{ 
-                        cursor: 'pointer', 
-                        borderRadius: '20px',
-                        transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
-                        background: 'white',
-                        border: '1px solid #cffafe'
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.transform = 'translateY(-12px) scale(1.02)';
-                        e.currentTarget.style.boxShadow = '0 25px 50px rgba(6, 182, 212, 0.25)';
-                        e.currentTarget.style.borderColor = '#06b6d4';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.transform = 'translateY(0) scale(1)';
-                        e.currentTarget.style.boxShadow = '0 10px 30px rgba(0, 0, 0, 0.1)';
-                        e.currentTarget.style.borderColor = '#cffafe';
-                      }}
-                    >
-                      <Card.Body className="p-4 text-center">
-                        <div 
-                          className="d-inline-flex align-items-center justify-content-center mb-4"
-                          style={{
-                            width: '80px',
-                            height: '80px',
-                            background: 'linear-gradient(135deg, #06b6d4 0%, #0891b2 100%)',
-                            borderRadius: '24px',
-                            boxShadow: '0 8px 32px rgba(6, 182, 212, 0.3)'
-                          }}
-                        >
-                          <i className="bi bi-calendar-check text-white" style={{ fontSize: '2.5rem' }}></i>
-                        </div>
-                        <Card.Title className="fw-bold text-dark mb-2 fs-5">Mis Licencias y Permisos</Card.Title>
-                        <Card.Text className="text-muted small mb-3">Crea y gestiona tus solicitudes</Card.Text>
-                        <div className="d-flex align-items-center justify-content-center">
-                          <small className="text-primary fw-semibold">
-                            <i className="bi bi-arrow-right me-1"></i>
-                            Acceder
-                          </small>
-                        </div>
-                      </Card.Body>
-                    </Card>
-                  </Link>
-                </Col>
-              )}
 
               {/* Tarjeta de Mi Cuenta - Visible para todos excepto SuperAdministrador */}
               {puedeAccederModulosPersonales && !tienePermisosCompletos && (
