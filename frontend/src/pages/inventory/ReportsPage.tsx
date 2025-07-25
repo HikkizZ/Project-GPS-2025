@@ -1,5 +1,3 @@
-"use client"
-
 import type React from "react"
 import { Container, Row, Col, Card, Button } from "react-bootstrap"
 import InventorySidebar from "@/components/inventory/layout/InventorySidebar"
@@ -10,6 +8,7 @@ import { useInventoryEntries } from "@/hooks/inventory/useInventoryEntry"
 import { useInventoryExits } from "@/hooks/inventory/useInventoryExit"
 import { useToast, Toast } from "@/components/common/Toast"
 import { usePdfExport } from "@/hooks/usePdfExport"
+import { useExcelExport } from "@/hooks/useExcelExport"
 import { useMemo, useState, useCallback } from "react"
 import "../../styles/pages/inventory.css"
 
@@ -19,12 +18,12 @@ export const ReportsPage: React.FC = () => {
   const { entries, isLoadingEntries } = useInventoryEntries()
   const { exits, isLoadingExits } = useInventoryExits()
   const { toasts, removeToast, showSuccess, showError } = useToast()
-  const { exportToPdf, isExporting } = usePdfExport()
+  const { exportToPdf, isExporting: isExportingPdf } = usePdfExport()
+  const { exportToExcel, exportMultipleSheets, isExporting: isExportingExcel } = useExcelExport()
 
   const [selectedMonth, setSelectedMonth] = useState<string>("")
   const [movementFilter, setMovementFilter] = useState<"all" | "entry" | "exit">("all")
 
-  // Obtener meses disponibles con datos
   const availableMonths = useMemo(() => {
     const allMovements = [
       ...entries.map((e) => ({ date: e.entryDate, type: "entry" })),
@@ -58,7 +57,6 @@ export const ReportsPage: React.FC = () => {
     })
   }, [entries, exits])
 
-  // Filtrar movimientos por mes seleccionado
   const filteredMovements = useMemo(() => {
     if (!selectedMonth) return { entries: [], exits: [] }
 
@@ -79,7 +77,6 @@ export const ReportsPage: React.FC = () => {
     return { entries: filteredEntries, exits: filteredExits }
   }, [entries, exits, selectedMonth])
 
-  // Calcular métricas del mes seleccionado
   const monthMetrics = useMemo(() => {
     const { entries: monthEntries, exits: monthExits } = filteredMovements
 
@@ -151,13 +148,13 @@ export const ReportsPage: React.FC = () => {
       const success = await exportToPdf("temp-reports-export-content", filename)
 
       if (success) {
-        showSuccess("¡Exportación exitosa!", "El reporte se ha exportado correctamente.", 4000)
+        showSuccess("¡Exportación exitosa!", "El reporte PDF se ha exportado correctamente.", 4000)
       } else {
-        showError("Error en la exportación", "No se pudo exportar el reporte. Por favor, inténtalo de nuevo.")
+        showError("Error en la exportación", "No se pudo exportar el reporte PDF. Por favor, inténtalo de nuevo.")
       }
     } catch (error) {
-      console.error("Error en exportación:", error)
-      showError("Error en la exportación", "No se pudo exportar el reporte. Por favor, inténtalo de nuevo.")
+      console.error("Error en exportación PDF:", error)
+      showError("Error en la exportación", "No se pudo exportar el reporte PDF. Por favor, inténtalo de nuevo.")
     } finally {
       if (document.body.contains(tempDiv)) {
         document.body.removeChild(tempDiv)
@@ -172,6 +169,90 @@ export const ReportsPage: React.FC = () => {
     monthMetrics,
     availableMonths,
     exportToPdf,
+    showSuccess,
+    showError,
+  ])
+
+  const handleExportToExcel = useCallback(async () => {
+    if (!selectedMonth) {
+      showError("Selecciona un mes", "Debes seleccionar un mes para exportar el reporte.")
+      return
+    }
+
+    try {
+      const selectedMonthLabel = availableMonths.find((m) => m.value === selectedMonth)?.label || selectedMonth
+
+      const allMovements = [
+        ...filteredMovements.entries.map((entry) => ({
+          Fecha: new Date(entry.entryDate).toLocaleDateString("es-ES"),
+          Hora: new Date(entry.entryDate).toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" }),
+          Tipo: "Compra",
+          "Proveedor/Cliente": entry.supplier.name,
+          RUT: entry.supplier.rut,
+          Productos: entry.details.map((d) => d.product.product).join(", "),
+          "Cantidad Total (m³)": entry.details.reduce((sum, d) => sum + d.quantity, 0),
+          "Monto Total": entry.details.reduce((sum, d) => sum + d.totalPrice, 0),
+          "Precio Promedio por m³":
+            entry.details.reduce((sum, d) => sum + d.totalPrice, 0) /
+            entry.details.reduce((sum, d) => sum + d.quantity, 0),
+        })),
+        ...filteredMovements.exits.map((exit) => ({
+          Fecha: new Date(exit.exitDate).toLocaleDateString("es-ES"),
+          Hora: new Date(exit.exitDate).toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" }),
+          Tipo: "Venta",
+          "Proveedor/Cliente": exit.customer.name,
+          RUT: exit.customer.rut,
+          Productos: exit.details.map((d) => d.product.product).join(", "),
+          "Cantidad Total (m³)": exit.details.reduce((sum, d) => sum + d.quantity, 0),
+          "Monto Total": exit.details.reduce((sum, d) => sum + d.totalPrice, 0),
+          "Precio Promedio por m³":
+            exit.details.reduce((sum, d) => sum + d.totalPrice, 0) /
+            exit.details.reduce((sum, d) => sum + d.quantity, 0),
+        })),
+      ]
+
+      allMovements.sort((a, b) => {
+        const dateA = new Date(`${a.Fecha} ${a.Hora}`)
+        const dateB = new Date(`${b.Fecha} ${b.Hora}`)
+        return dateB.getTime() - dateA.getTime()
+      })
+
+      const filteredData =
+        movementFilter === "all"
+          ? allMovements
+          : allMovements.filter((movement) =>
+              movementFilter === "entry" ? movement.Tipo === "Compra" : movement.Tipo === "Venta",
+            )
+
+      const summaryData = [
+        { Métrica: "Total Movimientos", Valor: monthMetrics.totalMovements },
+        { Métrica: "Total Compras", Valor: `$${monthMetrics.totalPurchases.toLocaleString("es-ES")}` },
+        { Métrica: "Cantidad de Compras", Valor: monthMetrics.purchaseCount },
+        { Métrica: "Total Ventas", Valor: `$${monthMetrics.totalSales.toLocaleString("es-ES")}` },
+        { Métrica: "Cantidad de Ventas", Valor: monthMetrics.saleCount },
+        { Métrica: "Balance Neto", Valor: `$${monthMetrics.netBalance.toLocaleString("es-ES")}` },
+      ]
+
+      const sheets = [
+        { data: summaryData, sheetName: "Resumen" },
+        { data: filteredData, sheetName: "Movimientos" },
+      ]
+
+      const filename = `reporte-inventario-${selectedMonth}`
+      await exportMultipleSheets(sheets, filename)
+
+      showSuccess("¡Exportación exitosa!", "El reporte Excel se ha exportado correctamente.", 4000)
+    } catch (error) {
+      console.error("Error en exportación Excel:", error)
+      showError("Error en la exportación", "No se pudo exportar el reporte Excel. Por favor, inténtalo de nuevo.")
+    }
+  }, [
+    selectedMonth,
+    filteredMovements,
+    movementFilter,
+    monthMetrics,
+    availableMonths,
+    exportMultipleSheets,
     showSuccess,
     showError,
   ])
@@ -200,25 +281,46 @@ export const ReportsPage: React.FC = () => {
                           <p className="mb-0 opacity-75">Análisis mensual de movimientos de inventario</p>
                         </div>
                       </div>
-                      <div>
+                      <div className="d-flex gap-2">
                         <Button
                           variant="outline-light"
                           onClick={handleExportToPdf}
-                          disabled={isExporting || !selectedMonth || isLoadingPage}
+                          disabled={isExportingPdf || !selectedMonth || isLoadingPage}
                         >
-                          {isExporting ? (
+                          {isExportingPdf ? (
                             <>
                               <span
                                 className="spinner-border spinner-border-sm me-2"
                                 role="status"
                                 aria-hidden="true"
                               ></span>
-                              Exportando...
+                              Exportando PDF...
                             </>
                           ) : (
                             <>
-                              <i className="bi bi-download me-2"></i>
-                              Exportar Reporte
+                              <i className="bi bi-file-earmark-pdf me-2"></i>
+                              Exportar PDF
+                            </>
+                          )}
+                        </Button>
+                        <Button
+                          variant="outline-light"
+                          onClick={handleExportToExcel}
+                          disabled={isExportingExcel || !selectedMonth || isLoadingPage}
+                        >
+                          {isExportingExcel ? (
+                            <>
+                              <span
+                                className="spinner-border spinner-border-sm me-2"
+                                role="status"
+                                aria-hidden="true"
+                              ></span>
+                              Exportando Excel...
+                            </>
+                          ) : (
+                            <>
+                              <i className="bi bi-file-earmark-excel me-2"></i>
+                              Exportar Excel
                             </>
                           )}
                         </Button>
@@ -274,7 +376,7 @@ export const ReportsPage: React.FC = () => {
                             className={`metric-icon ${monthMetrics.netBalance >= 0 ? "bg-success bg-opacity-10 text-success" : "bg-danger bg-opacity-10 text-danger"} mb-3`}
                           >
                             <i
-                              className={`bi ${monthMetrics.netBalance >= 0 ? "bi-graph-up" : "bi-graph-down"} fs-2`}
+                              className={`bi ${monthMetrics.netBalance >= 0 ? "bi-trending-up" : "bi-trending-down"} fs-2`}
                             ></i>
                           </div>
                           <h4
