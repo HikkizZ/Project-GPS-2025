@@ -391,7 +391,7 @@ const ReportsTable: React.FC<ReportsTableProps> = ({
                         </td>
                         <td>
                           <span className="badge bg-light text-dark">
-                            {movement.details.reduce((sum, detail) => sum + detail.quantity, 0)} m³
+                            {(movement.details as any[]).reduce((sum: number, detail: any) => sum + detail.quantity, 0)} m³
                           </span>
                         </td>
                         <td>
