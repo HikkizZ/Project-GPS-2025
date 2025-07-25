@@ -1,5 +1,3 @@
-"use client";
-
 import React, { useState, useMemo } from "react";
 import { Table, Button, Spinner, Card } from "react-bootstrap";
 import type { InventoryEntry } from "@/types/inventory/inventory.types";
@@ -73,18 +71,15 @@ const InventoryHistoryTable: React.FC<InventoryHistoryTableProps> = ({
       ...exits.map((x) => ({
         ...x,
         type: "exit" as const,
-        // Usar createdAt si existe, sino usar exitDate como fallback
         sortDate: (x as any).createdAt || x.exitDate,
         displayDate: x.exitDate,
       })),
     ];
 
-    // Ordenar por fecha de creación (más reciente primero)
     return allMovements.sort((a, b) => {
       const dateA = new Date(a.sortDate!);
       const dateB = new Date(b.sortDate!);
 
-      // Si las fechas son iguales, usar el ID como criterio secundario (más alto = más reciente)
       if (dateA.getTime() === dateB.getTime()) {
         return b.id - a.id;
       }

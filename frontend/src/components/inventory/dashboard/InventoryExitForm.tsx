@@ -143,7 +143,7 @@ const InventoryExitForm: React.FC<InventoryExitFormProps> = ({
       (sum, detail) => sum + calculateDetailTotalPrice(detail),
       0
     );
-  }, [formData.details, activeProducts]); // Recalculate grand total when details or active products change
+  }, [formData.details, activeProducts]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
