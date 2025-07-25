@@ -9,11 +9,11 @@ import { FileUploadService } from "../../services/fileUpload.service.js";
 import path from 'path';
 import { get } from "http";
 import { Bono } from "../../entity/recursosHumanos/Remuneraciones/Bono.entity.js";
-import { AsignarBono } from "entity/recursosHumanos/Remuneraciones/asignarBono.entity.js"; 
+import { AsignarBono } from "../../entity/recursosHumanos/Remuneraciones/asignarBono.entity.js"; 
 import { 
     AsignarBonoDTO,
     UpdateAsignarBonoDTO, 
-} from "types/recursosHumanos/bono.dto.js";
+} from "../../types/recursosHumanos/bono.dto.js";
 
 // Interfaz para los parámetros de búsqueda
 interface SearchFichaParams {
@@ -336,7 +336,9 @@ const CAMPOS_ESTADO_DESVINCULADO = ['cargo', 'area', 'tipoContrato', 'jornadaLab
 
 export async function updateFichaEmpresaService(
     id: number, 
-    fichaData: Partial<FichaEmpresa>
+    fichaData: Partial<FichaEmpresa>,
+    usuarioAutenticado?: User,
+    file?: Express.Multer.File
 ): Promise<ServiceResponse<FichaEmpresa>> {
     const queryRunner = AppDataSource.createQueryRunner();
     await queryRunner.connect();
@@ -367,6 +369,51 @@ export async function updateFichaEmpresaService(
             }
         }
 
+        // === INICIO: Validación de primer update y coherencia de fecha fin ===
+        // Detectar si es el primer update (campos clave vacíos o por defecto)
+        const esPrimerUpdate = !fichaActual.cargo && !fichaActual.area && !fichaActual.tipoContrato && !fichaActual.jornadaLaboral && (!fichaActual.sueldoBase || fichaActual.sueldoBase === 0);
+        if (esPrimerUpdate) {
+            const camposObligatorios = [
+                { key: 'cargo', label: 'Cargo' },
+                { key: 'area', label: 'Área' },
+                { key: 'tipoContrato', label: 'Tipo de contrato' },
+                { key: 'jornadaLaboral', label: 'Jornada laboral' },
+                { key: 'sueldoBase', label: 'Sueldo base' },
+                { key: 'fechaInicioContrato', label: 'Fecha de inicio de contrato' }
+            ];
+            const faltantes = camposObligatorios.filter(campo => {
+                const nuevoValor = (fichaData as any)[campo.key];
+                return nuevoValor === undefined || nuevoValor === null || nuevoValor === '' || (campo.key === 'sueldoBase' && (!nuevoValor || nuevoValor === 0));
+            });
+            if (faltantes.length > 0) {
+                return [null, { message: `En el primer update debe completar los siguientes campos obligatorios: ${faltantes.map(f => f.label).join(', ')}` }];
+            }
+        }
+
+        // Validar coherencia de fecha fin según tipo de contrato
+        const tipoContratoNuevo = fichaData.tipoContrato || fichaActual.tipoContrato;
+        const fechaFinNueva = fichaData.fechaFinContrato !== undefined ? fichaData.fechaFinContrato : fichaActual.fechaFinContrato;
+        if (tipoContratoNuevo === 'Indefinido') {
+            // No debe permitirse fecha fin
+            if (fechaFinNueva) {
+                return [null, { message: "No se debe ingresar fecha de fin para contratos indefinidos" }];
+            }
+        } else {
+            // Para otros tipos, la fecha fin es obligatoria y debe ser posterior a la de inicio
+            const fechaInicio = fichaData.fechaInicioContrato || fichaActual.fechaInicioContrato;
+            if (!fechaFinNueva) {
+                return [null, { message: "Debe ingresar fecha de fin para contratos que no son indefinidos" }];
+            }
+            if (fechaInicio && fechaFinNueva) {
+                const fechaFinDate = new Date(fechaFinNueva);
+                const fechaInicioDate = new Date(fechaInicio);
+                if (fechaFinDate <= fechaInicioDate) {
+                    return [null, { message: "La fecha de fin de contrato debe ser posterior a la fecha de inicio" }];
+                }
+            }
+        }
+        // === FIN: Validación de primer update y coherencia de fecha fin ===
+
         // 4. Validar cambios específicos
         if ('sueldoBase' in fichaData && fichaData.sueldoBase !== undefined) {
             if (fichaData.sueldoBase <= 0) {
@@ -396,6 +443,9 @@ export async function updateFichaEmpresaService(
 
         if ('fechaFinContrato' in fichaData && fichaData.fechaFinContrato) {
             const fechaFin = new Date(fichaData.fechaFinContrato);
+            if (!fichaActual.fechaInicioContrato) {
+                return [null, { message: "No existe fecha de inicio de contrato para comparar" }];
+            }
             if (fechaFin <= fichaActual.fechaInicioContrato) {
                 return [null, { message: "La fecha de fin de contrato debe ser posterior a la fecha de inicio" }];
             }
@@ -417,12 +467,160 @@ export async function updateFichaEmpresaService(
 
         
         // 6. Aplicar los cambios validados
-        Object.assign(fichaActual, fichaData);
+        let huboActualizacionCampos = false;
+        const camposModificados: string[] = [];
 
-        // 7. Guardar los cambios
+        // Detectar cambios en campos relevantes
+        const camposRelevantes = [
+            'cargo', 'area', 'tipoContrato', 'jornadaLaboral', 'sueldoBase',
+            'afp', 'previsionSalud', 'seguroCesantia', 'fechaInicioContrato', 'fechaFinContrato'
+        ];
+        // Función robusta para comparar valores
+        function sonDiferentes(nuevo: any, original: any, campo: string): boolean {
+            // Comparar fechas solo por YYYY-MM-DD
+            if (campo.toLowerCase().includes('fecha')) {
+                if (!nuevo && !original) return false;
+                const fechaN = nuevo ? new Date(nuevo).toISOString().split('T')[0] : '';
+                const fechaO = original ? new Date(original).toISOString().split('T')[0] : '';
+                return fechaN !== fechaO;
+            }
+            // Comparar números
+            if (typeof original === 'number' || typeof nuevo === 'number') {
+                return Number(nuevo) !== Number(original);
+            }
+            // Comparar booleanos
+            if (typeof original === 'boolean' || typeof nuevo === 'boolean') {
+                return Boolean(nuevo) !== Boolean(original);
+            }
+            // Comparar strings (trim y lower)
+            if (typeof nuevo === 'string' && typeof original === 'string') {
+                return nuevo.trim().toLowerCase() !== original.trim().toLowerCase();
+            }
+            // Comparar nulos/vacíos
+            if ((!nuevo && original) || (nuevo && !original)) {
+                return true;
+            }
+            // Fallback
+            return String(nuevo) !== String(original);
+        }
+
+        // Guardar valores originales antes de aplicar cambios
+        const valoresOriginales: Record<string, any> = {};
+        for (const campo of camposRelevantes) {
+            valoresOriginales[campo] = (fichaActual as any)[campo];
+        }
+        const contratoOriginal = fichaActual.contratoURL;
+
+        // Detectar cambios en campos relevantes (comparando original vs NUEVO del request)
+        let huboSubidaContrato = false;
+        let huboCambios = false;
+        const camposRealmenteModificados: string[] = [];
+        for (const campo of camposRelevantes) {
+            if (campo in fichaData && (fichaData as any)[campo] !== undefined) {
+                const valorNuevo = (fichaData as any)[campo];
+                const valorOriginal = valoresOriginales[campo];
+                if (sonDiferentes(valorNuevo, valorOriginal, campo)) {
+                    camposRealmenteModificados.push(campo);
+                    huboCambios = true;
+                }
+            }
+        }
+
+        // Manejar subida de contrato (si hay archivo)
+        let contratoAnterior = contratoOriginal;
+        let nuevoContratoFilename = contratoAnterior;
+        if (file) {
+            nuevoContratoFilename = file.filename;
+            // NO eliminar el archivo anterior para mantener trazabilidad histórica
+            // if (contratoAnterior) {
+            //     const oldFilePath = FileUploadService.getContratoPath(contratoAnterior);
+            //     FileUploadService.deleteFile(oldFilePath);
+            // }
+            // Solo marcar como cambio si el contrato es diferente
+            if (!contratoAnterior || contratoAnterior !== nuevoContratoFilename) {
+                huboSubidaContrato = true;
+                huboCambios = true;
+            }
+        }
+
+        // Si no hubo cambios, NO guardar ni crear historial
+        if (!huboCambios) {
+            await queryRunner.release();
+            return [fichaActual, null];
+        }
+
+        // Aplicar solo los cambios realmente modificados
+        for (const campo of camposRealmenteModificados) {
+            (fichaActual as any)[campo] = (fichaData as any)[campo];
+        }
+        if (huboSubidaContrato) {
+            fichaActual.contratoURL = nuevoContratoFilename;
+        }
+
+        // Guardar los cambios
         const fichaActualizada = await fichaRepo.save(fichaActual);
-        await queryRunner.commitTransaction();
 
+        // Determinar observaciones
+        let observaciones = '';
+        if (camposRealmenteModificados.length > 0) {
+            // Listar los cambios con valores anteriores y nuevos
+            const cambios = camposRealmenteModificados.map(campo => {
+                const valorAnterior = valoresOriginales[campo];
+                const valorNuevo = (fichaData as any)[campo];
+                // Formatear fechas
+                if (campo.toLowerCase().includes('fecha')) {
+                    const va = valorAnterior ? new Date(valorAnterior).toISOString().split('T')[0] : '';
+                    const vn = valorNuevo ? new Date(valorNuevo).toISOString().split('T')[0] : '';
+                    return `${campo} (de '${va}' a '${vn}')`;
+                }
+                return `${campo} (de '${valorAnterior ?? ''}' a '${valorNuevo ?? ''}')`;
+            });
+            observaciones = `Actualización de información laboral: ${cambios.join(', ')}`;
+            if (huboSubidaContrato) {
+                observaciones += ' + subida de contrato PDF';
+            }
+        } else if (huboSubidaContrato) {
+            observaciones = 'Subida de contrato PDF';
+        } else {
+            observaciones = 'Sin cambios relevantes';
+        }
+
+        // Crear snapshot en historial laboral SOLO si hubo algún cambio relevante
+        if (camposRealmenteModificados.length > 0 || huboSubidaContrato) {
+            const historialRepo = queryRunner.manager.getRepository('HistorialLaboral');
+            // Normalizar fechas para evitar problemas de zona horaria
+            const fechaInicioNormalizada = fichaActualizada.fechaInicioContrato ? 
+                new Date(fichaActualizada.fechaInicioContrato.toISOString().split('T')[0] + 'T12:00:00') : null;
+            const fechaFinNormalizada = fichaActualizada.fechaFinContrato ? 
+                new Date(fichaActualizada.fechaFinContrato.toISOString().split('T')[0] + 'T12:00:00') : null;
+            const fechaInicioLicenciaPermisoNormalizada = fichaActualizada.fechaInicioLicenciaPermiso ? 
+                new Date(fichaActualizada.fechaInicioLicenciaPermiso.toISOString().split('T')[0] + 'T12:00:00') : null;
+            const fechaFinLicenciaPermisoNormalizada = fichaActualizada.fechaFinLicenciaPermiso ? 
+                new Date(fichaActualizada.fechaFinLicenciaPermiso.toISOString().split('T')[0] + 'T12:00:00') : null;
+            await historialRepo.save(historialRepo.create({
+                trabajador: fichaActualizada.trabajador,
+                cargo: fichaActualizada.cargo,
+                area: fichaActualizada.area,
+                tipoContrato: fichaActualizada.tipoContrato,
+                jornadaLaboral: fichaActualizada.jornadaLaboral,
+                sueldoBase: fichaActualizada.sueldoBase,
+                fechaInicio: fechaInicioNormalizada,
+                fechaFin: fechaFinNormalizada,
+                motivoDesvinculacion: fichaActualizada.motivoDesvinculacion,
+                observaciones,
+                contratoURL: fichaActualizada.contratoURL,
+                afp: fichaActualizada.afp,
+                previsionSalud: fichaActualizada.previsionSalud,
+                seguroCesantia: fichaActualizada.seguroCesantia,
+                estado: fichaActualizada.estado,
+                fechaInicioLicenciaPermiso: fechaInicioLicenciaPermisoNormalizada,
+                fechaFinLicenciaPermiso: fechaFinLicenciaPermisoNormalizada,
+                motivoLicenciaPermiso: fichaActualizada.motivoLicenciaPermiso,
+                registradoPor: usuarioAutenticado || fichaActualizada.trabajador?.usuario || null
+            }));
+        }
+
+        await queryRunner.commitTransaction();
         return [fichaActualizada, null];
     } catch (error) {
         await queryRunner.rollbackTransaction();
@@ -522,34 +720,6 @@ export async function descargarContratoService( id: number, userId: number ): Pr
     }
 } 
 
-export async function uploadContratoService( id: number, file: Express.Multer.File ): Promise<ServiceResponse<{ contratoUrl: string }>> {
-    try {
-        const fichaRepository = AppDataSource.getRepository(FichaEmpresa);
-        const ficha = await fichaRepository.findOneBy({ id });
-        if (!ficha) {
-            // Eliminar el archivo subido si la ficha no existe
-            FileUploadService.deleteFile(file.path);
-            return [null, { message: "Ficha no encontrada." }];
-        }
-        const nuevoContratoFilename = file.filename;
-        // Si ya existe un contrato, eliminar el anterior
-        if (ficha.contratoURL) {
-            const oldFilePath = FileUploadService.getContratoPath(ficha.contratoURL);
-            FileUploadService.deleteFile(oldFilePath);
-        }
-        ficha.contratoURL = nuevoContratoFilename;
-        await fichaRepository.save(ficha);
-        return [{ contratoUrl: nuevoContratoFilename }, null];
-    } catch (error) {
-        // Si ocurre un error, eliminar el archivo subido
-        if (file && file.path) {
-            FileUploadService.deleteFile(file.path);
-        }
-        console.error("Error en uploadContratoService:", error);
-        return [null, { message: "Error interno al procesar la subida del archivo." }];
-    }
-}
-
 export async function deleteContratoService( id: number ): Promise<ServiceResponse<{ deleted: boolean }>> {
     try {
         const fichaRepository = AppDataSource.getRepository(FichaEmpresa);
@@ -560,12 +730,12 @@ export async function deleteContratoService( id: number ): Promise<ServiceRespon
         if (!ficha.contratoURL) {
             return [null, { message: "No hay contrato para eliminar" }];
         }
-        // Eliminar archivo físico
-        const deleted = FileUploadService.deleteContratoFile(ficha.contratoURL);
+        // NO eliminar archivo físico para mantener trazabilidad histórica
+        // const deleted = FileUploadService.deleteContratoFile(ficha.contratoURL);
         // Actualizar ficha
         ficha.contratoURL = null;
         await fichaRepository.save(ficha);
-        return [{ deleted }, null];
+        return [{ deleted: true }, null];
     } catch (error) {
         console.error("Error en deleteContratoService:", error);
         return [null, { message: "Error interno del servidor" }];

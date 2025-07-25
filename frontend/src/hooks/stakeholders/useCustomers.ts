@@ -13,21 +13,18 @@ export const useCustomers = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Estados específicos para operaciones individuales
   const [isCreating, setIsCreating] = useState<boolean>(false);
   const [isUpdating, setIsUpdating] = useState<boolean>(false);
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
 
-  // Última query de búsqueda (para reutilizar al recargar)
   const [lastQuery, setLastQuery] = useState<CustomerSearchQuery>({});
 
-  //? Cargar clientes con filtros
   const loadCustomers = async (query?: CustomerSearchQuery) => {
     setIsLoading(true);
     setError(null);
 
     const useQuery = query || lastQuery || {};
-    setLastQuery(useQuery); // Guardamos la última query utilizada
+    setLastQuery(useQuery);
 
     try {
       if (useQuery.rut || useQuery.email) {
@@ -60,7 +57,6 @@ export const useCustomers = () => {
     }
   };
 
-  //? Crear cliente
   const createCustomer = async (data: CreateCustomerData) => {
     setIsCreating(true);
     setError(null);
@@ -68,7 +64,7 @@ export const useCustomers = () => {
     try {
       const response = await customerService.createCustomer(data);
       if (response.success) {
-        await loadCustomers(lastQuery); // Recargar clientes con la última query
+        await loadCustomers(lastQuery);
         return { success: true, data: response.data, message: response.message };
       } else {
         return { success: false, error: response.error || "Error al crear cliente" };
@@ -80,7 +76,6 @@ export const useCustomers = () => {
     }
   };
 
-  //? Actualizar cliente
   const updateCustomer = async (id: number, data: UpdateCustomerData) => {
     setIsUpdating(true);
     setError(null);
@@ -100,7 +95,6 @@ export const useCustomers = () => {
     }
   };
 
-  //? Eliminar cliente
   const deleteCustomer = async (id: number) => {
     setIsDeleting(true);
     setError(null);
@@ -120,7 +114,6 @@ export const useCustomers = () => {
     }
   };
 
-  // Cargar clientes al iniciar (si es necesario)
   useEffect(() => {
     loadCustomers();
   }, []);

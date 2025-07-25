@@ -131,7 +131,7 @@ const InventoryChart: React.FC<InventoryChartProps> = ({
             },
             title: {
               display: true,
-              text: "Cantidad (unidades)",
+              text: "Cantidad (m³)",
               font: {
                 size: 15,
                 weight: 600,
@@ -263,7 +263,7 @@ const InventoryChart: React.FC<InventoryChartProps> = ({
           {metricVisibility.totalStock && (
             <Col className="text-center">
               <small className="text-muted">Total Stock</small>
-              <div className="fw-bold text-primary">{calculations.totalStock.toLocaleString()} unidades</div>
+              <div className="fw-bold text-primary">{calculations.totalStock.toLocaleString()} m³ de materiales</div>
             </Col>
           )}
           {metricVisibility.registeredCategories && (
@@ -281,7 +281,7 @@ const InventoryChart: React.FC<InventoryChartProps> = ({
           {metricVisibility.averagePerCategory && (
             <Col className="text-center">
               <small className="text-muted">Promedio</small>
-              <div className="fw-bold text-info">{calculations.averagePerCategory} u/categoría</div>
+              <div className="fw-bold text-info">{calculations.averagePerCategory} m³/categoría</div>
             </Col>
           )}
           {metricVisibility.topCategory && (
@@ -294,7 +294,6 @@ const InventoryChart: React.FC<InventoryChartProps> = ({
           )}
         </div>
 
-        {/* 📊 Información adicional (basada en stock simulado) */}
         {calculations.lowStockCategories > 0 && (
           <div className="row mt-2">
             <div className="col-12 text-center">

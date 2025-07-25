@@ -13,12 +13,10 @@ interface InventoryEntryModalProps {
 const InventoryEntryModal: React.FC<InventoryEntryModalProps> = ({ show, onClose, onSubmit, isSubmitting = false }) => {
   return (
     <Modal show={show} onHide={onClose} size="xl" centered>
-      {" "}
-      {/* Usar 'xl' para un modal más grande */}
       <Modal.Header className="bg-gradient-primary text-white" closeButton>
         <Modal.Title>
           <i className="bi bi-box-arrow-in-down me-2"></i>
-          Nueva Entrada de Inventario (Compra)
+          Registrar Ingreso de Material
         </Modal.Title>
       </Modal.Header>
       <Modal.Body>

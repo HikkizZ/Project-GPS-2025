@@ -1,5 +1,3 @@
-"use client"
-
 import type React from "react"
 import { Button, Card, Table } from "react-bootstrap"
 import type { Customer } from "@/types/stakeholders/customer.types"

@@ -7,6 +7,7 @@ import { FichasEmpresaPage } from './pages/recursosHumanos/FichasEmpresaPage';
 import { BonosPage } from './pages/recursosHumanos/bonosPage';
 import { UsersPage } from './pages/UsersPage';
 import { TrabajadoresPage } from './pages/recursosHumanos/TrabajadoresPage';
+import HistorialLaboralPage from './pages/recursosHumanos/HistorialLaboralPage';
 import { SupplierPage } from './pages/stakeholders/SupplierPage';
 import { CustomerPage } from './pages/stakeholders/CustomerPage';
 import { InventoryPage } from './pages/inventory/InventoryPage';
@@ -29,6 +30,7 @@ import SparePartsPage from './pages/machinaryMantenance/SparePartsPage';
 import MantencionesCompletadasPage from '@/pages/machinaryMantenance/MantencionesCompletadasPage'
 
 // IMPORTACIONES PARA MAQUINARIA
+import DashboardMaquinaria from './pages/maquinaria/dashboardMaquinaria';
 import { CompraMaquinariaPage } from "./pages/maquinaria/compraMaquinariaPage"
 import { VentaMaquinariaPage } from "./pages/maquinaria/ventaMaquinariaPage"
 import { MaquinariaPage } from "./pages/maquinaria/maquinariaPage"
@@ -585,7 +587,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
                             background: "white",
                             border: "1px solid #e0f2fe",
                           }}
-                          onClick={() => navigate("/maquinaria")}
+                          onClick={() => navigate("/dashboard-maquinaria")}
                           onMouseEnter={(e) => {
                             e.currentTarget.style.transform = "translateY(-12px) scale(1.02)"
                             e.currentTarget.style.boxShadow = "0 25px 50px rgba(6, 182, 212, 0.25)"
@@ -732,6 +734,7 @@ function App() {
                 <Route path="dashboard" element={<Dashboard user={safeUser} />} />
                 <Route path="recursos-humanos" element={<DashboardRecursosHumanos />} />
                 <Route path="trabajadores" element={<TrabajadoresPage />} />
+                <Route path="trabajadores/historial-laboral" element={<HistorialLaboralPage />} />
                 <Route path="fichas-empresa" element={<FichasEmpresaPage />} />
                 <Route path="fichas-empresa/mi-ficha" element={<FichasEmpresaPage />} />
                 <Route path="bonos" element={<BonosPage />} />
@@ -761,6 +764,8 @@ function App() {
                 <Route path="maintenance-completed" element={<MantencionesCompletadasPage />} />
 
                 {/* RUTAS DE MAQUINARIA ACTUALIZADAS */}
+                <Route path="dashboard-maquinaria" element={<DashboardMaquinaria />} />
+                <Route path="maquinaria/trabajo" element={<MaquinariaPage />} />
                 <Route path="maquinaria" element={<MaquinariaPage />} />
                 <Route path="maquinaria/compras" element={<CompraMaquinariaPage />} />
                 <Route path="maquinaria/ventas" element={<VentaMaquinariaPage />} />

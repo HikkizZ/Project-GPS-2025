@@ -1,11 +1,9 @@
-"use client"
-
 import type React from "react"
 import { useState, useEffect } from "react"
 import { Container, Row, Col, Button, Card } from "react-bootstrap"
 import InventorySidebar from "@/components/inventory/layout/InventorySidebar"
 import ProductModal from "@/components/inventory/product/ProductModal"
-import ConfirmModal from "@/components/stakeholders/ConfirmModal"
+import ConfirmModal from "@/components/common/ConfirmModal"
 import { LocalFilters } from "@/components/inventory/product/LocalFilters"
 import { ProductTable } from "@/components/inventory/product/ProductTable"
 import { useProducts } from "@/hooks/inventory/useProducts"
@@ -36,23 +34,19 @@ export const ProductPage: React.FC = () => {
     salePrice: "",
   })
 
-  // Estados existentes
   const [showModal, setShowModal] = useState(false)
   const [editingProduct, setEditingProduct] = useState<Product | undefined>(undefined)
   const [showFilters, setShowFilters] = useState(false)
   const [productToDelete, setProductToDelete] = useState<Product | null>(null)
 
-  // Efecto para sincronizar products del hook con el estado local
   useEffect(() => {
     setAllProducts(products)
     setFilteredProducts(products)
   }, [products])
 
-  // Efecto para aplicar filtros locales
   useEffect(() => {
     let filtered = [...allProducts]
 
-    // Aplicar filtros locales por tipo de producto
     if (localFilters.product) {
       filtered = filtered.filter((product) =>
         product.product.toLowerCase().includes(localFilters.product.toLowerCase()),
@@ -123,7 +117,6 @@ export const ProductPage: React.FC = () => {
 
   const hasActiveLocalFilters = Object.values(localFilters).some((value) => value.trim() !== "")
 
-  // Obtener los tipos de producto ya existentes para pasarlos al formulario
   const existingProductTypes: ProductType[] = allProducts.map((p) => p.product)
 
   return (
@@ -209,8 +202,8 @@ export const ProductPage: React.FC = () => {
               message={`¿Estás seguro que deseas eliminar el producto "${productToDelete?.product}"?`}
               confirmText="Eliminar"
               cancelText="Cancelar"
-              headerVariant="danger" // Encabezado rojo
-              warningContent={ // Contenido de advertencia personalizable
+              headerVariant="danger"
+              warningContent={
                 <>
                   <p className="mb-0">Esta acción:</p>
                   <ul>

@@ -42,6 +42,16 @@ function formatSueldo(sueldo: number): string {
   }).format(sueldo);
 }
 
+// Función para formatear fecha sin problemas de zona horaria
+const formatLocalDate = (date: string | Date): string => {
+  if (!date) return '';
+  const d = new Date(date);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = ({
   show,
   onHide,
@@ -75,8 +85,8 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
     tipoContrato: (ficha.tipoContrato && ficha.tipoContrato !== 'Por Definir') ? ficha.tipoContrato : '',
     jornadaLaboral: (ficha.jornadaLaboral && ficha.jornadaLaboral !== 'Por Definir') ? ficha.jornadaLaboral : '',
     sueldoBase: ficha.sueldoBase ? formatMiles(ficha.sueldoBase) : '',
-    fechaInicioContrato: ficha.fechaInicioContrato ? new Date(ficha.fechaInicioContrato).toISOString().split('T')[0] : '',
-    fechaFinContrato: ficha.fechaFinContrato ? new Date(ficha.fechaFinContrato).toISOString().split('T')[0] : ''
+    fechaInicioContrato: ficha.fechaInicioContrato ? formatLocalDate(ficha.fechaInicioContrato) : '',
+    fechaFinContrato: ficha.fechaFinContrato ? formatLocalDate(ficha.fechaFinContrato) : ''
   });
 
   useEffect(() => {
@@ -87,8 +97,8 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
         tipoContrato: (ficha.tipoContrato && ficha.tipoContrato !== 'Por Definir') ? ficha.tipoContrato : '',
         jornadaLaboral: (ficha.jornadaLaboral && ficha.jornadaLaboral !== 'Por Definir') ? ficha.jornadaLaboral : '',
         sueldoBase: ficha.sueldoBase ? formatMiles(ficha.sueldoBase) : '',
-        fechaInicioContrato: ficha.fechaInicioContrato ? new Date(ficha.fechaInicioContrato).toISOString().split('T')[0] : '',
-        fechaFinContrato: ficha.fechaFinContrato ? new Date(ficha.fechaFinContrato).toISOString().split('T')[0] : ''
+        fechaInicioContrato: ficha.fechaInicioContrato ? formatLocalDate(ficha.fechaInicioContrato) : '',
+        fechaFinContrato: ficha.fechaFinContrato ? formatLocalDate(ficha.fechaFinContrato) : ''
       };
       setFormData(newFormData);
       setInitialFormData(newFormData);
@@ -188,39 +198,51 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
     }
   };
 
+  // Detectar si es el primer update (todos los campos clave vacíos o por defecto)
+  const esPrimerUpdate = !ficha.cargo && !ficha.area && !ficha.tipoContrato && !ficha.jornadaLaboral && (!ficha.sueldoBase || ficha.sueldoBase === 0);
+
+  // Lógica para habilitar/deshabilitar fecha fin según tipo de contrato
+  const tipoContratoActual = formData.tipoContrato;
+  const esIndefinido = tipoContratoActual === 'Indefinido';
+
+  // Validación dinámica en el submit
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setValidated(true);
-    
-    // Validar campos requeridos
-    const isValid = formData.cargo.trim() && formData.cargo.trim() !== 'Por Definir' &&
-                   formData.area.trim() && formData.area.trim() !== 'Por Definir' &&
-                   formData.tipoContrato && formData.tipoContrato !== 'Por Definir' &&
-                   formData.jornadaLaboral && formData.jornadaLaboral !== 'Por Definir' &&
-                   formData.sueldoBase && 
-                   parseInt(cleanNumber(formData.sueldoBase)) > 0 && 
-                   formData.fechaInicioContrato;
-    
-    if (!isValid) {
-      return; // No mostrar mensaje de error general, dejar que los campos individuales muestren sus errores
-    }
-    
-    setLoading(true);
 
+    // Validación estricta de campos requeridos y formato de fechas
+    let isValid = true;
+    const fechaRegex = /^\d{4}-\d{2}-\d{2}$/;
+    const tipoContrato = formData.tipoContrato;
+    const fechaFin = formData.fechaFinContrato;
+
+    // Validar campos requeridos
+    if (!formData.cargo.trim() || formData.cargo.trim() === 'Por Definir') isValid = false;
+    if (!formData.area.trim() || formData.area.trim() === 'Por Definir') isValid = false;
+    if (!tipoContrato || tipoContrato === 'Por Definir') isValid = false;
+    if (!formData.jornadaLaboral || formData.jornadaLaboral === 'Por Definir') isValid = false;
+    if (!formData.sueldoBase || parseInt(cleanNumber(formData.sueldoBase)) <= 0) isValid = false;
+    if (!formData.fechaInicioContrato || !fechaRegex.test(formData.fechaInicioContrato)) isValid = false;
+
+    // Validación específica de Fecha Fin
+    if (tipoContrato === 'Plazo Fijo' || tipoContrato === 'Por Obra' || tipoContrato === 'Part-Time') {
+      if (!fechaFin || !fechaRegex.test(fechaFin)) {
+        isValid = false;
+      }
+    }
+    if (tipoContrato === 'Indefinido' && fechaFin) {
+      isValid = false;
+    }
+
+    if (!isValid) {
+      // No mostrar toast de error, solo dejar los mensajes en rojo bajo los campos
+      return;
+    }
+
+    setLoading(true);
     try {
       const fichaId = typeof ficha.id === 'string' ? parseInt(ficha.id) : ficha.id;
-
-      // Si hay un archivo seleccionado, subirlo
-      if (selectedFile) {
-        const uploadResponse = await uploadContrato(fichaId, selectedFile);
-        if (!uploadResponse.success) {
-          throw new Error(uploadResponse.message || 'Error al subir el contrato');
-        }
-      }
-
-      // Procesar los datos antes de enviarlos
       const sueldoBaseNumber = formData.sueldoBase ? parseInt(cleanNumber(formData.sueldoBase)) : 0;
-
       const dataToSubmit = {
         cargo: formData.cargo.trim(),
         area: formData.area.trim(),
@@ -228,28 +250,38 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
         jornadaLaboral: formData.jornadaLaboral,
         sueldoBase: sueldoBaseNumber,
         fechaInicioContrato: formData.fechaInicioContrato,
-        fechaFinContrato: formData.fechaFinContrato || undefined
+        fechaFinContrato: tipoContrato === 'Indefinido' ? undefined : formData.fechaFinContrato || undefined
       };
-
-      if (!dataToSubmit.sueldoBase || dataToSubmit.sueldoBase <= 0) {
-        throw new Error('El sueldo base debe ser mayor a 0');
+      let response;
+      if (selectedFile) {
+        const formDataToSend = new FormData();
+        Object.entries(dataToSubmit).forEach(([key, value]) => {
+          if (value !== undefined && value !== null) {
+            formDataToSend.append(key, value as any);
+          }
+        });
+        formDataToSend.append('contrato', selectedFile);
+        response = await updateFichaEmpresa(fichaId, formDataToSend);
+      } else {
+        response = await updateFichaEmpresa(fichaId, dataToSubmit);
       }
-
-      // Actualizar ficha de empresa
-      const response = await updateFichaEmpresa(fichaId, dataToSubmit);
-      
       if (response.success) {
         if (onUpdate) onUpdate();
-        onHide(); // Cerrar inmediatamente
+        onHide();
       } else {
+        // Solo mostrar toast si es un error general del backend
         showError('Error al actualizar', response.message || 'Error al actualizar la ficha', 6000);
       }
     } catch (error: any) {
+      // Solo mostrar toast si es un error inesperado del backend
       showError('Error inesperado', error.message || 'Error inesperado al actualizar la ficha', 6000);
     } finally {
       setLoading(false);
     }
   };
+
+  // Helper para el tipo correcto de backdrop
+  const getBackdropValue = (): true | 'static' => (contratoEliminado ? 'static' : true);
 
   return (
     <>
@@ -260,6 +292,7 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
         centered
         backdrop={contratoEliminado ? 'static' : true}
         keyboard={!contratoEliminado}
+        className="editar-ficha-empresa-modal"
       >
         <Modal.Header 
           closeButton={!contratoEliminado}
@@ -412,12 +445,13 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
                   <Form.Label className="fw-semibold">Fecha Inicio <span className="text-danger">*</span></Form.Label>
                   <Form.Control
                     type="date"
+                    id="editar-ficha-empresa-fecha-inicio"
                     name="fechaInicioContrato"
                     value={formData.fechaInicioContrato}
                     onChange={handleInputChange}
                     required
                     style={{ borderRadius: '8px' }}
-                    isInvalid={validated && !formData.fechaInicioContrato}
+                    isInvalid={!!validated && !formData.fechaInicioContrato}
                   />
                   <Form.Control.Feedback type="invalid">
                     {validated && !formData.fechaInicioContrato && 'Completa este campo'}
@@ -427,18 +461,50 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
               {/* Fecha Fin Contrato */}
               <Col md={4}>
                 <Form.Group>
-                  <Form.Label className="fw-semibold">Fecha Fin</Form.Label>
+                  <Form.Label className="fw-semibold">Fecha Fin {((tipoContratoActual === 'Plazo Fijo' || tipoContratoActual === 'Por Obra' || tipoContratoActual === 'Part-Time') && esPrimerUpdate) && <span className="text-danger">*</span>}</Form.Label>
                   <Form.Control
                     type="date"
+                    id="editar-ficha-empresa-fecha-fin"
                     name="fechaFinContrato"
                     value={formData.fechaFinContrato}
                     onChange={handleInputChange}
                     style={{ borderRadius: '8px' }}
+                    disabled={
+                      !tipoContratoActual ||
+                      tipoContratoActual === 'Indefinido' ||
+                      !formData.fechaInicioContrato ||
+                      !/^\d{4}-\d{2}-\d{2}$/.test(formData.fechaInicioContrato)
+                    }
+                    required={tipoContratoActual === 'Plazo Fijo' || tipoContratoActual === 'Por Obra' || tipoContratoActual === 'Part-Time'}
+                    isInvalid={
+                      validated && (
+                        (tipoContratoActual === 'Plazo Fijo' || tipoContratoActual === 'Por Obra' || tipoContratoActual === 'Part-Time') && !formData.fechaFinContrato
+                      ) ||
+                      (validated && (tipoContratoActual === 'Plazo Fijo' || tipoContratoActual === 'Por Obra' || tipoContratoActual === 'Part-Time') && formData.fechaFinContrato && !/^\d{4}-\d{2}-\d{2}$/.test(formData.fechaFinContrato)) ||
+                      (validated && tipoContratoActual === 'Indefinido' && !!formData.fechaFinContrato)
+                    }
+                    min={
+                      formData.fechaInicioContrato && /^\d{4}-\d{2}-\d{2}$/.test(formData.fechaInicioContrato)
+                        ? formData.fechaInicioContrato
+                        : undefined
+                    }
                   />
                   <Form.Text className="text-muted small">
                     <i className="bi bi-info-circle me-1"></i>
-                    Opcional para contratos indefinidos
+                    {!tipoContratoActual ? 'Seleccione primero un tipo de contrato' :
+                      tipoContratoActual === 'Indefinido' ? 'No debe ingresar fecha fin para contratos indefinidos' :
+                      'Obligatorio para contratos no indefinidos'}
+                    {((tipoContratoActual === 'Plazo Fijo' || tipoContratoActual === 'Por Obra' || tipoContratoActual === 'Part-Time') && (!formData.fechaInicioContrato || !/^\d{4}-\d{2}-\d{2}$/.test(formData.fechaInicioContrato))) && (
+                      <>
+                        <br/>( La Fecha Fin se habilita después de ingresar una Fecha de Inicio ).
+                      </>
+                    )}
                   </Form.Text>
+                  <Form.Control.Feedback type="invalid">
+                    {validated && (tipoContratoActual === 'Plazo Fijo' || tipoContratoActual === 'Por Obra' || tipoContratoActual === 'Part-Time') && !formData.fechaFinContrato && 'Completa este campo'}
+                    {validated && (tipoContratoActual === 'Plazo Fijo' || tipoContratoActual === 'Por Obra' || tipoContratoActual === 'Part-Time') && formData.fechaFinContrato && !/^\d{4}-\d{2}-\d{2}$/.test(formData.fechaFinContrato) && 'Formato de fecha inválido (YYYY-MM-DD)'}
+                    {validated && tipoContratoActual === 'Indefinido' && formData.fechaFinContrato && 'No debe ingresar fecha fin para contratos indefinidos'}
+                  </Form.Control.Feedback>
                 </Form.Group>
               </Col>
             </Row>
@@ -483,6 +549,7 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
                     ref={fileInputRef}
                     type="file"
                     accept=".pdf"
+                    name="contrato"
                     onChange={handleFileSelect}
                     style={{ borderRadius: '8px' }}
                   />
@@ -619,40 +686,43 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
       </Modal>
 
       {/* Sistema de notificaciones */}
-      <div 
-        style={{ 
-          position: 'fixed', 
-          top: '20px', 
-          left: '50%',
-          transform: 'translateX(-50%)',
-          zIndex: 10000,
-          width: 'auto',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center'
-        }}
-      >
-        {toasts.map((toast) => (
-          <BootstrapToast
-            key={toast.id}
-            onClose={() => removeToast(toast.id)}
-            show={true}
-            delay={toast.duration || 5000}
-            autohide
-            className="toast-custom mb-2"
-          >
-            <BootstrapToast.Header className={`toast-header-${toast.type}`}>
-              <div className="d-flex align-items-center">
-                <i className={`bi ${toast.type === 'success' ? 'bi-check-circle-fill' : toast.type === 'error' ? 'bi-exclamation-triangle-fill' : 'bi-info-circle-fill'} me-2`}></i>
-                <strong className="me-auto">{toast.title}</strong>
-              </div>
-            </BootstrapToast.Header>
-            <BootstrapToast.Body className="toast-body">
-              {toast.message}
-            </BootstrapToast.Body>
-          </BootstrapToast>
-        ))}
-      </div>
+      {/* Solo mostrar los toasts si hay mensajes de archivos o errores generales, no por validaciones de formulario */}
+      {toasts.length > 0 && (
+        <div
+          style={{ 
+            position: 'fixed', 
+            top: '20px', 
+            left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 10000,
+            width: 'auto',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center'
+          }}
+        >
+          {toasts.map((toast) => (
+            <BootstrapToast
+              key={toast.id}
+              onClose={() => removeToast(toast.id)}
+              show={true}
+              delay={toast.duration || 5000}
+              autohide
+              className="toast-custom mb-2"
+            >
+              <BootstrapToast.Header className={`toast-header-${toast.type}`}>
+                <div className="d-flex align-items-center">
+                  <i className={`bi ${toast.type === 'success' ? 'bi-check-circle-fill' : toast.type === 'error' ? 'bi-exclamation-triangle-fill' : 'bi-info-circle-fill'} me-2`}></i>
+                  <strong className="me-auto">{toast.title}</strong>
+                </div>
+              </BootstrapToast.Header>
+              <BootstrapToast.Body className="toast-body">
+                {toast.message}
+              </BootstrapToast.Body>
+            </BootstrapToast>
+          ))}
+        </div>
+      )}
     </>
   );
 }; 
