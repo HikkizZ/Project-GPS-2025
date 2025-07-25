@@ -463,33 +463,58 @@ export const TrabajadoresPage: React.FC = () => {
                             <td>{trabajador.direccion}</td>
                             <td>{new Date(trabajador.fechaIngreso).toLocaleDateString()}</td>
                             <td className="text-center">
-                              {/* Ocultar acciones si es el admin principal o si es el usuario actual */}
-                              {(trabajador.correoPersonal !== 'admin.principal@gmail.com' && !esTrabajadorActual(trabajador)) && (
+                              {/* Ocultar acciones si es el admin principal */}
+                              {trabajador.correoPersonal !== 'admin.principal@gmail.com' && (
                                 <div className="btn-group">
-                                  <Button 
-                                    variant="outline-primary" 
-                                    className="me-2"
-                                    onClick={() => handleEditClick(trabajador)}
-                                    title="Editar trabajador"
-                                    disabled={!trabajador.enSistema}
-                                  >
-                                    <i className="bi bi-pencil"></i>
-                                  </Button>
-                                  <Button 
-                                    variant="outline-danger" 
-                                    onClick={() => handleDesvincularClick(trabajador)}
-                                    title="Desvincular trabajador"
-                                    disabled={!trabajador.enSistema}
-                                  >
-                                    <i className="bi bi-person-x"></i>
-                                  </Button>
-                                  <Button
-                                    variant="outline-secondary"
-                                    onClick={() => handleVerDetalle(trabajador)}
-                                    title="Ver detalles"
-                                  >
-                                    <i className="bi bi-eye"></i>
-                                  </Button>
+                                  {/* Si es el usuario actual y tiene rol adecuado, solo mostrar el ojo */}
+                                  {esTrabajadorActual(trabajador) && (user?.role === 'RecursosHumanos' || user?.role === 'Administrador') ? (
+                                    <Button
+                                      variant="outline-secondary"
+                                      onClick={() => handleVerDetalle(trabajador)}
+                                      title="Ver detalles"
+                                    >
+                                      <i className="bi bi-eye"></i>
+                                    </Button>
+                                  ) :
+                                  // Si NO es el usuario actual, mostrar todas las acciones
+                                  (!esTrabajadorActual(trabajador)) && (
+                                    <>
+                                      <Button 
+                                        variant="outline-primary" 
+                                        className="me-2"
+                                        onClick={() => handleEditClick(trabajador)}
+                                        title="Editar trabajador"
+                                        disabled={!trabajador.enSistema}
+                                      >
+                                        <i className="bi bi-pencil"></i>
+                                      </Button>
+                                      <Button 
+                                        variant="outline-danger" 
+                                        onClick={() => handleDesvincularClick(trabajador)}
+                                        title="Desvincular trabajador"
+                                        disabled={!trabajador.enSistema}
+                                      >
+                                        <i className="bi bi-person-x"></i>
+                                      </Button>
+                                      {/* Botón de reactivar solo si está desvinculado */}
+                                      {!trabajador.enSistema && (
+                                        <Button
+                                          variant="outline-success"
+                                          onClick={() => handleReactivacion(trabajador)}
+                                          title="Reactivar trabajador"
+                                        >
+                                          <i className="bi bi-person-check"></i>
+                                        </Button>
+                                      )}
+                                      <Button
+                                        variant="outline-secondary"
+                                        onClick={() => handleVerDetalle(trabajador)}
+                                        title="Ver detalles"
+                                      >
+                                        <i className="bi bi-eye"></i>
+                                      </Button>
+                                    </>
+                                  )}
                                 </div>
                               )}
                             </td>
