@@ -439,6 +439,13 @@ export async function desvincularTrabajadorService(id: number, motivo: string, u
             return [null, "No se puede desvincular a un trabajador mientras esté con licencia médica o permiso administrativo."];
         }
 
+        // Validación: No permitir desvinculación si falta la fecha de inicio de contrato
+        if (!trabajador.fichaEmpresa || !trabajador.fichaEmpresa.fechaInicioContrato) {
+            await queryRunner.rollbackTransaction();
+            await queryRunner.release();
+            return [null, "Debes ingresar la fecha de inicio de contrato (en la ficha de empresa) antes de desvincular al trabajador."];
+        }
+
 
         // Soft delete del trabajador
         trabajador.enSistema = false;

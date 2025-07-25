@@ -95,6 +95,12 @@ export const TrabajadoresPage: React.FC = () => {
   const handleDesvincularConfirm = async () => {
     if (!trabajadorToDesvincular || !motivoDesvinculacion.trim()) return;
 
+    // Validación: no permitir si falta la fecha de inicio de contrato
+    if (!trabajadorToDesvincular.fichaEmpresa || !trabajadorToDesvincular.fichaEmpresa.fechaInicioContrato) {
+      setDesvincularError('Debes ingresar la fecha de inicio de contrato (en la ficha de empresa) antes de desvincular al trabajador.');
+      return;
+    }
+
     try {
       setIsDesvinculando(true);
       setDesvincularError('');
@@ -579,12 +585,6 @@ export const TrabajadoresPage: React.FC = () => {
           </Modal.Title>
         </Modal.Header>
         <Modal.Body style={{ padding: '1.5rem' }}>
-          {desvincularError && (
-            <Alert variant="danger" className="border-0 mb-3" style={{ borderRadius: '12px' }}>
-              <i className="bi bi-exclamation-circle me-2"></i>
-              {desvincularError}
-            </Alert>
-          )}
           <Alert variant="warning" className="border-0 mb-3" style={{ borderRadius: '12px' }}>
             <div className="d-flex align-items-start">
               <i className="bi bi-exclamation-triangle me-3 mt-1 text-warning"></i>
@@ -627,6 +627,12 @@ export const TrabajadoresPage: React.FC = () => {
               style={{ borderRadius: '8px' }}
             />
           </Form.Group>
+          {desvincularError && (
+            <Alert variant="danger" className="border-0 mt-3 mb-0" style={{ borderRadius: '12px' }}>
+              <i className="bi bi-exclamation-circle me-2"></i>
+              {desvincularError}
+            </Alert>
+          )}
         </Modal.Body>
         <Modal.Footer style={{ padding: '1rem 1.5rem', borderTop: '1px solid #dee2e6' }}>
           <Button 
