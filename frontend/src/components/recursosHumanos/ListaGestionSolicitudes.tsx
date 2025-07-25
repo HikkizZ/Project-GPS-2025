@@ -881,13 +881,15 @@ export const ListaGestionSolicitudes: React.FC = () => {
                   {revisorSeleccionado.role === 'RRHH' ? 'Recursos Humanos' : revisorSeleccionado.role}
                 </div>
               </div>
-              <div className="mb-3">
-                <div className="text-secondary mb-1">RUT</div>
-                <div className="d-flex align-items-center">
-                  <i className="bi bi-person-vcard text-primary me-2"></i>
-                  {revisorSeleccionado.rut}
+              {revisorSeleccionado.role !== 'SuperAdministrador' && (
+                <div className="mb-3">
+                  <div className="text-secondary mb-1">RUT</div>
+                  <div className="d-flex align-items-center">
+                    <i className="bi bi-person-vcard text-primary me-2"></i>
+                    {revisorSeleccionado.rut}
+                  </div>
                 </div>
-              </div>
+              )}
               <div>
                 <div className="text-secondary mb-1">Correo Corporativo</div>
                 <div className="d-flex align-items-center">
