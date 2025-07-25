@@ -22,6 +22,7 @@ import ConfirmModal from "@/components/common/ConfirmModal"
 import type { InventoryExit } from "@/types/inventory/inventory.types"
 import { useInventory } from "@/hooks/inventory/useInventory"
 import { usePdfExport } from "@/hooks/usePdfExport"
+import { useExcelExport } from "@/hooks/useExcelExport"
 import "../../styles/pages/inventory.css"
 
 export const InventoryPage: React.FC = () => {
@@ -32,8 +33,8 @@ export const InventoryPage: React.FC = () => {
   const { inventory, isLoading: isLoadingInventory, loadInventory } = useInventory()
   const { toasts, removeToast, showSuccess, showError } = useToast()
 
-  // Hook para exportar PDF
-  const { exportToPdf, isExporting } = usePdfExport()
+  const { exportToPdf, isExporting: isExportingPdf } = usePdfExport()
+  const { exportToExcel, exportMultipleSheets, isExporting: isExportingExcel } = useExcelExport()
 
   const [showMovementSelectionModal, setShowMovementSelectionModal] = useState(false)
   const [showPurchaseEntryModal, setShowPurchaseEntryModal] = useState(false)
@@ -83,6 +84,8 @@ export const InventoryPage: React.FC = () => {
       inStockProducts,
       lowStockProducts,
       outOfStockProducts,
+      totalStock,
+      averageStock,
     }
   }, [products, inventory])
 
@@ -100,29 +103,27 @@ export const InventoryPage: React.FC = () => {
     setShowSaleExitModal(true)
   }, [])
 
-  // Función mejorada para exportar la tabla a PDF
   const handleExportToPdf = useCallback(async () => {
-    // Crear un elemento temporal con todos los datos para exportar
+    if (entries.length === 0 && exits.length === 0) {
+      showError("Sin datos para exportar", "No hay movimientos de inventario para exportar.")
+      return
+    }
+
     const tempDiv = document.createElement("div")
-    tempDiv.id = "temp-export-table"
+    tempDiv.id = "temp-inventory-export"
     tempDiv.style.position = "absolute"
     tempDiv.style.left = "-9999px"
     tempDiv.style.top = "0"
-    tempDiv.style.width = "1200px" // Ancho fijo para evitar cortes
+    tempDiv.style.width = "1200px"
     tempDiv.style.backgroundColor = "white"
     tempDiv.style.padding = "20px"
-
     document.body.appendChild(tempDiv)
 
     try {
-      // Renderizar la tabla con todos los datos
       const { createRoot } = await import("react-dom/client")
       const root = createRoot(tempDiv)
-
-      // Importar React para el renderizado
       const React = await import("react")
 
-      // Crear el componente de exportación
       const ExportTable = React.createElement(InventoryHistoryTable, {
         entries,
         exits,
@@ -133,19 +134,16 @@ export const InventoryPage: React.FC = () => {
         onDeleteEntry: () => {},
         onDeleteExit: () => {},
         allEntriesCount: entries.length + exits.length,
-        tableId: "temp-export-table-content",
-        exportMode: true, // Nueva prop para modo exportación
+        tableId: "temp-inventory-export-content",
+        exportMode: true,
       })
 
       root.render(ExportTable)
-
-      // Esperar un momento para que se renderice
       await new Promise((resolve) => setTimeout(resolve, 1000))
 
       const currentDate = new Date().toLocaleDateString("es-ES")
       const filename = `historial-inventario-${currentDate.replace(/\//g, "-")}.pdf`
-
-      const success = await exportToPdf("temp-export-table-content", filename)
+      const success = await exportToPdf("temp-inventory-export-content", filename)
 
       if (success) {
         showSuccess("¡Exportación exitosa!", "El historial de inventario se ha exportado correctamente.", 4000)
@@ -153,15 +151,104 @@ export const InventoryPage: React.FC = () => {
         showError("Error en la exportación", "No se pudo exportar el historial. Por favor, inténtalo de nuevo.")
       }
     } catch (error) {
-      console.error("Error en exportación:", error)
+      console.error("Error en exportación PDF:", error)
       showError("Error en la exportación", "No se pudo exportar el historial. Por favor, inténtalo de nuevo.")
     } finally {
-      // Limpiar el elemento temporal
       if (document.body.contains(tempDiv)) {
         document.body.removeChild(tempDiv)
       }
     }
   }, [entries, exits, products, suppliers, exportToPdf, showSuccess, showError])
+
+  const handleExportToExcel = useCallback(async () => {
+    if (entries.length === 0 && exits.length === 0) {
+      showError("Sin datos para exportar", "No hay movimientos de inventario para exportar.")
+      return
+    }
+
+    try {
+      const allMovements = [
+        ...entries.map((entry) => ({
+          Fecha: new Date(entry.entryDate).toLocaleDateString("es-ES"),
+          Hora: new Date(entry.entryDate).toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" }),
+          "Tipo de Movimiento": "Compra",
+          "Proveedor/Cliente": entry.supplier.name,
+          RUT: entry.supplier.rut,
+          Productos: entry.details.map((d) => d.product.product).join(", "),
+          "Cantidad Total (m³)": entry.details.reduce((sum, d) => sum + d.quantity, 0),
+          "Monto Total": entry.details.reduce((sum, d) => sum + d.totalPrice, 0),
+          "Precio Promedio por m³":
+            entry.details.reduce((sum, d) => sum + d.totalPrice, 0) /
+            entry.details.reduce((sum, d) => sum + d.quantity, 0),
+        })),
+        ...exits.map((exit) => ({
+          Fecha: new Date(exit.exitDate).toLocaleDateString("es-ES"),
+          Hora: new Date(exit.exitDate).toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" }),
+          "Tipo de Movimiento": "Venta",
+          "Proveedor/Cliente": exit.customer.name,
+          RUT: exit.customer.rut,
+          Productos: exit.details.map((d) => d.product.product).join(", "),
+          "Cantidad Total (m³)": exit.details.reduce((sum, d) => sum + d.quantity, 0),
+          "Monto Total": exit.details.reduce((sum, d) => sum + d.totalPrice, 0),
+          "Precio Promedio por m³":
+            exit.details.reduce((sum, d) => sum + d.totalPrice, 0) /
+            exit.details.reduce((sum, d) => sum + d.quantity, 0),
+        })),
+      ]
+
+      allMovements.sort((a, b) => {
+        const dateA = new Date(`${a.Fecha} ${a.Hora}`)
+        const dateB = new Date(`${b.Fecha} ${b.Hora}`)
+        return dateB.getTime() - dateA.getTime()
+      })
+
+      const inventoryData = inventory.map((item, index) => ({
+        "N°": index + 1,
+        Producto: item.product.product,
+        "Stock Actual (m³)": item.quantity,
+        Estado:
+          item.quantity === 0 ? "Sin Stock" : item.quantity <= metrics.averageStock * 0.4 ? "Stock Bajo" : "En Stock",
+        "Precio de Venta": `$${item.product.salePrice?.toLocaleString("es-ES") || "N/A"}`,
+      }))
+
+      const totalPurchases = entries.reduce(
+        (sum, entry) => sum + entry.details.reduce((detailSum, detail) => detailSum + detail.totalPrice, 0),
+        0,
+      )
+      const totalSales = exits.reduce(
+        (sum, exit) => sum + exit.details.reduce((detailSum, detail) => detailSum + detail.totalPrice, 0),
+        0,
+      )
+
+      const summaryData = [
+        { Métrica: "Total de Movimientos", Valor: entries.length + exits.length },
+        { Métrica: "Total de Compras", Valor: entries.length },
+        { Métrica: "Total de Ventas", Valor: exits.length },
+        { Métrica: "Monto Total en Compras", Valor: `$${totalPurchases.toLocaleString("es-ES")}` },
+        { Métrica: "Monto Total en Ventas", Valor: `$${totalSales.toLocaleString("es-ES")}` },
+        { Métrica: "Balance Neto", Valor: `$${(totalSales - totalPurchases).toLocaleString("es-ES")}` },
+        { Métrica: "Productos en Stock", Valor: metrics.inStock },
+        { Métrica: "Productos con Stock Bajo", Valor: metrics.lowStock },
+        { Métrica: "Productos sin Stock", Valor: metrics.outOfStock },
+        { Métrica: "Stock Total (m³)", Valor: `${metrics.totalStock.toFixed(2)} m³` },
+        { Métrica: "Fecha de Exportación", Valor: new Date().toLocaleDateString("es-ES") },
+      ]
+
+      const sheets = [
+        { data: summaryData, sheetName: "Resumen" },
+        { data: allMovements, sheetName: "Historial de Movimientos" },
+        { data: inventoryData, sheetName: "Inventario Actual" },
+      ]
+
+      const filename = "reporte-inventario-completo"
+      await exportMultipleSheets(sheets, filename)
+
+      showSuccess("¡Exportación exitosa!", "El reporte completo de inventario se ha exportado correctamente.", 4000)
+    } catch (error) {
+      console.error("Error en exportación Excel:", error)
+      showError("Error en la exportación", "No se pudo exportar el reporte Excel. Por favor, inténtalo de nuevo.")
+    }
+  }, [entries, exits, inventory, metrics, exportMultipleSheets, showSuccess, showError])
 
   const handleCreateEntry = useCallback(
     async (data: CreateInventoryEntryData) => {
@@ -262,26 +349,49 @@ export const InventoryPage: React.FC = () => {
                           <p className="mb-0 opacity-75">Control y seguimiento de stock de productos</p>
                         </div>
                       </div>
-                      <div>
+                      <div className="d-flex gap-2">
+                        {/* Botones de exportación */}
                         <Button
                           variant="outline-light"
-                          className="me-2"
                           onClick={handleExportToPdf}
-                          disabled={isExporting || isLoadingPage}
+                          disabled={isExportingPdf || (entries.length === 0 && exits.length === 0) || isLoadingPage}
+                          title="Exportar historial a PDF"
                         >
-                          {isExporting ? (
+                          {isExportingPdf ? (
                             <>
                               <span
                                 className="spinner-border spinner-border-sm me-2"
                                 role="status"
                                 aria-hidden="true"
                               ></span>
-                              Exportando...
+                              Exportando PDF...
                             </>
                           ) : (
                             <>
-                              <i className="bi bi-download me-2"></i>
-                              Exportar
+                              <i className="bi bi-file-earmark-pdf me-2"></i>
+                              Exportar PDF
+                            </>
+                          )}
+                        </Button>
+                        <Button
+                          variant="outline-light"
+                          onClick={handleExportToExcel}
+                          disabled={isExportingExcel || (entries.length === 0 && exits.length === 0) || isLoadingPage}
+                          title="Exportar reporte completo a Excel"
+                        >
+                          {isExportingExcel ? (
+                            <>
+                              <span
+                                className="spinner-border spinner-border-sm me-2"
+                                role="status"
+                                aria-hidden="true"
+                              ></span>
+                              Exportando Excel...
+                            </>
+                          ) : (
+                            <>
+                              <i className="bi bi-file-earmark-excel me-2"></i>
+                              Exportar Excel
                             </>
                           )}
                         </Button>
@@ -293,6 +403,7 @@ export const InventoryPage: React.FC = () => {
                     </div>
                   </Card.Header>
                 </Card>
+
                 {/* Tarjetas de métricas rápidas */}
                 <Row className="mb-4">
                   <Col md={3}>
@@ -381,6 +492,7 @@ export const InventoryPage: React.FC = () => {
                     </Card>
                   </Col>
                 </Row>
+
                 {/* Gráfico de inventario */}
                 <Row className="mb-4">
                   <Col>
@@ -392,6 +504,7 @@ export const InventoryPage: React.FC = () => {
                     />
                   </Col>
                 </Row>
+
                 {/* Tabla de movimientos recientes */}
                 <Row>
                   <Col>
@@ -422,21 +535,18 @@ export const InventoryPage: React.FC = () => {
         onSelectPurchase={handleSelectPurchase}
         onSelectSale={handleSelectSale}
       />
-
       <InventoryEntryModal
         show={showPurchaseEntryModal}
         onClose={() => setShowPurchaseEntryModal(false)}
         onSubmit={handleCreateEntry}
         isSubmitting={isCreatingEntry}
       />
-
       <InventoryExitModal
         show={showSaleExitModal}
         onClose={() => setShowSaleExitModal(false)}
         onSubmit={handleCreateExit}
         isSubmitting={isCreatingExit}
       />
-
       <ConfirmModal
         show={!!entryToDelete}
         onClose={() => setEntryToDelete(null)}
@@ -484,7 +594,6 @@ export const InventoryPage: React.FC = () => {
           </div>
         </div>
       </ConfirmModal>
-
       <ConfirmModal
         show={!!exitToDelete}
         onClose={() => setExitToDelete(null)}
@@ -533,7 +642,6 @@ export const InventoryPage: React.FC = () => {
           </div>
         </div>
       </ConfirmModal>
-
       <Toast toasts={toasts} removeToast={removeToast} />
     </Container>
   )
