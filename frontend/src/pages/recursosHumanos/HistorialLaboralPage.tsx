@@ -352,7 +352,20 @@ export default function HistorialLaboralPage() {
       }
       return s;
     });
-    return `Actualización de información laboral: ${cambios.join(', ')}${sufijo}`;
+    // Reemplazar fechas aaaa-mm-dd por dd-mm-aaaa en toda la descripción
+    const formatFechaTexto = (fecha: string) => {
+      if (!fecha) return '';
+      const [year, month, day] = fecha.split('-');
+      return `${day}-${month}-${year}`;
+    };
+    let descripcion = `Actualización de información laboral: ${cambios.join(', ')}${sufijo}`;
+    descripcion = descripcion.replace(/(\d{4})-(\d{2})-(\d{2})/g, (_m, y, m, d) => `${d}-${m}-${y}`);
+    return descripcion;
+  }
+
+  function formatearDescripcionLicenciaPermiso(descripcion: string): string {
+    if (!descripcion) return '';
+    return descripcion.replace(/(\d{4})-(\d{2})-(\d{2})/g, (_m, y, m, d) => `${d}-${m}-${y}`);
   }
 
   // Reemplazar la función renderCamposManuales por una versión que parsea los campos modificados desde observaciones si corresponde
@@ -383,7 +396,11 @@ export default function HistorialLaboralPage() {
           const valorNuevo = match[3];
           // Usar el diccionario de traducción si existe
           const campoFormal = traduccionCampos[campo] || campo.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
-          campos.push(`${campoFormal}: ${valorNuevo}`);
+          if (campo === 'fechaInicioContrato' || campo === 'fechaFinContrato') {
+            campos.push(`${campoFormal}: ${formatFecha(valorNuevo)}`);
+          } else {
+            campos.push(`${campoFormal}: ${valorNuevo}`);
+          }
         }
       });
       // Si la observación contenía subida de contrato, agregar el badge
@@ -908,7 +925,9 @@ export default function HistorialLaboralPage() {
                                 </div>
                                 <p className="mb-0 small bg-light p-2 rounded">
                                   <i className="bi bi-info-circle me-1"></i>
-                                  {formatearDescripcionObservaciones(observacionesItem, traduccionCampos)}
+                                  {(observacionesItem.includes('Licencia') || observacionesItem.includes('Permiso'))
+                                    ? formatearDescripcionLicenciaPermiso(observacionesItem)
+                                    : formatearDescripcionObservaciones(observacionesItem, traduccionCampos)}
                                 </p>
                               </div>
                             )}
