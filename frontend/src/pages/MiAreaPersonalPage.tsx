@@ -1,13 +1,75 @@
-import React, { useState } from 'react';
-import { Container, Row, Col, Card, Modal, Button, Form } from 'react-bootstrap';
+import React, { useState, useEffect } from 'react';
+import { Container, Row, Col, Card, Modal, Button, Form, Spinner } from 'react-bootstrap';
 import { useAuth } from '../context/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { ProtectedRoute } from '../components/common/ProtectedRoute';
+import { userService } from '../services/user.service';
+import { useToast } from '../components/common/Toast';
+import { PasswordInput } from '../components/common/LoginForm';
 
 const MiAreaPersonalPage: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [showAccountModal, setShowAccountModal] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [errorMsg, setErrorMsg] = useState('');
+  const { showSuccess } = useToast();
+
+  // Validación de contraseña
+  const validatePassword = (password: string): string | null => {
+    if (password.length === 0) return null;
+    if (password.length < 8) return 'La contraseña debe tener al menos 8 caracteres';
+    if (password.length > 16) return 'La contraseña debe tener máximo 16 caracteres';
+    if (!/(?=.*[a-z])/.test(password)) return 'Debe tener al menos una letra minúscula';
+    if (!/(?=.*[A-Z])/.test(password)) return 'Debe tener al menos una letra mayúscula';
+    if (!/(?=.*\d)/.test(password)) return 'Debe tener al menos un número';
+    if (!/(?=.*[!@#$%^&*()_\-=[\]{};':"\\|,.<>\/?]).*/.test(password)) return 'Debe tener al menos un carácter especial';
+    return null;
+  };
+
+  // Validar contraseña en tiempo real
+  useEffect(() => {
+    if (newPassword) {
+      const validation = validatePassword(newPassword);
+      setPasswordError(validation);
+    } else {
+      setPasswordError(null);
+    }
+  }, [newPassword]);
+
+  const handleChangePassword = async () => {
+    setErrorMsg('');
+    setPasswordError(null);
+    if (!user) return;
+    if (!newPassword) {
+      setPasswordError('Debes ingresar una nueva contraseña');
+      return;
+    }
+    const validation = validatePassword(newPassword);
+    if (validation) {
+      setPasswordError(validation);
+      return;
+    }
+    setIsUpdating(true);
+    try {
+      // Asegurar que siempre se envía id, rut o corporateEmail
+      let query: any = {};
+      if (user.id) query.id = String(user.id);
+      else if (user.rut) query.rut = user.rut;
+      else if (user.corporateEmail) query.corporateEmail = user.corporateEmail;
+      else throw new Error('No se puede identificar al usuario (falta id, rut o corporateEmail)');
+      await userService.updateUser(query, { password: newPassword });
+      setShowAccountModal(false); // Cerrar modal
+      showSuccess('¡Contraseña actualizada!', 'Tu contraseña se ha actualizado exitosamente', 3000); // Toast global
+      setNewPassword('');
+    } catch (err: any) {
+      setErrorMsg(err.message || 'Error al cambiar la contraseña');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
 
   return (
     <Container fluid className="py-2">
@@ -190,7 +252,7 @@ const MiAreaPersonalPage: React.FC = () => {
       </Row>
 
       {/* Modal de Mi Cuenta */}
-      <Modal show={showAccountModal} onHide={() => setShowAccountModal(false)}>
+      <Modal show={showAccountModal} onHide={() => { setShowAccountModal(false); setNewPassword(''); setPasswordError(null); setErrorMsg(''); }}>
         <Modal.Header closeButton>
           <Modal.Title>
             <i className="bi bi-person-circle me-2"></i>
@@ -213,18 +275,35 @@ const MiAreaPersonalPage: React.FC = () => {
                 <strong>Rol:</strong> {user.role}
               </div>
               <hr />
-              <div className="text-center">
-                <p className="text-muted mb-0">
-                  <i className="bi bi-info-circle me-2"></i>
-                  Para cambiar tu contraseña, contacta al administrador del sistema.
-                </p>
-              </div>
+              <h6 className="mb-3 text-primary"><i className="bi bi-key me-2"></i>Cambiar Contraseña</h6>
+              <Form.Group className="mb-3">
+                <Form.Label>Nueva Contraseña</Form.Label>
+                <PasswordInput
+                  value={newPassword}
+                  onChange={e => setNewPassword(e.target.value)}
+                  placeholder="Ingrese la nueva contraseña"
+                  maxLength={16}
+                  isInvalid={!!passwordError}
+                  feedback={passwordError || ''}
+                  disabled={isUpdating}
+                  name="newPassword"
+                  autoComplete="new-password"
+                />
+                <Form.Text className="text-muted">
+                  La contraseña debe tener entre 8 y 16 caracteres, al menos una mayúscula, una minúscula, un número y un carácter especial.
+                </Form.Text>
+              </Form.Group>
+              {errorMsg && <div className="alert alert-danger py-2">{errorMsg}</div>}
             </>
           )}
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowAccountModal(false)}>
-            Cerrar
+          <Button variant="secondary" onClick={() => { setShowAccountModal(false); setNewPassword(''); setPasswordError(null); setErrorMsg(''); }}>
+            Cancelar
+          </Button>
+          <Button variant="primary" onClick={handleChangePassword} disabled={isUpdating || !newPassword || !!passwordError}>
+            {isUpdating ? <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" className="me-2" /> : <i className="bi bi-check-circle me-2"></i>}
+            Cambiar Contraseña
           </Button>
         </Modal.Footer>
       </Modal>
