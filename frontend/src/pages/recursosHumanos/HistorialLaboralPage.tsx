@@ -363,6 +363,11 @@ export default function HistorialLaboralPage() {
     return descripcion;
   }
 
+  function formatearDescripcionLicenciaPermiso(descripcion: string): string {
+    if (!descripcion) return '';
+    return descripcion.replace(/(\d{4})-(\d{2})-(\d{2})/g, (_m, y, m, d) => `${d}-${m}-${y}`);
+  }
+
   // Reemplazar la función renderCamposManuales por una versión que parsea los campos modificados desde observaciones si corresponde
   const renderCamposManuales = (item: any) => {
     const campos: string[] = [];
@@ -916,7 +921,9 @@ export default function HistorialLaboralPage() {
                                 </div>
                                 <p className="mb-0 small bg-light p-2 rounded">
                                   <i className="bi bi-info-circle me-1"></i>
-                                  {formatearDescripcionObservaciones(observacionesItem, traduccionCampos)}
+                                  {(observacionesItem.includes('Licencia') || observacionesItem.includes('Permiso'))
+                                    ? formatearDescripcionLicenciaPermiso(observacionesItem)
+                                    : formatearDescripcionObservaciones(observacionesItem, traduccionCampos)}
                                 </p>
                               </div>
                             )}
