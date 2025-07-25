@@ -443,7 +443,7 @@ export async function desvincularTrabajadorService(id: number, motivo: string, u
         if (!trabajador.fichaEmpresa || !trabajador.fichaEmpresa.fechaInicioContrato) {
             await queryRunner.rollbackTransaction();
             await queryRunner.release();
-            return [null, "Debes ingresar la fecha de inicio de contrato antes de desvincular al trabajador."];
+            return [null, "Debes ingresar la fecha de inicio de contrato (en la ficha de empresa) antes de desvincular al trabajador."];
         }
 
 

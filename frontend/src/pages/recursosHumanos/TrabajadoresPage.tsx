@@ -97,7 +97,7 @@ export const TrabajadoresPage: React.FC = () => {
 
     // Validación: no permitir si falta la fecha de inicio de contrato
     if (!trabajadorToDesvincular.fichaEmpresa || !trabajadorToDesvincular.fichaEmpresa.fechaInicioContrato) {
-      setDesvincularError('Debes ingresar la fecha de inicio de contrato antes de desvincular al trabajador.');
+      setDesvincularError('Debes ingresar la fecha de inicio de contrato (en la ficha de empresa) antes de desvincular al trabajador.');
       return;
     }
 
