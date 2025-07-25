@@ -1017,28 +1017,30 @@ export default function HistorialLaboralPage() {
                 <div className="text-secondary mb-1">Nombre completo</div>
                 <div className="d-flex align-items-center">
                   <i className="bi bi-person-circle text-primary me-2"></i>
-                  {revisorSeleccionado.name}
+                  {revisorSeleccionado.name || <span className="text-muted">No disponible</span>}
                 </div>
               </div>
               <div className="mb-3">
                 <div className="text-secondary mb-1">Rol</div>
                 <div className="d-flex align-items-center">
                   <i className="bi bi-person-badge text-primary me-2"></i>
-                  {revisorSeleccionado.role === 'SuperAdministrador' ? 'SuperAdministrador' : revisorSeleccionado.role}
+                  {revisorSeleccionado.role === 'RRHH' ? 'Recursos Humanos' : revisorSeleccionado.role || <span className="text-muted">No disponible</span>}
                 </div>
               </div>
-              {/* <div className="mb-3">
-                <div className="text-secondary mb-1">RUT</div>
-                <div className="d-flex align-items-center">
-                  <i className="bi bi-person-vcard text-primary me-2"></i>
-                  {revisorSeleccionado.rut ? (
-                    <span>{revisorSeleccionado.rut}</span>
-                  ) : (
-                    <span className="text-muted">No disponible</span>
-                  )}
+              {revisorSeleccionado.role !== 'SuperAdministrador' && (
+                <div className="mb-3">
+                  <div className="text-secondary mb-1">RUT</div>
+                  <div className="d-flex align-items-center">
+                    <i className="bi bi-person-vcard text-primary me-2"></i>
+                    {revisorSeleccionado.rut ? (
+                      <span>{revisorSeleccionado.rut}</span>
+                    ) : (
+                      <span className="text-muted">No disponible</span>
+                    )}
+                  </div>
                 </div>
-              </div>
-              <div className="mb-3">
+              )}
+              <div>
                 <div className="text-secondary mb-1">Correo Corporativo</div>
                 <div className="d-flex align-items-center">
                   <i className="bi bi-envelope text-primary me-2"></i>
@@ -1050,7 +1052,7 @@ export default function HistorialLaboralPage() {
                     <span className="text-muted">No disponible</span>
                   )}
                 </div>
-              </div> */}
+              </div>
             </div>
           )}
         </Modal.Body>

@@ -172,7 +172,9 @@ export async function getHistorialUnificadoByTrabajadorService(trabajadorId: num
                 registradoPor: item.registradoPor ? {
                     id: item.registradoPor.id,
                     name: item.registradoPor.name,
-                    role: item.registradoPor.role
+                    role: item.registradoPor.role,
+                    rut: item.registradoPor.rut,
+                    corporateEmail: item.registradoPor.corporateEmail
                 } : null,
                 trabajadorId
             });
