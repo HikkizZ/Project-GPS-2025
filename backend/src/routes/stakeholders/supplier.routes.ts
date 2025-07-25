@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { verifyRole } from "../../middlewares/authorization.middleware.js";
 
 import {
     getSuppliers,
@@ -14,11 +15,13 @@ const router: Router = Router();
 
 router.use(authenticateJWT);
 
+router.use(verifyRole(["Administrador", "SuperAdministrador", "Ventas", "Gerencia"]));
+
 router
     .get("/all", getSuppliers)
     .get("/", getSupplier)
     .post("/", createSupplier)
-    .patch("/", updateSupplier)
-    .delete("/", deleteSupplier);
+    .put("/:id", updateSupplier)
+    .delete("/:id", deleteSupplier);
 
 export default router;

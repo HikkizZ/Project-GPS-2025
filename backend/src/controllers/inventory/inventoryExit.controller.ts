@@ -1,14 +1,15 @@
 import { Request, Response } from 'express';
 import {
-  createInventoryExitService,
-  getAllInventoryExitsService,
-  getInventoryExitByIdService,
-  deleteInventoryExitService
+    createInventoryExitService,
+    getAllInventoryExitsService,
+    getInventoryExitByIdService,
+    deleteInventoryExitService
 } from '../../services/inventory/inventoryExit.service.js';
 
 import { CreateInventoryExitDTO } from '../../types/inventory/inventory.dto.js';
 import { handleSuccess, handleErrorClient, handleErrorServer } from '../../handlers/responseHandlers.js';
 import { createInventoryExitValidation, inventoryQueryValidation } from '../../validations/inventory/inventory.validation.js';
+import { exit } from 'process';
 
 export async function createInventoryExit(req: Request, res: Response): Promise<void> {
     try {
@@ -43,13 +44,13 @@ export async function getAllInventoryExits(_req: Request, res: Response): Promis
     try {
         const [exits, err] = await getAllInventoryExitsService();
 
-        if (err) {
+        if (err && exits === null) {
             handleErrorServer(res, 500, typeof err === 'string' ? err : err.message);
             return;
         }
 
         if (!exits || exits.length === 0) {
-            handleErrorClient(res, 404, 'No se encontraron salidas de inventario.');
+            handleSuccess(res, 200, 'No se encontraron salidas de inventario.', exits || []);
             return;
         }
 
@@ -61,26 +62,21 @@ export async function getAllInventoryExits(_req: Request, res: Response): Promis
 
 export async function getInventoryExitById(req: Request, res: Response): Promise<void> {
     try {
-        const { id } = req.query;
-
-        const parsedId = id ? Number(id) : undefined;
-
-        const { error } = inventoryQueryValidation.validate({ id: parsedId });
-
-        if (error || parsedId === undefined) {
-            handleErrorClient(res, 400, error?.message ?? "El parámetro 'id' es obligatorio");
+        const id = Number(req.params.id);
+        if (isNaN(id)) {
+            handleErrorClient(res, 400, "ID inválido.");
             return;
         }
 
-        const [exit, err] = await getInventoryExitByIdService(parsedId);
+        const [exit, err] = await getInventoryExitByIdService(id);
 
-        if (err) {
+        if (err && exit === null) {
             handleErrorClient(res, 404, typeof err === 'string' ? err : err.message);
             return;
         }
 
         if (!exit) {
-            handleErrorClient(res, 404, 'Salida de inventario no encontrada.');
+            handleSuccess(res, 404, 'Salida de inventario no encontrada.');
             return;
         }
 
@@ -92,18 +88,13 @@ export async function getInventoryExitById(req: Request, res: Response): Promise
 
 export async function deleteInventoryExit(req: Request, res: Response): Promise<void> {
     try {
-        const { id } = req.query;
-
-        const parsedId = id ? Number(id) : undefined;
-
-        const { error } = inventoryQueryValidation.validate({ id: parsedId });
-
-        if (error || parsedId === undefined) {
-            handleErrorClient(res, 400, error?.message ?? "El parámetro 'id' es obligatorio");
+        const id = Number(req.params.id);
+        if (isNaN(id)) {
+            handleErrorClient(res, 400, "ID inválido.");
             return;
         }
 
-        const [exit, err] = await deleteInventoryExitService(parsedId);
+        const [exit, err] = await deleteInventoryExitService(id);
 
         if (err) {
             handleErrorServer(res, 500, typeof err === 'string' ? err : err.message);
