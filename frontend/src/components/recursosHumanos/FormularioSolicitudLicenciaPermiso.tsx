@@ -111,9 +111,16 @@ export const FormularioSolicitudLicenciaPermiso: React.FC<FormularioSolicitudLic
     e.preventDefault();
     setValidationErrors({});
     setLocalErrors({});
-    let hasErrors = false;
 
-    // Validar fechas
+    // Validar todo el formulario antes de enviar
+    const esValido = validarFormulario();
+    if (!esValido) {
+      // Si hay errores locales, no enviar la solicitud y mostrar los errores debajo de cada campo
+      return;
+    }
+
+    let hasErrors = false;
+    // Validaciones adicionales de fechas (pueden mantenerse si son necesarias)
     const fechaHoyString = new Date().toISOString().split('T')[0];
     if (formData.fechaInicio < fechaHoyString && formData.tipo === TipoSolicitud.PERMISO) {
       setValidationErrors(prev => ({
@@ -131,7 +138,6 @@ export const FormularioSolicitudLicenciaPermiso: React.FC<FormularioSolicitudLic
       hasErrors = true;
     }
 
-    // Si hay errores, no continuar
     if (hasErrors) return;
 
     try {
