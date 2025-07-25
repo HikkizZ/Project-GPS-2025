@@ -198,22 +198,34 @@ export const ProductPage: React.FC = () => {
               show={!!productToDelete}
               onClose={() => setProductToDelete(null)}
               onConfirm={confirmDeleteProduct}
-              title="Eliminar producto"
-              message={`¿Estás seguro que deseas eliminar el producto "${productToDelete?.product}"?`}
+              title="Eliminar Producto"
               confirmText="Eliminar"
               cancelText="Cancelar"
               headerVariant="danger"
+              headerIcon="bi-exclamation-triangle-fill"
+              confirmIcon="bi-trash"
+              cancelIcon="bi-x-circle"
               warningContent={
                 <>
-                  <p className="mb-0">Esta acción:</p>
-                  <ul>
+                  <p className="mb-2 mt-1">Esta acción:</p>
+                  <ul className="mb-0">
                     <li>Marcará el producto como eliminado en el sistema.</li>
-                    <li>Desactivará su disponibilidad en el inventario.</li>
-                    <li>Registrará el motivo de eliminación en el historial.</li>
+                    <li>No podrá ser utilizado hasta que sea restaurado.</li>
+                    <li>Las transacciones asociadas no se verán afectadas.</li>
                   </ul>
                 </>
               }
-            />
+            >
+              <div className="mb-3 p-3 bg-light rounded-3">
+                <p className="mb-2 fw-semibold">¿Estás seguro que deseas eliminar el producto?</p>
+                <div className="d-flex flex-column gap-1">
+                  <div>
+                    <span className="fw-semibold text-muted">Nombre:</span>{" "}
+                    <span className="ms-2">{productToDelete?.product || "N/A"}</span>
+                  </div>
+                </div>
+              </div>
+            </ConfirmModal>
 
             {/* Sistema de notificaciones */}
             <Toast toasts={toasts} removeToast={removeToast} />

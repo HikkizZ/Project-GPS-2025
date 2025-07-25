@@ -1,21 +1,36 @@
-import type React from "react"
-import { useState, useMemo } from "react"
-import { Button, Form, Spinner, Row, Col, InputGroup, Card } from "react-bootstrap"
-import { useSuppliers } from "@/hooks/stakeholders/useSuppliers"
-import { useProducts } from "@/hooks/inventory/useProducts"
-import type { CreateInventoryEntryData, InventoryEntryDetailData } from "@/types/inventory/inventory.types"
-import type { Product } from "@/types/inventory/product.types"
-import type { Supplier } from "@/types/stakeholders/supplier.types"
+import type React from "react";
+import { useState, useMemo } from "react";
+import {
+  Button,
+  Form,
+  Spinner,
+  Row,
+  Col,
+  InputGroup,
+  Card,
+} from "react-bootstrap";
+import { useSuppliers } from "@/hooks/stakeholders/useSuppliers";
+import { useProducts } from "@/hooks/inventory/useProducts";
+import type {
+  CreateInventoryEntryData,
+  InventoryEntryDetailData,
+} from "@/types/inventory/inventory.types";
+import type { Product } from "@/types/inventory/product.types";
+import type { Supplier } from "@/types/stakeholders/supplier.types";
 
 interface InventoryEntryFormProps {
-  onSubmit: (data: CreateInventoryEntryData) => void
-  onCancel: () => void
-  isSubmitting?: boolean
+  onSubmit: (data: CreateInventoryEntryData) => void;
+  onCancel: () => void;
+  isSubmitting?: boolean;
 }
 
-const InventoryEntryForm: React.FC<InventoryEntryFormProps> = ({ onSubmit, onCancel, isSubmitting = false }) => {
-  const { suppliers, isLoading: isLoadingSuppliers } = useSuppliers()
-  const { products, isLoading: isLoadingProducts } = useProducts()
+const InventoryEntryForm: React.FC<InventoryEntryFormProps> = ({
+  onSubmit,
+  onCancel,
+  isSubmitting = false,
+}) => {
+  const { suppliers, isLoading: isLoadingSuppliers } = useSuppliers();
+  const { products, isLoading: isLoadingProducts } = useProducts();
 
   const [formData, setFormData] = useState<CreateInventoryEntryData>({
     supplierRut: "",
@@ -26,133 +41,161 @@ const InventoryEntryForm: React.FC<InventoryEntryFormProps> = ({ onSubmit, onCan
         purchasePrice: 0,
       },
     ],
-  })
-  const [entryDate, setEntryDate] = useState<string>(new Date().toISOString().split("T")[0])
-  const [errors, setErrors] = useState<Record<string, string | string[]>>({})
+  });
+  const [entryDate, setEntryDate] = useState<string>(
+    new Date().toISOString().split("T")[0]
+  );
+  const [errors, setErrors] = useState<Record<string, string | string[]>>({});
 
   const activeProducts = useMemo(() => {
-    return products.filter((product) => (product as any).isActive !== false)
-  }, [products])
+    return products.filter((product) => (product as any).isActive !== false);
+  }, [products]);
 
   const validate = (): boolean => {
-    const newErrors: Record<string, string | string[]> = {}
+    const newErrors: Record<string, string | string[]> = {};
 
     if (!formData.supplierRut) {
-      newErrors.supplierRut = "Debe seleccionar un proveedor."
+      newErrors.supplierRut = "Debe seleccionar un proveedor.";
     }
 
     if (formData.details.length === 0) {
-      newErrors.details = "Debe agregar al menos un producto."
+      newErrors.details = "Debe agregar al menos un producto.";
     } else {
-      const detailErrors: string[] = []
+      const detailErrors: string[] = [];
       formData.details.forEach((detail, index) => {
         if (!detail.productId || detail.productId === 0) {
-          detailErrors[index] = "Seleccione un producto."
+          detailErrors[index] = "Seleccione un producto.";
         } else if (detail.quantity <= 0) {
-          detailErrors[index] = "La cantidad debe ser mayor a 0."
+          detailErrors[index] = "La cantidad debe ser mayor a 0.";
         } else if (detail.purchasePrice <= 0) {
-          detailErrors[index] = "El precio de compra debe ser mayor a 0."
+          detailErrors[index] = "El precio de compra debe ser mayor a 0.";
         }
-      })
+      });
       if (detailErrors.some(Boolean)) {
-        newErrors.details = detailErrors
+        newErrors.details = detailErrors;
       }
     }
 
-    setErrors(newErrors)
+    setErrors(newErrors);
     return (
-      Object.keys(newErrors).length === 0 && (!Array.isArray(newErrors.details) || newErrors.details.every((e) => !e))
-    )
-  }
+      Object.keys(newErrors).length === 0 &&
+      (!Array.isArray(newErrors.details) || newErrors.details.every((e) => !e))
+    );
+  };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target
+  const handleChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >
+  ) => {
+    const { name, value } = e.target;
     if (name === "supplierRut") {
-      setFormData((prev) => ({ ...prev, supplierRut: value }))
+      setFormData((prev) => ({ ...prev, supplierRut: value }));
     } else if (name === "entryDate") {
-      setEntryDate(value)
+      setEntryDate(value);
     }
-    setErrors((prev) => ({ ...prev, [name]: "" }))
-  }
+    setErrors((prev) => ({ ...prev, [name]: "" }));
+  };
 
   const handleDetailChange = (
     index: number,
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>,
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >
   ) => {
-    const { name, value } = e.target
-    const newDetails = [...formData.details]
-    const numericValue = ["quantity", "purchasePrice"].includes(name) ? Number.parseFloat(value) : value
+    const { name, value } = e.target;
+    const newDetails = [...formData.details];
+    const numericValue = ["quantity", "purchasePrice"].includes(name)
+      ? Number.parseFloat(value)
+      : value;
 
     newDetails[index] = {
       ...newDetails[index],
       [name]: isNaN(numericValue as number) ? 0 : numericValue,
-    }
-    setFormData((prev) => ({ ...prev, details: newDetails }))
+    };
+    setFormData((prev) => ({ ...prev, details: newDetails }));
 
     if (Array.isArray(errors.details) && errors.details[index]) {
-      const newDetailErrors = [...errors.details]
-      newDetailErrors[index] = ""
-      setErrors((prev) => ({ ...prev, details: newDetailErrors }))
+      const newDetailErrors = [...errors.details];
+      newDetailErrors[index] = "";
+      setErrors((prev) => ({ ...prev, details: newDetailErrors }));
     }
-  }
+  };
 
   const handleAddDetail = () => {
     setFormData((prev) => ({
       ...prev,
-      details: [...prev.details, { productId: 0, quantity: 0, purchasePrice: 0 }],
-    }))
-  }
+      details: [
+        ...prev.details,
+        { productId: 0, quantity: 0, purchasePrice: 0 },
+      ],
+    }));
+  };
 
   const handleRemoveDetail = (index: number) => {
     setFormData((prev) => ({
       ...prev,
       details: prev.details.filter((_, i) => i !== index),
-    }))
+    }));
     setErrors((prev) => {
       if (Array.isArray(prev.details)) {
-        const newDetailErrors = prev.details.filter((_, i) => i !== index)
-        return { ...prev, details: newDetailErrors }
+        const newDetailErrors = prev.details.filter((_, i) => i !== index);
+        return { ...prev, details: newDetailErrors };
       }
-      return prev
-    })
-  }
+      return prev;
+    });
+  };
 
   const calculateDetailTotalPrice = (detail: InventoryEntryDetailData) => {
-    return detail.quantity * detail.purchasePrice
-  }
+    return detail.quantity * detail.purchasePrice;
+  };
 
   const grandTotal = useMemo(() => {
-    return formData.details.reduce((sum, detail) => sum + calculateDetailTotalPrice(detail), 0)
-  }, [formData.details])
+    return formData.details.reduce(
+      (sum, detail) => sum + calculateDetailTotalPrice(detail),
+      0
+    );
+  }, [formData.details]);
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!validate()) return
+    e.preventDefault();
+    if (!validate()) return;
 
     const dataToSubmit: CreateInventoryEntryData = {
       supplierRut: formData.supplierRut,
       details: formData.details,
-    }
+    };
     if (entryDate) {
       try {
-        const dateObj = new Date(entryDate)
-        if (!isNaN(dateObj.getTime())) {
-          ;(dataToSubmit as any).entryDate = dateObj.toISOString()
+        const now = new Date();
+        const currentTime = now.toTimeString().split(" ")[0]; // "HH:MM:SS"
+        const combinedLocalDateTime = new Date(`${entryDate}T${currentTime}`);
+
+        if (!isNaN(combinedLocalDateTime.getTime())) {
+          (dataToSubmit as any).entryDate = combinedLocalDateTime.toISOString();
         } else {
-          console.warn("Invalid entryDate provided, omitting from submission:", entryDate)
+          console.warn(
+            "Fecha/hora combinada no válida:",
+            entryDate,
+            currentTime
+          );
         }
       } catch (error) {
-        console.error("Error processing entryDate:", error)
+        console.error("Error combinando fecha con hora actual:", error);
       }
     }
-
-    onSubmit(dataToSubmit)
-  }
+    onSubmit(dataToSubmit);
+  };
 
   const getProductOptions = (currentProductId: number) => {
-    const selectedProductIds = new Set(formData.details.map((d) => d.productId))
-    return activeProducts.filter((product) => !selectedProductIds.has(product.id) || product.id === currentProductId)
-  }
+    const selectedProductIds = new Set(
+      formData.details.map((d) => d.productId)
+    );
+    return activeProducts.filter(
+      (product) =>
+        !selectedProductIds.has(product.id) || product.id === currentProductId
+    );
+  };
 
   if (isLoadingSuppliers || isLoadingProducts) {
     return (
@@ -160,7 +203,7 @@ const InventoryEntryForm: React.FC<InventoryEntryFormProps> = ({ onSubmit, onCan
         <Spinner animation="border" role="status" className="me-2" />
         <p className="mt-3 text-muted">Cargando datos...</p>
       </div>
-    )
+    );
   }
 
   return (
@@ -170,7 +213,8 @@ const InventoryEntryForm: React.FC<InventoryEntryFormProps> = ({ onSubmit, onCan
         <div>
           <strong>Importante:</strong>
           <p className="mb-0">
-            Al registrar una compra, el stock de los productos se actualizará automáticamente.
+            Al registrar una compra, el stock de los productos se actualizará
+            automáticamente.
           </p>
         </div>
       </div>
@@ -193,13 +237,20 @@ const InventoryEntryForm: React.FC<InventoryEntryFormProps> = ({ onSubmit, onCan
                 </option>
               ))}
             </Form.Control>
-            <Form.Control.Feedback type="invalid">{errors.supplierRut}</Form.Control.Feedback>
+            <Form.Control.Feedback type="invalid">
+              {errors.supplierRut}
+            </Form.Control.Feedback>
           </Form.Group>
         </Col>
         <Col md={6}>
           <Form.Group className="mb-3" controlId="entryDate">
             <Form.Label>Fecha de Entrada (Opcional)</Form.Label>
-            <Form.Control type="date" name="entryDate" value={entryDate} onChange={handleChange} />
+            <Form.Control
+              type="date"
+              name="entryDate"
+              value={entryDate}
+              onChange={handleChange}
+            />
           </Form.Group>
         </Col>
       </Row>
@@ -216,14 +267,18 @@ const InventoryEntryForm: React.FC<InventoryEntryFormProps> = ({ onSubmit, onCan
                   name="productId"
                   value={detail.productId}
                   onChange={(e) => handleDetailChange(index, e)}
-                  isInvalid={Array.isArray(errors.details) && !!errors.details[index]}
+                  isInvalid={
+                    Array.isArray(errors.details) && !!errors.details[index]
+                  }
                 >
                   <option value={0}>Selecciona un producto</option>
-                  {getProductOptions(detail.productId).map((product: Product) => (
-                    <option key={product.id} value={product.id}>
-                      {product.product}
-                    </option>
-                  ))}
+                  {getProductOptions(detail.productId).map(
+                    (product: Product) => (
+                      <option key={product.id} value={product.id}>
+                        {product.product}
+                      </option>
+                    )
+                  )}
                 </Form.Control>
                 {Array.isArray(errors.details) && errors.details[index] && (
                   <Form.Control.Feedback type="invalid" className="d-block">
@@ -241,7 +296,9 @@ const InventoryEntryForm: React.FC<InventoryEntryFormProps> = ({ onSubmit, onCan
                   placeholder="0"
                   value={detail.quantity === 0 ? "" : detail.quantity}
                   onChange={(e) => handleDetailChange(index, e)}
-                  isInvalid={Array.isArray(errors.details) && !!errors.details[index]}
+                  isInvalid={
+                    Array.isArray(errors.details) && !!errors.details[index]
+                  }
                   min="0"
                   step="0.01"
                 />
@@ -256,9 +313,13 @@ const InventoryEntryForm: React.FC<InventoryEntryFormProps> = ({ onSubmit, onCan
                     type="number"
                     name="purchasePrice"
                     placeholder="0"
-                    value={detail.purchasePrice === 0 ? "" : detail.purchasePrice}
+                    value={
+                      detail.purchasePrice === 0 ? "" : detail.purchasePrice
+                    }
                     onChange={(e) => handleDetailChange(index, e)}
-                    isInvalid={Array.isArray(errors.details) && !!errors.details[index]}
+                    isInvalid={
+                      Array.isArray(errors.details) && !!errors.details[index]
+                    }
                     min="0"
                     step="0.01"
                   />
@@ -278,28 +339,41 @@ const InventoryEntryForm: React.FC<InventoryEntryFormProps> = ({ onSubmit, onCan
             </Col>
           </Row>
           <div className="text-end fw-bold text-muted">
-            Total por producto: ${calculateDetailTotalPrice(detail).toLocaleString()}
+            Total por producto: $
+            {calculateDetailTotalPrice(detail).toLocaleString()}
           </div>
         </Card>
       ))}
 
-      {Array.isArray(errors.details) && errors.details.length > 0 && typeof errors.details[0] === "string" && (
-        <div className="text-danger mb-3">{errors.details[0]}</div>
-      )}
+      {Array.isArray(errors.details) &&
+        errors.details.length > 0 &&
+        typeof errors.details[0] === "string" && (
+          <div className="text-danger mb-3">{errors.details[0]}</div>
+        )}
 
-      <Button variant="outline-primary" onClick={handleAddDetail} className="mb-4">
+      <Button
+        variant="outline-primary"
+        onClick={handleAddDetail}
+        className="mb-4"
+      >
         <i className="bi bi-plus-circle me-2"></i>
         Agregar Otro Producto
       </Button>
 
       <div className="text-end mb-4">
         <h4>
-          Total General: <span className="text-success">${grandTotal.toLocaleString()}</span>
+          Total General:{" "}
+          <span className="text-success">${grandTotal.toLocaleString()}</span>
         </h4>
       </div>
 
       <div className="d-flex justify-content-end">
-        <Button variant="secondary" className="me-2" onClick={onCancel} disabled={isSubmitting}>
+        <Button
+          variant="secondary"
+          className="me-2"
+          onClick={onCancel}
+          disabled={isSubmitting}
+        >
           Cancelar
         </Button>
         <Button type="submit" variant="primary" disabled={isSubmitting}>
@@ -314,7 +388,7 @@ const InventoryEntryForm: React.FC<InventoryEntryFormProps> = ({ onSubmit, onCan
         </Button>
       </div>
     </Form>
-  )
-}
+  );
+};
 
-export default InventoryEntryForm
+export default InventoryEntryForm;

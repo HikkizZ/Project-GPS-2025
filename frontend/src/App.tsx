@@ -12,6 +12,7 @@ import { SupplierPage } from './pages/stakeholders/SupplierPage';
 import { CustomerPage } from './pages/stakeholders/CustomerPage';
 import { InventoryPage } from './pages/inventory/InventoryPage';
 import { ProductPage } from './pages/inventory/ProductPage';
+import { ReportsPage } from './pages/inventory/ReportsPage';
 import { authService } from './services/auth.service';
 import { Card, Row, Col } from 'react-bootstrap';
 import { useNavigate, Routes, Route, Navigate, useLocation } from 'react-router-dom';
@@ -742,9 +743,12 @@ function App() {
                 <Route path="gestion-personal" element={<GestionPersonalPage />} />
                 <Route path="gestion-licencias-permisos" element={<GestionLicenciasPermisosPage />} />
                 <Route path="mis-licencias-permisos" element={<MisLicenciasPermisosPage />} />
+
+                {/* RUTAS DE INVENTARIO */}
                 <Route path="inventario/proveedores" element={<SupplierPage />} />
                 <Route path="inventario/clientes" element={<CustomerPage />} />
                 <Route path="inventario/productos" element={<ProductPage />} />
+                <Route path="inventario/reportes" element={<ReportsPage />} />
                 <Route path="inventario" element={<InventoryPage />} />
                 <Route path="/" element={<Navigate to="dashboard" replace />} />
 

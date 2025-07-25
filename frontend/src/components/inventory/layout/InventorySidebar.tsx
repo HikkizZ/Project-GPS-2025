@@ -1,5 +1,5 @@
 import type React from "react"
-import { Nav, OverlayTrigger, Tooltip } from "react-bootstrap"
+import { Nav } from "react-bootstrap"
 import { NavLink } from "react-router-dom"
 
 const InventorySidebar: React.FC = () => {
@@ -19,22 +19,9 @@ const InventorySidebar: React.FC = () => {
         <Nav.Link as={NavLink} to="/inventario/clientes">
           <i className="bi bi-person-lines-fill me-2" /> Clientes
         </Nav.Link>
-
-        {/* Reportes deshabilitado con tooltip */}
-        <OverlayTrigger
-          placement="right"
-          overlay={<Tooltip id="tooltip-disabled">Módulo en mantenimiento</Tooltip>}
-        >
-          <span className="d-inline-block">
-            <Nav.Link
-              as="span"
-              onClick={(e) => e.preventDefault()}
-              style={{ pointerEvents: "none", opacity: 0.5 }}
-            >
-              <i className="bi bi-bar-chart-line me-2" /> Reportes
-            </Nav.Link>
-          </span>
-        </OverlayTrigger>
+        <Nav.Link as={NavLink} to="/inventario/reportes">
+          <i className="bi bi-bar-chart-line me-2" /> Reportes
+        </Nav.Link>
       </Nav>
     </div>
   )
