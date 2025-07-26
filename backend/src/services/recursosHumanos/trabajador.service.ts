@@ -677,6 +677,7 @@ export async function reactivarTrabajadorService(
         telefono?: string;
         numeroEmergencia?: string;
         direccion?: string;
+        motivoReactivacion: string;
     },
     userId: number
 ): Promise<ServiceResponse<{ trabajador: Trabajador, nuevoCorreoCorporativo: string, credencialesEnviadas: boolean }>> {
@@ -723,7 +724,10 @@ export async function reactivarTrabajadorService(
         }
 
         // 3. Limpiar y validar datos
-        const datosLimpios = limpiarCamposTexto(data);
+        const datosLimpios = {
+            ...limpiarCamposTexto(data),
+            motivoReactivacion: data.motivoReactivacion.trim()
+        };
         
         if (!datosLimpios.nombres || !datosLimpios.apellidoPaterno || !datosLimpios.apellidoMaterno || !datosLimpios.correoPersonal) {
             await queryRunner.rollbackTransaction();
@@ -790,6 +794,7 @@ export async function reactivarTrabajadorService(
             jornadaLaboral: trabajador.fichaEmpresa.jornadaLaboral,
             sueldoBase: trabajador.fichaEmpresa.sueldoBase,
             fechaInicio: new Date(),
+            motivoReactivacion: datosLimpios.motivoReactivacion,
             observaciones: `Reactivación de trabajador. Nuevo correo corporativo: ${nuevoCorreoCorporativo}`,
             contratoURL: trabajador.fichaEmpresa.contratoURL,
             afp: trabajador.fichaEmpresa.afp,

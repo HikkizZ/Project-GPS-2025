@@ -38,6 +38,9 @@ export class HistorialLaboral {
   motivoDesvinculacion!: string;
 
   @Column({ type: "text", nullable: true })
+  motivoReactivacion!: string;
+
+  @Column({ type: "text", nullable: true })
   observaciones!: string;
 
   @Column({ type: "varchar", length: 255, nullable: true })

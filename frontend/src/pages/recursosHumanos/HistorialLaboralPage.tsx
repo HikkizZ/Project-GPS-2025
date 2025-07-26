@@ -419,11 +419,18 @@ export default function HistorialLaboralPage() {
       const esAmbos = obs === 'Actualización de información laboral y subida de contrato PDF';
       const esLicenciaPermiso = obs.includes('Licencia') || obs.includes('Permiso');
       const esDesvinculacion = obs.includes('Desvinculación');
+      const esReactivacion = obs.includes('Reactivación');
       
       // Para desvinculaciones, mostrar solo el motivo de desvinculación
       if (esDesvinculacion) {
         if (detalles.motivoDesvinculacion) {
           campos.push(`Motivo: ${detalles.motivoDesvinculacion}`);
+        }
+      }
+      // Para reactivaciones, mostrar solo el motivo de reactivación
+      else if (esReactivacion) {
+        if (detalles.motivoReactivacion) {
+          campos.push(`Motivo: ${detalles.motivoReactivacion}`);
         }
       }
       // Para licencias/permisos, mostrar solo fechas y motivo
@@ -487,8 +494,8 @@ export default function HistorialLaboralPage() {
         }
       }
       
-      // Campos específicos para otros tipos (no licencias/permisos ni desvinculaciones)
-      if (!esLicenciaPermiso && !esDesvinculacion) {
+      // Campos específicos para otros tipos (no licencias/permisos, desvinculaciones ni reactivaciones)
+      if (!esLicenciaPermiso && !esDesvinculacion && !esReactivacion) {
         if (detalles.rut) {
           campos.push(`RUT: ${detalles.rut}`);
         }
@@ -508,6 +515,12 @@ export default function HistorialLaboralPage() {
       if (esDesvinculacionTradicional) {
         if (itemTradicional.motivoDesvinculacion) {
           campos.push(`Motivo: ${itemTradicional.motivoDesvinculacion}`);
+        }
+      }
+      // Para reactivaciones en vista tradicional, mostrar solo el motivo
+      else if (itemTradicional.observaciones?.includes('Reactivación')) {
+        if (itemTradicional.motivoReactivacion) {
+          campos.push(`Motivo: ${itemTradicional.motivoReactivacion}`);
         }
       }
       // Para licencias/permisos en vista tradicional, mostrar solo fechas y motivo
