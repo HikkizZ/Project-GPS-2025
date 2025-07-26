@@ -58,6 +58,8 @@ const MantencionLocalFilters: React.FC<Props> = ({
                 <option value="">Todos</option>
                 <option value={EstadoMantencion.PENDIENTE}>Pendiente</option>
                 <option value={EstadoMantencion.EN_PROCESO}>En Proceso</option>
+                <option value={EstadoMantencion.COMPLETADA}>Completada</option>
+                <option value={EstadoMantencion.IRRECUPERABLE}>Irrecuperable</option>
               </Form.Select>
             </Form.Group>
           </Col>
