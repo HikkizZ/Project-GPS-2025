@@ -10,7 +10,7 @@ import type { Maquinaria } from "@/types/maquinaria.types";
 import type { Trabajador } from "@/types/recursosHumanos/trabajador.types";
 import type { MaintenanceRecord } from "@/types/machinaryMaintenance/maintenanceRecord.types";
 import DetalleMantencionModal from "@/components/MachineryMaintenance/MaintenanceRecord/DetalleMantencionModal";
-
+import  Pagination  from "@/components/MachineryMaintenance/Pagination";
 
 const MantencionesCompletadasPage: React.FC = () => {
   const { records, loading, error } = useMaintenanceRecords();
@@ -39,6 +39,14 @@ const MantencionesCompletadasPage: React.FC = () => {
     setShowDetalleModal(false);
     setDetalleSeleccionado(null);
   };
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+    
+  const totalPages = Math.ceil(filteredRecords.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedRecords = filteredRecords.slice(startIndex, endIndex);
 
   const hasActiveFilters = Object.values(filterValues).some((v) => v.trim() !== "");
 
@@ -73,6 +81,7 @@ const MantencionesCompletadasPage: React.FC = () => {
     }
 
     setFilteredRecords(filtrados);
+    setCurrentPage(1);
   }, [records, filterValues]);
 
   const handleFilterChange = (
@@ -89,6 +98,7 @@ const MantencionesCompletadasPage: React.FC = () => {
       patente: "",
       mecanicoId: "",
     });
+    
     setShowFilters(false);
   };
 
@@ -155,11 +165,23 @@ const MantencionesCompletadasPage: React.FC = () => {
                       {error}
                     </Alert>
                   ) : (
-                    <CompletedMaintenanceList 
-                      records={filteredRecords}
-                      isLoading={loading}
-                      onVerDetalle={handleVerDetalle}
-                    />
+                    <>
+                      <CompletedMaintenanceList 
+                        records={paginatedRecords}
+                        isLoading={loading}
+                        onVerDetalle={handleVerDetalle}
+                        hasActiveLocalFilters={hasActiveFilters}
+                        onLocalFilterReset={handleResetFilters}
+                      />
+                      {!loading && !error && filteredRecords.length > itemsPerPage && (
+                        <Pagination
+                          currentPage={currentPage}
+                          totalPages={totalPages}
+                          onPageChange={(page) => setCurrentPage(page)}
+                        />
+                      )}
+                      /
+                    </>
                   )}
                 </Card.Body>
                 <DetalleMantencionModal
