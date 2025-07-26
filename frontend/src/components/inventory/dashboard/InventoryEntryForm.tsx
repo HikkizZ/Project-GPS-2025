@@ -244,7 +244,7 @@ const InventoryEntryForm: React.FC<InventoryEntryFormProps> = ({
         </Col>
         <Col md={6}>
           <Form.Group className="mb-3" controlId="entryDate">
-            <Form.Label>Fecha de Entrada (Opcional)</Form.Label>
+            <Form.Label>Fecha de Compra</Form.Label>
             <Form.Control
               type="date"
               name="entryDate"
@@ -383,7 +383,7 @@ const InventoryEntryForm: React.FC<InventoryEntryFormProps> = ({
               Registrando...
             </>
           ) : (
-            "Registrar Entrada"
+            "Registrar Compra"
           )}
         </Button>
       </div>

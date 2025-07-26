@@ -232,7 +232,7 @@ const InventoryExitForm: React.FC<InventoryExitFormProps> = ({
         </Col>
         <Col md={6}>
           <Form.Group className="mb-3" controlId="exitDate">
-            <Form.Label>Fecha de Salida (Opcional)</Form.Label>
+            <Form.Label>Fecha de Venta</Form.Label>
             <Form.Control
               type="date"
               name="exitDate"
@@ -360,7 +360,7 @@ const InventoryExitForm: React.FC<InventoryExitFormProps> = ({
               Registrando...
             </>
           ) : (
-            "Registrar Salida"
+            "Registrar Venta"
           )}
         </Button>
       </div>
