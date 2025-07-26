@@ -50,9 +50,12 @@ function isValidMonto(monto: string): boolean {
 
 function isValidDurartionTemporalidad(temporalidad: string, duracionMes: string): [boolean, boolean] {
     if (temporalidad === Temporalidad.permanente) {
-        return [false, false]; // No requiere duración
+        return [false, true]; // No requiere duración, pero es válido
     }
-    return [true, isValidDuration(duracionMes)];
+    if (temporalidad === Temporalidad.recurrente || temporalidad === Temporalidad.puntual) {
+        return [true, isValidDuration(duracionMes)];
+    }
+    return [false, false];
 }
 
 export const CrearBonoModal: React.FC<CrearBonoModalProps> = ({
@@ -96,24 +99,41 @@ export const CrearBonoModal: React.FC<CrearBonoModalProps> = ({
             temporalidad: Temporalidad.permanente,
             descripcion: '',
             imponible: true,
+            duracionMes: '',
         });
         setValidated(false);
         setCloseW(false);
         setHasChanges(false);
     }, [show]);
 
+    // Detectar cambios en el formulario
+    useEffect(() => {
+        const hasFormChanges = 
+            formData.nombreBono !== 'Ejemplo' ||
+            formData.monto !== '111.111' ||
+            formData.tipoBono !== TipoBono.empresarial ||
+            formData.temporalidad !== Temporalidad.permanente ||
+            formData.descripcion !== '' ||
+            formData.duracionMes !== '' ||
+            !formData.imponible;
+        
+        setHasChanges(hasFormChanges);
+    }, [formData]);
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setValidated(true); 
         setError('');
         setAdvertencias([]);
+        
+        // Debug log para validación del monto
+        console.log('isValidMonto:', isValidMonto(formData.monto));
         
         // Validar campos requeridos
         const isValid = 
           formData.nombreBono.trim() && formData.nombreBono.trim() !== 'Por Definir' &&
           formData.monto && isValidMonto(formData.monto) &&
           formData.tipoBono.trim() && formData.tipoBono.trim() !== 'Seleccione una opción' &&
-          formData.temporalidad.trim() && isValidDurartionTemporalidad(formData.temporalidad.trim(), formData.duracionMes.trim()).every(Boolean) &&
+          formData.temporalidad.trim() && isValidDurartionTemporalidad(formData.temporalidad.trim(), formData.duracionMes || '').every(Boolean) &&
           formData.descripcion && formData.descripcion !== 'Por Definir' &&
           parseInt(cleanNumber(formData.monto)) > 0 && 
           formData.imponible;
@@ -121,7 +141,10 @@ export const CrearBonoModal: React.FC<CrearBonoModalProps> = ({
         if (formData.temporalidad === Temporalidad.permanente && formData.duracionMes) {
             setAdvertencias(['La temporalidad "Permanente" no requiere duración en meses']);
         }
+        
+        // Solo mostrar errores de validación si el formulario no es válido
         if (!isValid) {
+            setValidated(true);
             return; // No mostrar mensaje de error general, dejar que los campos individuales muestren sus errores
         }
 
@@ -134,10 +157,10 @@ export const CrearBonoModal: React.FC<CrearBonoModalProps> = ({
                 }
                 onSuccess();
             } else {
-                setError(result.error || 'Error al crear trabajador');
+                setError(result.error || 'Error al crear bono');
             }
         } catch (error) {
-            setError('Error al crear trabajador');
+            setError('Error al crear bono');
         } finally {
             setLoading(false);
         }
@@ -188,7 +211,6 @@ export const CrearBonoModal: React.FC<CrearBonoModalProps> = ({
                 )}
                 <Form onSubmit={handleSubmit} noValidate validated={validated}>
                     <Row
-                        closeButton={!closeW}
                         style={{
                             background: 'linear-gradient(135deg, #C9CCD3 0%, #78808D 100%)',
                             border: 'none',
@@ -228,17 +250,17 @@ export const CrearBonoModal: React.FC<CrearBonoModalProps> = ({
                             <Form.Control
                             type="text"
                             name="monto"
-                            value={formatMiles(formData.monto)}
+                            value={formData.monto}
                             placeholder="Ej: 1.000.000"
                             onChange={handleInputChange}
                             inputMode="numeric"
                             pattern="[0-9]*"
                             required
                             style={{ borderRadius: '8px' }}
-                            isInvalid={validated && !isValidMonto(formData.monto)}
+                            isInvalid={validated && formData.monto && !isValidMonto(formData.monto)}
                             />
                             <Form.Control.Feedback type="invalid">
-                            {validated && !isValidMonto(formData.monto) && 'Monto inválido'}
+                            {validated && formData.monto && !isValidMonto(formData.monto) && 'Monto inválido'}
                             </Form.Control.Feedback>
                         </Form.Group>
                     </div>
@@ -321,15 +343,15 @@ export const CrearBonoModal: React.FC<CrearBonoModalProps> = ({
                             <Form.Label className="fw-semibold">Duración en meses:</Form.Label>
                             <Form.Control
                                 type="number"
-                                name="duracion"
+                                name="duracionMes"
                                 value={formData.duracionMes}
                                 onChange={handleInputChange}
                                 min={1}
                                 style={{ borderRadius: '8px' }}
-                                isInvalid={validated && !formData.duracionMes}
+                                isInvalid={validated && formData.temporalidad !== 'permanente' && !formData.duracionMes}
                             />
                             <Form.Control.Feedback type="invalid">
-                                {validated && formData.temporalidad !== 'permanente' && 'Ingrese una duración válida en meses. La temporalidad permanente no tiene duración.'}
+                                {validated && formData.temporalidad !== 'permanente' && !formData.duracionMes && 'Ingrese una duración válida en meses para temporalidad recurrente o puntual.'}
                             </Form.Control.Feedback>
                         </Form.Group>
                     </div>
