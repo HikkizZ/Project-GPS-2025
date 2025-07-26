@@ -38,6 +38,7 @@ export class BonoService {
             console.log("Obteniendo bonos con query:", cleanQuery);
             console.log('URL:', `${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}${url}`);
             console.log('Token:', localStorage.getItem('auth_token'));
+            console.log('Response data:', response);
             return {
                 success: true,
                 data: response.data,
@@ -57,28 +58,32 @@ export class BonoService {
     async crearBono( bonoData: CreateBonoData ): Promise<any> {
 
         try{
-            const formData = new FormData();
-
-            formData.append( 'nombre', bonoData.nombreBono );
-            formData.append( 'monto', bonoData.monto.toString() );
-            formData.append( 'tipoBono', bonoData.tipoBono );
-            formData.append( 'temporalidad', bonoData.temporalidad );
-            formData.append( 'descripcion', bonoData.descripcion );
-            formData.append( 'imponible', bonoData.temporalidad );
-            
             const response = await apiClient.post(`${this.baseURL}/`, bonoData);
 
-            const responseData = await response.json();
+            // Si la respuesta es un error HTTP 400 pero tiene datos, manejarlo como respuesta válida
+            const responseData = response.data || response;
             
             console.log("Creando bono con datos:", bonoData);
             console.log('URL:', `${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}${this.baseURL}/`);
             console.log('Token:', localStorage.getItem('auth_token'));
             console.log('Response data:', responseData);
+            console.log('Response data type:', typeof responseData);
+            console.log('Response data keys:', Object.keys(responseData));
+            console.log('Response data.status:', responseData.status);
 
-            if (response.ok && responseData.status === 'success') {
+            // Verificar si la respuesta del backend indica éxito
+            if (responseData.status === 'success') {
                 return {
                     success: true,
                     data: responseData.data
+                };
+            }
+            
+            // Si responseData tiene un id, significa que el bono se creó exitosamente
+            if (responseData.id) {
+                return {
+                    success: true,
+                    data: responseData
                 };
             }
             

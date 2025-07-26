@@ -75,6 +75,8 @@ export const BonosPage: React.FC = () => {
     };
 
     const handleCreateSuccess = () => {
+        // Cerrar el modal
+        setShowCreateModal(false);
         // Recargar los bonos
         cargarBonos();
         // Mostrar toast de éxito
