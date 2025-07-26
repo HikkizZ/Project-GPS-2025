@@ -116,6 +116,10 @@ const MantencionPage: React.FC = () => {
   if (filterValues.estado) {
     filtrados = filtrados.filter((r) => r.estado === filterValues.estado);
   }
+  
+  if (filterValues.estado) {
+    filtrados = filtrados.filter((r) => r.estado === filterValues.estado);
+  }
 
   if (filterValues.grupo) {
     filtrados = filtrados.filter((r) => r.maquinaria.grupo === filterValues.grupo);
