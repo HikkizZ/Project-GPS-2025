@@ -17,6 +17,7 @@ import GestionPersonalPage from './pages/GestionPersonalPage';
 import { LoginPage } from './pages/LoginPage';
 import { useAuth } from './context';
 import { UserRole } from './types/auth.types';
+import { GestionRemuneracionesPage } from './pages/recursosHumanos/GestionRemuneracionesPage';
 
 // Componente de Registro de Trabajadores
 const RegistrarTrabajadorPage: React.FC<{
@@ -635,6 +636,7 @@ function App() {
                 <Route path="fichas-empresa" element={<FichasEmpresaPage />} />
                 <Route path="fichas-empresa/mi-ficha" element={<FichasEmpresaPage />} />
                 <Route path="bonos" element={<BonosPage />} />
+                <Route path="gestion-sueldos" element={<GestionRemuneracionesPage />} />
                 <Route path="usuarios" element={<UsersPage />} />
                 <Route path="gestion-personal" element={<GestionPersonalPage />} />
                 <Route path="gestion-licencias-permisos" element={<GestionLicenciasPermisosPage />} />

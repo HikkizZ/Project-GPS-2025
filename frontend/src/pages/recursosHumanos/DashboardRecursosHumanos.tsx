@@ -170,38 +170,51 @@ const DashboardRecursosHumanos: React.FC = () => {
 
                   {/* Tarjeta de Gestión de Sueldos */}
                   <Col md={3}>
-                    <Card 
-                      className="h-100 border-0 shadow-sm" 
-                      style={{ 
-                        borderRadius: '20px',
-                        background: 'white',
-                        border: '1px solid #f1f5f9',
-                        opacity: 0.8
-                      }}
-                    >
-                      <Card.Body className="p-4 text-center">
-                        <div 
-                          className="d-inline-flex align-items-center justify-content-center mb-4"
-                          style={{
-                            width: '80px',
-                            height: '80px',
-                            background: 'linear-gradient(135deg, #6b7280 0%, #4b5563 100%)',
-                            borderRadius: '24px',
-                            boxShadow: '0 8px 32px rgba(107, 114, 128, 0.2)'
+                    <Link to="/gestion-sueldos" style={{ textDecoration: 'none' }}>
+                      <Card 
+                          className="h-100 border-0 shadow-sm" 
+                          style={{ 
+                            borderRadius: '20px',
+                            background: 'white',
+                            border: '1px solid #f1f5f9',
+                            opacity: 0.8
+                          }}
+                          onMouseEnter={(e) => {
+                                e.currentTarget.style.transform = 'translateY(-12px) scale(1.02)';
+                                e.currentTarget.style.boxShadow = '0 25px 50px rgba(245, 158, 11, 0.25)';
+                                e.currentTarget.style.borderColor = '#f59e0b';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.transform = 'translateY(0) scale(1)';
+                            e.currentTarget.style.boxShadow = '0 10px 30px rgba(0, 0, 0, 0.1)';
+                            e.currentTarget.style.borderColor = '#fef3c7';
                           }}
                         >
-                          <i className="bi bi-cash-stack text-white" style={{ fontSize: '2.5rem' }}></i>
-                        </div>
-                        <Card.Title className="fw-bold text-dark mb-2 fs-5">Gestión de Sueldos</Card.Title>
-                        <Card.Text className="text-muted small mb-3">Control de remuneraciones y beneficios</Card.Text>
-                        <div className="d-flex align-items-center justify-content-center">
-                          <small className="text-muted">
-                            <i className="bi bi-clock me-1"></i>
-                            Próximamente
-                          </small>
-                        </div>
-                      </Card.Body>
-                    </Card>
+                          <Card.Body className="p-4 text-center">
+                            <div 
+                              className="d-inline-flex align-items-center justify-content-center mb-4"
+                              style={{
+                                width: '80px',
+                                height: '80px',
+                                background: 'linear-gradient(135deg, #6b7280 0%, #4b5563 100%)',
+                                borderRadius: '24px',
+                                boxShadow: '0 8px 32px rgba(107, 114, 128, 0.2)'
+                              }}
+                              
+                            >
+                              <i className="bi bi-cash-stack text-white" style={{ fontSize: '2.5rem' }}></i>
+                            </div>
+                            <Card.Title className="fw-bold text-dark mb-2 fs-5">Gestión de Sueldos</Card.Title>
+                            <Card.Text className="text-muted small mb-3">Control de remuneraciones y beneficios</Card.Text>
+                            <div className="d-flex align-items-center justify-content-center">
+                              <small className="text-muted">
+                                <i className="bi bi-clock me-1"></i>
+                                Acceder
+                              </small>
+                            </div>
+                          </Card.Body>
+                        </Card>
+                    </Link>   
                   </Col>
 
                   {/* Tarjeta de Gestión de Licencias y Permisos */}
