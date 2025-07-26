@@ -6,16 +6,19 @@ export interface Bono {
     temporalidad: "permanente" | "recurrente" | "puntual";
     descripcion?: string;
     imponible: boolean;
-    fechaCreacion: Date;
+    fechaCreacion: string; // Formato YYYY-MM-DD
+    duracionMes?: string;
 }
 
 export interface CreateBonoData {
     nombreBono: string;
     monto: string;
-    tipoBono?: "estatal" | "empresarial";
-    temporalidad?: "permanente" | "recurrente" | "puntual";
+    tipoBono: "estatal" | "empresarial";
+    temporalidad: "permanente" | "recurrente" | "puntual";
     descripcion?: string;
-    imponible?: boolean;
+    imponible: boolean;
+    duracionMes?: string;
+    fechaCreacion?: string; // Formato YYYY-MM-DD
 }
 
 export interface UpdateBonoData {
@@ -25,18 +28,15 @@ export interface UpdateBonoData {
     temporalidad?: "permanente" | "recurrente" | "puntual";
     descripcion?: string;
     imponible?: boolean;
+    duracionMes?: string;
 }
 
 export interface BonoSearchQueryData {
-    id?: number;
     nombreBono?: string;
     tipoBono?: "estatal" | "empresarial";
     temporalidad?: "permanente" | "recurrente" | "puntual";
-    limit?: number;
-    offset?: number;
-    fechaCreacionDesde?: string | Date;
-    fechaCreacionHasta?: string | Date;
     imponible?: boolean;
+    duracionMes?: string;
 }
 
 export interface BonoSearchParamsData {
@@ -51,17 +51,6 @@ export interface BonoSearchParamsData {
     imponible?: boolean;
 }
 
-export interface BonoResponseData {
-    id: number;
-    nombreBono: string;
-    monto: string;
-    tipoBono: "estatal" | "empresarial";
-    temporalidad: "permanente" | "recurrente" | "puntual";
-    descripcion?: string;
-    imponible: boolean;
-    fechaCreacion: Date;
-}
-
 // Resultado de operaciones
 export interface BonoOperationResult {
   success: boolean;
@@ -69,8 +58,8 @@ export interface BonoOperationResult {
   error?: string;
   errors?: Record<string, string>;
 }
-
-export interface AsignarBonoDTO {
+/*
+ export interface AsignarBonoDTO {
     trabajadorId: number;
     bonoId: number;
     fechaEntrega?: string | Date;
@@ -115,3 +104,4 @@ export interface AsignarBonoResponseDTO {
     activo: boolean;
     observaciones?: string;
 }
+*/

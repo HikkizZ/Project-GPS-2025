@@ -295,6 +295,11 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
     }
   };
 
+  const getSeguroBadgeClass = (seguroCesantia: boolean) => {
+    if (seguroCesantia === true) return 'bg-success';
+    return 'bg-warning';
+  }
+
   // Función helper para campos "Por Definir"
   const getFieldClass = (value: string) => {
     return value === 'Por Definir' ? 'por-definir' : '';
@@ -473,12 +478,62 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                           </div>
 
                           <div className="info-field">
+                            <i className="bi bi-graph-up"></i>
+                            <label>AFP</label>
+                            <div className={`value ${getFieldClass(miFicha.afp)}`}>
+                              {miFicha.afp === 'Por Definir' ? 
+                                <span className="pending">Por Definir</span> : 
+                                miFicha.afp
+                              }
+                            </div>
+                          </div>
+
+                          <div className="info-field">
+                            <i className="bi bi-heart"></i>
+                            <label>Previsión salud</label>
+                            <div className={`value ${getFieldClass(miFicha.previsionSalud)}`}>
+                              {miFicha.previsionSalud === 'Por Definir' ? 
+                                <span className="pending">Por Definir</span> : 
+                                miFicha.previsionSalud
+                              }
+                            </div>
+                          </div>
+
+                          <div className="info-field">
+                            <i className="bi bi-breadcase"></i>
+                            <label>Seguro cesantía</label>
+                            <div className="value">
+                              <span className={`status-badge ${miFicha.seguroCesantia}`}>
+                                {miFicha.seguroCesantia}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="info-field">
                             <i className="bi bi-person-check"></i>
                             <label>Estado</label>
                             <div className="value">
                               <span className={`status-badge ${miFicha.estado.toLowerCase()}`}>
                                 {miFicha.estado}
                               </span>
+                            </div>
+                          </div>
+
+                          <div className ="info-field">
+                            <i className='bi bi-calendar2-check'></i>
+                            <label> Bonos asignados </label>
+                            <div className="value">
+                              {miFicha.asignacionesBonos && miFicha.asignacionesBonos.length > 0 ? (
+                              <span className="status-badge">
+                                {miFicha.asignacionesBonos
+                                  .filter(asig => asig.activo && asig.bono && asig.bono.nombre)
+                                  .map(asig => asig.bono.nombre)
+                                  .join(', ')
+                                }
+                              </span>
+                            ) : (
+                              <span className="text-muted">No hay bonos asignados</span>
+                            )}
                             </div>
                           </div>
 
@@ -919,6 +974,10 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                         <th>Fecha Inicio</th>
                         <th>Fecha Fin</th>
                         <th>Sueldo Base</th>
+                        <th>AFP</th>
+                        <th>Previsión Salud</th>
+                        <th>Seguro cesantía</th>
+                        <th>Bonos asignados</th>
                         <th>Acciones</th>
                       </tr>
                     </thead>
@@ -960,6 +1019,35 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                           <td>{formatFecha(ficha.fechaInicioContrato)}</td>
                           <td>{ficha.fechaFinContrato ? formatFecha(ficha.fechaFinContrato) : '-'}</td>
                           <td>{formatSueldo(ficha.sueldoBase)}</td>
+                          <td>
+                            <span className={getFieldClass(ficha.afp || '-')}>
+                              {ficha.afp || '-'}
+                            </span>
+                          </td>
+                          <td>
+                            <span className={getFieldClass(ficha.previsionSalud || '-')}>
+                              {ficha.previsionSalud || '-'}
+                            </span>
+                          </td>
+                          <td>
+                            <span className={`badge ${getSeguroBadgeClass(ficha.seguroCesantia)}`}>
+                              {ficha.seguroCesantia ? 'Sí' : 'No'}
+                            </span>
+                          </td>
+                          <td> 
+                            {ficha.asignacionesBonos && ficha.asignacionesBonos.length > 0 ? (
+                              <span className="status-badge">
+                                {ficha.asignacionesBonos
+                                  .filter(asig => asig.activo && asig.bono && asig.bono.nombre)
+                                  .map(asig => asig.bono.nombre)
+                                  .join(', ')
+                                }
+                              </span>
+                            ) : (
+                              <span className="text-muted">No hay bonos asignados</span>
+                            )}
+                          </td>
+
                           <td>
                             <div className="btn-group">
                               {/* Ocultar botón de editar si es la ficha del usuario actual */}

@@ -1,46 +1,77 @@
 import { useState, useCallback, useEffect } from 'react';
+import { bonoService } from '../../services/recursosHumanos/bono.service';
 import type {
   Bono,
   BonoSearchQueryData,
   UpdateBonoData,
   CreateBonoData,
   BonoSearchParamsData,
-  BonoResponseData,
   BonoOperationResult
 } from '../../types/recursosHumanos/bono.types';
-import bonoService, { 
-  BonoService
-} from '../../services/recursosHumanos/bono.service';
-
-
 
 export const useBono = () => {
-    
-    
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<string>('');
-    const [bonos, setBonos] = useState<Bono[]>([]);
+  const [bonos, setBonos] = useState<Bono[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string>('');
+  const [totalBonos, setTotalBonos] = useState(0);
 
+  //Función para cargar todos los bonos
+  const cargarBonos = async () => {
+    setIsLoading(true);
+    setError('');
+    try {
+      const result = await bonoService.getAllBonos();
+      console.log("Cargando bonos...");
+      console.log('URL:', `${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}/bonos`);
+      console.log('Token:', localStorage.getItem('auth_token'));
+      console.log('Response data:', result.data);
+      console.log('Resultado success: ', result.success);
+      console.log('Data Result: ', result.data);
+      console.log('BONOS BONOS BONOS: ', result.data);
+      if (result.success) {
+          const newBonos = result.data?.bonos || [];
+          const newTotal = result.data?.total || 0;
+          setBonos(newBonos);
+          setTotalBonos(newTotal);
+          console.log('BONOSSS: ', newBonos);
+          console.log('TOTALBONOS: ', newTotal);
+        
+      } else {
+          setError(result.message || 'Error al cargar bonos');
+          setTotalBonos(0);
+      }
+    } catch (error) {
+        setError('Error de conexión');
+        setTotalBonos(0);
+    } finally {
+        setIsLoading(false);
+    }
+  };
 
-    //Función para cargar todos los bonos
-    const cargarBonos = async () => {
-        setIsLoading(true);
-        setError('');
-        try {
-          const result = await bonoService.getAllBonos();
-          if (result.success) {
-            setBonos(result.data || []);
-          } else {
-            setError(result.message || 'Error al cargar bonos');
-          }
-        } catch (error) {
-          setError('Error de conexión');
-        } finally {
-          setIsLoading(false);
-        }
-      };
-
-    
+  const createBono = async (bonoData: CreateBonoData) => {
+    setIsLoading(true);
+    setError('');
+    try {
+      const result = await bonoService.crearBono(bonoData);
+      if (result.success) {
+        await cargarBonos(); // Recargar la lista después de crear
+        return {
+          success: true,
+          bono: result.bono,
+          advertencias: result.advertencias || []
+        };
+      } else {
+        setError(result.error || 'Error al crear bono');
+        return { success: false, error: result.error };
+      }
+    } catch (error: any) {
+      const errorMsg = error.message || 'Error al crear bono';
+      setError(errorMsg);
+      return { success: false, error: errorMsg };
+    } finally {
+      setIsLoading(false);
+    }
+  };
     
 
     // Cargar bono específica por ID
@@ -95,23 +126,41 @@ export const useBono = () => {
         
     };
 
+    // Buscar bonos con parámetros
+    const searchBonos = async (query: BonoSearchQueryData = {}) => {
+        setIsLoading(true);
+        setError('');
+        try {
+                    const result = await bonoService.getAllBonos(query);
+        if (result.success) {
+            setBonos(result.data?.bonos || []);
+            setTotalBonos(result.data?.total || 0);
+        } else {
+                setError(result.message || 'Error al buscar bonos');
+                setTotalBonos(0);
+            }
+        } catch (error) {
+            setError('Error de conexión');
+            setTotalBonos(0);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     // Cargar bonos al inicializar el hook
     useEffect(() => {
       cargarBonos();
     }, []);
 
     return {
-        
-        // Acciones
-    
-        setBonos,
-        bonos,
-        error,
-        isLoading,
-        setIsLoading,
-        cargarBonos,
-        //loadBonoById,
-        updateBono,
-        
-    };
+    bonos,
+    isLoading,
+    error,
+    cargarBonos,
+    searchBonos,
+    createBono,
+    updateBono,
+    clearError: () => setError(''),
+    totalBonos
+  };
 }; 

@@ -36,6 +36,22 @@ export interface FichaEmpresa {
   fechaFinLicenciaPermiso?: Date | string | null;
   motivoLicenciaPermiso?: string | null;
   contratoURL?: string | null;
+  afp?: string | null; // Aseguradora de Fondos de Pensiones
+  previsionSalud?: string | null; // Institución de Salud Previsional
+  seguroCesantia?: boolean; // Seguro de Cesantía
+  asignacionesBonos: {
+    id: number;
+    fechaAsignacion: Date | string;
+    fechaFinAsignacion?: Date | string | null;
+    activo: boolean;
+    bono: {
+      id: number;
+      nombre: string;
+      monto: number;
+      tipo: string; // Puede ser 'empresarial' o 'estatal'
+      imponible: boolean;
+    };
+  }[];
 }
 
 export interface CreateFichaEmpresaData {
@@ -76,6 +92,9 @@ export interface UpdateFichaEmpresaData {
   fechaInicioContrato?: string;
   fechaFinContrato?: string;
   contratoURL?: string;
+  afp?: string;
+  previsionSalud?: string;
+  seguroCesantia?: boolean;
 }
 
 export interface ActualizarEstadoData {

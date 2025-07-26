@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useRut } from './hooks/useRut';
 import { useTrabajadores } from './hooks/recursosHumanos/useTrabajadores';
@@ -27,6 +26,7 @@ import { UserRole } from './types/auth.types';
 import { ProtectedRoute } from './components/common/ProtectedRoute';
 import { usePermissions } from './hooks/usePermissions';
 import MiAreaPersonalPage from './pages/MiAreaPersonalPage';
+import { GestionRemuneracionesPage } from './pages/recursosHumanos/GestionRemuneracionesPage';
 
 //Importaciones de Mantenciones
 import MantencionPage from './pages/machinaryMantenance/MantencionPage';
@@ -868,6 +868,14 @@ function App() {
                       </ProtectedRoute>
                     } 
                   />
+                  <Route
+                  path="gestion-sueldos"
+                  element={
+                    <ProtectedRoute allowedRoles={["SuperAdministrador", "Administrador", "RecursosHumanos"]}>
+                      <GestionRemuneracionesPage />
+                    </ProtectedRoute>
+                  }
+                />
                   <Route 
                     path="mis-licencias-permisos" 
                     element={
