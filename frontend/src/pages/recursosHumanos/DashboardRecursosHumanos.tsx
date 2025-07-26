@@ -172,12 +172,13 @@ const DashboardRecursosHumanos: React.FC = () => {
                   <Col md={3}>
                     <Link to="/gestion-sueldos" style={{ textDecoration: 'none' }}>
                       <Card 
-                          className="h-100 border-0 shadow-sm" 
+                          className="h-100 border-0 shadow-lg" 
                           style={{ 
+                            cursor: 'pointer', 
                             borderRadius: '20px',
+                            transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
                             background: 'white',
-                            border: '1px solid #f1f5f9',
-                            opacity: 0.8
+                            border: '1px solid #e3f2fd'
                           }}
                           onMouseEnter={(e) => {
                                 e.currentTarget.style.transform = 'translateY(-12px) scale(1.02)';
