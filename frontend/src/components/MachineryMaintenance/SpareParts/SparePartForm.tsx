@@ -41,46 +41,65 @@ const SparePartForm: React.FC<Props>= ({initialData = {}, onSubmit, loading}) =>
       }));
     };
   
+    const tieneCaracteresEspeciales = (texto: string): boolean => {
+      const regex = /^[a-zA-Z0-9\s]+$/;
+      return !regex.test(texto);
+    };
 
       const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        
 
         try {
-          
-          if (form.name.trim().length < 3) {
+          const { name, marca, modelo, stock, anio } = form;
+
+          const anioActual = new Date().getFullYear();
+
+          if (name.trim().length < 3) {
             showError("Nombre inválido", "El nombre debe tener al menos 3 caracteres.");
             return;
           }
 
-          if (form.stock < 0) {
+          if (tieneCaracteresEspeciales(name)) {
+            showError("Nombre inválido", "No se permiten caracteres especiales en el nombre.");
+            return;
+          }
+
+          if (tieneCaracteresEspeciales(marca)) {
+            showError("Marca inválida", "No se permiten caracteres especiales en la marca.");
+            return;
+          }
+
+          if (tieneCaracteresEspeciales(modelo)) {
+            showError("Modelo inválido", "No se permiten caracteres especiales en el modelo.");
+            return;
+          }
+
+          if (stock < 0) {
             showError("Stock inválido", "El stock no puede ser negativo.");
             return;
           }
 
-          const anioActual = new Date().getFullYear();
-          if (form.anio < 2000 || form.anio > anioActual) {
+          if (anio < 2000 || anio > anioActual) {
             showError("Año inválido", `El año debe estar entre 2000 y ${anioActual}.`);
             return;
           }
 
+          // Validación de duplicados
           const { data: allParts, success } = await getSpareParts();
           if (success && allParts) {
             const duplicado = allParts.find((r) =>
-              r.name.trim().toLowerCase() === form.name.trim().toLowerCase());
+              r.name.trim().toLowerCase() === name.trim().toLowerCase() &&
+              r.marca.trim().toLowerCase() === marca.trim().toLowerCase() &&
+              r.modelo.trim().toLowerCase() === modelo.trim().toLowerCase()
+            );
+
             if (duplicado && (!initialData || duplicado.id !== initialData.id)) {
-              showError("Error de duplicado", "Ya existe un repuesto con ese nombre en ese grupo de maquinaria.");
+              showError("Duplicado", "Ya existe un repuesto con el mismo nombre, marca y modelo.");
               return;
             }
           }
 
-          const dataToSend = {
-            name: form.name,
-            stock: form.stock,
-            marca: form.marca,
-            modelo: form.modelo,
-            anio: form.anio
-          };
+          const dataToSend = { name, stock, marca, modelo, anio };
 
           if (initialData?.id) {
             await updateSparePart(initialData.id, dataToSend);
@@ -88,9 +107,8 @@ const SparePartForm: React.FC<Props>= ({initialData = {}, onSubmit, loading}) =>
             await createSparePart(dataToSend);
           }
 
-          onSubmit(form); 
+          onSubmit(form);
 
-          
           setForm({
             name: '',
             stock: 0,
@@ -98,11 +116,13 @@ const SparePartForm: React.FC<Props>= ({initialData = {}, onSubmit, loading}) =>
             modelo: '',
             anio: new Date().getFullYear()
           });
+
         } catch (error) {
           console.error("Error en el handleSubmit:", error);
           showError("Error inesperado", "Ocurrió un problema al guardar el repuesto.");
         }
       };
+
 
 
   
@@ -114,7 +134,8 @@ const SparePartForm: React.FC<Props>= ({initialData = {}, onSubmit, loading}) =>
         <Form.Control
           type="text"
           name="name"
-          minLength={3}
+          pattern="[a-zA-Z0-9\s]+"
+          title="Solo letras, números y espacios"
           value={form.name}
           onChange={handleChange}
           required
@@ -137,20 +158,22 @@ const SparePartForm: React.FC<Props>= ({initialData = {}, onSubmit, loading}) =>
         <Form.Label>Marca</Form.Label>
         <Form.Control
           type="text"
-          name="marca"
-          minLength={3}
+          name="name"
+          pattern="[a-zA-Z0-9\s]+"
+          title="Solo letras, números y espacios"
           value={form.marca}
           onChange={handleChange}
           required
-        />
+/>
       </Form.Group>
 
       <Form.Group controlId="modelo">
         <Form.Label>Modelo</Form.Label>
         <Form.Control
           type="text"
-          name="modelo"
-          minLength={3}
+          name="name"
+          pattern="[a-zA-Z0-9\s]+"
+          title="Solo letras, números y espacios"
           value={form.modelo}
           onChange={handleChange}
           required
