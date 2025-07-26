@@ -7,9 +7,10 @@ interface Props {
   onEdit: (repuesto: SparePart) => void;
   onDelete: (id: number) => void;
   onReload: () => void;
+  totalItems: number;
 }
 
-const ListSparePart: React.FC<Props> = ({ data, onEdit, onDelete }) => {
+const ListSparePart: React.FC<Props> = ({ data, onEdit, onDelete, totalItems }) => {
   const sortedData = [...data].sort((a, b) => a.name.localeCompare(b.name));
 
   const getStockColor = (stock: number) => {
@@ -33,7 +34,7 @@ const ListSparePart: React.FC<Props> = ({ data, onEdit, onDelete }) => {
             <div className="d-flex justify-content-between  mb-3">
               <h6 className="mb-0">
                 <i className="bi bi-tools me-2"></i>
-                Repuestos Registrados ({sortedData.length})
+                Repuestos Registrados ({totalItems})
               </h6>
             </div>
             <div className="table-responsive">
