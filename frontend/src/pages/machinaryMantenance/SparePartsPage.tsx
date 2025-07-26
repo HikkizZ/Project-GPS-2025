@@ -11,6 +11,7 @@ import SparePartModal from "@/components/MachineryMaintenance/SpareParts/SparePa
 import SparePartLocalFilters from "@/components/MachineryMaintenance/SpareParts/SparePartFilters"
 import { Toast, useToast } from "@/components/common/Toast"
 import MaintenanceSidebar from "@/components/MachineryMaintenance/MaintenanceSidebar"
+import  Pagination  from "@/components/MachineryMaintenance/Pagination"
 
 const SparePartsPage: React.FC = () => {
   const { spareParts, loading, error, reload } = useSpareParts()
@@ -30,6 +31,15 @@ const SparePartsPage: React.FC = () => {
     stockMin: ""
   })
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filteredParts.slice(indexOfFirstItem, indexOfLastItem);
+
+  const totalPages = Math.ceil(filteredParts.length / itemsPerPage);
+
   const hasActiveFilters = Object.values(filters).some((v) => v.trim() !== "")
 
   useEffect(() => {
@@ -47,8 +57,11 @@ const SparePartsPage: React.FC = () => {
       }
     }
 
-    setFilteredParts(data)
+    setFilteredParts(data);
+    setCurrentPage(1);
   }, [spareParts, filters])
+
+  
 
   const handleFilterChange = (
     e: React.ChangeEvent<HTMLInputElement>
@@ -169,13 +182,25 @@ const SparePartsPage: React.FC = () => {
                       {error}
                     </Alert>
                   ) : (
-                    <ListSparePart
-                      data={filteredParts}
-                      onEdit={handleOpenModal}
-                      onDelete={handleDelete}
-                      onReload={reload}
-                    />
+                    <>
+                      <ListSparePart
+                        data={currentItems}
+                        totalItems={filteredParts.length}
+                        onEdit={handleOpenModal}
+                        onDelete={handleDelete}
+                        onReload={reload}
+                      />
+                      {totalPages > 1 && (
+                        <Pagination
+                          totalPages={totalPages}
+                          currentPage={currentPage}
+                          onPageChange={setCurrentPage}
+                        />
+                      )}
+                    </>
+
                   )}
+                  
                 </Card.Body>
               </Card>
 
