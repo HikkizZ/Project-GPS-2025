@@ -12,13 +12,12 @@ import { useToast } from '@/components/common/Toast';
 
 interface Props {
   mantencionId: number;
-  grupoMaquinaria: string;
   show: boolean;
   onReload: () => Promise<void>;
   onHide: () => void;
 }
 
-const MaintenanceSparePartPanel: React.FC<Props> = ({ mantencionId, grupoMaquinaria, show, onHide }) => {
+const MaintenanceSparePartPanel: React.FC<Props> = ({ mantencionId, show, onHide }) => {
     
     const { spareParts, loading: loadingSpareParts, reload: reloadSpareParts } = useSpareParts();
     const { maintenanceSpareParts, loading, reload } = useMaintenanceSpareParts();
@@ -112,7 +111,7 @@ const MaintenanceSparePartPanel: React.FC<Props> = ({ mantencionId, grupoMaquina
             };
 
 
-  const repuestosFiltrados = spareParts.filter((r) => r.grupo === grupoMaquinaria);
+  const repuestosFiltrados = spareParts;
   const repuestosUsados = maintenanceSpareParts.filter((r) => r.mantencion?.id === mantencionId);
 
   return (
