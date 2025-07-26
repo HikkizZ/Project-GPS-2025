@@ -8,35 +8,37 @@ export async function createSparePart(data: CreateSparePartDTO): Promise<Service
   try {
     const repo = AppDataSource.getRepository(SparePart);
 
-    const existe = await repo.findOne({
-      where:{
-        name: data.name.trim(),
-        marca: data.marca.trim(),
-        modelo: data.modelo.trim(),
-        grupo: data.grupo,
-      }
-    })
+    const duplicado = await repo
+      .createQueryBuilder("repuesto")
+      .where("LOWER(repuesto.name) = LOWER(:name)", { name: data.name.trim() })
+      .andWhere("LOWER(repuesto.marca) = LOWER(:marca)", { marca: data.marca.trim() })
+      .andWhere("LOWER(repuesto.modelo) = LOWER(:modelo)", { modelo: data.modelo.trim() })
+      .getOne();
 
-    if(existe){
-      return[null, "Ya existe un repuesto con ese nombre, marca, modelo y grupo de maquinaria"]
+   if (duplicado) {
+    if (!duplicado.isActive) {
+      duplicado.isActive = true;
+      duplicado.stock = data.stock;
+      return [await repo.save(duplicado), null];
     }
+
+    return [null, "Ya existe un repuesto con ese nombre, marca y modelo"];
+  }
 
     if (data.stock < 0) {
-    return [null, "El stock no puede ser negativo"];
+      return [null, "El stock no puede ser negativo"];
     }
 
-    if (data.anio < 2000 || data.anio > new Date().getFullYear()){
-    return [null, "El año no puede ser negativo"];
+    if (data.anio < 2000 || data.anio > new Date().getFullYear()) {
+      return [null, `El año debe estar entre 2000 y ${new Date().getFullYear()}`];
     }
-
 
     const nuevo = repo.create({
-      name: data.name,
+      name: data.name.trim(),
       stock: data.stock,
-      marca: data.marca,
-      modelo: data.modelo,
+      marca: data.marca.trim(),
+      modelo: data.modelo.trim(),
       anio: data.anio,
-      grupo: data.grupo
     });
 
     const saved = await repo.save(nuevo);
@@ -48,11 +50,14 @@ export async function createSparePart(data: CreateSparePartDTO): Promise<Service
   }
 }
 
+
 // Obtener todos los repuestos
 export async function getAllSpareParts(): Promise<ServiceResponse<SparePart[]>> {
   try {
     const repo = AppDataSource.getRepository(SparePart);
-    const repuestos = await repo.find();
+    const repuestos = await repo.find({
+      where: { isActive: true }
+    });
 
     if (!repuestos.length) {
       return [null, "No hay repuestos registrados"];
@@ -69,7 +74,7 @@ export async function getAllSpareParts(): Promise<ServiceResponse<SparePart[]>> 
 export async function getSparePart(id: number): Promise<ServiceResponse<SparePart>> {
   try {
     const repo = AppDataSource.getRepository(SparePart);
-    const repuesto = await repo.findOneBy({ id });
+    const repuesto = await repo.findOneBy({ id, isActive: true });
 
     if (!repuesto) {
       return [null, "Repuesto no encontrado"];
@@ -96,20 +101,19 @@ export async function updateSparePart(id: number, data: UpdateSparePartDTO): Pro
     const nombre = data.name?.trim() ?? existente.name;
     const marca = data.marca?.trim() ?? existente.marca;
     const modelo = data.modelo?.trim() ?? existente.modelo;
-    const grupo = data.grupo ?? existente.grupo;
 
-    const duplicado = await repo.findOne({
-      where: {
-        name: nombre,
-        marca: marca,
-        modelo: modelo,
-        grupo: grupo,
-      },
-    });
+    const duplicado = await repo
+      .createQueryBuilder("repuesto")
+      .where("repuesto.name = :name", { name: nombre })
+      .andWhere("repuesto.marca = :marca", { marca })
+      .andWhere("repuesto.modelo = :modelo", { modelo })
+      .andWhere("repuesto.id != :id", { id })
+      .getOne();
 
-    if (duplicado && duplicado.id !== id) {
-      return [null, "Ya existe un repuesto con ese nombre, marca, modelo y grupo de maquinaria"];
+    if (duplicado) {
+      return [null, "Ya existe un repuesto con ese nombre, marca y modelo"];
     }
+
    
     if (data.stock !== undefined && data.stock < 0) {
       return [null, "El stock no puede ser negativo"];
@@ -124,11 +128,10 @@ export async function updateSparePart(id: number, data: UpdateSparePartDTO): Pro
     }
 
    
-    if (data.name && data.grupo) {
+    if (data.name) {
       const duplicado = await repo.findOne({
         where: {
           name: data.name.trim(),
-          grupo: data.grupo,
         },
       });
 
@@ -142,7 +145,6 @@ export async function updateSparePart(id: number, data: UpdateSparePartDTO): Pro
     if (data.marca !== undefined) existente.marca = data.marca;
     if (data.modelo !== undefined) existente.modelo = data.modelo;
     if (data.anio !== undefined) existente.anio = data.anio;
-    if (data.grupo !== undefined) existente.grupo = data.grupo;
 
     const actualizado = await repo.save(existente);
     return [actualizado, null];
@@ -161,9 +163,10 @@ export async function deleteSparePart(id: number): Promise<ServiceResponse<Spare
 
     if (!existente) return [null, "Repuesto no encontrado"];
 
-    await repo.remove(existente);
-    return [existente, null];
+    existente.isActive = false;
+    const actualizado = await repo.save(existente);
 
+    return [actualizado, null];
   } catch (error) {
     console.error("Error al eliminar repuesto:", error);
     return [null, "Error al eliminar repuesto"];
