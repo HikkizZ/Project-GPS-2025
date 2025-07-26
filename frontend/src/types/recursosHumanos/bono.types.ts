@@ -13,8 +13,8 @@ export interface Bono {
 export interface CreateBonoData {
     nombreBono: string;
     monto: string;
-    tipoBono: "estatal" | "empresarial";
-    temporalidad: "permanente" | "recurrente" | "puntual";
+    tipoBono: string;
+    temporalidad: string;
     descripcion?: string;
     imponible: boolean;
     duracionMes?: string;
