@@ -29,8 +29,7 @@ router.use(verifyRole(["RecursosHumanos", "Administrador", "SuperAdministrador"]
 router
     .get("/", getFichasEmpresa)
     .get("/:id/contrato", descargarContrato)
-    .put("/:id", updateFichaEmpresa)
-    .post("/:id/upload-contrato", FileUploadService.uploadSingle('contrato'), uploadContrato)
+    .patch("/:id", FileUploadService.uploadSingle('contrato'), updateFichaEmpresa)
     .delete("/:id/contrato", deleteContrato);
 
     // Asignación de bonos

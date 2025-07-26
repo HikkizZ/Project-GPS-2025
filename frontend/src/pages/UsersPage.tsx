@@ -8,6 +8,8 @@ import { Table, Button, Form, Spinner, Modal, Container, Row, Col, Card } from '
 import { FiltrosBusquedaHeader } from '@/components/common/FiltrosBusquedaHeader';
 import { useToast, Toast } from '@/components/common/Toast';
 import { PasswordInput } from '@/components/common/LoginForm';
+import { TrabajadorDetalleModal } from '@/components/recursosHumanos/TrabajadorDetalleModal';
+import { useTrabajadores } from '@/hooks/recursosHumanos/useTrabajadores';
 
 // Interfaz para los parámetros de búsqueda
 interface UserSearchParams {
@@ -39,8 +41,11 @@ export const UsersPage: React.FC = () => {
   const [selectedUser, setSelectedUser] = useState<SafeUser | null>(null);
   const [rutError, setRutError] = useState<string | null>(null);
   const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [showDetalleModal, setShowDetalleModal] = useState(false);
+  const [trabajadorDetalle, setTrabajadorDetalle] = useState<any | null>(null);
+  const { trabajadores, isLoading: isLoadingTrabajadores, loadTrabajadores, searchTrabajadores } = useTrabajadores();
 
-  const availableRoles: FilterableUserRole[] = ['Usuario', 'RecursosHumanos', 'Gerencia', 'Ventas', 'Arriendo', 'Finanzas', 'Mecánico', 'Mantenciones de Maquinaria', 'Conductor'];
+  const availableRoles: FilterableUserRole[] = ['Usuario', 'RecursosHumanos', 'Gerencia', 'Ventas', 'Arriendo', 'Finanzas', 'Mecánico', 'Mantenciones de Maquinaria'];
   
   // Admin, SuperAdmin y RecursosHumanos pueden asignar rol de Administrador
   if (user?.role === 'Administrador' || user?.role === 'SuperAdministrador' || user?.role === 'RecursosHumanos') {
@@ -272,6 +277,44 @@ export const UsersPage: React.FC = () => {
   // Función para verificar si el usuario es el usuario actual
   const esUsuarioActual = (userItem: SafeUser) => {
     return user && userItem.rut && user.rut && userItem.rut.replace(/\.|-/g, '') === user.rut.replace(/\.|-/g, '');
+  };
+
+  // Función para ver detalles del usuario
+  const handleVerDetalle = async (userItem: SafeUser) => {
+    let trabajador = null;
+    if (userItem.rut) {
+      // Buscar trabajador por rut
+      await searchTrabajadores({ rut: userItem.rut });
+      const encontrado = trabajadores.find(t => t.rut.replace(/\.|-/g, '') === userItem.rut.replace(/\.|-/g, ''));
+      if (encontrado) {
+        trabajador = encontrado;
+      }
+    }
+    if (!trabajador) {
+      // Si no existe, mostrar datos básicos
+      trabajador = {
+        rut: userItem.rut || '-',
+        nombres: userItem.name || '-',
+        apellidoPaterno: '-',
+        apellidoMaterno: '-',
+        fechaNacimiento: '-',
+        fechaIngreso: '-',
+        telefono: '-',
+        correoPersonal: userItem.corporateEmail || '-',
+        numeroEmergencia: '-',
+        direccion: '-',
+        enSistema: userItem.estadoCuenta === 'Activa',
+        fechaRegistro: userItem.createAt || '-',
+        fichaEmpresa: null,
+        usuario: {
+          id: userItem.id,
+          corporateEmail: userItem.corporateEmail,
+          role: userItem.role
+        }
+      };
+    }
+    setTrabajadorDetalle(trabajador);
+    setShowDetalleModal(true);
   };
 
   // Verificar permisos
@@ -560,6 +603,13 @@ export const UsersPage: React.FC = () => {
                                       <i className="bi bi-pencil-square"></i>
                                     </Button>
                                   )}
+                                  <Button
+                                    variant="outline-secondary"
+                                    onClick={() => handleVerDetalle(userItem)}
+                                    title="Ver detalles"
+                                  >
+                                    <i className="bi bi-eye"></i>
+                                  </Button>
                                 </div>
                               )}
                             </td>
@@ -802,6 +852,12 @@ export const UsersPage: React.FC = () => {
           </Modal>
         </Col>
       </Row>
+      {/* Modal de detalles de usuario */}
+      <TrabajadorDetalleModal
+        show={showDetalleModal}
+        onHide={() => setShowDetalleModal(false)}
+        trabajador={trabajadorDetalle}
+      />
       {/* Sistema de notificaciones */}
       <Toast toasts={toasts} removeToast={removeToast} />
     </Container>
@@ -829,8 +885,6 @@ const getRoleBadgeColor = (role: string): string => {
       return 'warning';
     case 'Mantenciones de Maquinaria':
       return 'info';
-    case 'Conductor':
-      return 'success';
     case 'Usuario':
       return 'dark';
     default:

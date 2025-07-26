@@ -1,0 +1,140 @@
+/* Estilos para el modal de detalles de arriendo */
+.arriendo-detalle-modal .modal-dialog {
+  max-width: 90vw;
+}
+
+.arriendo-detalle-modal .modal-body {
+  max-height: 80vh;
+  overflow-y: auto;
+  padding: 1.5rem;
+}
+
+.arriendo-detalle-modal .modal-header {
+  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+  border: none;
+}
+
+.arriendo-detalle-modal .modal-footer {
+  background-color: #f8f9fa;
+  border-top: 1px solid #dee2e6;
+}
+
+/* Secciones del formulario */
+.form-section {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  border-left: 4px solid #007bff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.form-section:last-child {
+  margin-bottom: 0;
+}
+
+.section-title {
+  color: #495057;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #e9ecef;
+  font-size: 1.1rem;
+}
+
+/* Sección de estado */
+.estado-section {
+  border-left-color: #28a745;
+  background: #f8fff9;
+}
+
+/* Campos de detalle */
+.detail-field {
+  margin-bottom: 1rem;
+}
+
+.detail-field:last-child {
+  margin-bottom: 0;
+}
+
+.detail-label {
+  font-weight: 600;
+  color: #6c757d;
+  font-size: 0.9rem;
+  margin-bottom: 0.25rem;
+  display: block;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.detail-value {
+  font-size: 1rem;
+  color: #212529;
+  line-height: 1.5;
+}
+
+/* Valores monetarios */
+.currency-value {
+  font-family: "Courier New", monospace;
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+
+/* Timestamp */
+.timestamp {
+  font-family: "Courier New", monospace;
+  font-size: 0.9rem;
+  color: #6c757d;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .arriendo-detalle-modal .modal-dialog {
+    max-width: 95vw;
+    margin: 0.5rem;
+  }
+
+  .arriendo-detalle-modal .modal-body {
+    padding: 1rem;
+  }
+
+  .form-section {
+    padding: 1rem;
+    margin-bottom: 1rem;
+  }
+}
+
+/* Animaciones */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.form-section {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Scrollbar personalizado */
+.arriendo-detalle-modal .modal-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.arriendo-detalle-modal .modal-body::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.arriendo-detalle-modal .modal-body::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+.arriendo-detalle-modal .modal-body::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}

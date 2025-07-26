@@ -1,0 +1,353 @@
+/* Estilos para la página de Historial Laboral */
+
+.bg-gradient-primary {
+  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+}
+
+/* Timeline Styles */
+.timeline-container {
+  position: relative;
+  padding-left: 60px;
+}
+
+.timeline-container::before {
+  content: '';
+  position: absolute;
+  left: 30px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: linear-gradient(to bottom, #007bff, #6c757d);
+  z-index: 1;
+}
+
+.timeline-item {
+  position: relative;
+  margin-bottom: 2rem;
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.timeline-item:last-child {
+  margin-bottom: 0;
+}
+
+.timeline-marker {
+  position: absolute;
+  left: -60px;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.timeline-marker-circle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  border: 3px solid white;
+  margin-bottom: 8px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.timeline-marker-circle:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+}
+
+.timeline-marker-circle i {
+  font-size: 16px;
+}
+
+.timeline-number {
+  margin-top: 4px;
+}
+
+.timeline-number .badge {
+  font-size: 0.7rem;
+  padding: 0.3em 0.5em;
+}
+
+.timeline-card {
+  margin-left: 20px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border-left: 4px solid transparent;
+}
+
+.timeline-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1) !important;
+}
+
+.timeline-card .card-header {
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #e9ecef;
+  padding: 1rem 1.25rem;
+}
+
+.timeline-card .card-body {
+  padding: 1.5rem 1.25rem;
+}
+
+/* Colores de borde por tipo */
+.timeline-item:has(.bg-primary) .timeline-card {
+  border-left-color: #007bff;
+}
+
+.timeline-item:has(.bg-info) .timeline-card {
+  border-left-color: #17a2b8;
+}
+
+.timeline-item:has(.bg-warning) .timeline-card {
+  border-left-color: #ffc107;
+}
+
+.timeline-item:has(.bg-danger) .timeline-card {
+  border-left-color: #dc3545;
+}
+
+.timeline-item:has(.bg-success) .timeline-card {
+  border-left-color: #28a745;
+}
+
+.timeline-item:has(.bg-secondary) .timeline-card {
+  border-left-color: #6c757d;
+}
+
+/* Campos principales */
+.campos-principales {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.campos-principales .badge {
+  font-weight: 500;
+  font-size: 0.8rem;
+  padding: 0.5em 0.75em;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+/* Info adicional */
+.info-adicional {
+  background-color: #f8f9fa;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid #e9ecef;
+}
+
+.info-adicional h6 {
+  color: #495057;
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+}
+
+.info-adicional small {
+  color: #6c757d;
+  line-height: 1.5;
+}
+
+.info-adicional strong {
+  color: #495057;
+  font-weight: 600;
+}
+
+/* Filtros y navegación */
+.nav-pills .nav-link {
+  border-radius: 25px;
+  padding: 0.5rem 1rem;
+  margin-right: 0.5rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #6c757d;
+  background-color: transparent;
+  border: 1px solid #e9ecef;
+  transition: all 0.3s ease;
+}
+
+.nav-pills .nav-link:hover {
+  color: #007bff;
+  border-color: #007bff;
+  background-color: rgba(0, 123, 255, 0.1);
+}
+
+.nav-pills .nav-link.active {
+  color: white;
+  background-color: #007bff;
+  border-color: #007bff;
+  box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
+}
+
+.nav-pills .nav-link .badge {
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+/* Búsqueda */
+.position-relative .bi-search {
+  pointer-events: none;
+  z-index: 5;
+}
+
+/* Animaciones */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.timeline-item:nth-child(1) { animation-delay: 0.1s; }
+.timeline-item:nth-child(2) { animation-delay: 0.2s; }
+.timeline-item:nth-child(3) { animation-delay: 0.3s; }
+.timeline-item:nth-child(4) { animation-delay: 0.4s; }
+.timeline-item:nth-child(5) { animation-delay: 0.5s; }
+
+/* Estados y badges */
+.badge-tipo-registro {
+  font-weight: 500;
+  padding: 0.5em 0.75em;
+  font-size: 0.8rem;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .timeline-container {
+    padding-left: 40px;
+  }
+  
+  .timeline-container::before {
+    left: 20px;
+  }
+  
+  .timeline-marker {
+    left: -40px;
+  }
+  
+  .timeline-marker-circle {
+    width: 32px;
+    height: 32px;
+  }
+  
+  .timeline-marker-circle i {
+    font-size: 14px;
+  }
+  
+  .timeline-card {
+    margin-left: 10px;
+  }
+  
+  .nav-pills {
+    flex-direction: column;
+  }
+  
+  .nav-pills .nav-link {
+    margin-right: 0;
+    text-align: center;
+  }
+  
+  .campos-principales {
+    flex-direction: column;
+  }
+  
+  .info-adicional {
+    margin-top: 1rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .timeline-container {
+    padding-left: 30px;
+  }
+  
+  .timeline-container::before {
+    left: 15px;
+  }
+  
+  .timeline-marker {
+    left: -30px;
+  }
+  
+  .timeline-marker-circle {
+    width: 28px;
+    height: 28px;
+  }
+  
+  .timeline-marker-circle i {
+    font-size: 12px;
+  }
+  
+  .timeline-card .card-body {
+    padding: 1rem;
+  }
+  
+  .timeline-card .card-header {
+    padding: 0.75rem;
+  }
+}
+
+/* Loading states */
+.historial-loading {
+  min-height: 400px;
+}
+
+/* Mejoras generales */
+.card {
+  transition: all 0.3s ease;
+}
+
+.bg-light {
+  background-color: #f8f9fa !important;
+}
+
+/* Tooltips personalizados */
+[title] {
+  cursor: help;
+}
+
+/* Mejoras en accesibilidad */
+.timeline-marker-circle:focus {
+  outline: 2px solid #007bff;
+  outline-offset: 2px;
+}
+
+.nav-pills .nav-link:focus {
+  outline: 2px solid #007bff;
+  outline-offset: 2px;
+} 
+
+/* Custom Purple Colors */
+.bg-purple {
+  background-color: #6f42c1 !important;
+  color: white !important;
+}
+
+.badge.bg-purple {
+  background-color: #6f42c1 !important;
+  color: white !important;
+}
+
+.timeline-marker-circle.bg-purple {
+  background-color: #6f42c1 !important;
+  color: white !important;
+}
+
+.timeline-container::before, .timeline-marker, .timeline-marker-circle, .timeline-number {
+  z-index: 0 !important;
+}
+
+footer, .footer, .main-footer {
+  background: #222 !important;
+  z-index: 10 !important;
+  position: relative;
+}

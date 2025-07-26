@@ -19,13 +19,13 @@ export class HistorialLaboral {
   @Column({ type: "varchar", length: 100, nullable: false })
   area!: string;
 
-  @Column({ type: "varchar", length: 100, nullable: false })
-  departamento!: string;
-
   @Column({ type: "varchar", length: 50, nullable: false })
   tipoContrato!: string;
 
-  @Column({ type: "decimal", precision: 10, scale: 2, nullable: false })
+  @Column({ type: "varchar", length: 50, nullable: false })
+  jornadaLaboral!: string;
+
+  @Column({ type: "int", nullable: false })
   sueldoBase!: number;
 
   @Column({ type: "date", nullable: false })
@@ -35,13 +35,34 @@ export class HistorialLaboral {
   fechaFin!: Date;
 
   @Column({ type: "text", nullable: true })
-  motivoTermino!: string;
+  motivoDesvinculacion!: string;
 
   @Column({ type: "text", nullable: true })
   observaciones!: string;
 
   @Column({ type: "varchar", length: 255, nullable: true })
   contratoURL!: string;
+
+  @Column({ type: "varchar", length: 100, nullable: true })
+  afp!: string;
+
+  @Column({ type: "varchar", length: 50, nullable: true })
+  previsionSalud!: string;
+
+  @Column({ type: "boolean", nullable: true })
+  seguroCesantia!: boolean;
+
+  @Column({ type: "varchar", length: 30, nullable: true })
+  estado!: string;
+
+  @Column({ type: "date", nullable: true })
+  fechaInicioLicenciaPermiso!: Date;
+
+  @Column({ type: "date", nullable: true })
+  fechaFinLicenciaPermiso!: Date;
+
+  @Column({ type: "text", nullable: true })
+  motivoLicenciaPermiso!: string;
 
   @ManyToOne("Trabajador", { onDelete: "CASCADE" })
   @JoinColumn({ name: "trabajadorId" })

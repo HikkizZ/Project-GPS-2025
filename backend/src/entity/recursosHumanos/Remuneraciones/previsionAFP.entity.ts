@@ -5,8 +5,6 @@ import {
     OneToMany
 } from "typeorm";
 
-import { DatosPrevisionalesTrabajador } from "./datosPrevisionalesTrabajador.entity.js";
-
 export enum TipoFondoAFP {
     A = "A",
     B = "B",
@@ -20,8 +18,8 @@ export class PrevisionAFP {
     @PrimaryGeneratedColumn()
     id!: number;
 
-    @OneToMany(() => DatosPrevisionalesTrabajador, asignacion => asignacion.afp)
-        asignacionesA!: DatosPrevisionalesTrabajador;
+    @OneToMany("datosPrevisionalesTrabajadores", (asignacion: any) => asignacion.afp)
+        asignacionesA!: any;
 
     @Column({ type: "enum", enum: TipoFondoAFP, default: TipoFondoAFP.A })
     tipo!: TipoFondoAFP;

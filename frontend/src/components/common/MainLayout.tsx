@@ -21,6 +21,21 @@ const MainLayout: React.FC<MainLayoutProps> = ({ user, onLogout, children }) => 
   const menuRef = useRef<HTMLUListElement>(null);
 
   const isInDashboard = location.pathname === '/dashboard';
+  const hideVolver = location.pathname === '/trabajadores/historial-laboral' || location.pathname === '/recursos-humanos';
+
+  const handleNavbarVolver = () => {
+    if (
+      location.pathname === '/fichas-empresa' ||
+      location.pathname === '/trabajadores' ||
+      location.pathname === '/usuarios'
+    ) {
+      navigate('/gestion-personal', { replace: true });
+    } else if (location.pathname === '/gestion-personal') {
+      navigate('/recursos-humanos', { replace: true });
+    } else {
+      navigate(-1);
+    }
+  };
 
   useEffect(() => {
     const btn = buttonRef.current;
@@ -77,14 +92,18 @@ const MainLayout: React.FC<MainLayoutProps> = ({ user, onLogout, children }) => 
               Inicio
             </button>
             
-            {!isInDashboard && (
+            {!isInDashboard && !hideVolver && (
               <button 
                 className="btn btn-outline-light me-3 px-3 py-2 fw-semibold"
-                onClick={() => navigate(-1)}
+                onClick={handleNavbarVolver}
                 style={{ borderRadius: '25px', transition: 'all 0.3s ease' }}
               >
                 <i className="bi bi-arrow-left me-2"></i>
-                Volver
+                {location.pathname === '/gestion-personal'
+                  ? 'Volver a Recursos Humanos'
+                  : (location.pathname === '/trabajadores' || location.pathname === '/fichas-empresa' || location.pathname === '/usuarios')
+                    ? 'Volver a Gestión del Personal'
+                    : 'Volver'}
               </button>
             )}
 

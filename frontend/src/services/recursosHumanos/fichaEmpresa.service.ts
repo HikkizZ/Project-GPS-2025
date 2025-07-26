@@ -1,4 +1,5 @@
 import { apiClient } from '@/config/api.config';
+import { ApiResponse } from '@/types';
 import type {
   FichaEmpresa,
   FichaEmpresaSearchQuery,
@@ -6,12 +7,6 @@ import type {
   UpdateFichaEmpresaData
 } from '../../types/recursosHumanos/fichaEmpresa.types';
 import { EstadoLaboral } from '../../types/recursosHumanos/fichaEmpresa.types';
-
-export interface ApiResponse<T = any> {
-  success: boolean;
-  message: string;
-  data?: T;
-}
 
 // Exportar la clase
 export class FichaEmpresaService {
@@ -93,9 +88,9 @@ export class FichaEmpresaService {
   }
 
   // Actualizar ficha
-  async updateFichaEmpresa(id: number, data: UpdateFichaEmpresaData): Promise<ApiResponse<FichaEmpresa>> {
+  async updateFichaEmpresa(id: number, data: any): Promise<ApiResponse<FichaEmpresa>> {
     try {
-      const response = await apiClient.put<{ data: FichaEmpresa }>(`${this.baseURL}/${id}`, data);
+      const response = await apiClient.patch<{ data: FichaEmpresa }>(`${this.baseURL}/${id}`, data);
       return {
         success: true,
         message: 'Ficha actualizada exitosamente',
@@ -248,7 +243,10 @@ export class FichaEmpresaService {
   }
 
   static formatFecha(fecha: Date | string): string {
-    return new Date(fecha).toLocaleDateString('es-CL');
+    if (!fecha) return '-';
+    const d = new Date(fecha);
+    if (isNaN(d.getTime())) return '-';
+    return d.toLocaleDateString('es-CL');
   }
 
   static getEstadoLaboralColor(estado: EstadoLaboral): string {
@@ -278,7 +276,7 @@ export default fichaEmpresaService;
 
 // Funciones de conveniencia para uso directo
 export const getFichaEmpresa = (searchParams: FichaEmpresaSearchQuery = {}) => fichaEmpresaService.getFichasEmpresa(searchParams);
-export const updateFichaEmpresa = (id: number, data: UpdateFichaEmpresaData) => fichaEmpresaService.updateFichaEmpresa(id, data);
+export const updateFichaEmpresa = (id: number, data: any) => fichaEmpresaService.updateFichaEmpresa(id, data);
 export const uploadContrato = (fichaId: number, file: File) => fichaEmpresaService.uploadContrato(fichaId, file);
 export const downloadContrato = (fichaId: number) => fichaEmpresaService.downloadContrato(fichaId);
 export const deleteContrato = (fichaId: number) => fichaEmpresaService.deleteContrato(fichaId); 

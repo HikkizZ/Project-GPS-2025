@@ -7,11 +7,7 @@ import { formatRut } from '../../helpers/rut.helper.js';
 export async function getAllCustomersService(): Promise<ServiceResponse<Customer[]>> {
     try {
         const customerRepository = AppDataSource.getRepository(Customer);
-        const customers = await customerRepository.find();
-
-        if (!customers || customers.length === 0) {
-            return [null, "No hay clientes registrados."];
-        }
+        const customers = await customerRepository.find({ where: { isActive: true } });
 
         return [customers, null];
     } catch (error) {
@@ -46,7 +42,20 @@ export async function createCustomerService(customerData: CreateCustomerDTO): Pr
 
         const existingCustomer = await customerRepository.findOne({ where: { rut: rutFormatted } });
 
-        if (existingCustomer) return [null, "El cliente ya existe."];
+        if (existingCustomer) {
+            if (!existingCustomer.isActive) {
+                existingCustomer.isActive = true;
+                existingCustomer.name = customerData.name;
+                existingCustomer.email = customerData.email;
+                existingCustomer.phone = customerData.phone;
+                existingCustomer.address = customerData.address;
+
+                const reactivatedCustomer = await customerRepository.save(existingCustomer);
+                return [reactivatedCustomer, null];
+            }
+
+            return [null, "El cliente ya existe y está activo."];
+        }
 
         const newCustomer = customerRepository.create({
             name: customerData.name,
@@ -66,13 +75,11 @@ export async function createCustomerService(customerData: CreateCustomerDTO): Pr
 
 export async function updateCustomerService(query: QueryParams, customerData: UpdateCustomerDTO): Promise<ServiceResponse<Customer>> {
     try {
-        const { id, rut, email } = query;
-
-        const rutFormatted = rut ? formatRut(rut) : undefined;
+        const { id } = query;
 
         const customerRepository = AppDataSource.getRepository(Customer);
 
-        const customerFound = await customerRepository.findOne({ where: [{ id }, { rut: rutFormatted }, { email }] });
+        const customerFound = await customerRepository.findOne({ where: { id } });
 
         if (!customerFound) return [null, "El cliente no existe."];
 
@@ -93,19 +100,19 @@ export async function updateCustomerService(query: QueryParams, customerData: Up
 
 export async function deleteCustomerService(query: QueryParams): Promise<ServiceResponse<Customer>> {
     try {
-        const { id, rut, email } = query;
-
-        const rutFormatted = rut ? formatRut(rut) : undefined;
+        const { id } = query;
 
         const customerRepository = AppDataSource.getRepository(Customer);
 
-        const customerFound = await customerRepository.findOne({ where: [{ id }, { rut: rutFormatted }, { email }] });
+        const customerFound = await customerRepository.findOne({ where: { id } });
 
         if (!customerFound) return [null, "El cliente no existe."];
 
-        await customerRepository.remove(customerFound);
+        customerFound.isActive = false;
 
-        return [customerFound, null];
+        const updatedCustomer = await customerRepository.save(customerFound);
+
+        return [updatedCustomer, null];
     } catch (error) {
         console.error("Error deleting customer:", error);
         return [null, "Error interno del servidor"];

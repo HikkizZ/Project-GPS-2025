@@ -30,9 +30,9 @@ export interface FichaEmpresa {
   fechaInicioContrato: Date | string;
   fechaFinContrato?: Date | string | null;
   estado: EstadoLaboral;
-  fechaInicioLicencia?: Date | string | null;
-  fechaFinLicencia?: Date | string | null;
-  motivoLicencia?: string | null;
+  fechaInicioLicenciaPermiso?: Date | string | null;
+  fechaFinLicenciaPermiso?: Date | string | null;
+  motivoLicenciaPermiso?: string | null;
   contratoURL?: string | null;
   afp?: string | null; // Aseguradora de Fondos de Pensiones
   previsionSalud?: string | null; // Institución de Salud Previsional

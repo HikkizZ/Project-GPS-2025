@@ -43,7 +43,7 @@ export const userQueryValidation: ObjectSchema = Joi.object({
             "any.invalid": "El RUT no es válido."
         }),
     role: Joi.string()
-        .valid("SuperAdministrador", "Administrador", "Usuario", "RecursosHumanos", "Gerencia", "Ventas", "Arriendo", "Finanzas", "Mecánico", "Mantenciones de Maquinaria", "Conductor")
+        .valid("SuperAdministrador", "Administrador", "Usuario", "RecursosHumanos", "Gerencia", "Ventas", "Arriendo", "Finanzas", "Mecánico", "Mantenciones de Maquinaria")
         .messages({
             "string.base": "El rol debe ser una cadena de texto.",
             "any.only": "El rol especificado no es válido."
@@ -106,7 +106,7 @@ export const userBodyValidation: ObjectSchema = Joi.object({
             "string.pattern.base": "La contraseña solo puede contener letras y números."
         }),
     role: Joi.string()
-        .valid("SuperAdministrador", "Administrador", "Usuario", "RecursosHumanos", "Gerencia", "Ventas", "Arriendo", "Finanzas", "Mecánico", "Mantenciones de Maquinaria", "Conductor")
+        .valid("SuperAdministrador", "Administrador", "Usuario", "RecursosHumanos", "Gerencia", "Ventas", "Arriendo", "Finanzas", "Mecánico", "Mantenciones de Maquinaria")
         .messages({
             "string.base": "El rol debe ser una cadena de texto.",
             "any.only": "El rol especificado no es válido."

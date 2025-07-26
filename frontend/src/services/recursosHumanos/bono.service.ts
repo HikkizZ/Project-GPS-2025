@@ -1,3 +1,6 @@
+import { apiClient } from '@/config/api.config';
+import { ApiResponse } from '@/types';
+
 import type {
     BonoSearchQueryData,
     CreateBonoData,
@@ -5,9 +8,7 @@ import type {
     BonoSearchParamsData,
     Bono,
     BonoOperationResult
-} from '../../types/recursosHumanos/bono.types'; 
-import { apiClient } from '@/config/api.config';
-import { ApiResponse } from '@/types';
+} from '../../types/recursosHumanos/bono.types';
 
 export class BonoService {
     private baseURL = '/bonos';

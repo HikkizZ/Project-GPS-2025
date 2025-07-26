@@ -115,7 +115,12 @@ export const VerificarRUTModal: React.FC<VerificarRUTModalProps> = ({
           </small>
         </div>
 
-        <Form>
+        <Form
+          onSubmit={e => {
+            e.preventDefault();
+            handleVerificar();
+          }}
+        >
           <Row>
             <Col>
               <Form.Group>
@@ -138,33 +143,34 @@ export const VerificarRUTModal: React.FC<VerificarRUTModalProps> = ({
               </Form.Group>
             </Col>
           </Row>
-
+          <div className="d-flex justify-content-end gap-2 mt-4">
+            <Button variant="secondary" onClick={handleClose} disabled={loading} type="button">
+              <i className="bi bi-x-circle me-2"></i>
+              Cancelar
+            </Button>
+            <Button 
+              variant="primary" 
+              onClick={handleVerificar} 
+              disabled={loading || !rut.trim()}
+              type="submit"
+            >
+              {loading ? (
+                <>
+                  <Spinner size="sm" className="me-2" />
+                  Verificando...
+                </>
+              ) : (
+                <>
+                  <i className="bi bi-search me-2"></i>
+                  Verificar RUT
+                </>
+              )}
+            </Button>
+          </div>
         </Form>
       </Modal.Body>
 
-      <Modal.Footer>
-        <Button variant="secondary" onClick={handleClose} disabled={loading}>
-          <i className="bi bi-x-circle me-2"></i>
-          Cancelar
-        </Button>
-        <Button 
-          variant="primary" 
-          onClick={handleVerificar} 
-          disabled={loading || !rut.trim()}
-        >
-          {loading ? (
-            <>
-              <Spinner size="sm" className="me-2" />
-              Verificando...
-            </>
-          ) : (
-            <>
-              <i className="bi bi-search me-2"></i>
-              Verificar RUT
-            </>
-          )}
-        </Button>
-      </Modal.Footer>
+      {/* El Modal.Footer se elimina porque los botones ahora están dentro del Form para mejor accesibilidad y manejo de Enter */}
     </Modal>
   );
 };

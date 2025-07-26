@@ -1,123 +1,64 @@
 import { Request, Response } from 'express';
-import { FileManagementService } from '../services/fileManagement.service.js';
-import { handleErrorClient, handleErrorServer } from '../handlers/responseHandlers.js';
+import Client from 'ssh2-sftp-client';
 import path from 'path';
 
-/**
- * Controlador para descarga segura de archivos
- */
-export async function downloadFile(req: Request, res: Response): Promise<void> {
-    try {
-        const { filePath } = req.params;
-        
-        if (!filePath) {
-            handleErrorClient(res, 400, "Ruta del archivo no especificada");
-            return;
-        }
+const sftp = new Client();
 
-        // Validar que el usuario esté autenticado
-        if (!req.user) {
-            handleErrorClient(res, 401, "Usuario no autenticado");
-            return;
-        }
-
-        // Obtener información del archivo
-        const [fileInfo, error] = FileManagementService.getFileForDownload(`uploads/${filePath}`);
-        
-        if (error || !fileInfo) {
-            const errorMessage = typeof error === 'string' ? error : error?.message || "Archivo no encontrado";
-            handleErrorClient(res, 404, errorMessage);
-            return;
-        }
-
-        if (!fileInfo.exists) {
-            handleErrorClient(res, 404, "El archivo no existe en el servidor");
-            return;
-        }
-
-        // Validar permisos según el tipo de archivo
-        const isAuthorized = await validateFileAccess(req.user, filePath);
-        if (!isAuthorized) {
-            handleErrorClient(res, 403, "No tiene permisos para acceder a este archivo");
-            return;
-        }
-
-        // Configurar headers para descarga
-        res.setHeader('Content-Type', 'application/pdf');
-        res.setHeader('Content-Disposition', `attachment; filename="${fileInfo.filename}"`);
-        res.setHeader('Cache-Control', 'no-cache');
-
-        // Enviar el archivo
-        res.sendFile(path.resolve(fileInfo.filePath), (err) => {
-            if (err) {
-                console.error('Error al enviar archivo:', err);
-                handleErrorServer(res, 500, "Error al descargar el archivo");
-            }
-        });
-
-    } catch (error) {
-        console.error("Error en downloadFile:", error);
-        handleErrorServer(res, 500, "Error interno del servidor");
+export const uploadFileController = async (req: Request, res: Response) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: 'No se envió ningún archivo' });
     }
-}
 
-/**
- * Valida si el usuario tiene acceso al archivo
- */
-async function validateFileAccess(user: any, filePath: string): Promise<boolean> {
-    try {
-        // SuperAdministrador, Administradores y RRHH tienen acceso a todos los archivos
-        if (user.role === 'SuperAdministrador' || user.role === 'Administrador' || user.role === 'RecursosHumanos') {
-            return true;
-        }
+    // Configuración del servidor remoto
+    const config = {
+      host: '146.83.198.35',
+      port: 1219, // Puerto SSH
+      username: 'fmiranda',
+      password: 'U@er7'
+    };
 
-        // Para usuarios normales, validar según el tipo de archivo
-        if (filePath.includes('licencias/')) {
-            // Para licencias, verificar que sea el usuario propietario
-            return await validateLicenciaAccess(user, filePath);
-        } else if (filePath.includes('contratos/') || filePath.includes('historial/')) {
-            // Para contratos e historial, verificar que sea el trabajador propietario
-            return await validateContratoHistorialAccess(user, filePath);
-        } else if (filePath.includes('certificados/')) {
-            // Para certificados, verificar que sea el trabajador propietario
-            return await validateCertificadoAccess(user, filePath);
-        }
-
-        // Por defecto, denegar acceso
-        return false;
-
-    } catch (error) {
-        console.error("Error al validar acceso a archivo:", error);
-        return false;
+    // Determinar subcarpeta según el tipo de archivo
+    let subfolder = 'others';
+    if (req.file.mimetype.startsWith('image/')) {
+      subfolder = 'images';
+    } else if (req.file.mimetype === 'application/pdf') {
+      subfolder = 'pdf';
     }
-}
 
-/**
- * Valida acceso a archivos de licencias
- */
-async function validateLicenciaAccess(user: any, filePath: string): Promise<boolean> {
-    // Implementar lógica específica para validar que el usuario
-    // sea el propietario de la licencia
-    // Por ahora, permitir acceso a usuarios autenticados
-    return true;
-}
+    // Nombre único para el archivo
+    const remoteFileName = `${Date.now()}-${req.file.originalname}`;
+    const remoteDir = `/var/www/html/uploads/${subfolder}`;
+    const remotePath = path.posix.join(remoteDir, remoteFileName);
 
-/**
- * Valida acceso a archivos de contratos e historial
- */
-async function validateContratoHistorialAccess(user: any, filePath: string): Promise<boolean> {
-    // Implementar lógica específica para validar que el usuario
-    // sea el propietario del contrato/historial
-    // Por ahora, permitir acceso a usuarios autenticados
-    return true;
-}
+    // Conexión al servidor remoto
+    await sftp.connect(config);
 
-/**
- * Valida acceso a archivos de certificados
- */
-async function validateCertificadoAccess(user: any, filePath: string): Promise<boolean> {
-    // Implementar lógica específica para validar que el usuario
-    // sea el propietario del certificado
-    // Por ahora, permitir acceso a usuarios autenticados
-    return true;
-} 
+    // Crear directorio si no existe
+    try {
+      await sftp.mkdir(remoteDir, true); // true = crea recursivamente
+    } catch (err) {
+      console.warn(`El directorio ya existe o no se pudo crear: ${remoteDir}`);
+    }
+
+    // Subir archivo desde memoria directamente al servidor remoto
+   // await sftp.put(req.file.buffer, remotePath);
+
+    // Cerrar conexión
+    await sftp.end();
+
+    // Construir URL pública
+    const fileUrl = `http://146.83.198.35/uploads/${subfolder}/${remoteFileName}`;
+
+    return res.status(200).json({
+      message: 'Archivo subido con éxito',
+      url: fileUrl
+    });
+  } catch (error) {
+    console.error('Error al subir archivo:', error);
+    return res.status(500).json({
+      message: 'Error al subir archivo al servidor remoto',
+      error: (error as Error).message
+    });
+  }
+};

@@ -1,62 +1,42 @@
 import { Request, Response } from "express";
 import { handleSuccess, handleErrorClient, handleErrorServer } from "../../handlers/responseHandlers.js";
-import { HistorialLaboralQueryValidation, CreateHistorialLaboralValidation, UpdateHistorialLaboralValidation } from "../../validations/recursosHumanos/historialLaboral.validation.js";
-import { createHistorialLaboralService, getHistorialLaboralByTrabajadorService, getHistorialLaboralByIdService, updateHistorialLaboralService, descargarContratoService, procesarCambioLaboralService } from "../../services/recursosHumanos/historialLaboral.service.js";
+import { getHistorialLaboralByTrabajadorService, getHistorialUnificadoByTrabajadorService, descargarContratoService, descargarContratoHistorialService } from "../../services/recursosHumanos/historialLaboral.service.js";
 import { User } from "../../entity/user.entity.js";
 import { AppDataSource } from "../../config/configDB.js";
 import { Trabajador } from "../../entity/recursosHumanos/trabajador.entity.js";
-
-export async function createHistorialLaboral(req: Request, res: Response): Promise<void> {
-    try {
-        const { error, value } = CreateHistorialLaboralValidation.validate(req.body);
-        if (error) {
-            handleErrorClient(res, 400, error.details[0].message);
-            return;
-        }
-
-        // Agregar el usuario que registra
-        const registradoPor = req.user as User;
-        const data = { ...value, registradoPor };
-
-        const [historial, errorMsg] = await createHistorialLaboralService(data);
-        if (errorMsg) {
-            handleErrorClient(res, 400, typeof errorMsg === 'string' ? errorMsg : errorMsg.message);
-            return;
-        }
-
-        if (!historial) {
-            handleErrorClient(res, 400, "No se pudo crear el historial laboral");
-            return;
-        }
-
-        handleSuccess(res, 201, "Historial laboral creado exitosamente", historial);
-    } catch (error) {
-        console.error("Error al crear historial laboral:", error);
-        handleErrorServer(res, 500, "Error al crear registro de historial laboral.");
-    }
-}
 
 export async function getHistorialLaboral(req: Request, res: Response): Promise<void> {
     try {
         const user = req.user as User;
         let historial, errorMsg;
 
-        // Buscar el trabajador asociado al usuario
-        const trabajadorRepo = AppDataSource.getRepository(Trabajador);
-        const trabajador = user.rut ? await trabajadorRepo.findOne({
-            where: { rut: user.rut }
-        }) : null;
-
-        if (!trabajador) {
-            handleErrorClient(res, 400, "Trabajador no encontrado");
+        // Solo permiten acceso estos roles
+        const rolesPermitidos = ["SuperAdministrador", "Administrador", "RecursosHumanos"];
+        if (!rolesPermitidos.includes(user.role)) {
+            handleErrorClient(res, 403, "No tienes permisos para acceder al historial laboral");
             return;
         }
 
-        // Si es un trabajador, solo puede ver su propio historial
-        if (user.role === "Usuario" || req.path.includes("mi-historial")) {
-            [historial, errorMsg] = await getHistorialLaboralByTrabajadorService(trabajador.id);
+        // SuperAdministrador puede consultar cualquier historial, aunque no tenga trabajador asociado
+        if (user.role === "SuperAdministrador") {
+            const trabajadorId = parseInt(req.params.id);
+            if (isNaN(trabajadorId)) {
+                handleErrorClient(res, 400, "ID de trabajador inválido");
+                return;
+            }
+            [historial, errorMsg] = await getHistorialLaboralByTrabajadorService(trabajadorId);
         } else {
-            // RRHH puede ver cualquier historial
+            // Los demás roles permitidos (Administrador, RecursosHumanos) deben tener trabajador asociado
+            const trabajadorRepo = AppDataSource.getRepository(Trabajador);
+            const trabajador = user.rut ? await trabajadorRepo.findOne({
+                where: { rut: user.rut }
+            }) : null;
+
+            if (!trabajador) {
+                handleErrorClient(res, 400, "Trabajador no encontrado");
+                return;
+            }
+
             const trabajadorId = parseInt(req.params.id);
             if (isNaN(trabajadorId)) {
                 handleErrorClient(res, 400, "ID de trabajador inválido");
@@ -72,49 +52,59 @@ export async function getHistorialLaboral(req: Request, res: Response): Promise<
             return;
         }
 
-        handleSuccess(res, 200, "Historial laboral obtenido exitosamente", historial || []);
+        // Formatear la respuesta para filtrar los campos de registradoPor y filtrar trabajador (con usuario)
+        const historialFiltrado = (historial || []).map((item: any) => {
+            // Filtrar trabajador y su usuario
+            let trabajadorFiltrado = null;
+            if (item.trabajador) {
+                trabajadorFiltrado = {
+                    id: item.trabajador.id,
+                    rut: item.trabajador.rut,
+                    nombres: item.trabajador.nombres,
+                    apellidoPaterno: item.trabajador.apellidoPaterno,
+                    apellidoMaterno: item.trabajador.apellidoMaterno,
+                    correoPersonal: item.trabajador.correoPersonal,
+                    fechaIngreso: item.trabajador.fechaIngreso,
+                    usuario: item.trabajador.usuario ? {
+                        id: item.trabajador.usuario.id,
+                        name: item.trabajador.usuario.name,
+                        corporateEmail: item.trabajador.usuario.corporateEmail,
+                        role: item.trabajador.usuario.role,
+                        rut: item.trabajador.usuario.rut,
+                        estadoCuenta: item.trabajador.usuario.estadoCuenta
+                    } : null
+                };
+            }
+            return {
+                ...item,
+                trabajador: trabajadorFiltrado,
+                registradoPor: item.registradoPor ? {
+                    id: item.registradoPor.id,
+                    name: item.registradoPor.name,
+                    corporateEmail: item.registradoPor.corporateEmail,
+                    role: item.registradoPor.role,
+                    rut: item.registradoPor.rut,
+                    estadoCuenta: item.registradoPor.estadoCuenta
+                } : null
+            };
+        });
+
+        handleSuccess(res, 200, "Historial laboral obtenido exitosamente", historialFiltrado || []);
     } catch (error) {
         console.error("Error al obtener historial laboral:", error);
         handleErrorServer(res, 500, "Error al obtener historial laboral.");
     }
 }
 
-export async function updateHistorialLaboral(req: Request, res: Response): Promise<void> {
-    try {
-        const { error, value } = UpdateHistorialLaboralValidation.validate(req.body);
-        if (error) {
-            handleErrorClient(res, 400, error.details[0].message);
-            return;
-        }
-
-        const id = parseInt(req.params.id);
-        if (isNaN(id)) {
-            handleErrorClient(res, 400, "ID inválido");
-            return;
-        }
-
-        const [historial, errorMsg] = await updateHistorialLaboralService(id, value);
-        if (errorMsg) {
-            const errorMessage = typeof errorMsg === 'string' ? errorMsg : errorMsg.message;
-            const statusCode = errorMessage.includes("no encontrado") ? 404 : 400;
-            handleErrorClient(res, statusCode, errorMessage);
-            return;
-        }
-
-        if (!historial) {
-            handleErrorClient(res, 404, "No se pudo actualizar el historial laboral");
-            return;
-        }
-
-        handleSuccess(res, 200, "Historial laboral actualizado exitosamente", historial);
-    } catch (error) {
-        console.error("Error al actualizar historial laboral:", error);
-        handleErrorServer(res, 500, "Error al actualizar registro de historial laboral.");
-    }
-}
-
 export async function descargarContrato(req: Request, res: Response): Promise<void> {
     try {
+        const user = req.user as User;
+        const rolesPermitidos = ["SuperAdministrador", "Administrador", "RecursosHumanos"];
+        if (!rolesPermitidos.includes(user.role)) {
+            handleErrorClient(res, 403, "No tienes permisos para descargar contratos");
+            return;
+        }
+
         const id = parseInt(req.params.id);
         if (isNaN(id)) {
             handleErrorClient(res, 400, "ID inválido");
@@ -139,53 +129,128 @@ export async function descargarContrato(req: Request, res: Response): Promise<vo
     }
 }
 
-export async function procesarCambioLaboral(req: Request, res: Response): Promise<void> {
+export async function getHistorialUnificado(req: Request, res: Response): Promise<void> {
     try {
-        const trabajadorId = parseInt(req.params.trabajadorId);
-        if (isNaN(trabajadorId)) {
-            handleErrorClient(res, 400, "ID de trabajador inválido");
+        const user = req.user as User;
+        let historial, errorMsg;
+
+        // Solo permiten acceso estos roles
+        const rolesPermitidos = ["SuperAdministrador", "Administrador", "RecursosHumanos"];
+        if (!rolesPermitidos.includes(user.role)) {
+            handleErrorClient(res, 403, "No tienes permisos para acceder al historial unificado");
             return;
         }
 
-        const { tipo, fechaInicio, motivo, cargo, area, tipoContrato, sueldoBase } = req.body;
-        
-        // Validar tipo de cambio
-        const tiposValidos = ['DESVINCULACION', 'CAMBIO_CARGO', 'CAMBIO_AREA', 'CAMBIO_CONTRATO', 'CAMBIO_SUELDO'];
-        if (!tiposValidos.includes(tipo)) {
-            handleErrorClient(res, 400, "Tipo de cambio no válido");
-            return;
-        }
+        // SuperAdministrador puede consultar cualquier historial, aunque no tenga trabajador asociado
+        if (user.role === "SuperAdministrador") {
+            const trabajadorId = parseInt(req.params.id);
+            if (isNaN(trabajadorId)) {
+                handleErrorClient(res, 400, "ID de trabajador inválido");
+                return;
+            }
+            [historial, errorMsg] = await getHistorialUnificadoByTrabajadorService(trabajadorId);
+        } else {
+            // Los demás roles permitidos (Administrador, RecursosHumanos) deben tener trabajador asociado
+            const trabajadorRepo = AppDataSource.getRepository(Trabajador);
+            const trabajadorSolicitante = await trabajadorRepo.findOne({
+                where: { usuario: { id: user.id } },
+                relations: ["usuario"]
+            });
 
-        // Validar campos requeridos según el tipo
-        if (!fechaInicio || !motivo) {
-            handleErrorClient(res, 400, "Fecha de inicio y motivo son requeridos");
-            return;
-        }
+            if (!trabajadorSolicitante) {
+                handleErrorClient(res, 403, "Usuario sin trabajador asociado no puede acceder al historial");
+                return;
+            }
 
-        const registradoPor = req.user as User;
-        const [historial, errorMsg] = await procesarCambioLaboralService(trabajadorId, tipo, {
-            fechaInicio: new Date(fechaInicio),
-            motivo,
-            registradoPor,
-            cargo,
-            area,
-            tipoContrato,
-            sueldoBase
-        });
+            const trabajadorId = parseInt(req.params.id);
+            if (isNaN(trabajadorId)) {
+                handleErrorClient(res, 400, "ID de trabajador inválido");
+                return;
+            }
+
+            [historial, errorMsg] = await getHistorialUnificadoByTrabajadorService(trabajadorId);
+        }
 
         if (errorMsg) {
-            handleErrorClient(res, 400, typeof errorMsg === 'string' ? errorMsg : errorMsg.message);
+            handleErrorClient(res, 400, typeof errorMsg === 'string' ? errorMsg : errorMsg.message || 'Error desconocido');
             return;
         }
 
-        if (!historial) {
-            handleErrorClient(res, 400, "No se pudo procesar el cambio laboral");
-            return;
-        }
-
-        handleSuccess(res, 200, "Cambio laboral procesado exitosamente", historial);
+        handleSuccess(res, 200, "Historial unificado obtenido exitosamente", historial || []);
     } catch (error) {
-        console.error("Error al procesar cambio laboral:", error);
-        handleErrorServer(res, 500, "Error al procesar cambio laboral");
+        console.error("Error al obtener historial unificado:", error);
+        handleErrorServer(res, 500, "Error interno del servidor.");
     }
-} 
+}
+
+export async function descargarContratoHistorial(req: Request, res: Response): Promise<void> {
+    try {
+        const id = parseInt(req.params.id);
+        
+        if (isNaN(id)) {
+            handleErrorClient(res, 400, "ID inválido");
+            return;
+        }
+
+        if (!req.user?.id) {
+            handleErrorClient(res, 401, "Usuario no autenticado");
+            return;
+        }
+
+        const [resultado, error] = await descargarContratoHistorialService(id, req.user.id);
+
+        if (error || !resultado) {
+            const errorMessage = typeof error === 'string' ? error : error?.message || "Contrato no encontrado.";
+            handleErrorClient(res, 404, errorMessage);
+            return;
+        }
+
+        const { filePath, customFilename } = resultado;
+
+        // Verificar que el archivo existe antes de intentar enviarlo
+        const fs = await import('fs');
+        if (!fs.existsSync(filePath)) {
+            handleErrorClient(res, 404, "El archivo del contrato no se encuentra en el servidor");
+            return;
+        }
+
+        // Validar nombre personalizado
+        if (!customFilename || customFilename.trim() === '') {
+            const fallbackName = `Contrato_Historial_${id}.pdf`;
+            
+            // Configurar headers para evitar cache y forzar descarga ANTES de res.download
+            res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+            res.setHeader('Pragma', 'no-cache');
+            res.setHeader('Expires', '0');
+            res.setHeader('Content-Type', 'application/pdf');
+            res.setHeader('Content-Disposition', `attachment; filename="${fallbackName}"`);
+            res.setHeader('Access-Control-Expose-Headers', 'Content-Disposition');
+            
+            res.download(filePath, fallbackName, (err) => {
+                if (err && !res.headersSent) {
+                    handleErrorServer(res, 500, "No se pudo descargar el archivo.");
+                }
+            });
+            return;
+        }
+
+        // Configurar headers para evitar cache y forzar descarga ANTES de res.download
+        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+        res.setHeader('Pragma', 'no-cache');
+        res.setHeader('Expires', '0');
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename="${customFilename}"`);
+        res.setHeader('Access-Control-Expose-Headers', 'Content-Disposition');
+
+        // Enviar archivo con nombre personalizado
+        res.download(filePath, customFilename, (err) => {
+            if (err && !res.headersSent) {
+                handleErrorServer(res, 500, "No se pudo descargar el archivo.");
+            }
+        });
+
+    } catch (error) {
+        console.error("Error en el controlador descargarContratoHistorial:", error);
+        handleErrorServer(res, 500, "Error interno del servidor.");
+    }
+}

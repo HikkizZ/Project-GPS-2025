@@ -7,11 +7,7 @@ export async function getAllProductsService(): Promise<ServiceResponse<Product[]
     try {
         const productRepository = AppDataSource.getRepository(Product);
 
-        const products = await productRepository.find();
-
-        if (!products || products.length === 0) {
-            return [null, "No hay productos registrados."];
-        }
+        const products = await productRepository.find({ where: { isActive: true } });
 
         return [products, null];
     } catch (error) {
@@ -41,8 +37,21 @@ export async function createProductService(productData: CreateProductDTO): Promi
     try {
         const productRepository = AppDataSource.getRepository(Product);
 
-        const existingProduct = await productRepository.findOne({ where: { product: productData.product } });
-        if (existingProduct) return [null, "El producto ya existe."];
+        const existingProduct = await productRepository.findOne({
+            where: { product: productData.product }
+        });
+
+        if (existingProduct) {
+            if (!existingProduct.isActive) {
+                existingProduct.isActive = true;
+                existingProduct.salePrice = productData.salePrice;
+
+                const reactivatedProduct = await productRepository.save(existingProduct);
+                return [reactivatedProduct, null];
+            }
+
+            return [null, "El producto ya existe y está activo."];
+        }
 
         const newProduct = productRepository.create(productData);
         const savedProduct = await productRepository.save(newProduct);
@@ -81,9 +90,12 @@ export async function deleteProductService(id: number): Promise<ServiceResponse<
 
         if (!product) return [null, "Producto no encontrado."];
 
-        const deletedProduct = await productRepository.remove(product);
+        product.isActive = false;
 
-        return [deletedProduct, null];
+        const updatedProduct = await productRepository.save(product);
+
+        return [updatedProduct, null];
+
     } catch (error) {
         console.error("Error deleting product:", error);
         return [null, "Error interno del servidor"];

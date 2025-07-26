@@ -7,11 +7,7 @@ import { formatRut } from '../../helpers/rut.helper.js';
 export async function getAllSuppliersService(): Promise<ServiceResponse<Supplier[]>> {
     try {
         const supplierRepository = AppDataSource.getRepository(Supplier);
-        const suppliers = await supplierRepository.find();
-
-        if (!suppliers || suppliers.length === 0) {
-            return [null, "No hay proveedores registrados."];
-        }
+        const suppliers = await supplierRepository.find({ where: { isActive: true } });
 
         return [suppliers, null];
     } catch (error) {
@@ -46,7 +42,20 @@ export async function createSupplierService(supplierData: CreateSupplierDTO): Pr
 
         const existingsupplier = await supplierRepository.findOne({ where: { rut: rutFormatted } });
 
-        if (existingsupplier) return [null, "El proveedor ya existe."];
+        if (existingsupplier) {
+            if (!existingsupplier.isActive) {
+                existingsupplier.isActive = true;
+                existingsupplier.name = supplierData.name;
+                existingsupplier.email = supplierData.email;
+                existingsupplier.phone = supplierData.phone;
+                existingsupplier.address = supplierData.address;
+
+                const reactivatedSupplier = await supplierRepository.save(existingsupplier);
+                return [reactivatedSupplier, null];
+            }
+
+            return [null, "El proveedor ya existe y está activo."]; 
+        }
 
         const newSupplier = supplierRepository.create({
             name: supplierData.name,
@@ -64,15 +73,13 @@ export async function createSupplierService(supplierData: CreateSupplierDTO): Pr
     }
 }
 
-export async function updateSupplierService(query: QueryParams, supplierData: UpdateSupplierDTO): Promise<ServiceResponse<Supplier>> {
+export async function updateSupplierService(query: { id: number }, supplierData: UpdateSupplierDTO): Promise<ServiceResponse<Supplier>> {
     try {
-        const { id, rut, email } = query;
-
-        const rutFormatted = rut ? formatRut(rut) : undefined;
+        const { id } = query;
 
         const supplierRepository = AppDataSource.getRepository(Supplier);
 
-        const supplierFound = await supplierRepository.findOne({ where: [{ id }, { rut: rutFormatted }, { email }] });
+        const supplierFound = await supplierRepository.findOne({ where: { id } });
 
         if (!supplierFound) return [null, "El proveedor no existe."];
 
@@ -81,7 +88,7 @@ export async function updateSupplierService(query: QueryParams, supplierData: Up
         const updatedSupplier = await supplierRepository.save({
             ...supplierFound,
             ...supplierData,
-            rut: formattedUpdateRut ?? supplierFound.rut
+            rut: formattedUpdateRut ?? supplierFound.rut,
         });
 
         return [updatedSupplier, null];
@@ -91,21 +98,21 @@ export async function updateSupplierService(query: QueryParams, supplierData: Up
     }
 }
 
-export async function deleteSupplierService(query: QueryParams): Promise<ServiceResponse<Supplier>> {
+export async function deleteSupplierService(query: { id: number }): Promise<ServiceResponse<Supplier>> {
     try {
-        const { id, rut, email } = query;
-
-        const rutFormatted = rut ? formatRut(rut) : undefined;
+        const { id } = query;
 
         const supplierRepository = AppDataSource.getRepository(Supplier);
 
-        const supplierFound = await supplierRepository.findOne({ where: [{ id }, { rut: rutFormatted }, { email }] });
+        const supplierFound = await supplierRepository.findOne({ where: { id } });
 
         if (!supplierFound) return [null, "El proveedor no existe."];
 
-        await supplierRepository.remove(supplierFound);
+        supplierFound.isActive = false;
 
-        return [supplierFound, null];
+        const updatedSupplier = await supplierRepository.save(supplierFound);
+
+        return [updatedSupplier, null];
     } catch (error) {
         console.error("Error deleting supplier:", error);
         return [null, "Error interno del servidor"];

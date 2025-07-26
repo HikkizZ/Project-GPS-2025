@@ -11,7 +11,6 @@ import {
     getMiFichaService,
     updateFichaEmpresaService,
     descargarContratoService,
-    uploadContratoService,
     deleteContratoService,
     assignBonoService,
     verificarEstadoAsignacionBonoService,
@@ -25,7 +24,7 @@ import {
 } from "../../validations/recursosHumanos/remuneraciones/bono.validation.js";
 import path from 'path';
 import fs from 'fs';
-import { AsignarBono } from "entity/recursosHumanos/Remuneraciones/asignarBono.entity.js";
+import { AsignarBono } from "../../entity/recursosHumanos/Remuneraciones/asignarBono.entity.js";
 
 export async function getFichasEmpresa(req: Request, res: Response) {
     try {
@@ -74,6 +73,7 @@ export async function getMiFicha(req: Request, res: Response) {
 
 export async function updateFichaEmpresa(req: Request, res: Response) {
     try {
+        console.log('Archivo recibido en req.file:', req.file);
         const id = parseInt(req.params.id);
         console.log('Intentando actualizar ficha con ID:', id);
         
@@ -91,7 +91,7 @@ export async function updateFichaEmpresa(req: Request, res: Response) {
         }
 
         console.log('Datos a actualizar:', validationResult.value);
-        const [ficha, error] = await updateFichaEmpresaService(id, validationResult.value);
+        const [ficha, error] = await updateFichaEmpresaService(id, validationResult.value, req.user, req.file);
 
         if (error) {
             console.log('Error al actualizar:', error);
@@ -190,7 +190,8 @@ export async function uploadContrato(req: Request, res: Response): Promise<void>
             handleErrorClient(res, 400, "No se ha subido ningún archivo.");
             return;
         }
-        const [result, error] = await uploadContratoService(id, req.file);
+        // Lógica corregida: simplemente pasar el archivo a updateFichaEmpresaService
+        const [result, error] = await updateFichaEmpresaService(id, {}, req.user, req.file);
         if (error) {
             const errorMsg = typeof error === 'string' ? error : error?.message || "Error al subir contrato";
             handleErrorClient(res, 400, errorMsg);
