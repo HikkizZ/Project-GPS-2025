@@ -226,11 +226,11 @@ export const ReportsPage: React.FC = () => {
 
       const summaryData = [
         { Métrica: "Total Movimientos", Valor: monthMetrics.totalMovements },
-        { Métrica: "Total Compras", Valor: `$${monthMetrics.totalPurchases.toLocaleString("es-ES")}` },
+        { Métrica: "Total Compras", Valor: monthMetrics.totalPurchases },
         { Métrica: "Cantidad de Compras", Valor: monthMetrics.purchaseCount },
-        { Métrica: "Total Ventas", Valor: `$${monthMetrics.totalSales.toLocaleString("es-ES")}` },
+        { Métrica: "Total Ventas", Valor: monthMetrics.totalSales },
         { Métrica: "Cantidad de Ventas", Valor: monthMetrics.saleCount },
-        { Métrica: "Balance Neto", Valor: `$${monthMetrics.netBalance.toLocaleString("es-ES")}` },
+        { Métrica: "Balance Neto", Valor: monthMetrics.netBalance },
       ]
 
       const sheets = [
@@ -376,7 +376,7 @@ export const ReportsPage: React.FC = () => {
                             className={`metric-icon ${monthMetrics.netBalance >= 0 ? "bg-success bg-opacity-10 text-success" : "bg-danger bg-opacity-10 text-danger"} mb-3`}
                           >
                             <i
-                              className={`bi ${monthMetrics.netBalance >= 0 ? "bi-trending-up" : "bi-trending-down"} fs-2`}
+                              className={`bi ${monthMetrics.netBalance >= 0 ? "bi-graph-up" : "bi-graph-down"} fs-2`}
                             ></i>
                           </div>
                           <h4
