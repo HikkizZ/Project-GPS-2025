@@ -70,6 +70,10 @@ const MantencionesCompletadasPage: React.FC = () => {
   useEffect(() => {
     let filtrados = records.filter((r) => r.estado === "completada" || r.estado === "irrecuperable");
 
+    if (filterValues.estado) {
+      filtrados = filtrados.filter((r) => r.estado === filterValues.estado);
+    }
+
     if (filterValues.grupo) {
       filtrados = filtrados.filter(r => r.maquinaria.grupo === filterValues.grupo);
     }
