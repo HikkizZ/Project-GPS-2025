@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Modal, Table, Badge, Button, Spinner, Alert } from 'react-bootstrap';
 import { HistorialLaboral } from '@/types/recursosHumanos/historialLaboral.types';
+import { formatAFP } from '../../utils/index';
 
 interface ModalHistorialLaboralProps {
   show: boolean;
@@ -129,7 +130,7 @@ export const ModalHistorialLaboral: React.FC<ModalHistorialLaboralProps> = ({
                     <td>{formatFecha(item.fechaInicio)}</td>
                     <td>{formatFecha(item.fechaFin)}</td>
                     <td>{getEstadoBadge(item.estado)}</td>
-                    <td>{item.afp || '-'}</td>
+                    <td>{formatAFP(item.afp)}</td>
                     <td>{item.previsionSalud || '-'}</td>
                     <td>{formatSeguroCesantia(item.seguroCesantia as any)}</td>
                     <td>{formatFecha(item.fechaInicioLicencia)}</td>

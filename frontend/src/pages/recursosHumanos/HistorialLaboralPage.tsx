@@ -7,6 +7,7 @@ import { trabajadorService } from '@/services/recursosHumanos/trabajador.service
 import '@/styles/pages/historialLaboral.css';
 import { useAuth } from '@/context';
 import { useRut } from '@/hooks/useRut';
+import { formatAFP } from '../../utils/index';
 
 type FiltroTipo = 'todos' | 'inicial' | 'laboral' | 'licencias' | 'personales' | 'usuario';
 type ModoVista = 'tradicional' | 'unificado';
@@ -347,8 +348,20 @@ export default function HistorialLaboralPage() {
       const match = s.match(/([a-zA-ZñÑáéíóúÁÉÍÓÚ]+) \(de '([^']*)' a '([^']*)'\)/);
       if (match) {
         const campo = match[1];
+        const valorAnterior = match[2];
+        const valorNuevo = match[3];
         const campoFormal = traduccionCampos[campo] || campo.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
-        return s.replace(campo, campoFormal);
+        
+        // Formatear valores específicos
+        let valorAnteriorFormateado = valorAnterior;
+        let valorNuevoFormateado = valorNuevo;
+        
+        if (campo === 'afp') {
+          valorAnteriorFormateado = formatAFP(valorAnterior);
+          valorNuevoFormateado = formatAFP(valorNuevo);
+        }
+        
+        return `${campoFormal} (de '${valorAnteriorFormateado}' a '${valorNuevoFormateado}')`;
       }
       return s;
     });
@@ -398,6 +411,8 @@ export default function HistorialLaboralPage() {
           const campoFormal = traduccionCampos[campo] || campo.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
           if (campo === 'fechaInicioContrato' || campo === 'fechaFinContrato') {
             campos.push(`${campoFormal}: ${formatFecha(valorNuevo)}`);
+          } else if (campo === 'afp') {
+            campos.push(`${campoFormal}: ${formatAFP(valorNuevo)}`);
           } else {
             campos.push(`${campoFormal}: ${valorNuevo}`);
           }
@@ -460,7 +475,7 @@ export default function HistorialLaboralPage() {
           campos.push(`Sueldo: ${formatSueldo(detalles.sueldoBase)}`);
         }
         if (detalles.afp) {
-          campos.push(`AFP: ${detalles.afp}`);
+          campos.push(`AFP: ${formatAFP(detalles.afp)}`);
         }
         if (detalles.previsionSalud) {
           campos.push(`Previsión Salud: ${detalles.previsionSalud}`);
@@ -477,7 +492,7 @@ export default function HistorialLaboralPage() {
         if (detalles.tipoContrato) campos.push(`Tipo Contrato: ${detalles.tipoContrato}`);
         if (detalles.jornadaLaboral) campos.push(`Jornada: ${detalles.jornadaLaboral}`);
         if (detalles.sueldoBase !== undefined && detalles.sueldoBase !== null) campos.push(`Sueldo: ${formatSueldo(detalles.sueldoBase)}`);
-        if (detalles.afp) campos.push(`AFP: ${detalles.afp}`);
+        if (detalles.afp) campos.push(`AFP: ${formatAFP(detalles.afp)}`);
         if (detalles.previsionSalud) campos.push(`Previsión Salud: ${detalles.previsionSalud}`);
         if (detalles.seguroCesantia !== undefined && detalles.seguroCesantia !== null) campos.push(`Seguro Cesantía: ${formatSeguroCesantia(String(detalles.seguroCesantia))}`);
         campos.push('Subida de Contrato');

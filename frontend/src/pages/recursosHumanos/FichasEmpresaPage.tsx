@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useFichaEmpresa } from '@/hooks/recursosHumanos/useFichaEmpresa';
 import { useAuth, useUI } from '@/context';
 import { useRut } from '@/hooks/useRut';
+import { formatAFP } from '@/utils/index';
 import { 
   FichaEmpresa, 
   FichaEmpresaSearchParams,
@@ -484,7 +485,7 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                             <div className={`value ${getFieldClass(miFicha.afp)}`}>
                               {miFicha.afp === 'Por Definir' ? 
                                 <span className="pending">Por Definir</span> : 
-                                miFicha.afp
+                                formatAFP(miFicha.afp)
                               }
                             </div>
                           </div>
@@ -1026,7 +1027,7 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                           <td>{formatSueldo(ficha.sueldoBase)}</td>
                           <td>
                             <span className={getFieldClass(ficha.afp || '-')}>
-                              {ficha.afp || '-'}
+                              {formatAFP(ficha.afp)}
                             </span>
                           </td>
                           <td>

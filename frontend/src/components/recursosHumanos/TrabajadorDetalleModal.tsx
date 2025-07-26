@@ -3,6 +3,7 @@ import { Modal, Card, Row, Col, Badge, Button, Spinner } from 'react-bootstrap';
 import { Trabajador } from '@/types/recursosHumanos/trabajador.types';
 import { downloadContrato } from '@/services/recursosHumanos/fichaEmpresa.service';
 import { useToast } from '@/components/common/Toast';
+import { formatAFP } from '../../utils/index';
 
 interface TrabajadorDetalleModalProps {
   show: boolean;
@@ -73,7 +74,7 @@ export const TrabajadorDetalleModal: React.FC<TrabajadorDetalleModalProps> = ({ 
                     <div><strong>Sueldo Base:</strong> {trabajador.fichaEmpresa?.sueldoBase ? `$${trabajador.fichaEmpresa.sueldoBase.toLocaleString()}` : '-'}</div>
                     <div><strong>Fecha Inicio Contrato:</strong> {trabajador.fichaEmpresa?.fechaInicioContrato ? new Date(trabajador.fichaEmpresa.fechaInicioContrato).toLocaleDateString() : '-'}</div>
                     <div><strong>Fecha Fin Contrato:</strong> {trabajador.fichaEmpresa?.fechaFinContrato ? new Date(trabajador.fichaEmpresa.fechaFinContrato).toLocaleDateString() : '-'}</div>
-                    <div><strong>AFP:</strong> {trabajador.fichaEmpresa?.afp || '-'}</div>
+                    <div><strong>AFP:</strong> {formatAFP(trabajador.fichaEmpresa?.afp)}</div>
                     <div><strong>Salud:</strong> {trabajador.fichaEmpresa?.previsionSalud || '-'}</div>
                     <div><strong>Seguro Cesantía:</strong> {trabajador.fichaEmpresa?.seguroCesantia || '-'}</div>
                     <div><strong>Bonos Asignados:</strong> {trabajador.fichaEmpresa?.asignacionesBonos?.map(asignacion => asignacion.bono.nombre).join(', ') || '-'}</div>
