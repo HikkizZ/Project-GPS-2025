@@ -54,6 +54,15 @@ export interface FichaEmpresa {
   }[];
 }
 
+export interface AsignacionesBonos {
+  fechaAsignacion: Date | string;
+  fechaFinAsignacion?: Date | string | null;
+  activo: boolean;
+  bono: string; // Bono que se asigna, puede ser un ID o un nombre
+  fichaEmpresa: FichaEmpresa;
+  observaciones?: string; // Observaciones sobre la asignación
+}
+
 export interface CreateFichaEmpresaData {
   trabajadorId: number;
   cargo: string;
@@ -131,15 +140,17 @@ export interface FichaEmpresaSearchParams {
 } 
 
  export interface AsignarBonoDTO {
-    fichaId: number;
-    bonoId: number;
-    fechaEntrega?: string | Date;
-    activo?: boolean;
+    bono: string; // ID del bono
+    fechaAsignacion?: string;
+    fechaFinAsignacion?: string;
     observaciones?: string;
+}
+export interface AsignarFichaEmpresaData {
+  asignacionesBonos: number[]; // IDs de los bonos a asignar
 }
 
 export interface UpdateAsignarBonoDTO {
-    fechaEntrega?: string | Date;
+    fechaAsignacion?: string | Date;
     activo?: boolean;
     observaciones?: string;
 }
