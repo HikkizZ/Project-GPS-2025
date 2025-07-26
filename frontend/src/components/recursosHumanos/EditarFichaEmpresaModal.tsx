@@ -76,7 +76,7 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
     fechaFinContrato: '',
     afp: '',
     previsionSalud: '',
-    seguroCesantia: false
+    seguroCesantia: ''
   });
 
   // Toast notifications
@@ -92,7 +92,7 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
     fechaFinContrato: ficha.fechaFinContrato ? formatLocalDate(ficha.fechaFinContrato) : '',
     afp: (ficha.afp && ficha.afp !== 'Por Definir') ? ficha.afp : '',
     previsionSalud: (ficha.previsionSalud && ficha.previsionSalud !== 'Por Definir') ? ficha.previsionSalud : '',
-    seguroCesantia: ficha.seguroCesantia || false
+    seguroCesantia: ficha.seguroCesantia || ''
   });
 
   useEffect(() => {
@@ -107,7 +107,7 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
         fechaFinContrato: ficha.fechaFinContrato ? formatLocalDate(ficha.fechaFinContrato) : '',
         afp: (ficha.afp && ficha.afp !== 'Por Definir') ? ficha.afp : '',
         previsionSalud: (ficha.previsionSalud && ficha.previsionSalud !== 'Por Definir') ? ficha.previsionSalud : '',
-        seguroCesantia: ficha.seguroCesantia || false
+        seguroCesantia: ficha.seguroCesantia || ''
       };
       setFormData(newFormData);
       setInitialFormData(newFormData);
@@ -236,11 +236,9 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
     if (!formData.fechaInicioContrato || !fechaRegex.test(formData.fechaInicioContrato)) isValid = false;
     if (!formData.afp || afp === 'Por Definir') {
       isValid = false;
-      console.log('afp invalido', afp);
     }
     if (!formData.previsionSalud || previsionSalud === 'Por Definir') {
       isValid = false;
-      console.log('prevision salud invalido', previsionSalud);
     } 
 
     // Validación específica de Fecha Fin
@@ -255,7 +253,6 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
 
     if (!isValid) {
       // No mostrar toast de error, solo dejar los mensajes en rojo bajo los campos
-          console.log("Formulario inválido. Estado actual:", formData);
       return;
     }
 
@@ -275,7 +272,6 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
         previsionSalud: formData.previsionSalud,
         seguroCesantia: formData.seguroCesantia
       };
-      console.log("Datos a enviar:", dataToSubmit);
       let response;
       if (selectedFile) {
         const formDataToSend = new FormData();
@@ -286,10 +282,8 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
         });
         formDataToSend.append('contrato', selectedFile);
         response = await updateFichaEmpresa(fichaId, formDataToSend);
-        console.log("Respuesta del backend:", response);
       } else {
         response = await updateFichaEmpresa(fichaId, dataToSubmit);
-        console.log("Respuesta del backend:", response);
       }
       if (response.success) {
         if (onUpdate) onUpdate();
@@ -584,14 +578,22 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
               </Col>
               <Col md={4}>
                 <Form.Group>
-                  <Form.Check
-                    type="checkbox"
+                  <Form.Label className="fw-semibold">Seguro de Cesantía <span className="text-danger">*</span></Form.Label>
+                  <Form.Select
                     name="seguroCesantia"
-                    label="Seguro de Cesantía"
-                    checked={formData.seguroCesantia}
-                    onChange={(e) => handleInputChange({ target: { name: 'seguroCesantia', value: e.target.checked } })}
+                    value={formData.seguroCesantia}
+                    onChange={handleInputChange}
+                    required
                     style={{ borderRadius: '8px' }}
-                  />
+                    isInvalid={validated && (!formData.seguroCesantia || formData.seguroCesantia === 'Por Definir')}
+                  >
+                    <option value="">Seleccione...</option>
+                    <option value="Sí">Sí</option>
+                    <option value="No">No</option>
+                  </Form.Select>
+                  <Form.Control.Feedback type="invalid">
+                    {validated && (!formData.seguroCesantia || formData.seguroCesantia === 'Por Definir') && 'Completa este campo'}
+                  </Form.Control.Feedback>
                 </Form.Group>
               </Col>
             </Row>

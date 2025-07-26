@@ -32,7 +32,7 @@ interface SearchFichaParams {
     jornadaLaboral?: string;
     afp?: string;
     previsionSalud?: string;
-    seguroCesantia?: boolean;
+    seguroCesantia?: string;
 
     // Búsqueda por rango salarial
     sueldoBaseDesde?: number;
@@ -436,8 +436,9 @@ export async function updateFichaEmpresaService(
         }
 
         if ('seguroCesantia' in fichaData && fichaData.seguroCesantia !== undefined) {
-            if (typeof fichaData.seguroCesantia !== 'boolean') {
-                return [null, { message: "El seguro de cesantía debe ser un valor booleano" }];
+            const valoresValidos = ["Sí", "No"];
+            if (!valoresValidos.includes(fichaData.seguroCesantia)) {
+                return [null, { message: "El seguro de cesantía debe ser 'Sí' o 'No'" }];
             }
         }
 

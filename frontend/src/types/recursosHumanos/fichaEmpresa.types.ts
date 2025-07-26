@@ -38,7 +38,7 @@ export interface FichaEmpresa {
   contratoURL?: string | null;
   afp?: string | null; // Aseguradora de Fondos de Pensiones
   previsionSalud?: string | null; // Institución de Salud Previsional
-  seguroCesantia?: boolean; // Seguro de Cesantía
+  seguroCesantia?: string; // Seguro de Cesantía
   asignacionesBonos: {
     id: number;
     fechaAsignacion: Date | string;
@@ -94,7 +94,7 @@ export interface UpdateFichaEmpresaData {
   contratoURL?: string;
   afp?: string;
   previsionSalud?: string;
-  seguroCesantia?: boolean;
+  seguroCesantia?: string;
 }
 
 export interface ActualizarEstadoData {
