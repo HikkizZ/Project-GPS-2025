@@ -204,9 +204,9 @@ export default function HistorialLaboralPage() {
     return <Badge bg={color}>{estado}</Badge>;
   };
 
-  const formatSeguroCesantia = (seguro?: boolean | null) => {
+  const formatSeguroCesantia = (seguro?: string | null) => {
     if (seguro === null || seguro === undefined) return '-';
-    return seguro ? <Badge bg="success">Sí</Badge> : <Badge bg="danger">No</Badge>;
+    return seguro === 'Sí' ? <Badge bg="success">Sí</Badge> : <Badge bg="danger">No</Badge>;
   };
 
   const handleDescargarContrato = async (historialId: number) => {
@@ -466,7 +466,7 @@ export default function HistorialLaboralPage() {
           campos.push(`Previsión Salud: ${detalles.previsionSalud}`);
         }
         if (detalles.seguroCesantia !== undefined && detalles.seguroCesantia !== null) {
-          campos.push(`Seguro Cesantía: ${formatSeguroCesantia(detalles.seguroCesantia)}`);
+          campos.push(`Seguro Cesantía: ${formatSeguroCesantia(String(detalles.seguroCesantia))}`);
         }
       } else if (esSubidaContrato) {
         campos.push('Subida de Contrato');
@@ -479,7 +479,7 @@ export default function HistorialLaboralPage() {
         if (detalles.sueldoBase !== undefined && detalles.sueldoBase !== null) campos.push(`Sueldo: ${formatSueldo(detalles.sueldoBase)}`);
         if (detalles.afp) campos.push(`AFP: ${detalles.afp}`);
         if (detalles.previsionSalud) campos.push(`Previsión Salud: ${detalles.previsionSalud}`);
-        if (detalles.seguroCesantia !== undefined && detalles.seguroCesantia !== null) campos.push(`Seguro Cesantía: ${formatSeguroCesantia(detalles.seguroCesantia)}`);
+        if (detalles.seguroCesantia !== undefined && detalles.seguroCesantia !== null) campos.push(`Seguro Cesantía: ${formatSeguroCesantia(String(detalles.seguroCesantia))}`);
         campos.push('Subida de Contrato');
       } else {
         // Para otros tipos de registro, usar la lógica anterior (más selectiva)

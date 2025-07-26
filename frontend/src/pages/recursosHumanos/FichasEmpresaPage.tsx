@@ -295,8 +295,9 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
     }
   };
 
-  const getSeguroBadgeClass = (seguroCesantia: boolean) => {
-    if (seguroCesantia === true) return 'bg-success';
+  const getSeguroBadgeClass = (seguroCesantia: string | null | undefined) => {
+    if (seguroCesantia === 'Sí') return 'bg-success';
+    if (seguroCesantia === 'No') return 'bg-danger';
     return 'bg-warning';
   }
 
@@ -503,9 +504,13 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                             <i className="bi bi-breadcase"></i>
                             <label>Seguro cesantía</label>
                             <div className="value">
-                              <span className={`status-badge ${miFicha.seguroCesantia}`}>
-                                {miFicha.seguroCesantia}
-                              </span>
+                              {miFicha.seguroCesantia ? (
+                                <span className={`status-badge ${miFicha.seguroCesantia === 'Sí' ? 'success' : 'danger'}`}>
+                                  {miFicha.seguroCesantia}
+                                </span>
+                              ) : (
+                                <span className="text-muted">-</span>
+                              )}
                             </div>
                           </div>
 
@@ -1030,9 +1035,13 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                             </span>
                           </td>
                           <td>
-                            <span className={`badge ${getSeguroBadgeClass(ficha.seguroCesantia)}`}>
-                              {ficha.seguroCesantia ? 'Sí' : 'No'}
-                            </span>
+                            {ficha.seguroCesantia ? (
+                              <span className={`badge ${ficha.seguroCesantia === 'Sí' ? 'bg-success' : 'bg-danger'}`}>
+                                {ficha.seguroCesantia}
+                              </span>
+                            ) : (
+                              <span className="text-muted">-</span>
+                            )}
                           </td>
                           <td> 
                             {ficha.asignacionesBonos && ficha.asignacionesBonos.length > 0 ? (

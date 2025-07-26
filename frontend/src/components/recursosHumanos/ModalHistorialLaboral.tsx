@@ -39,9 +39,12 @@ function getEstadoBadge(estado?: string | null) {
   return <Badge bg={color}>{estado}</Badge>;
 }
 
-function formatSeguroCesantia(seguro?: boolean | null) {
+function formatSeguroCesantia(seguro?: string | boolean | null) {
   if (seguro === null || seguro === undefined) return '-';
-  return seguro ? <Badge bg="success">Sí</Badge> : <Badge bg="danger">No</Badge>;
+  if (typeof seguro === 'boolean') {
+    return seguro ? <Badge bg="success">Sí</Badge> : <Badge bg="danger">No</Badge>;
+  }
+  return seguro === 'Sí' ? <Badge bg="success">Sí</Badge> : <Badge bg="danger">No</Badge>;
 }
 
 export const ModalHistorialLaboral: React.FC<ModalHistorialLaboralProps> = ({
@@ -128,7 +131,7 @@ export const ModalHistorialLaboral: React.FC<ModalHistorialLaboralProps> = ({
                     <td>{getEstadoBadge(item.estado)}</td>
                     <td>{item.afp || '-'}</td>
                     <td>{item.previsionSalud || '-'}</td>
-                    <td>{formatSeguroCesantia(item.seguroCesantia)}</td>
+                    <td>{formatSeguroCesantia(item.seguroCesantia as any)}</td>
                     <td>{formatFecha(item.fechaInicioLicencia)}</td>
                     <td>{formatFecha(item.fechaFinLicencia)}</td>
                     <td>{item.motivoLicencia || '-'}</td>

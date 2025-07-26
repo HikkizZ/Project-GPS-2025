@@ -101,22 +101,22 @@ function calcularSueldoLiquido(ficha: FichaEmpresa, historialLaboral: any): [num
     if (validacionSueldo && validacionTipoContrato) {
         switch (tipoContrato) {
             case "Indefinido":
-                if (seguroCesantia == true ) {
+                if (seguroCesantia === 'Sí' ) {
                     descuentoLegal += sueldoBase * 0.006; // 0.6% de seguro de cesantía
                 }
                 break;
             case "Plazo Fijo":
-                if (seguroCesantia == true ) {
+                if (seguroCesantia === 'Sí' ) {
                     descuentoLegal += sueldoBase * 0.03; // 3% de seguro de cesantía
                 }
                 break;
             case "Por Obra":
-                if (seguroCesantia == true ) {
+                if (seguroCesantia === 'Sí' ) {
                     descuentoLegal += sueldoBase * 0.03; // 3% de seguro de cesantía
                 }
                 break;
             case "Part-Time":
-                if (seguroCesantia == true ) {
+                if (seguroCesantia === 'Sí' ) {
                     descuentoLegal += sueldoBase * 0.03; // 3% de seguro de cesantía
                 }
                 break;
