@@ -54,6 +54,15 @@ export interface FichaEmpresa {
   }[];
 }
 
+export interface AsignacionesBonos {
+  fechaAsignacion: Date | string;
+  fechaFinAsignacion?: Date | string | null;
+  activo: boolean;
+  bono: string; // Bono que se asigna, puede ser un ID o un nombre
+  fichaEmpresa: FichaEmpresa;
+  observaciones?: string; // Observaciones sobre la asignación
+}
+
 export interface CreateFichaEmpresaData {
   trabajadorId: number;
   cargo: string;
@@ -129,3 +138,51 @@ export interface FichaEmpresaSearchParams {
   previsionSalud?: string;
   seguroCesantia?: string;
 } 
+
+ export interface AsignarBonoDTO {
+    bono: string; // ID del bono
+    fechaAsignacion?: string;
+    fechaFinAsignacion?: string;
+    observaciones?: string;
+}
+export interface AsignarFichaEmpresaData {
+  asignacionesBonos: number[]; // IDs de los bonos a asignar
+}
+
+export interface UpdateAsignarBonoDTO {
+    fechaAsignacion?: string | Date;
+    activo?: boolean;
+    observaciones?: string;
+}
+
+export interface AsignarBonoQueryDTO {
+    id?: number;
+    trabajadorId?: number;
+    bonoId?: number;
+    activo?: boolean;
+    fechaEntregaDesde?: string | Date;
+    fechaEntregaHasta?: string | Date;
+    limit?: number;
+    offset?: number;
+}
+
+export interface AsignarBonoResponseDTO {
+    id: number;
+    trabajador: {
+        id: number;
+        nombres: string;
+        apellidoPaterno: string;
+        apellidoMaterno: string;
+        rut: string;
+    };
+    bono: {
+        id: number;
+        nombreBono: string;
+        monto: string;
+        tipoBono: "estatal" | "empresarial";
+        temporalidad: "permanente" | "recurrente" | "puntual";
+    };
+    fechaEntrega: Date;
+    activo: boolean;
+    observaciones?: string;
+}

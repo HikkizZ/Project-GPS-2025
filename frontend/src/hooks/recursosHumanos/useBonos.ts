@@ -73,35 +73,6 @@ export const useBono = () => {
     }
   };
     
-
-    // Cargar bono específica por ID
-    /**
-     * 
-     * 
-    const loadBonoById = async (id?: number) => {
-        
-        setIsLoading(true);
-        setError('');
-        try {
-            const result = await bonoService.obtenerBonoPorId(id);
-            
-        
-            if (result.success && result.data) {
-                const bono = result.data;
-
-            } else {
-                throw new Error(result.message || 'Error al cargar bono');
-            }
-            } catch (error) {
-            updateState({
-                isLoading: false,
-                error: error instanceof Error ? error.message : 'Error al cargar ficha',
-                currentBono: null
-            });
-        }
-    }, [updateState]);
-
-     */
     // Actualizar bono existente
     const updateBono = async (id: number, data: UpdateBonoData) => {
         setIsLoading(true);
@@ -147,6 +118,29 @@ export const useBono = () => {
         }
     };
 
+    // Desactivar bono
+    const desactivarBono = async (id: number, motivo: string) => {
+        setIsLoading(true);
+        setError('');
+        try {
+            const result = await bonoService.desactivarBono(id, motivo);
+            if (result.success) {
+                await cargarBonos(); // Recargar la lista
+                return { success: true };
+            } else {
+                const errorMsg = result.message || 'Error al desactivar bono';
+                setError(errorMsg);
+                return { success: false, error: errorMsg };
+            }
+        } catch (error) {
+            const errorMsg = 'Error al desactivar bono';
+            setError(errorMsg);
+            return { success: false, error: errorMsg };
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     // Cargar bonos al inicializar el hook
     useEffect(() => {
       cargarBonos();
@@ -161,6 +155,7 @@ export const useBono = () => {
     createBono,
     updateBono,
     clearError: () => setError(''),
-    totalBonos
+    totalBonos,
+    desactivarBono
   };
 }; 
