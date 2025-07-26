@@ -29,16 +29,7 @@ export const createMaintenanceRecordValidation = Joi.object({
       "string.min": "La descripción debe tener al menos 5 caracteres."
     }),
 
-  mecanicoId: Joi.number()
-    .integer()
-    .positive()
-    .required()
-    .messages({
-      "any.required": "El ID del mecánico es obligatorio.",
-      "number.base": "El ID debe ser un número.",
-      "number.integer": "El ID debe ser entero.",
-      "number.positive": "El ID debe ser mayor a cero."
-    }),
+  
 
   repuestosUtilizados: Joi.array().items(
     Joi.object({
