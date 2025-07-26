@@ -309,15 +309,6 @@
   color: #15803d;
   font-weight: 600;
   font-size: 0.95rem;
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-}
-
-.info-field .value.text-success::before {
-  content: '$';
-  font-size: 0.75rem;
-  opacity: 0.8;
 }
 
 /* Estilos para grupos de información (usados en múltiples componentes) */
