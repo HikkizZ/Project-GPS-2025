@@ -675,7 +675,7 @@ export default function HistorialLaboralPage() {
       <Row className="mb-4">
         <Col>
           <Card className="border-0 shadow-sm">
-            <Card.Body className="bg-gradient-primary text-white">
+            <Card.Body className="text-white" style={{ background: 'var(--gradient-primary)' }}>
               <Row className="align-items-center">
                 <Col>
                   <h2 className="mb-0 text-white">
