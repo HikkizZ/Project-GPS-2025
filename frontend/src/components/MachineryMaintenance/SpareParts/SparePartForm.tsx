@@ -2,8 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Form, Button, Spinner } from 'react-bootstrap';
 import { CreateSparePartData } from '@/types/machinaryMaintenance/sparePart.types';
 import { getSpareParts } from '@/services/machinaryMaintenance/sparePart.service';
-import {GrupoMaquinaria} from '@/types/maquinaria.types'
-import { obtenerTodasLasMaquinarias } from '@/services/maquinaria/maquinaria.service'
 import { useToast } from '@/components/common/Toast';
 import { updateSparePart, createSparePart } from '@/services/machinaryMaintenance/sparePart.service';
 
@@ -27,22 +25,10 @@ const SparePartForm: React.FC<Props>= ({initialData = {}, onSubmit, loading}) =>
       marca: '',
       modelo: '',
       anio: new Date().getFullYear(),
-      grupo: '' as unknown as GrupoMaquinaria,
       ...cleanInitialData,
 
     })
 
-      const [maquinaria, setGruposMaquinaria] = useState<string[]>([]);
-      useEffect(() => {
-        const cargarGrupos = async () => {
-          const { data, success } = await obtenerTodasLasMaquinarias();
-          if (success && data) {
-            const gruposUnicos = [...new Set(data.map((r) => r.grupo))];
-            setGruposMaquinaria(gruposUnicos);
-          }
-        };
-        cargarGrupos();
-      }, []);
 
       const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
       const { name, value }  = e.target;
@@ -81,9 +67,7 @@ const SparePartForm: React.FC<Props>= ({initialData = {}, onSubmit, loading}) =>
           const { data: allParts, success } = await getSpareParts();
           if (success && allParts) {
             const duplicado = allParts.find((r) =>
-              r.name.trim().toLowerCase() === form.name.trim().toLowerCase() &&
-              r.grupo === form.grupo
-            );
+              r.name.trim().toLowerCase() === form.name.trim().toLowerCase());
             if (duplicado && (!initialData || duplicado.id !== initialData.id)) {
               showError("Error de duplicado", "Ya existe un repuesto con ese nombre en ese grupo de maquinaria.");
               return;
@@ -95,8 +79,7 @@ const SparePartForm: React.FC<Props>= ({initialData = {}, onSubmit, loading}) =>
             stock: form.stock,
             marca: form.marca,
             modelo: form.modelo,
-            anio: form.anio,
-            grupo: form.grupo,
+            anio: form.anio
           };
 
           if (initialData?.id) {
@@ -113,8 +96,7 @@ const SparePartForm: React.FC<Props>= ({initialData = {}, onSubmit, loading}) =>
             stock: 0,
             marca: '',
             modelo: '',
-            anio: new Date().getFullYear(),
-            grupo: '' as unknown as GrupoMaquinaria,
+            anio: new Date().getFullYear()
           });
         } catch (error) {
           console.error("Error en el handleSubmit:", error);
@@ -142,9 +124,8 @@ const SparePartForm: React.FC<Props>= ({initialData = {}, onSubmit, loading}) =>
       <Form.Group controlId="stock">
         <Form.Label>Stock</Form.Label>
         <Form.Control
-          type="number"
+          type="text"
           name="stock"
-          min={1}
           value={form.stock}
           onChange={handleChange}
           required
@@ -179,7 +160,7 @@ const SparePartForm: React.FC<Props>= ({initialData = {}, onSubmit, loading}) =>
       <Form.Group controlId="anio">
         <Form.Label>Año</Form.Label>
         <Form.Control
-          type="number"
+          type="text"
           name="anio"
           value={form.anio}
           min={1950}
@@ -206,22 +187,6 @@ const SparePartForm: React.FC<Props>= ({initialData = {}, onSubmit, loading}) =>
         </Form.Select>
       </Form.Group> */}
 
-     <Form.Group controlId="grupo">
-        <Form.Label>Grupo</Form.Label>
-        <Form.Select
-          name="grupo"
-          value={form.grupo}
-          onChange={handleChange}
-          required
-        >
-          <option value="">Seleccione-grupo</option>
-          {maquinaria.map((g) => (
-            <option key={g} value={g}>
-              {g}
-            </option>
-          ))}
-        </Form.Select>
-      </Form.Group>
 
       <Button variant="primary" type="submit" disabled={loading} className="mt-3">
         {loading ? <Spinner animation="border" size="sm" /> : 'Guardar'}
