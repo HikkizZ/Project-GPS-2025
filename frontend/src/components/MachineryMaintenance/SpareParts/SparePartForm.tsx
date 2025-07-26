@@ -37,7 +37,7 @@ const SparePartForm: React.FC<Props>= ({initialData = {}, onSubmit, loading}) =>
 
       setForm((prev) => ({
         ...prev,
-       [name]: name === 'number' ? Number(value) : value,
+       [name]: ['stock', 'anio'].includes(name) ? Number(value) : value,
       }));
     };
   
@@ -133,8 +133,6 @@ const SparePartForm: React.FC<Props>= ({initialData = {}, onSubmit, loading}) =>
         <Form.Control
           type="text"
           name="name"
-          pattern="[a-zA-Z0-9\s]+"
-          title="Solo letras, números y espacios"
           value={form.name}
           onChange={handleChange}
           required
@@ -157,9 +155,7 @@ const SparePartForm: React.FC<Props>= ({initialData = {}, onSubmit, loading}) =>
         <Form.Label>Marca</Form.Label>
         <Form.Control
           type="text"
-          name="name"
-          pattern="[a-zA-Z0-9\s]+"
-          title="Solo letras, números y espacios"
+          name="marca"
           value={form.marca}
           onChange={handleChange}
           required
@@ -170,9 +166,7 @@ const SparePartForm: React.FC<Props>= ({initialData = {}, onSubmit, loading}) =>
         <Form.Label>Modelo</Form.Label>
         <Form.Control
           type="text"
-          name="name"
-          pattern="[a-zA-Z0-9\s]+"
-          title="Solo letras, números y espacios"
+          name="modelo"
           value={form.modelo}
           onChange={handleChange}
           required
