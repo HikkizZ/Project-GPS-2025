@@ -27,16 +27,15 @@ export const useBono = () => {
       console.log('Response data:', result.data);
       console.log('Resultado success: ', result.success);
       console.log('Data Result: ', result.data);
-      console.log('Data Result bonos[0]: ', result.data?.bonos?.[0]);
-      console.log('Es ARRAY?: ', Array.isArray(result.data?.bonos));
       console.log('BONOS BONOS BONOS: ', result.data);
-      console.log('Array length:', result.data?.bonos?.length);
       if (result.success) {
-          setBonos(result.data?.bonos || []);
-          setTotalBonos(result.data?.total || 0);
-          console.log('BONOSSS: ', bonos);
-          console.log('TOTALBONOS: ', totalBonos);
-
+          const newBonos = result.data?.bonos || [];
+          const newTotal = result.data?.total || 0;
+          setBonos(newBonos);
+          setTotalBonos(newTotal);
+          console.log('BONOSSS: ', newBonos);
+          console.log('TOTALBONOS: ', newTotal);
+        
       } else {
           setError(result.message || 'Error al cargar bonos');
           setTotalBonos(0);
@@ -132,11 +131,11 @@ export const useBono = () => {
         setIsLoading(true);
         setError('');
         try {
-            const result = await bonoService.getAllBonos(query);
-            if (result.success) {
-                setBonos(result.data?.bonos || []);
-                setTotalBonos(result.data?.total || 0);
-            } else {
+                    const result = await bonoService.getAllBonos(query);
+        if (result.success) {
+            setBonos(result.data?.bonos || []);
+            setTotalBonos(result.data?.total || 0);
+        } else {
                 setError(result.message || 'Error al buscar bonos');
                 setTotalBonos(0);
             }
