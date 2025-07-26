@@ -6,7 +6,7 @@
 
 .navbar {
   height: 56px;
-  background: linear-gradient(90deg, #0061FF 0%, #7E3AF2 100%);
+  background: var(--gradient-primary);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
 }
 

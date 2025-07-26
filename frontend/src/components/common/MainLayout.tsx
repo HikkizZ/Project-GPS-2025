@@ -76,7 +76,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ user, onLogout, children }) => 
   return (
     <div className="min-vh-100 d-flex flex-column">
       {/* Navbar */}
-      <nav className="navbar navbar-expand-lg navbar-dark bg-gradient-primary">
+      <nav className="navbar navbar-expand-lg navbar-dark">
         <div className="container-fluid">
           <span className="navbar-brand mb-0 h1 fw-bold" onClick={() => navigate('/dashboard')}>
             <i className="bi bi-truck me-2"></i>
