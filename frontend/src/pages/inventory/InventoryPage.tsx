@@ -208,7 +208,7 @@ export const InventoryPage: React.FC = () => {
         "Stock Actual (m³)": item.quantity,
         Estado:
           item.quantity === 0 ? "Sin Stock" : item.quantity <= metrics.averageStock * 0.4 ? "Stock Bajo" : "En Stock",
-        "Precio de Venta": `$${item.product.salePrice?.toLocaleString("es-ES") || "N/A"}`,
+        "Precio de Venta": item.product.salePrice ?? "N/A",
       }))
 
       const totalPurchases = entries.reduce(
@@ -224,9 +224,9 @@ export const InventoryPage: React.FC = () => {
         { Métrica: "Total de Movimientos", Valor: entries.length + exits.length },
         { Métrica: "Total de Compras", Valor: entries.length },
         { Métrica: "Total de Ventas", Valor: exits.length },
-        { Métrica: "Monto Total en Compras", Valor: `$${totalPurchases.toLocaleString("es-ES")}` },
-        { Métrica: "Monto Total en Ventas", Valor: `$${totalSales.toLocaleString("es-ES")}` },
-        { Métrica: "Balance Neto", Valor: `$${(totalSales - totalPurchases).toLocaleString("es-ES")}` },
+        { Métrica: "Monto Total en Compras", Valor: totalPurchases },
+        { Métrica: "Monto Total en Ventas", Valor: totalSales },
+        { Métrica: "Balance Neto", Valor: totalSales - totalPurchases },
         { Métrica: "Productos en Stock", Valor: metrics.inStock },
         { Métrica: "Productos con Stock Bajo", Valor: metrics.lowStock },
         { Métrica: "Productos sin Stock", Valor: metrics.outOfStock },
