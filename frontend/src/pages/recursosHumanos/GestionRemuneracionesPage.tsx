@@ -3,14 +3,7 @@ import { Container, Row, Col, Card, Button, Alert, Table, Form , Modal, Spinner}
 import { useBono } from '@/hooks/recursosHumanos/useBonos';
 import { Bono, BonoSearchQueryData, BonoSearchParamsData } from '@/types/recursosHumanos/bono.types';
 import { FiltrosBusquedaHeader } from '@/components/common/FiltrosBusquedaHeader';
-import { Toast, useToast } from '@/components/common/Toast';
-import { bonoService } from '../../services/recursosHumanos/bono.service';
-import { TrabajadorSearchQuery } from '@/types';
 import "../../styles/pages/bonos.css";
-import { Trabajador } from '@/types/recursosHumanos/trabajador.types';
-import { FichaEmpresaService } from '@/services/recursosHumanos/fichaEmpresa.service';
-import { licenciaPermisoService } from '@/services/recursosHumanos/licenciaPermiso.service';
-import { useTrabajadores } from '@/hooks/recursosHumanos/useTrabajadores';
 import { useFichaEmpresa } from '@/hooks/recursosHumanos/useFichaEmpresa';
 import { 
   FichaEmpresa, 
@@ -169,7 +162,6 @@ export const GestionRemuneracionesPage: React.FC = () => {
         clearError
       } = useFichaEmpresa();
     const [showFilters, setShowFilters] = useState(false);
-    const [searchParams, setSearchParams] = useState<TrabajadorSearchQuery>({});
     const { user, isLoading: isAuthLoading } = useAuth();
     const [searchQuery, setSearchQuery] = useState<FichaEmpresaSearchParams>({
         estado: EstadoLaboral.ACTIVO
@@ -190,46 +182,30 @@ export const GestionRemuneracionesPage: React.FC = () => {
     const esAdminORecursosHumanos = user?.role === 'Administrador' || user?.role === 'RecursosHumanos';
     const puedeGestionarFichas = esSuperAdministrador || esAdminORecursosHumanos;
     
-    // Cargar datos iniciales
     useEffect(() => {
-    // No ejecutar si aún está cargando la autenticación
-    if (isAuthLoading) {
-        return;
-    }
+        if (isAuthLoading || !user) return;
 
-    // No ejecutar si no hay usuario autenticado
-    if (!user) {
-        return;
-    }
+        const isSuperAdmin = user.role === 'SuperAdministrador';
+        const isAdminOrRRHH = user.role === 'Administrador' || user.role === 'RecursosHumanos';
 
-    // Para SuperAdministrador: solo gestión
-    if (esSuperAdministrador) {
-        setIncluirAsignaciones(false);
-        setIncluirDesvinculados(false);
-        setIncluirLicencias(false);
-        setIncluirPermisos(false);
-        setIncluirSinFechaFin(false);
-        setSearchQuery({ estado: EstadoLaboral.ACTIVO });
-        searchFichas({ estado: EstadoLaboral.ACTIVO });
-    } 
-    // Para Administrador y RecursosHumanos: cargar tanto gestión como su ficha
-    else if (esAdminORecursosHumanos) {
-        if (window.location.pathname === '/fichas-empresa/mi-ficha') {
-        loadMiFicha(); // Cargar su ficha personal en la vista personal
-        } else {
-        setIncluirDesvinculados(false);
-        setIncluirLicencias(false);
-        setIncluirPermisos(false);
-        setIncluirSinFechaFin(false);
-        setSearchQuery({ estado: EstadoLaboral.ACTIVO });
-        searchFichas({ estado: EstadoLaboral.ACTIVO });
+        if (isSuperAdmin || isAdminOrRRHH) {
+            // Solo actualizar estado si es necesario
+            setIncluirAsignaciones(false);
+            setIncluirDesvinculados(false);
+            setIncluirLicencias(false);
+            setIncluirPermisos(false);
+            setIncluirSinFechaFin(false);
+
+            setSearchQuery(prev => {
+            if (prev.estado === EstadoLaboral.ACTIVO) return prev;
+            return { estado: EstadoLaboral.ACTIVO };
+            });
+
+            searchFichas({ estado: EstadoLaboral.ACTIVO }).catch(err => {
+            console.error("Error al cargar fichas:", err);
+            });
         }
-    }
-    // Para todos los demás roles: solo su ficha
-    else {
-        loadMiFicha();
-    }
-    }, [user, isAuthLoading, loadMiFicha, esSuperAdministrador, esAdminORecursosHumanos]);
+        }, [user, isAuthLoading]);
     
     const getTipoContratoColor = (tipo: string) => {
     if (tipo === 'Por Definir') {
