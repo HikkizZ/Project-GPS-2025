@@ -455,13 +455,16 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                             <div className="value">{formatFecha(miFicha.fechaInicioContrato)}</div>
                           </div>
 
-                          {miFicha.fechaFinContrato && (
-                            <div className="info-field">
-                              <i className="bi bi-calendar-x"></i>
-                              <label>Fecha Fin</label>
-                              <div className="value">{formatFecha(miFicha.fechaFinContrato)}</div>
+                          <div className="info-field">
+                            <i className="bi bi-calendar-x"></i>
+                            <label>Fecha Fin</label>
+                            <div className="value">
+                              {miFicha.fechaFinContrato ? 
+                                formatFecha(miFicha.fechaFinContrato) : 
+                                "-"
+                              }
                             </div>
-                          )}
+                          </div>
 
                           <div className="info-field">
                             <i className="bi bi-cash"></i>
@@ -476,6 +479,26 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                               <span className={`status-badge ${miFicha.estado.toLowerCase()}`}>
                                 {miFicha.estado}
                               </span>
+                            </div>
+                          </div>
+
+                          <div className="info-field">
+                            <i className="bi bi-file-earmark-text"></i>
+                            <label>Contrato</label>
+                            <div className="value">
+                              {miFicha.contratoURL ? (
+                                <Button
+                                  variant="outline-primary"
+                                  size="sm"
+                                  onClick={() => handleDownloadContrato(miFicha.id)}
+                                  className="btn-download-contrato"
+                                >
+                                  <i className="bi bi-download me-1"></i>
+                                  Descargar Contrato
+                                </Button>
+                              ) : (
+                                <span className="text-muted">No hay contrato adjunto</span>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -512,6 +535,22 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                           <label>Teléfono</label>
                           <div className="value">{formatTelefono(miFicha.trabajador.telefono)}</div>
                         </div>
+
+                        {miFicha.trabajador.numeroEmergencia && (
+                          <div className="info-field">
+                            <i className="bi bi-telephone-plus"></i>
+                            <label>Teléfono de Emergencia</label>
+                            <div className="value">{formatTelefono(miFicha.trabajador.numeroEmergencia)}</div>
+                          </div>
+                        )}
+
+                        {miFicha.trabajador.direccion && (
+                          <div className="info-field">
+                            <i className="bi bi-geo-alt"></i>
+                            <label>Dirección</label>
+                            <div className="value">{miFicha.trabajador.direccion}</div>
+                          </div>
+                        )}
 
                         <div className="info-field">
                           <i className="bi bi-calendar-check"></i>

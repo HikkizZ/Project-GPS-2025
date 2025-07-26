@@ -14,6 +14,8 @@ export interface FichaEmpresa {
     apellidoMaterno: string;
     rut: string;
     telefono: string;
+    numeroEmergencia?: string;
+    direccion?: string;
     fechaIngreso: Date | string;
     fechaNacimiento?: Date | string;
     usuario?: {

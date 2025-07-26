@@ -8,6 +8,7 @@ export interface HistorialLaboral {
   fechaInicio: string;
   fechaFin?: string | null;
   motivoDesvinculacion?: string | null;
+  motivoReactivacion?: string | null;
   observaciones?: string | null;
   contratoURL?: string | null;
   afp?: string | null;
@@ -69,6 +70,7 @@ export interface HistorialUnificado {
     fechaFinLicenciaPermiso?: string;
     motivoLicenciaPermiso?: string;
     motivoDesvinculacion?: string;
+    motivoReactivacion?: string;
     observaciones?: string;
     contratoURL?: string;
     afp?: string;

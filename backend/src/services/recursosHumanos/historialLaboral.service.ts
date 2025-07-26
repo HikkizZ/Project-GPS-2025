@@ -165,6 +165,7 @@ export async function getHistorialUnificadoByTrabajadorService(trabajadorId: num
                     fechaFinLicenciaPermiso: item.fechaFinLicenciaPermiso,
                     motivoLicenciaPermiso: item.motivoLicenciaPermiso,
                     motivoDesvinculacion: item.motivoDesvinculacion,
+                    motivoReactivacion: item.motivoReactivacion,
                     observaciones: item.observaciones,
                     contratoURL: item.contratoURL,
                     afp: item.afp,

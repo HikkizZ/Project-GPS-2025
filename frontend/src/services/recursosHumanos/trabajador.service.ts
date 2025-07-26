@@ -119,6 +119,7 @@ export class TrabajadorService {
     telefono?: string;
     numeroEmergencia?: string;
     direccion?: string;
+    motivoReactivacion: string;
   }): Promise<ApiResponse<{
     trabajador: Trabajador;
     nuevoCorreoCorporativo: string;
