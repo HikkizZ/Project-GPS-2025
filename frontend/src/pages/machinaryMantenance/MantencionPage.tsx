@@ -2,7 +2,9 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import { Container, Row, Col, Card, Button, Spinner, Alert } from "react-bootstrap";
 import type { MaintenanceRecord } from "@/types/machinaryMaintenance/maintenanceRecord.types"
-import type { UpdateMaintenanceRecordData } from "@/types/machinaryMaintenance/maintenanceRecord.types"
+import type { UpdateMaintenanceRecordData,  } from "@/types/machinaryMaintenance/maintenanceRecord.types"
+import { EstadoMantencion } from "@/types/machinaryMaintenance/maintenanceRecord.types";
+import maintenanceRecordService from "@/services/machinaryMaintenance/maintenanceRecord.service";
 import { useMaintenanceRecords } from "@/hooks/MachinaryMaintenance/MaintenanceRecord/useMaintenanceRecords"
 import { useCreateMaintenanceRecord } from "@/hooks/MachinaryMaintenance/MaintenanceRecord/useCreateMaintenanceRecord"
 import { useUpdateMaintenanceRecord } from "@/hooks/MachinaryMaintenance/MaintenanceRecord/useUpdateMaintenanceRecord"
@@ -19,6 +21,8 @@ import { maquinariaService } from "@/services/maquinaria/maquinaria.service"
 import { trabajadorService } from "@/services/recursosHumanos/trabajador.service"
 import type { Maquinaria } from "@/types/maquinaria.types"
 import type { Trabajador } from "@/types/recursosHumanos/trabajador.types"
+import AssignMecanicoModal from "@/components/MachineryMaintenance/MaintenanceRecord/AssignMecanicoModal"
+import EstadoFinalizacionModal from "@/components/MachineryMaintenance/MaintenanceRecord/EstadoFinalizacionModal";
 
 const MantencionPage: React.FC = () => {
   const { records, loading, error, reload } = useMaintenanceRecords()
@@ -39,38 +43,68 @@ const MantencionPage: React.FC = () => {
   const [maquinarias, setMaquinarias] = useState<Maquinaria[]>([])
   const [mecanicos, setMecanicos] = useState<Trabajador[]>([])
   const [showFilters, setShowFilters] = useState(false)
+  const [showAssignModal, setShowAssignModal] = useState(false);
+  const [recordToAssign, setRecordToAssign] = useState<MaintenanceRecord | null>(null);
+  const [showEstadoModal, setShowEstadoModal] = useState(false);
+  const [estadoSeleccionado, setEstadoSeleccionado] = useState<EstadoMantencion.COMPLETADA | EstadoMantencion.IRRECUPERABLE | null>(null);
+
+
   
+  const handleOpenAssignModal = (record: MaintenanceRecord) => {
+    setRecordToAssign(record);
+    setShowAssignModal(true); 
+  };
 
-  const [filterValues, setFilterValues] = useState({
-  estado: "",
-  grupo: "",
-  patente: "",
-  mecanicoId: "",
-  })
+  const handleCloseAssignModal = () => {
+    setShowAssignModal(false);
+    setRecordToAssign(null);
+  };
 
-  useEffect(() => {
-    const cargarDatosAuxiliares = async () => {
-      const [maqRes, mecRes] = await Promise.all([
-        maquinariaService.obtenerTodasLasMaquinarias(),
-        trabajadorService.getTrabajadores({ todos: true }),
-      ])
+  const handleAssignMecanico = async (mecanicoId: number) => {
+    if (!recordToAssign) return;
 
-      if (maqRes.success && maqRes.data) setMaquinarias(maqRes.data)
+    const data: UpdateMaintenanceRecordData = {
+      mecanicoId,
+    };
 
-      if (mecRes.success && mecRes.data) {
-        const mecanicosFiltrados = mecRes.data.filter(
-        (trab) => trab.usuario?.role === "Mecánico"
-        )
-        setMecanicos(mecanicosFiltrados)
+    await update(recordToAssign.id, data);
+      showSuccess("Mecánico asignado", "La mantención ahora tiene un mecánico asignado.");
+      handleCloseAssignModal();
+      reload();
+    };
+
+    const [filterValues, setFilterValues] = useState({
+    estado: "",
+    grupo: "",
+    patente: "",
+    mecanicoId: "",
+    })
+
+    useEffect(() => {
+      const cargarDatosAuxiliares = async () => {
+        const [maqRes, mecRes] = await Promise.all([
+          maquinariaService.obtenerTodasLasMaquinarias(),
+          trabajadorService.getTrabajadores({ todos: true }),
+        ])
+
+        if (maqRes.success && maqRes.data) setMaquinarias(maqRes.data)
+
+        if (mecRes.success && mecRes.data) {
+          const mecanicosFiltrados = mecRes.data.filter(
+          (trab) => trab.usuario?.role === "Mecánico"
+          )
+          setMecanicos(mecanicosFiltrados)
+        }
+
       }
 
-    }
-
-    cargarDatosAuxiliares()
-  }, [])
+      cargarDatosAuxiliares()
+    }, [])
 
   useEffect(() => {
-  let filtrados = [...records];
+  let filtrados = records.filter(
+    (r) => r.estado !== "completada" && r.estado !== "irrecuperable"
+  );
 
   if (filterValues.estado) {
     filtrados = filtrados.filter((r) => r.estado === filterValues.estado);
@@ -135,24 +169,61 @@ const MantencionPage: React.FC = () => {
 
   
 
-    const handleOpenFinishModal = (record: MaintenanceRecord) => {
-      setFinishingRecord(record);
-      setShowFinishModal(true);
-    };
+  const handleOpenFinishModal = async (record: MaintenanceRecord) => {
+    if (!record.mecanicoAsignado?.id) {
+      showError("No se puede finalizar", "Debe asignar un mecánico antes de finalizar la mantención.");
+      return;
+    }
+
+    const { data: actualizado, success } = await maintenanceRecordService.getById(record.id);
+
+    if (!success || !actualizado) {
+      showError("Error", "No se pudo verificar los repuestos asignados.");
+      return;
+    }
+
+    const tieneRepuestos = actualizado.repuestosUtilizados && actualizado.repuestosUtilizados.length > 0;
+
+    if (!tieneRepuestos) {
+      showError("No se puede finalizar", "Debe registrar al menos un repuesto utilizado antes de finalizar la mantención.");
+      return;
+    }
+
+    setFinishingRecord(actualizado);
+    setShowEstadoModal(true);
+  };
+
 
     const handleCloseFinishModal = () => {
       setFinishingRecord(null);
       setShowFinishModal(false);
     };
 
+    const handleSeleccionEstado = (estado: "completada" | "irrecuperable") => {
+      const estadoEnum = estado === "completada"
+        ? EstadoMantencion.COMPLETADA
+        : EstadoMantencion.IRRECUPERABLE;
+
+      setEstadoSeleccionado(estadoEnum);
+      setShowEstadoModal(false);
+      setShowFinishModal(true);
+    };
+
     const handleFinalize = async (data: any) => {
 
-      if (!finishingRecord) return;
+      if (!finishingRecord  || !estadoSeleccionado) return;
 
-      await update(finishingRecord.id, data);
+      const datosFinales = {
+        ...data,
+        estado: estadoSeleccionado,
+      };
+
+      await update(finishingRecord.id, datosFinales);
 
       showSuccess("Mantención finalizada", "Se ha completado la mantención");
       handleCloseFinishModal();
+      setEstadoSeleccionado(null); 
+      setShowFinishModal(false);
       reload();
     };
 
@@ -285,13 +356,27 @@ const MantencionPage: React.FC = () => {
                   onDelete={handleDelete}
                   onFinish={handleOpenFinishModal}
                   onSpareParts={handleOpenSpareParts}
+                  onAssignMecanico={handleOpenAssignModal}
                   onReload={reload}
                 />
               )}
             </Card.Body>
           </Card>
-
+          {/*Asigna Mecanico */}
+          <AssignMecanicoModal
+            show={showAssignModal}
+            onHide={handleCloseAssignModal}
+            onSubmit={handleAssignMecanico}
+            mecanicos={mecanicos}
+            currentMecanicoId={recordToAssign?.mecanicoAsignado?.id}
+          />
           
+          {/* Cambiar el estado de completada o irrecuerable */}
+          <EstadoFinalizacionModal
+            show={showEstadoModal}
+            onHide={() => setShowEstadoModal(false)}
+            onSelectEstado={handleSeleccionEstado}
+          />
           
           {/* Modales */}
           <MaintenanceRecordModal
@@ -328,6 +413,7 @@ const MantencionPage: React.FC = () => {
             loading={updating}
             fechaEntrada={finishingRecord?.fechaEntrada?.toString().split("T")[0] ?? ""}
             estadoActual={finishingRecord?.estado ?? ""}
+            estadoSeleccionado={estadoSeleccionado ?? ""}
           />
 
           {/* Toasts */}
