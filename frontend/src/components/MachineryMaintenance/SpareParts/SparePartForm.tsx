@@ -84,7 +84,6 @@ const SparePartForm: React.FC<Props>= ({initialData = {}, onSubmit, loading}) =>
             return;
           }
 
-          // Validación de duplicados
           const { data: allParts, success } = await getSpareParts();
           if (success && allParts) {
             const duplicado = allParts.find((r) =>
