@@ -1,7 +1,5 @@
-"use client"
-
 import type React from "react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Container, Row, Col, Card, Button, Spinner, Alert } from "react-bootstrap";
 import type { MaintenanceRecord } from "@/types/machinaryMaintenance/maintenanceRecord.types"
 import type { UpdateMaintenanceRecordData } from "@/types/machinaryMaintenance/maintenanceRecord.types"
@@ -16,6 +14,11 @@ import { Toast, useToast } from "@/components/common/Toast"
 import MaintenanceSparePartPanel from "@/components/MachineryMaintenance/MaintenanceSpareParts/MaintenanceSparePartPanel"
 import FinalizeMaintenanceModal from '@/components/MachineryMaintenance/MaintenanceRecord/FinalizeMaintenanceModal';
 import MaintenanceSidebar from "@/components/MachineryMaintenance/MaintenanceSidebar";
+import MantencionLocalFilters from "@/components/MachineryMaintenance/MaintenanceRecord/MantencionLocalFilters"
+import { maquinariaService } from "@/services/maquinaria/maquinaria.service"
+import { trabajadorService } from "@/services/recursosHumanos/trabajador.service"
+import type { Maquinaria } from "@/types/maquinaria.types"
+import type { Trabajador } from "@/types/recursosHumanos/trabajador.types"
 
 const MantencionPage: React.FC = () => {
   const { records, loading, error, reload } = useMaintenanceRecords()
@@ -32,6 +35,87 @@ const MantencionPage: React.FC = () => {
   const [showFinishModal, setShowFinishModal] = useState(false);
   const [selectedMantencionId, setSelectedMantencionId] = useState<number | null>(null)
   const [grupoMaquinariaSeleccionado, setGrupoMaquinariaSeleccionado] = useState<string>("")
+  const [filteredRecords, setFilteredRecords] = useState<MaintenanceRecord[]>([])
+  const [maquinarias, setMaquinarias] = useState<Maquinaria[]>([])
+  const [mecanicos, setMecanicos] = useState<Trabajador[]>([])
+  const [showFilters, setShowFilters] = useState(false)
+  
+
+  const [filterValues, setFilterValues] = useState({
+  estado: "",
+  grupo: "",
+  patente: "",
+  mecanicoId: "",
+  })
+
+  useEffect(() => {
+    const cargarDatosAuxiliares = async () => {
+      const [maqRes, mecRes] = await Promise.all([
+        maquinariaService.obtenerTodasLasMaquinarias(),
+        trabajadorService.getTrabajadores({ todos: true }),
+      ])
+
+      if (maqRes.success && maqRes.data) setMaquinarias(maqRes.data)
+
+      if (mecRes.success && mecRes.data) {
+        const mecanicosFiltrados = mecRes.data.filter(
+        (trab) => trab.usuario?.role === "Mecánico"
+        )
+        setMecanicos(mecanicosFiltrados)
+      }
+
+    }
+
+    cargarDatosAuxiliares()
+  }, [])
+
+  useEffect(() => {
+  let filtrados = [...records];
+
+  if (filterValues.estado) {
+    filtrados = filtrados.filter((r) => r.estado === filterValues.estado);
+  }
+
+  if (filterValues.grupo) {
+    filtrados = filtrados.filter((r) => r.maquinaria.grupo === filterValues.grupo);
+  }
+
+  if (filterValues.patente) {
+    filtrados = filtrados.filter((r) => r.maquinaria.patente === filterValues.patente);
+  }
+
+  if (filterValues.mecanicoId) {
+    filtrados = filtrados.filter(
+      (r) => r.mecanicoAsignado?.id?.toString() === filterValues.mecanicoId
+    );
+  }
+
+  setFilteredRecords(filtrados);
+}, [records, filterValues]);
+
+
+  const handleFilterChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    const { name, value } = e.target
+    setFilterValues((prev) => ({ ...prev, [name]: value }))
+  }
+
+  const handleResetFilters = () => {
+    setFilterValues({
+      estado: "",
+      grupo: "",
+      patente: "",
+      mecanicoId: "",
+    })
+  }
+
+  const hasActiveFilters = Object.values(filterValues).some((v) => v.trim() !== "")
+
+  
+
+  
+
 
   const handleOpenSpareParts = (mantencion: MaintenanceRecord) => {
     setSelectedMantencionId(mantencion.id)
@@ -72,40 +156,38 @@ const MantencionPage: React.FC = () => {
       reload();
     };
 
-    const handleCreateOrUpdate = async (data: any) => {
+    const handleCreateOrUpdate = async (data) => {
       try {
         if (editingRecord) {
-          const cleanData: any = {}
+          const transformed = {
+            maquinariaId: data.maquinariaId ?? editingRecord.maquinaria.id,
+            mecanicoId: data.mecanicoId ?? editingRecord.mecanicoAsignado.id,
+            razonMantencion: data.razonMantencion ?? editingRecord.razonMantencion,
+            descripcionEntrada: data.descripcionEntrada ?? editingRecord.descripcionEntrada,
+            descripcionSalida: data.descripcionSalida ?? editingRecord.descripcionSalida,
+            estado: data.estado ?? editingRecord.estado,
+            fechaSalida: data.fechaSalida ?? editingRecord.fechaSalida?.toString().split("T")[0],
 
-          if (data.maquinariaId) cleanData.maquinariaId = data.maquinariaId
-          if (data.mecanicoId) cleanData.mecanicoId = data.mecanicoId
-          if (data.descripcionEntrada?.trim()) cleanData.descripcionEntrada = data.descripcionEntrada.trim()
-          if (data.descripcionSalida?.trim()) cleanData.descripcionSalida = data.descripcionSalida.trim()
-          if (data.estado) cleanData.estado = data.estado
-          if (data.razonMantencion) cleanData.razonMantencion = data.razonMantencion
-          if (data.fechaSalida && data.fechaSalida.trim() !== "") cleanData.fechaSalida = data.fechaSalida.trim()
+            repuestosUtilizados: (data.repuestosUtilizados ?? editingRecord.repuestosUtilizados)?.map((r) => ({
+              repuestoId: r.repuestoId ?? r.id ?? r.repuesto?.id,
+              cantidad: r.cantidad ?? r.cantidadUtilizada ?? r.cantidad,
+            })).filter(r => !!r.repuestoId && r.cantidad > 0),
+          };
 
-          if (Array.isArray(data.repuestosUtilizados)) {
-            const repuestosValidos = data.repuestosUtilizados.filter((rep: any) => rep.repuestoId && rep.cantidad > 0)
-            if (repuestosValidos.length > 0) {
-              cleanData.repuestosUtilizados = repuestosValidos
-            }
-          }
-
-          await update(editingRecord.id, cleanData)
-          showSuccess("Mantención actualizada", "Los cambios han sido guardados exitosamente")
+          await update(editingRecord.id, transformed);
+          showSuccess("Mantención actualizada", "Los cambios han sido guardados exitosamente");
         } else {
-          await create(data)
-          showSuccess("Mantención registrada", "La mantención ha sido creada correctamente")
+          await create(data);
+          showSuccess("Mantención registrada", "La mantención ha sido creada correctamente");
         }
 
-        handleCloseModal()
-        reload()
+        handleCloseModal();
+        reload();
       } catch (error) {
-        console.error(error)
-        showError("Error al guardar", "Ocurrió un problema al guardar la mantención")
+        console.error(error);
+        showError("Error al guardar", "Ocurrió un problema al guardar la mantención");
       }
-    }
+  };
 
     const handleDelete = async (id: number) => {
       if (confirm("¿Estás seguro de que deseas eliminar esta mantención?")) {
@@ -140,13 +222,39 @@ const MantencionPage: React.FC = () => {
                     </p>
                   </div>
                 </div>
-                <Button variant="light" onClick={() => handleOpenModal()}>
-                <i className="bi bi-plus-circle me-2"></i>
-                Registrar Mantención
-              </Button>
+                <div className="d-flex gap-2">
+                  <Button
+                    variant={showFilters ? "outline-light" : "light"}
+                    onClick={() => setShowFilters(!showFilters)}
+                  >
+                    <i className={`bi bi-funnel${showFilters ? "-fill" : ""} me-2`} />
+                    {showFilters ? "Ocultar Filtros" : "Mostrar Filtros"}
+                  </Button>
+
+                  <Button variant="light" onClick={() => handleOpenModal()}>
+                    <i className="bi bi-plus-circle me-2"></i>
+                    Registrar Mantención
+                  </Button>
+                </div>
               </div>
             </Card.Header>
           </Card>
+
+  
+          {showFilters && (
+            <MantencionLocalFilters
+              filters={filterValues}
+              maquinarias={maquinarias}
+              mecanicos={mecanicos}
+              onFilterChange={handleFilterChange}
+              onReset={() => {
+                handleResetFilters()
+                setShowFilters(false) 
+              }}
+              hasActiveFilters={hasActiveFilters}
+            />
+          )}
+
 
           {/* Contenido principal */}
           <Card className="shadow-sm">
@@ -168,8 +276,11 @@ const MantencionPage: React.FC = () => {
                   {error}
                 </Alert>
               ) : (
+                
+
+                //Lista las mantenciones
                 <MaintenanceRecordList
-                  records={records}
+                  records={filteredRecords}
                   onEdit={handleOpenModal}
                   onDelete={handleDelete}
                   onFinish={handleOpenFinishModal}
@@ -180,6 +291,8 @@ const MantencionPage: React.FC = () => {
             </Card.Body>
           </Card>
 
+          
+          
           {/* Modales */}
           <MaintenanceRecordModal
             show={showModal}
@@ -202,13 +315,12 @@ const MantencionPage: React.FC = () => {
           {selectedMantencionId !== null && (
             <MaintenanceSparePartPanel
               mantencionId={selectedMantencionId}
-              grupoMaquinaria={grupoMaquinariaSeleccionado}
               show={showSparePartPanel}
               onHide={() => setShowSparePartPanel(false)}
               onReload={reload}
             />
           )}
-
+          
           <FinalizeMaintenanceModal
             show={showFinishModal}
             onHide={handleCloseFinishModal}
