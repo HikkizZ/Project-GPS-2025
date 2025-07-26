@@ -6,6 +6,8 @@ import {
     getBonoById,
     updateBono,
     deleteBono,
+    desactivarBono,
+    reactivarBono
 } from "../../../controllers/recursosHumanos/remuneraciones/bono.controller.js";
 
 const router: Router = Router();
@@ -25,5 +27,11 @@ router.put("/:id", updateBono); // Actualizar bono (propietario o RRHH)
 
 // Rutas para eliminar bonos
 router.delete("/:id", deleteBono); // Eliminar bono (propietario o RRHH)
+
+// Rutas para desactivar bonos (soft delete)
+router.delete("/:id", desactivarBono); // Desactivar bono (propietario o RRHH)
+
+// Rutas para reactivar bonos
+router.patch("/:id/reactivar", reactivarBono); // Reactivar bono (propietario o RRHH)
 
 export default router; 

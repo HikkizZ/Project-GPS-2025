@@ -26,11 +26,19 @@ enum Temporalidad {
 }
 
 export const BonosPage: React.FC = () => {
-    const { bonos, isLoading, error, cargarBonos, searchBonos, createBono, updateBono, clearError, totalBonos } = useBono();
+    const { bonos, isLoading, error, cargarBonos, searchBonos, clearError, totalBonos, desactivarBono } = useBono();
     const [filter, setFilter] = useState("");// Toast notifications
     const { toasts, removeToast, showSuccess, showError } = useToast();
     const { setError: setUIError, setLoading } = useUI();
     const { user } = useAuth();
+    const [bonoDesactivado, setBonoDesactivado] = useState<Bono | null>(null);
+    const [showDesactivarModal, setShowDesactivarModal] = useState(false);
+    const [bonoToDesactivar, setBonoToDesactivar] = useState<Bono | null>(null);
+    const [motivoDesactivacion, setMotivoDesactivacion] = useState('');
+    const [desactivarError, setDesactivarError] = useState<string>('');
+    const [motivoDesactivacionError, setMotivoDesactivacionError] = useState<string>('');
+    const [isDesactivado, setIsDesactivado] = useState(false);
+    const [showReactivarModal, setShowReactivarModal] = useState(false);
 
     const [showFilters, setShowFilters] = useState(false);
     const [selectedBono, setSelectedBono] = useState<Bono | null>(null);
@@ -39,9 +47,60 @@ export const BonosPage: React.FC = () => {
     const [searchParams, setSearchParams] = useState<BonoSearchQueryData>({});
     const [searchNombre, setSearchNombre] = useState<string>('');
 
-    /*
-    
-    */
+    const handleMotivoDesactivacionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        setMotivoDesactivacion(value);
+        if (motivoDesactivacionError) {
+            setMotivoDesactivacionError('');
+        }
+    };
+
+    const handleDesactivarClick = (bono: Bono) => {
+        setBonoToDesactivar(bono);
+        setShowDesactivarModal(true);
+        setMotivoDesactivacion('');
+        setMotivoDesactivacionError('');
+        setDesactivarError('');
+    };
+
+    const handleDesactivarConfirm = async () => {
+        if (!bonoToDesactivar) return;
+        if (!motivoDesactivacion.trim()) {
+            setMotivoDesactivacionError('El motivo de desactivación es obligatorio');
+            return;
+        } else if (motivoDesactivacion.trim().length < 3) {
+            setMotivoDesactivacionError('El motivo de desactivación debe tener al menos 3 caracteres');
+            return;
+        }
+        try {
+            setIsDesactivado(true);
+            setDesactivarError('');
+            setMotivoDesactivacion('');
+            const result = await desactivarBono(bonoToDesactivar.id, motivoDesactivacion);
+            if (result.success) {
+                setShowDesactivarModal(false);
+                cargarBonos(); // Recargar la lista de bonos
+                showSuccess('Bono desactivado', 'El bono se ha desactivado exitosamente', 4000);
+            } else {
+                setDesactivarError(result.error || 'Error al desactivar el bono');
+            }
+        } catch (error) {
+            setDesactivarError('Error de conexión al desactivar el bono');
+        } finally {
+            setIsDesactivado(false);
+        }
+    };
+
+    const handleReactivacion = (bono: Bono) => {
+        setBonoDesactivado(bono);
+        setShowReactivarModal(true);
+    };
+
+    const handleReactivacionSuccess = () => {
+        setShowReactivarModal(false);
+        setBonoDesactivado(null);
+        cargarBonos(); // Recargar la lista de bonos
+    };
     useEffect(() => {
         // Cargar los bonos al montar el componente
         
@@ -322,6 +381,10 @@ export const BonosPage: React.FC = () => {
                                                 <h6 className="mb-0">
                                                     <i className="bi bi-list-ul me-2"></i>
                                                     Bonos ({bonos.length})
+                                                    <small className="text-muted ms-2">
+                                                        (Activos: {bonos.filter(t => t.enSistema).length} • 
+                                                        Desvinculados: {bonos.filter(t => !t.enSistema).length})
+                                                    </small>
                                                 </h6>
                                             </div>
 
@@ -344,7 +407,19 @@ export const BonosPage: React.FC = () => {
                                                         {bonos.map((bono) => (
                                                             <tr key={bono.id}>
                                                                 <td>{bono.id}</td>
-                                                                <td>{bono.nombreBono}</td>
+                                                                <td>
+                                                                    <div>
+                                                                        <div className="fw-bold">
+                                                                            {bono.nombreBono}
+                                                                        </div>
+                                                                        {!bono.enSistema && (
+                                                                            <span className="badge bg-secondary bg-opacity-25 text-secondary" style={{ fontSize: '0.75em' }}>
+                                                                                <i className="bi bi-person-x me-1"></i>
+                                                                                Desvinculado
+                                                                            </span>
+                                                                        )}
+                                                                    </div>
+                                                                </td>
                                                                 <td>{bono.monto}</td>
                                                                 <td>{bono.tipoBono}</td>
                                                                 <td>{bono.temporalidad}</td>
@@ -354,20 +429,23 @@ export const BonosPage: React.FC = () => {
                                                                 <td className="text-center">
                                                                     <div className="btn-group">
                                                                         <Button 
-                                                                            variant="outline-primary" 
-                                                                            className="me-2"
-                                                                            onClick={() => handleClickUpdate(bono)}
-                                                                            title="Editar bono"
-                                                                        >
-                                                                            <i className="bi bi-pencil"></i>
-                                                                        </Button>
-                                                                        <Button 
                                                                             variant="outline-danger"
-                                                                            onClick={() => handleDelete(bono.id)}
-                                                                            title="Eliminar bono"
+                                                                            onClick={() => handleDesactivarClick(bono)}
+                                                                            title="Desactivar bono"
+                                                                            disabled={!bono.enSistema}
                                                                         >
                                                                             <i className="bi bi-trash"></i>
                                                                         </Button>
+                                                                        {/* Botón de reactivar solo si está desvinculado */}
+                                                                        {!bono.enSistema && (
+                                                                            <Button
+                                                                                variant="outline-success"
+                                                                                onClick={() => handleReactivacion(bono)}
+                                                                                title="Reactivar bono"
+                                                                            >
+                                                                            <i className="bi bi-person-check"></i>
+                                                                        </Button>
+                                                                        )}
                                                                     </div>
                                                                 </td>
                                                             </tr>
@@ -384,21 +462,123 @@ export const BonosPage: React.FC = () => {
                     
                 </Col>
             </Row>
-            
-
-            <EditarBonoModal
-                show={showEditModal}
-                onHide={() => setShowEditModal(false)}
-                bono={selectedBono}
-                onUpdate={handleUpdateSuccess}
-            />
-
+        
             <CrearBonoModal
                 show={showCreateModal}
                 onHide={() => setShowCreateModal(false)}
                 onSuccess={handleCreateSuccess}
             />
 
+            {/* Modal reactivación */}
+            <Modal
+                show={showDesactivarModal}
+                onHide={() => setShowDesactivarModal(false)}
+                centered
+            >
+                <Modal.Header 
+                    closeButton 
+                    style={{
+                    background: 'linear-gradient(135deg, #dc3545 0%, #a71e2a 100%)',
+                    border: 'none'
+                    }}
+                    className="text-white"
+                >
+                    <Modal.Title className="fw-semibold">
+                        <i className="bi bi-person-x me-2"></i>
+                        Desactivar Bono
+                    </Modal.Title>
+                </Modal.Header>
+                <Modal.Body style={{ padding: '1.5rem' }}>
+                    <Alert variant="warning" className="border-0 mb-3" style={{ borderRadius: '12px' }}>
+                        <div className="d-flex align-items-start">
+                            <i className="bi bi-exclamation-triangle me-3 mt-1 text-warning"></i>
+                            <div>
+                                <strong>Advertencia:</strong>
+                                <p className="mb-2 mt-1">Esta acción:</p>
+                                <ul className="mb-0">
+                                    <li>Marcará al bono como desactivado en el sistema</li>
+                                    <li>Cambiará el estado de las asignaciones a "Desactivado"</li>
+                                    <li>No contará este bono para los calculos de remuneraciones</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </Alert>
+                      
+                    <div className="mb-3 p-3 bg-light rounded-3">
+                        <p className="mb-2 fw-semibold">¿Estás seguro que deseas desvincular al trabajador?</p>
+                        <div className="d-flex flex-column gap-1">
+                            <div>
+                                <span className="fw-semibold text-muted">Nombre:</span> 
+                                <span className="ms-2">{bonoToDesactivar ? `${bonoToDesactivar.nombreBono}` : ''}</span>
+                            </div>
+                        </div>
+                    </div>
+                      
+                    <Form.Group>
+                        <Form.Label className="fw-semibold">Motivo de Desactivación <span className="text-danger">*</span></Form.Label>
+                        <Form.Control
+                            as="textarea"
+                            rows={3}
+                            value={motivoDesactivacion}
+                            onChange={handleMotivoDesactivacionChange}
+                            isInvalid={!!motivoDesactivacionError}
+                            placeholder="Ingrese el motivo de la desactivación..."
+                            required
+                            style={{ borderRadius: '8px' }}
+                        />
+                        <Form.Control.Feedback type="invalid">
+                            {motivoDesactivacionError}
+                        </Form.Control.Feedback>
+                        <Form.Text className="text-muted">
+                            <i className="bi bi-info-circle me-1"></i>
+                            Es importante documentar el motivo de la desactivación para seguimiento.
+                        </Form.Text>
+                    </Form.Group>
+                        {desactivarError && (
+                            <Alert variant="danger" className="border-0 mt-3 mb-0" style={{ borderRadius: '12px' }}>
+                                <i className="bi bi-exclamation-circle me-2"></i>
+                                {desactivarError}
+                            </Alert>
+                        )}
+                </Modal.Body>
+
+                <Modal.Footer style={{ padding: '1rem 1.5rem', borderTop: '1px solid #dee2e6' }}>
+                    <Button 
+                        variant="outline-secondary" 
+                        onClick={() => setShowDesactivarModal(false)}
+                        disabled={isDesactivado}
+                        style={{ borderRadius: '20px', fontWeight: '500' }}
+                    >
+                        <i className="bi bi-x-circle me-2"></i>
+                        Cancelar
+                    </Button>
+                    <Button 
+                        variant="danger"
+                        onClick={handleDesactivarConfirm}
+                        disabled={isDesactivado || !motivoDesactivacion.trim() || !!motivoDesactivacionError}
+                        style={{ borderRadius: '20px', fontWeight: '500' }}
+                    >
+                        {isDesactivado ? (
+                            <>
+                                <Spinner
+                                    as="span"
+                                    animation="border"
+                                    size="sm"
+                                    role="status"
+                                    aria-hidden="true"
+                                    className="me-2"
+                                />
+                                Desactivando...
+                            </>
+                        ) : (
+                            <>
+                                <i className="bi bi-person-x me-2"></i>
+                                Desactivar
+                            </>
+                        )}
+                    </Button>
+                </Modal.Footer>
+            </Modal>
 
             <div className="footer-bonos">
                 <p className="text-center text-muted">

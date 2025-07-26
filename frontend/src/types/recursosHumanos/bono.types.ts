@@ -8,6 +8,7 @@ export interface Bono {
     imponible: boolean;
     fechaCreacion: string; // Formato YYYY-MM-DD
     duracionMes?: string;
+    enSistema: boolean; // Indica si el bono está activo o no
 }
 
 export interface CreateBonoData {

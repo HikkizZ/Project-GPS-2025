@@ -159,6 +159,15 @@ export class BonoService {
             };
         }
     }
+
+    async desactivarBono(bonoId: number, motivo: string): Promise<ApiResponse> {
+        const response = await apiClient.delete(`${this.baseURL}/${bonoId}`, { data: { motivo } });
+        return {
+        success: true,
+        message: response.message || 'Trabajador desvinculado exitosamente',
+        };
+    }
+
 }
 
 export const bonoService = new BonoService();
