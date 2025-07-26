@@ -516,7 +516,7 @@ export const ReactivarTrabajadorModal: React.FC<ReactivarTrabajadorModalProps> =
         <Button 
           variant="success" 
           onClick={handleSubmit} 
-          disabled={loading}
+          disabled={loading || !formData.motivoReactivacion.trim() || !!errors.motivoReactivacion}
         >
           {loading ? (
             <>
