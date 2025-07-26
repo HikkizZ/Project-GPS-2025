@@ -3,10 +3,24 @@ import { SparePart } from "../../entity/MachineryMaintenance/SparePart.entity.js
 import { CreateSparePartDTO, UpdateSparePartDTO } from "../../types/MachineryMaintenance/sparePart.dto.js";
 import { ServiceResponse } from "../../../types.js";
 
+
+function contieneCaracteresEspeciales(texto: string): boolean {
+  const regex = /^[a-zA-Z0-9\s]+$/;
+  return !regex.test(texto);
+}
+
 // Crear repuesto
 export async function createSparePart(data: CreateSparePartDTO): Promise<ServiceResponse<SparePart>> {
   try {
     const repo = AppDataSource.getRepository(SparePart);
+
+    if (
+        contieneCaracteresEspeciales(data.name) ||
+        contieneCaracteresEspeciales(data.marca) ||
+        contieneCaracteresEspeciales(data.modelo)
+      ) {
+        return [null, "No se permiten caracteres especiales en nombre, marca o modelo"];
+      }
 
     const duplicado = await repo
       .createQueryBuilder("repuesto")
@@ -101,6 +115,14 @@ export async function updateSparePart(id: number, data: UpdateSparePartDTO): Pro
     const nombre = data.name?.trim() ?? existente.name;
     const marca = data.marca?.trim() ?? existente.marca;
     const modelo = data.modelo?.trim() ?? existente.modelo;
+
+    if (
+      contieneCaracteresEspeciales(nombre) ||
+      contieneCaracteresEspeciales(marca) ||
+      contieneCaracteresEspeciales(modelo)
+    ) {
+      return [null, "No se permiten caracteres especiales en nombre, marca o modelo"];
+    }
 
     const duplicado = await repo
       .createQueryBuilder("repuesto")
