@@ -81,6 +81,9 @@ export interface FichaEmpresaSearchQuery {
   fechaInicioHasta?: Date | string;
   fechaFinDesde?: Date | string;
   fechaFinHasta?: Date | string;
+  afp?: string;
+  previsionSalud?: string;
+  seguroCesantia?: string;
 }
 
 export interface UpdateFichaEmpresaData {
@@ -122,4 +125,7 @@ export interface FichaEmpresaSearchParams {
   fechaFinDesde?: string;
   fechaFinHasta?: string;
   incluirSinFechaFin?: boolean;
+  afp?: string;
+  previsionSalud?: string;
+  seguroCesantia?: string;
 } 

@@ -60,7 +60,10 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
   } = useFichaEmpresa();
 
   const [searchQuery, setSearchQuery] = useState<FichaEmpresaSearchParams>({
-    estado: EstadoLaboral.ACTIVO
+    estado: EstadoLaboral.ACTIVO,
+    afp: '',
+    previsionSalud: '',
+    seguroCesantia: ''
   });
   const [showFilters, setShowFilters] = useState(false);
   const [selectedFicha, setSelectedFicha] = useState<FichaEmpresa | null>(null);
@@ -208,7 +211,12 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
   };
 
   const handleReset = () => {
-    setSearchQuery({ estado: EstadoLaboral.ACTIVO });
+    setSearchQuery({ 
+      estado: EstadoLaboral.ACTIVO,
+      afp: '',
+      previsionSalud: '',
+      seguroCesantia: ''
+    });
     setIncluirDesvinculados(false);
     setIncluirLicencias(false);
     setIncluirPermisos(false);
@@ -790,6 +798,53 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                         <option value="Plazo Fijo">Plazo Fijo</option>
                         <option value="Por Obra">Por Obra</option>
                         <option value="Part-Time">Part-Time</option>
+                      </Form.Select>
+                    </Form.Group>
+                  </div>
+                  <div className="col-md-3">
+                    <Form.Group>
+                      <Form.Label className="fw-semibold">AFP:</Form.Label>
+                      <Form.Select
+                        value={searchQuery.afp || ''}
+                        onChange={(e) => setSearchQuery({ ...searchQuery, afp: e.target.value })}
+                        style={{ borderRadius: '8px' }}
+                      >
+                        <option value="">Todas las AFP</option>
+                        <option value="habitat">AFP Habitat</option>
+                        <option value="provida">AFP Provida</option>
+                        <option value="modelo">AFP Modelo</option>
+                        <option value="cuprum">AFP Cuprum</option>
+                        <option value="capital">AFP Capital</option>
+                        <option value="planvital">AFP PlanVital</option>
+                        <option value="uno">AFP Uno</option>
+                      </Form.Select>
+                    </Form.Group>
+                  </div>
+                  <div className="col-md-3">
+                    <Form.Group>
+                      <Form.Label className="fw-semibold">Previsión Salud:</Form.Label>
+                      <Form.Select
+                        value={searchQuery.previsionSalud || ''}
+                        onChange={(e) => setSearchQuery({ ...searchQuery, previsionSalud: e.target.value })}
+                        style={{ borderRadius: '8px' }}
+                      >
+                        <option value="">Todas las previsiones</option>
+                        <option value="FONASA">FONASA</option>
+                        <option value="ISAPRE">ISAPRE</option>
+                      </Form.Select>
+                    </Form.Group>
+                  </div>
+                  <div className="col-md-3">
+                    <Form.Group>
+                      <Form.Label className="fw-semibold">Seguro Cesantía:</Form.Label>
+                      <Form.Select
+                        value={searchQuery.seguroCesantia || ''}
+                        onChange={(e) => setSearchQuery({ ...searchQuery, seguroCesantia: e.target.value })}
+                        style={{ borderRadius: '8px' }}
+                      >
+                        <option value="">Todos los seguros</option>
+                        <option value="Sí">Sí</option>
+                        <option value="No">No</option>
                       </Form.Select>
                     </Form.Group>
                   </div>
