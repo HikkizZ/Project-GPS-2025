@@ -482,11 +482,11 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                             </div>
                           </div>
 
-                          {miFicha.contratoURL && (
-                            <div className="info-field">
-                              <i className="bi bi-file-earmark-text"></i>
-                              <label>Contrato</label>
-                              <div className="value">
+                          <div className="info-field">
+                            <i className="bi bi-file-earmark-text"></i>
+                            <label>Contrato</label>
+                            <div className="value">
+                              {miFicha.contratoURL ? (
                                 <Button
                                   variant="outline-primary"
                                   size="sm"
@@ -496,9 +496,11 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                                   <i className="bi bi-download me-1"></i>
                                   Descargar Contrato
                                 </Button>
-                              </div>
+                              ) : (
+                                <span className="text-muted">No hay contrato adjunto</span>
+                              )}
                             </div>
-                          )}
+                          </div>
                         </div>
                       </div>
                     </div>
