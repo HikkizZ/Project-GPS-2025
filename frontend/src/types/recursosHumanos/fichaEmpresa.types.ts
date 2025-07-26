@@ -129,3 +129,49 @@ export interface FichaEmpresaSearchParams {
   previsionSalud?: string;
   seguroCesantia?: string;
 } 
+
+ export interface AsignarBonoDTO {
+    fichaId: number;
+    bonoId: number;
+    fechaEntrega?: string | Date;
+    activo?: boolean;
+    observaciones?: string;
+}
+
+export interface UpdateAsignarBonoDTO {
+    fechaEntrega?: string | Date;
+    activo?: boolean;
+    observaciones?: string;
+}
+
+export interface AsignarBonoQueryDTO {
+    id?: number;
+    trabajadorId?: number;
+    bonoId?: number;
+    activo?: boolean;
+    fechaEntregaDesde?: string | Date;
+    fechaEntregaHasta?: string | Date;
+    limit?: number;
+    offset?: number;
+}
+
+export interface AsignarBonoResponseDTO {
+    id: number;
+    trabajador: {
+        id: number;
+        nombres: string;
+        apellidoPaterno: string;
+        apellidoMaterno: string;
+        rut: string;
+    };
+    bono: {
+        id: number;
+        nombreBono: string;
+        monto: string;
+        tipoBono: "estatal" | "empresarial";
+        temporalidad: "permanente" | "recurrente" | "puntual";
+    };
+    fechaEntrega: Date;
+    activo: boolean;
+    observaciones?: string;
+}
