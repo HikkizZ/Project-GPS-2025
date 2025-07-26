@@ -207,8 +207,8 @@ const DashboardRecursosHumanos: React.FC = () => {
                             <Card.Title className="fw-bold text-dark mb-2 fs-5">Gestión de Sueldos</Card.Title>
                             <Card.Text className="text-muted small mb-3">Control de remuneraciones y beneficios</Card.Text>
                             <div className="d-flex align-items-center justify-content-center">
-                              <small className="text-muted">
-                                <i className="bi bi-clock me-1"></i>
+                              <small className="text-primary fw-semibold">
+                                <i className="bi bi-arrow-right me-1"></i>
                                 Acceder
                               </small>
                             </div>
