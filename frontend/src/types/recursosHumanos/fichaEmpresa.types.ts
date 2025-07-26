@@ -92,6 +92,9 @@ export interface UpdateFichaEmpresaData {
   fechaInicioContrato?: string;
   fechaFinContrato?: string;
   contratoURL?: string;
+  afp?: string;
+  previsionSalud?: string;
+  seguroCesantia?: boolean;
 }
 
 export interface ActualizarEstadoData {
