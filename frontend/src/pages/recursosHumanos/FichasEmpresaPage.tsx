@@ -446,7 +446,7 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
 
                           <div className="info-field">
                             <i className="bi bi-clock"></i>
-                            <label>Jornada</label>
+                            <label>Jornada Laboral</label>
                             <div className={`value ${getFieldClass(miFicha.jornadaLaboral)}`}>
                               {miFicha.jornadaLaboral === 'Por Definir' ? 
                                 <span className="pending">Por Definir</span> : 
@@ -502,7 +502,7 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
 
                           <div className="info-field">
                             <i className="bi bi-breadcase"></i>
-                            <label>Seguro cesantía</label>
+                            <label>Seguro Cesantía</label>
                             <div className="value">
                               {miFicha.seguroCesantia ? (
                                 <span className={`status-badge ${miFicha.seguroCesantia === 'Sí' ? 'success' : 'danger'}`}>
@@ -526,7 +526,7 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
 
                           <div className ="info-field">
                             <i className='bi bi-calendar2-check'></i>
-                            <label> Bonos asignados </label>
+                            <label> Bonos Asignados </label>
                             <div className="value">
                               {miFicha.asignacionesBonos && miFicha.asignacionesBonos.length > 0 ? (
                               <span className="status-badge">
@@ -975,14 +975,14 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                         <th>Área</th>
                         <th>Estado</th>
                         <th>Tipo Contrato</th>
-                        <th>Jornada</th>
+                        <th>Jornada Laboral</th>
                         <th>Fecha Inicio</th>
                         <th>Fecha Fin</th>
                         <th>Sueldo Base</th>
                         <th>AFP</th>
                         <th>Previsión Salud</th>
-                        <th>Seguro cesantía</th>
-                        <th>Bonos asignados</th>
+                        <th>Seguro Cesantía</th>
+                        <th>Bonos Asignados</th>
                         <th>Acciones</th>
                       </tr>
                     </thead>
