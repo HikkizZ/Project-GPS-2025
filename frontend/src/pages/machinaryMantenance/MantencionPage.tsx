@@ -23,6 +23,7 @@ import type { Maquinaria } from "@/types/maquinaria.types"
 import type { Trabajador } from "@/types/recursosHumanos/trabajador.types"
 import AssignMecanicoModal from "@/components/MachineryMaintenance/MaintenanceRecord/AssignMecanicoModal"
 import EstadoFinalizacionModal from "@/components/MachineryMaintenance/MaintenanceRecord/EstadoFinalizacionModal";
+import Pagination from "@/components/MachineryMaintenance/Pagination";
 
 const MantencionPage: React.FC = () => {
   const { records, loading, error, reload } = useMaintenanceRecords()
@@ -48,8 +49,14 @@ const MantencionPage: React.FC = () => {
   const [showEstadoModal, setShowEstadoModal] = useState(false);
   const [estadoSeleccionado, setEstadoSeleccionado] = useState<EstadoMantencion.COMPLETADA | EstadoMantencion.IRRECUPERABLE | null>(null);
 
-
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
   
+  const totalPages = Math.ceil(filteredRecords.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedRecords = filteredRecords.slice(startIndex, endIndex);
+
   const handleOpenAssignModal = (record: MaintenanceRecord) => {
     setRecordToAssign(record);
     setShowAssignModal(true); 
@@ -125,6 +132,7 @@ const MantencionPage: React.FC = () => {
   }
 
   setFilteredRecords(filtrados);
+   setCurrentPage(1);
 }, [records, filterValues]);
 
 
@@ -351,13 +359,19 @@ const MantencionPage: React.FC = () => {
 
                 //Lista las mantenciones
                 <MaintenanceRecordList
-                  records={filteredRecords}
+                  records={paginatedRecords}
                   onEdit={handleOpenModal}
                   onDelete={handleDelete}
                   onFinish={handleOpenFinishModal}
                   onSpareParts={handleOpenSpareParts}
                   onAssignMecanico={handleOpenAssignModal}
                   onReload={reload}
+                />
+              )}{!loading && !error && filteredRecords.length > itemsPerPage && (
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={(page) => setCurrentPage(page)}
                 />
               )}
             </Card.Body>
