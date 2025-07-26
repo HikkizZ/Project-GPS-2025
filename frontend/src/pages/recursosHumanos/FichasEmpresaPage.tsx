@@ -536,6 +536,22 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                           <div className="value">{formatTelefono(miFicha.trabajador.telefono)}</div>
                         </div>
 
+                        {miFicha.trabajador.numeroEmergencia && (
+                          <div className="info-field">
+                            <i className="bi bi-telephone-plus"></i>
+                            <label>Teléfono de Emergencia</label>
+                            <div className="value">{formatTelefono(miFicha.trabajador.numeroEmergencia)}</div>
+                          </div>
+                        )}
+
+                        {miFicha.trabajador.direccion && (
+                          <div className="info-field">
+                            <i className="bi bi-geo-alt"></i>
+                            <label>Dirección</label>
+                            <div className="value">{miFicha.trabajador.direccion}</div>
+                          </div>
+                        )}
+
                         <div className="info-field">
                           <i className="bi bi-calendar-check"></i>
                           <label>Fecha Ingreso</label>
