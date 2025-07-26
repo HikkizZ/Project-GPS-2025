@@ -23,7 +23,7 @@ export class BonoService {
 */
     // Funciones para usuarios administrador y superAdministrador 
     // Obtener todos los bonos o por filtros
-    async getAllBonos(query: BonoSearchQueryData = {}): Promise<ApiResponse<Bono[]>> {
+    async getAllBonos(query: BonoSearchQueryData = {}): Promise<ApiResponse<{bonos: Bono[], total: number}>> {
         // Limpiar campos undefined antes de construir los parámetros
         const cleanQuery = Object.fromEntries(
         Object.entries(query).filter(([_, value]) => value !== undefined && value !== null && value !== '')
@@ -33,16 +33,15 @@ export class BonoService {
         const url = params ? `${this.baseURL}?${params}` : this.baseURL;
         try {
             // Usar get directamente para obtener la respuesta completa
-            const response = await apiClient.get<{ data: Bono[]; message: string }>(url);
+            const response = await apiClient.get<{ status: string; message: string; data: { bonos: Bono[]; total: number } }>(url);
 
             console.log("Obteniendo bonos con query:", cleanQuery);
             console.log('URL:', `${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}${url}`);
             console.log('Token:', localStorage.getItem('auth_token'));
-            console.log('Response data:', response.data);
             return {
                 success: true,
                 data: response.data,
-                message: response.message || 'Bonos obtenidos exitosamente',
+                message: 'Bonos obtenidos exitosamente',
             };
             
         } catch (error: any) {
