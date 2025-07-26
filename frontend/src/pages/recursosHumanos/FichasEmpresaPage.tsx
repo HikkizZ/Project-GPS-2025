@@ -455,13 +455,16 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                             <div className="value">{formatFecha(miFicha.fechaInicioContrato)}</div>
                           </div>
 
-                          {miFicha.fechaFinContrato && (
-                            <div className="info-field">
-                              <i className="bi bi-calendar-x"></i>
-                              <label>Fecha Fin</label>
-                              <div className="value">{formatFecha(miFicha.fechaFinContrato)}</div>
+                          <div className="info-field">
+                            <i className="bi bi-calendar-x"></i>
+                            <label>Fecha Fin</label>
+                            <div className="value">
+                              {miFicha.fechaFinContrato ? 
+                                formatFecha(miFicha.fechaFinContrato) : 
+                                "-"
+                              }
                             </div>
-                          )}
+                          </div>
 
                           <div className="info-field">
                             <i className="bi bi-cash"></i>
@@ -478,6 +481,24 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                               </span>
                             </div>
                           </div>
+
+                          {miFicha.contratoURL && (
+                            <div className="info-field">
+                              <i className="bi bi-file-earmark-text"></i>
+                              <label>Contrato</label>
+                              <div className="value">
+                                <Button
+                                  variant="outline-primary"
+                                  size="sm"
+                                  onClick={() => handleDownloadContrato(miFicha.id)}
+                                  className="btn-download-contrato"
+                                >
+                                  <i className="bi bi-download me-1"></i>
+                                  Descargar Contrato
+                                </Button>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>

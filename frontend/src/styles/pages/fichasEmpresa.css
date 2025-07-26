@@ -343,4 +343,32 @@
   color: #212529;
   text-align: right;
   flex: 1;
+}
+
+/* Estilos para el botón de descarga de contrato */
+.btn-download-contrato {
+  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+  border: none;
+  color: white;
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 123, 255, 0.2);
+}
+
+.btn-download-contrato:hover {
+  background: linear-gradient(135deg, #0056b3 0%, #004085 100%);
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
+}
+
+.btn-download-contrato:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 123, 255, 0.2);
+}
+
+.btn-download-contrato i {
+  font-size: 0.9rem;
 } 
