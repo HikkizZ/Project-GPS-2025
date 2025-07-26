@@ -502,7 +502,7 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
 
                           <div className="info-field">
                             <i className="bi bi-breadcase"></i>
-                            <label>Seguro cesantía</label>
+                            <label>Seguro Cesantía</label>
                             <div className="value">
                               {miFicha.seguroCesantia ? (
                                 <span className={`status-badge ${miFicha.seguroCesantia === 'Sí' ? 'success' : 'danger'}`}>
@@ -526,7 +526,7 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
 
                           <div className ="info-field">
                             <i className='bi bi-calendar2-check'></i>
-                            <label> Bonos asignados </label>
+                            <label> Bonos Asignados </label>
                             <div className="value">
                               {miFicha.asignacionesBonos && miFicha.asignacionesBonos.length > 0 ? (
                               <span className="status-badge">
@@ -981,8 +981,8 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                         <th>Sueldo Base</th>
                         <th>AFP</th>
                         <th>Previsión Salud</th>
-                        <th>Seguro cesantía</th>
-                        <th>Bonos asignados</th>
+                        <th>Seguro Cesantía</th>
+                        <th>Bonos Asignados</th>
                         <th>Acciones</th>
                       </tr>
                     </thead>
