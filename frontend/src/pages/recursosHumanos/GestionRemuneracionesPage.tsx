@@ -17,46 +17,28 @@ import { useRut } from '@/hooks/useRut';
 
 function calculoSueldoBruto(ficha: FichaEmpresa): number {
     const { sueldoBase, tipoContrato } = ficha;
-    let validacionSueldo = true, validacionTipoContrato = true;
-    let sueldoBruto = 0;
     const bonos = ficha.asignacionesBonos.filter(bono => bono.activo) || [];
-    const SumaBonos = bonos.reduce((total, asignacionBono) => total + asignacionBono.bono.monto, 0);
+    const SumaBonos = bonos.reduce((total, asignacionBono) => total + parseInt(asignacionBono.bono.monto), 0);
 
-    // Comprobar que el sueldo base es un número válido
-    if (typeof sueldoBase !== 'number' || isNaN(sueldoBase) || sueldoBase < 0) {
-        validacionSueldo = false; // Marcar como inválido si no es un número o es negativo
-    } 
-    
-    if (!validacionSueldo) {
-        console.error("Sueldo base no válido o no asignado un descuento específico");
+     if (typeof sueldoBase !== 'number' || isNaN(sueldoBase) || sueldoBase < 0) {
+        console.error("Sueldo base no válido.");
+        return 0;
     }
 
-    // Comprobar que el tipo de contrato es válido
-    if (!tipoContrato || !["Indefinido", "Plazo Fijo", "Por Obra", "Part-Time", "Honorarios", "Aprendizaje"].includes(tipoContrato)) {
-        validacionTipoContrato = false; // Marcar como inválido si el tipo de contrato no es válido
+    const tiposValidos = ["Indefinido", "Plazo Fijo", "Por Obra", "Part-Time", "Honorarios", "Aprendizaje"];
+    if (!tipoContrato || !tiposValidos.includes(tipoContrato)) {
+        console.error("Tipo de contrato no válido.");
+        return 0;
     }
 
-    switch (tipoContrato) {
-        case "Indefinido":
-        case "Plazo Fijo":
-        case "Por Obra":
-        case "Part-Time":
-        case "Aprendizaje":
-            // Todos estos rigen por el Código del Trabajo
-            sueldoBruto = sueldoBase + SumaBonos;
-            break;
+    const bonosActivos = ficha.asignacionesBonos?.filter(bono => bono.activo) || [];
+    const sumaBonos = bonosActivos.reduce((total, asignacionBono) => total + parseInt(asignacionBono.bono.monto), 0);
 
-        case "Honorarios":
-            // No rige por el CT; el sueldo bruto es el valor acordado en el contrato
-            sueldoBruto = sueldoBase;
-            break;
-
-        default:
-            console.error("Tipo de contrato no reconocido");
-            validacionTipoContrato = false;
-            break;
+    if (tipoContrato === "Honorarios") {
+        return sueldoBase;
     }
-    return sueldoBruto;
+
+    return sueldoBase + sumaBonos;
 }
 
 function calcularSueldoLiquido(ficha: FichaEmpresa, historialLaboral: any): [number, number, number, number, number] {
@@ -66,16 +48,7 @@ function calcularSueldoLiquido(ficha: FichaEmpresa, historialLaboral: any): [num
     let descuentoLegal = 0;
     let descuentosInternos = historialLaboral?.descuentosInternos || 0;
     let rentaImponible = 0;
-    switch (ficha.afp){
-        case "AFP Uno": descuentoLegal = sueldoBase * 0.0049; break;
-        case "AFP Modelo": descuentoLegal = sueldoBase * 0.0058; break;
-        case "AFP Planvital": descuentoLegal = sueldoBase * 0.0116; break;
-        case "AFP Habitat": descuentoLegal = sueldoBase * 0.0127; break;
-        case "AFP Capital": descuentoLegal = sueldoBase * 0.0144; break;
-        case "AFP Cuprum": descuentoLegal = sueldoBase * 0.0144; break;
-        case "AFP Provida": descuentoLegal = sueldoBase * 0.0145; break;
-    }
-    descuentoLegal += sueldoBase * 0.07; // 7% de salud
+    
 
     
 
@@ -83,8 +56,8 @@ function calcularSueldoLiquido(ficha: FichaEmpresa, historialLaboral: any): [num
     const bonosImponibles = bonos.filter(bono => bono.bono.imponible);
     const bonosNoImponibles = bonos.filter(bono => !bono.bono.imponible);
 
-    const sueldoImponible = sueldoBase + bonosImponibles.reduce((total, asignacionBono) => total + asignacionBono.bono.monto, 0);
-    
+    const sueldoImponible = sueldoBase + bonosImponibles.reduce((total, asignacionBono) => total + (parseFloat(asignacionBono.bono.monto) || 0), 0);
+
     // Comprobar que el sueldo base es un número válido
     if (typeof sueldoBase !== 'number' || isNaN(sueldoBase) || sueldoBase < 0) {
         validacionSueldo = false; // Marcar como inválido si no es un número o es negativo
@@ -97,27 +70,37 @@ function calcularSueldoLiquido(ficha: FichaEmpresa, historialLaboral: any): [num
         console.error("Tipo de contrato no válido");
     }
 
+    switch (ficha.afp){
+        case "AFP Uno": descuentoLegal = sueldoImponible * 0.0049; break;
+        case "AFP Modelo": descuentoLegal = sueldoImponible * 0.0058; break;
+        case "AFP Planvital": descuentoLegal = sueldoImponible * 0.0116; break;
+        case "AFP Habitat": descuentoLegal = sueldoImponible * 0.0127; break;
+        case "AFP Capital": descuentoLegal = sueldoImponible * 0.0144; break;
+        case "AFP Cuprum": descuentoLegal = sueldoImponible * 0.0144; break;
+        case "AFP Provida": descuentoLegal = sueldoImponible * 0.0145; break;
+    }
+    descuentoLegal += sueldoImponible * 0.07; // 7% de salud
     // Calcular descuentos legales
     if (validacionSueldo && validacionTipoContrato) {
         switch (tipoContrato) {
             case "Indefinido":
                 if (seguroCesantia === 'Sí' ) {
-                    descuentoLegal += sueldoBase * 0.006; // 0.6% de seguro de cesantía
+                    descuentoLegal += sueldoImponible * 0.006; // 0.6% de seguro de cesantía
                 }
                 break;
             case "Plazo Fijo":
                 if (seguroCesantia === 'Sí' ) {
-                    descuentoLegal += sueldoBase * 0.03; // 3% de seguro de cesantía
+                    descuentoLegal += sueldoImponible * 0.03; // 3% de seguro de cesantía
                 }
                 break;
             case "Por Obra":
                 if (seguroCesantia === 'Sí' ) {
-                    descuentoLegal += sueldoBase * 0.03; // 3% de seguro de cesantía
+                    descuentoLegal += sueldoImponible * 0.03; // 3% de seguro de cesantía
                 }
                 break;
             case "Part-Time":
                 if (seguroCesantia === 'Sí' ) {
-                    descuentoLegal += sueldoBase * 0.03; // 3% de seguro de cesantía
+                    descuentoLegal += sueldoImponible * 0.03; // 3% de seguro de cesantía
                 }
                 break;
             case "Aprendizaje":
@@ -137,7 +120,7 @@ function calcularSueldoLiquido(ficha: FichaEmpresa, historialLaboral: any): [num
     rentaImponible = sueldoImponible - descuentoLegal;
 
     // Asignaciones no imponibles (bonos no imponibles) y descuentos internos si existen
-    const totalBonosNoImponibles = bonosNoImponibles.reduce((total, asignacionBono) => total + asignacionBono.bono.monto, 0);
+    const totalBonosNoImponibles = bonosNoImponibles.reduce((total, asignacionBono) => total + (parseInt(asignacionBono.bono.monto) || 0), 0);
     sueldoLiquido = rentaImponible + totalBonosNoImponibles - descuentosInternos;
 
     return [rentaImponible, descuentoLegal, sueldoLiquido, descuentosInternos, totalBonosNoImponibles];
@@ -298,16 +281,32 @@ export const GestionRemuneracionesPage: React.FC = () => {
                 </div>
                 
             </div>
-            <div>
-                <h2 className="text-center mb-4" style={{ color: "#283349" }}>
-                    Revise la información calculada de AFP, previsión salud, bonos, licencias, permisos, seguro de cesantía y más. Antes de realizar el pago de las remuneraciones de los trabajadores.
-                </h2>
-            </div>
+            
+            
+            <div className="mt-6">
+                {/* Advertencia */}
+                <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4">
+                    <h3>
+                    Revise la información calculada de AFP, previsión salud, bonos, licencias, permisos, seguro de cesantía y más, antes de realizar el pago de las remuneraciones de los trabajadores.
+                    </h3>
+                </div>
 
-            <div>
-                <h2 className="text-center mb-4" style={{ color: "#283349" }}>
-                    Aquí iría un grafico para apoyar la visualización de gastos en remuneraciones de trabajadores.
-                </h2>
+                {/* Descripción de la tabla */}
+                <div className="mt-6">
+                    <h3 className="text-lg font-semibold mb-2">La siguiente tabla muestra las siguientes características:</h3>
+                    <ul className="list-disc list-inside space-y-1">
+                    <li><strong>Trabajador:</strong> Nombre del trabajador al que se le está calculando la remuneración.</li>
+                    <li><strong>Tipo de Contrato:</strong> Tipo de contrato que afecta el cálculo de la remuneración. Ej.: "Indefinido", "Plazo Fijo", "Por Obra", "Part-Time", "Honorarios", "Aprendizaje".</li>
+                    <li><strong>Jornada:</strong> Indica si la jornada es completa, parcial u otro tipo, lo cual afecta el cálculo de horas trabajadas y cotizaciones.</li>
+                    <li><strong>Sueldo Base:</strong> Monto fijo mensual estipulado en el contrato como base de cálculo.</li>
+                    <li><strong>Sueldo Bruto:</strong> Sueldo base más bonificaciones, tanto imponibles como no imponibles.</li>
+                    <li><strong>Renta Imponible:</strong> Sueldo base más bonos imponibles, base sobre la cual se calculan las cotizaciones legales.</li>
+                    <li><strong>Descuento Legal:</strong> Descuentos porcentuales aplicados sobre la renta imponible por AFP, salud y seguro de cesantía.</li>
+                    <li><strong>Sueldo Líquido:</strong> Monto final que el trabajador recibe tras aplicar descuentos legales e internos, y sumar asignaciones no imponibles.</li>
+                    <li><strong>Descuentos Internos:</strong> Descuentos específicos como faltas injustificadas, aplicados después de calcular la renta imponible.</li>
+                    <li><strong>Total Bonos No Imponibles:</strong> Total de bonos no imponibles, sumados después del cálculo de la renta imponible.</li>
+                    </ul>
+                </div>
             </div>
             
             <Row>
@@ -651,12 +650,12 @@ export const GestionRemuneracionesPage: React.FC = () => {
                                             <th>Tipo Contrato</th>
                                             <th>Jornada</th>
                                             <th>Sueldo Base</th>
+                                            <th>Sueldo Bruto</th>
                                             <th>Renta Imponible</th>
                                             <th>Descuento Legal</th>
                                             <th>Sueldo Líquido</th>
                                             <th>Descuentos Internos</th>
                                             <th>Total Bonos No Imponibles</th>
-                                            <th>Acciones</th>
                                           </tr>
                                         </thead>
                                         <tbody>
@@ -668,6 +667,7 @@ export const GestionRemuneracionesPage: React.FC = () => {
                                                 descuentosInternos,
                                                 totalBonosNoImponibles
                                                 ] = calcularSueldoLiquido(ficha, null);
+                                                const sueldoBruto = calculoSueldoBruto(ficha);
 
                                                 return (
                                                 <tr key={ficha.id}>
@@ -689,6 +689,7 @@ export const GestionRemuneracionesPage: React.FC = () => {
                                                     </span>
                                                     </td>
                                                     <td>{formatSueldo(ficha.sueldoBase)}</td>
+                                                    <td>{formatSueldo(sueldoBruto)}</td>
                                                     <td>{formatSueldo(rentaImponible)}</td>
                                                     <td>{formatSueldo(descuentoLegal)}</td>
                                                     <td>{formatSueldo(sueldoLiquido)}</td>
