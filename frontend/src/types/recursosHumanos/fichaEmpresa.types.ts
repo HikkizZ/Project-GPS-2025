@@ -41,14 +41,16 @@ export interface FichaEmpresa {
   seguroCesantia?: string; // Seguro de Cesantía
   asignacionesBonos: {
     id: number;
+    observaciones?: string;
     fechaAsignacion: Date | string;
     fechaFinAsignacion?: Date | string | null;
     activo: boolean;
     bono: {
       id: number;
-      nombre: string;
-      monto: number;
-      tipo: string; // Puede ser 'empresarial' o 'estatal'
+      nombreBono: string;
+      monto: string;
+      tipoBono: "estatal" | "empresarial";
+      temporalidad: "permanente" | "recurrente" | "puntual";
       imponible: boolean;
     };
   }[];
@@ -140,9 +142,7 @@ export interface FichaEmpresaSearchParams {
 } 
 
  export interface AsignarBonoDTO {
-    bono: string; // ID del bono
-    fechaAsignacion?: string;
-    fechaFinAsignacion?: string;
+    bonoId: number;
     observaciones?: string;
 }
 export interface AsignarFichaEmpresaData {

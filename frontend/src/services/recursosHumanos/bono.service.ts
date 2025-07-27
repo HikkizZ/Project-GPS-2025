@@ -23,7 +23,7 @@ export class BonoService {
 */
     // Funciones para usuarios administrador y superAdministrador 
     // Obtener todos los bonos o por filtros
-    async getAllBonos(query: BonoSearchQueryData = {}): Promise<ApiResponse<{bonos: Bono[], total: number}>> {
+     async getAllBonos(query: BonoSearchQueryData = {}): Promise<ApiResponse<{bonos: Bono[], total: number}>> {
         // Limpiar campos undefined antes de construir los parámetros
         const cleanQuery = Object.fromEntries(
         Object.entries(query).filter(([_, value]) => value !== undefined && value !== null && value !== '')
@@ -125,23 +125,7 @@ export class BonoService {
         }
     }
 
-    async eliminarBono( bonoId: number ): Promise<ApiResponse> {
-        try {
-            const response = await apiClient.delete<{ data: Bono }>(`${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}${this.baseURL}/${bonoId}`);
-            
-            return {
-                success: true,
-                message: 'Bono eliminado exitosamente'
-            };
-        } catch (error: any) {
-            console.error('Error al eliminar bono:', error);
-            return {
-                success: false,
-                error: error.message || 'Error al eliminar bono',
-                message: error.response?.data?.message || 'Error al eliminar bono'
-            };
-        }
-    }
+   
 
     async obtenerBonoPorId(bonoId: number): Promise<BonoOperationResult> {
         try {
@@ -161,11 +145,20 @@ export class BonoService {
     }
 
     async desactivarBono(bonoId: number, motivo: string): Promise<ApiResponse> {
-        const response = await apiClient.delete(`${this.baseURL}/${bonoId}`, { data: { motivo } });
-        return {
-        success: true,
-        message: response.message || 'Trabajador desvinculado exitosamente',
-        };
+        try {
+            const response = await apiClient.patch(`${this.baseURL}/${bonoId}/desactivar`, { motivo });
+            return {
+                success: true,
+                message: response.data?.message || 'Bono desactivado exitosamente',
+            };
+        } catch (error: any) {
+            console.error('Error al desactivar bono:', error);
+            return {
+                success: false,
+                error: error.response?.data?.message || error.message || 'Error al desactivar bono',
+                message: error.response?.data?.message || 'Error al desactivar bono'
+            };
+        }
     }
 
 }

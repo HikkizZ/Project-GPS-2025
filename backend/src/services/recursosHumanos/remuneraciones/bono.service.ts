@@ -18,14 +18,26 @@ import { Between, Like, FindManyOptions, DeepPartial, Not } from "typeorm";
 import { date } from "joi";
 import { calcularFechaFin } from "../fichaEmpresa.service.js"; 
 
-export async function getAllBonosService(): Promise<ServiceResponse<{ bonos: Bono[]; total: number }>> {
+export async function getAllBonosService(incluirInactivos: boolean = false): Promise<ServiceResponse<{ bonos: Bono[]; total: number }>> {
     try {
         const bonosRep = AppDataSource.getRepository(Bono);
-        // Obtener todos los bonos ordenados por fecha de creación
-        const [bonos, total] = await bonosRep.findAndCount({ order: { fechaCreacion: "DESC" } });
+
+        // Crear el query builder para usar búsquedas más flexibles
+        const queryBuilder = bonosRep.createQueryBuilder('bono')
+            .leftJoinAndSelect('bono.asignaciones', 'asignaciones');
+
+        // Si no se incluyen inactivos, filtrar por enSistema=true
+        if (!incluirInactivos) {
+            queryBuilder.andWhere('bono.enSistema = :enSistema', { enSistema: true });
+        }
+
+        // Ordenar por fecha de creación descendente
+        queryBuilder.orderBy('bono.fechaCreacion', 'DESC');
+
+        const [bonos, total] = await queryBuilder.getManyAndCount();
 
         return [{ bonos, total }, null];
-    }catch (error) {
+    } catch (error) {
         console.error("Error al obtener bonos:", error);
         return [null, "Error interno del servidor"];
     }
@@ -186,20 +198,7 @@ try {
   }
 }
 
-// Eliminar Bono
-export async function deleteBonoService(id: number): Promise<ServiceResponse<Bono>> {
-    try {
-            const bonosRep = AppDataSource.getRepository(Bono);
-            const bono = await bonosRep.findOneBy({ id });
-            if (!bono) { return [null, "Bono no encontrado"] }
-            // Eliminar bono
-            await bonosRep.remove(bono);
-            return [bono, null];
-    } catch (error) {
-        console.error("Error al eliminar bono:", error);
-        return [null, "Error interno del servidor"];
-    }
-}
+
 
 // Desactivar Bono: Soft delete, asignacion cambia a inactiva
 export async function desactivarBonoService(id: number, motivo: string): Promise<ServiceResponse<Bono>> {
@@ -234,83 +233,6 @@ export async function desactivarBonoService(id: number, motivo: string): Promise
         return [bono, null];
     } catch (error) {
         console.error("Error al desactivar bono:", error);
-        await queryRunner.rollbackTransaction();
-        await queryRunner.release();
-        return [null, "Error interno del servidor"];
-    }
-}
-
-// Servicio para reactivar bono desactivado
-export async function reactivarBonoService(
-    id: number,
-    data: {
-        nombreBono: string;
-        monto: string;
-        tipoBono?: tipoBono;
-        temporalidad?: temporalidad;
-        descripcion?: string;
-        fechaCreacion?: Date;
-        imponible?: boolean;
-        duracionMes?: number;
-    }
-): Promise<ServiceResponse<{ bono: Bono}>> {
-    const queryRunner = AppDataSource.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
-    try {
-        const bonoRepo = queryRunner.manager.getRepository(Bono);
-        // 1. Validar que el ID existe y está desvinculado
-        const bono = await bonoRepo.findOne({
-            where: { id: id },
-            relations: ["asignaciones"]
-        });
-
-        if (!bono) {
-            await queryRunner.rollbackTransaction();
-            await queryRunner.release();
-            return [null, "Bono no encontrado con el ID proporcionado"];
-        }
-
-        if (bono.enSistema) {
-            await queryRunner.rollbackTransaction();
-            await queryRunner.release();
-            return [null, "El bono ya está activo"];
-        }
-
-        const datosLimpios = {
-            nombreBono: data.nombreBono.trim(),
-            monto: data.monto,
-            tipoBono: data.tipoBono || bono.tipoBono,
-            temporalidad: data.temporalidad || bono.temporalidad,
-            descripcion: data.descripcion?.trim() || bono.descripcion,
-            imponible: data.imponible ?? bono.imponible,
-            duracionMes: data.duracionMes ?? bono.duracionMes,
-            fechaCreacion: data.fechaCreacion || new Date()
-        }
-
-        // Actualizar los campos del bono
-        bono.nombreBono = datosLimpios.nombreBono;
-        bono.monto = datosLimpios.monto;
-        bono.tipoBono = datosLimpios.tipoBono as tipoBono;
-        bono.temporalidad = datosLimpios.temporalidad as temporalidad;
-        bono.descripcion = datosLimpios.descripcion;
-        bono.imponible = datosLimpios.imponible;
-        bono.duracionMes = datosLimpios.duracionMes;
-        bono.fechaCreacion = datosLimpios.fechaCreacion;
-        bono.enSistema = true; // Reactivar el bono
-        await queryRunner.manager.save(Bono, bono);
-
-        await queryRunner.manager.save(bono); // Guardar cambios del bon
-        await queryRunner.commitTransaction();
-        const bonoReactivado = await bonoRepo.findOne({
-            where: { id: bono.id },
-            relations: ["asignaciones"]
-        });
-        return [{
-            bono: bonoReactivado!
-        }, null];
-    } catch (error) {
-        console.error("Error al reactivar bono:", error);
         await queryRunner.rollbackTransaction();
         await queryRunner.release();
         return [null, "Error interno del servidor"];

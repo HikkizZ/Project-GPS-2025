@@ -10,9 +10,6 @@ import { FiltrosBusquedaHeader } from '@/components/common/FiltrosBusquedaHeader
 import { Toast, useToast } from '@/components/common/Toast';
 import { bonoService } from '../../services/recursosHumanos/bono.service';
 import "../../styles/pages/bonos.css";
-import trabajadorIcon from '../../../assets/iconSVG_2/trabajadorIcon.svg';
-import updateIcon from '../../../assets/iconSVG_2/updateIcon.svg';
-import configIcon from '../../../assets/iconSVG_2/configIcon.svg';
 
 enum TipoBono {
     estatal = "estatal",
@@ -31,14 +28,15 @@ export const BonosPage: React.FC = () => {
     const { toasts, removeToast, showSuccess, showError } = useToast();
     const { setError: setUIError, setLoading } = useUI();
     const { user } = useAuth();
-    const [bonoDesactivado, setBonoDesactivado] = useState<Bono | null>(null);
+
     const [showDesactivarModal, setShowDesactivarModal] = useState(false);
     const [bonoToDesactivar, setBonoToDesactivar] = useState<Bono | null>(null);
     const [motivoDesactivacion, setMotivoDesactivacion] = useState('');
     const [desactivarError, setDesactivarError] = useState<string>('');
     const [motivoDesactivacionError, setMotivoDesactivacionError] = useState<string>('');
     const [isDesactivado, setIsDesactivado] = useState(false);
-    const [showReactivarModal, setShowReactivarModal] = useState(false);
+    
+    const [incluirInactivos, setIncluirInactivos] = useState(false);
 
     const [showFilters, setShowFilters] = useState(false);
     const [selectedBono, setSelectedBono] = useState<Bono | null>(null);
@@ -91,16 +89,6 @@ export const BonosPage: React.FC = () => {
         }
     };
 
-    const handleReactivacion = (bono: Bono) => {
-        setBonoDesactivado(bono);
-        setShowReactivarModal(true);
-    };
-
-    const handleReactivacionSuccess = () => {
-        setShowReactivarModal(false);
-        setBonoDesactivado(null);
-        cargarBonos(); // Recargar la lista de bonos
-    };
     useEffect(() => {
         // Cargar los bonos al montar el componente
         
@@ -110,26 +98,21 @@ export const BonosPage: React.FC = () => {
     
     // Función para manejar la búsqueda
     const handleSearch = () => {
-    
-        searchBonos(searchParams);
+        const paramsWithInactivos = {
+            ...searchParams,
+            incluirInactivos: incluirInactivos ? 'true' : 'false'
+        };
+        searchBonos(paramsWithInactivos);
     };
     // Función para limpiar filtros
     const clearFilters = () => {
         setSearchParams({});
+        setIncluirInactivos(false);
         cargarBonos();
     };
 
     const handleCreateClick = () => {
         setShowCreateModal(true);
-        cargarBonos();
-    };
-        
-
-    const handleClickUpdate = (updateData) => {
-        setSelectedBono(updateData);
-        setShowEditModal(true);
-
-        // Recargar los bonos
         cargarBonos();
     };
 
@@ -141,45 +124,6 @@ export const BonosPage: React.FC = () => {
         // Mostrar toast de éxito
         showSuccess('¡Bono creado!', 'El bono se ha creado exitosamente', 4000);
     }
-
-    const handleUpdateSuccess = () => {
-        // Recargar los bonos
-        cargarBonos();
-        // Mostrar toast de éxito
-        showSuccess('¡Usuario actualizado!', 'El bono se ha actualizado exitosamente', 4000);
-    };
-
-    const handleDeleteSuccess = () => {
-        // Recargar los bonos
-        cargarBonos();
-        // Mostrar toast de éxito
-        showSuccess('¡Bono eliminado!', 'El bono se ha eliminado exitosamente', 4000);
-    }
-
-    const handleDelete = async (idBono) => {
-        if (idBono) {
-            try {
-                
-                const response = await bonoService.eliminarBono(idBono);
-                if (response.success) {
-                    // Mostrar mensaje de éxito
-                    showSuccess('Bono eliminado', 'El bono se ha eliminado exitosamente', 4000);
-                    // Recargar los bonos
-                    cargarBonos();
-                    // Limpiar el estado del horario seleccionado
-                    setSelectedBono(null);
-                    
-                } else {
-                    // Mostrar mensaje de error
-                    showError('Error al eliminar el bono', response.error || 'No se pudo eliminar el bono', 4000);
-                }
-            } catch (error) {
-                console.error('Error al eliminar el horario:', error);
-                // Mostrar mensaje de error
-                showError('Error de conexión', 'No se pudo conectar al servidor para eliminar el bono', 4000);
-            }
-        }
-    };
 
     const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSearchNombre(e.target.value);
@@ -316,6 +260,17 @@ export const BonosPage: React.FC = () => {
                                     </Form.Control>
                                 </Form.Group>
                                 </Col>
+                                <Col md={3}>
+                                <Form.Group className="mb-3">
+                                    <Form.Label>Incluir Bonos Inactivos</Form.Label>
+                                    <Form.Switch
+                                    checked={incluirInactivos}
+                                    onChange={(e) => setIncluirInactivos(e.target.checked)}
+                                    style={{ borderRadius: '8px' }}
+                                    >
+                                    </Form.Switch>
+                                </Form.Group>
+                                </Col>
                                 <Col md={6} className="d-flex align-items-end">
                                 <div className="d-flex gap-2 mb-3">
                                     <Button variant="primary" onClick={handleSearch}>
@@ -435,17 +390,7 @@ export const BonosPage: React.FC = () => {
                                                                             disabled={!bono.enSistema}
                                                                         >
                                                                             <i className="bi bi-trash"></i>
-                                                                        </Button>
-                                                                        {/* Botón de reactivar solo si está desvinculado */}
-                                                                        {!bono.enSistema && (
-                                                                            <Button
-                                                                                variant="outline-success"
-                                                                                onClick={() => handleReactivacion(bono)}
-                                                                                title="Reactivar bono"
-                                                                            >
-                                                                            <i className="bi bi-person-check"></i>
-                                                                        </Button>
-                                                                        )}
+                                                                        </Button>                             
                                                                     </div>
                                                                 </td>
                                                             </tr>
@@ -469,7 +414,7 @@ export const BonosPage: React.FC = () => {
                 onSuccess={handleCreateSuccess}
             />
 
-            {/* Modal reactivación */}
+             {/* Modal reactivación */}
             <Modal
                 show={showDesactivarModal}
                 onHide={() => setShowDesactivarModal(false)}
@@ -505,7 +450,7 @@ export const BonosPage: React.FC = () => {
                     </Alert>
                       
                     <div className="mb-3 p-3 bg-light rounded-3">
-                        <p className="mb-2 fw-semibold">¿Estás seguro que deseas desvincular al trabajador?</p>
+                        <p className="mb-2 fw-semibold">¿Estás seguro que deseas desactivar el bono?</p>
                         <div className="d-flex flex-column gap-1">
                             <div>
                                 <span className="fw-semibold text-muted">Nombre:</span> 

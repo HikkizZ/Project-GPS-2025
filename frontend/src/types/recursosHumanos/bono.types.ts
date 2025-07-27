@@ -38,6 +38,7 @@ export interface BonoSearchQueryData {
     temporalidad?: "permanente" | "recurrente" | "puntual";
     imponible?: boolean;
     duracionMes?: string;
+    incluirInactivos?: string; // 'true' o 'false'
 }
 
 export interface BonoSearchParamsData {
