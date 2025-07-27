@@ -193,7 +193,7 @@ const MaintenanceRecordList: React.FC<Props> = ({
                             </>
                           )}
 
-                          {user?.role === "Mecánico" && (
+                          {(user?.role === "Mecánico") && m.estado == "en_proceso" && (
                             <Button variant="info" size="sm" onClick={() => onSpareParts(m)}>
                               <i className="bi bi-tools me-1"></i>
                             </Button>
@@ -209,7 +209,7 @@ const MaintenanceRecordList: React.FC<Props> = ({
                               </Button>
                           )}
 
-                         {(user?.role === "Mecánico" || user?.role === "Mantenciones de Maquinaria") &&
+                         {(user?.role === "Mecánico") &&
                             !m.mecanicoAsignado && m.estado === "pendiente" && (
                               <Button
                                 variant="primary"
@@ -220,9 +220,7 @@ const MaintenanceRecordList: React.FC<Props> = ({
                               </Button>
                           )}
 
-
-
-                          {user?.role === "Mantenciones de Maquinaria" && (
+                          {(user?.role === "Mantenciones de Maquinaria") && (
                             <Button variant="info" size="sm" onClick={() => onAssignMecanico(m)}>
                                <i className="bi bi-box-arrow-in-right me-1"></i>
                               {m.mecanicoAsignado?.id ? "Reasignar" : "Asignar"}
