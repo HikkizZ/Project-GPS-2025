@@ -34,17 +34,6 @@ function formatMiles(value: string | number): string {
   return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 }
 
-function formatAsignacionesBonos(ficha: FichaEmpresa): AsignacionesBonos {
-  return ficha.asignacionesBonos.map(asig => ({
-    fechaAsignacion: asig.fechaAsignacion,
-    fechaFinAsignacion: asig.fechaFinAsignacion || null,
-    activo: asig.activo,
-    bono: asig.bono, // Asumimos que 'bono' es un objeto con 'nombre'
-    fichaEmpresa: ficha,
-    observaciones: asig.observaciones || ''
-  }));
-}
-
 export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({ 
   trabajadorRecienRegistrado, 
   onTrabajadorModalClosed 
@@ -559,8 +548,8 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                               {miFicha.asignacionesBonos && miFicha.asignacionesBonos.length > 0 ? (
                               <span className="status-badge">
                                 {miFicha.asignacionesBonos
-                                  .filter(asig => asig.activo && asig.bono && asig.bono.nombre)
-                                  .map(asig => asig.bono.nombre)
+                                  .filter(asig => asig.activo && asig.bono && asig.bono.nombreBono)
+                                  .map(asig => asig.bono.nombreBono)
                                   .join(', ')
                                 }
                               </span>
@@ -1122,8 +1111,8 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                             {ficha.asignacionesBonos && ficha.asignacionesBonos.length > 0 ? (
                               <span className="status-badge">
                                 {ficha.asignacionesBonos
-                                  .filter(asig => asig.activo && asig.bono && asig.bono.nombre)
-                                  .map(asig => asig.bono.nombre)
+                                  .filter(asig => asig.activo && asig.bono && asig.bono.nombreBono)
+                                  .map(asig => asig.bono.nombreBono)
                                   .join(', ')
                                 }
                               </span>
@@ -1224,8 +1213,15 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
       <AsignarBonosFichaEmpresaModal
         show={showAsignarBonoModal}
         onHide={() => setShowAsignarBonoModal(false)}
-        asignaciones={selectedFicha? formatAsignacionesBonos(selectedFicha) : [] }
-        ficha={selectedFicha}
+        asignaciones={{
+          fechaAsignacion: new Date(),
+          fechaFinAsignacion: null,
+          activo: true,
+          bono: '',
+          fichaEmpresa: selectedFicha!,
+          observaciones: ''
+        }}
+        ficha={selectedFicha!}
         onSuccess={handleUpdateSuccess}
       />
 
