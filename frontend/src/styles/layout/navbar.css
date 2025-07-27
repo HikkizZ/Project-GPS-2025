@@ -304,7 +304,7 @@
   }
 }
 
-/* Pantallas muy pequeñas (menos de 768px) */
+/* Pantallas muy pequeñas (menos de 768px) - MANTENER BOTONES CIRCULARES */
 @media (max-width: 767px) {
   .navbar .container-fluid {
     padding: 0 0.75rem;
@@ -322,18 +322,50 @@
     max-width: 100px;
   }
   
-  /* Ocultar todos los botones excepto el dropdown del usuario */
-  .navbar-nav .btn-outline-light:not(.dropdown-toggle) {
-    display: none;
-  }
-  
-  /* Mostrar menú hamburguesa para navegación */
-  .navbar-mobile-menu {
-    display: block !important;
-  }
-  
   .navbar-nav {
+    gap: 0.4rem;
+  }
+  
+  /* MANTENER TODOS LOS BOTONES VISIBLES COMO CÍRCULOS */
+  .navbar .btn-outline-light {
+    font-size: 0.7rem;
+    padding: 0.3rem;
+    min-width: 36px;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50% !important;
+  }
+  
+  /* Ocultar texto, mostrar solo iconos */
+  .navbar .btn-outline-light .btn-text {
     display: none;
+  }
+  
+  .navbar .btn-outline-light i {
+    margin-right: 0 !important;
+    font-size: 0.9rem;
+  }
+  
+  /* Mostrar tooltip en hover */
+  .navbar .btn-outline-light:hover::after {
+    content: attr(data-title);
+    position: absolute;
+    bottom: -30px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    padding: 0.2rem 0.4rem;
+    border-radius: 0.25rem;
+    font-size: 0.7rem;
+    white-space: nowrap;
+    z-index: 1000;
+    pointer-events: none;
+    opacity: 0;
+    animation: fadeInTooltip 0.2s ease-out forwards;
   }
   
   /* Ajustar dropdown del usuario */
@@ -342,8 +374,16 @@
   }
   
   .navbar-user-dropdown .btn-outline-light {
-    font-size: 0.7rem;
-    padding: 0.3rem 0.6rem;
+    font-size: 0.65rem;
+    padding: 0.25rem 0.5rem;
+    min-width: auto;
+    width: auto;
+    height: auto;
+    border-radius: 25px !important;
+  }
+  
+  .navbar-user-dropdown .btn-outline-light .btn-text {
+    display: inline;
   }
   
   .navbar-user-dropdown .btn-outline-light i {
@@ -365,9 +405,24 @@
     max-width: 80px;
   }
   
-  .navbar-user-dropdown .btn-outline-light {
+  .navbar-nav {
+    gap: 0.3rem;
+  }
+  
+  .navbar .btn-outline-light {
+    min-width: 32px;
+    width: 32px;
+    height: 32px;
     font-size: 0.65rem;
-    padding: 0.25rem 0.5rem;
+  }
+  
+  .navbar .btn-outline-light i {
+    font-size: 0.8rem;
+  }
+  
+  .navbar-user-dropdown .btn-outline-light {
+    font-size: 0.6rem;
+    padding: 0.2rem 0.4rem;
   }
   
   .navbar-user-dropdown .btn-outline-light .btn-text {
@@ -380,72 +435,17 @@
 }
 
 /* ============================================
-   MENÚ MÓVIL
+   MENÚ MÓVIL - ELIMINADO
    ============================================ */
 
+/* Ya no necesitamos el menú móvil porque los botones siempre están visibles */
 .navbar-mobile-menu {
-  display: none;
-  position: fixed;
-  top: 56px;
-  left: 0;
-  right: 0;
-  background: var(--gradient-primary);
-  z-index: 1000;
-  padding: 1rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-  animation: slideDown 0.3s ease-out;
+  display: none !important;
 }
 
-.navbar-mobile-menu.show {
-  display: block;
-}
-
-.navbar-mobile-menu .btn-outline-light {
-  display: block;
-  width: 100%;
-  margin-bottom: 0.5rem;
-  text-align: left;
-  border-radius: 0.5rem !important;
-  padding: 0.75rem 1rem;
-}
-
-.navbar-mobile-menu .btn-outline-light:last-child {
-  margin-bottom: 0;
-}
-
-/* Botón hamburguesa */
+/* Botón hamburguesa - ELIMINADO */
 .navbar-toggler {
-  display: none;
-  border: none;
-  background: transparent;
-  color: white;
-  font-size: 1.25rem;
-  padding: 0.5rem;
-  margin-left: 0.5rem;
-  transition: all 0.3s ease;
-  cursor: pointer;
-}
-
-.navbar-toggler:hover {
-  opacity: 0.8;
-}
-
-@media (max-width: 767px) {
-  .navbar-toggler {
-    display: block;
-  }
-}
-
-/* Animación para el menú móvil */
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  display: none !important;
 }
 
 /* ============================================
@@ -475,7 +475,7 @@
 }
 
 /* Mejorar la experiencia de hover en botones circulares */
-@media (max-width: 991px) and (min-width: 768px) {
+@media (max-width: 991px) {
   .navbar .btn-outline-light {
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   }
@@ -483,5 +483,6 @@
   .navbar .btn-outline-light:hover {
     background-color: rgba(255, 255, 255, 0.15);
     border-color: rgba(255, 255, 255, 0.9);
+    transform: scale(1.1);
   }
 } 
