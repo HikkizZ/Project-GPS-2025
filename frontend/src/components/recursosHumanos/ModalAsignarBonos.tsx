@@ -17,17 +17,18 @@ interface AsignarBonosFichaEmpresaModalProps {
 const formatLocalDate = (date: string | Date): string => {
   if (!date) return '';
   const d = new Date(date);
+  if (isNaN(d.getTime())) return ''; // Verifica si la fecha es válida
   const year = d.getFullYear();
   const month = String(d.getMonth() + 1).padStart(2, '0');
   const day = String(d.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
 };
 
-function calcularFechaFinAsignacion(fechaAsignacion: string | Date, duracionMes: number): Date {
+function calcularFechaFinAsignacion(fechaAsignacion: string | Date, duracionMes: number): string {
+  if (!duracionMes || duracionMes <= 0) return '';
   const fechaFin = new Date(fechaAsignacion);
-    fechaFin.setMonth(fechaFin.getMonth() + duracionMes);
-    console.log('fechaFin: ', fechaFin);
-    return fechaFin;
+  fechaFin.setMonth(fechaFin.getMonth() + duracionMes);
+  return formatLocalDate(fechaFin);
 }
 
 export const AsignarBonosFichaEmpresaModal: React.FC<AsignarBonosFichaEmpresaModalProps> = ({
@@ -50,34 +51,57 @@ export const AsignarBonosFichaEmpresaModal: React.FC<AsignarBonosFichaEmpresaMod
   useEffect(() => {
     if (!show || !bonos.length) return;
 
-    const now = new Date();
-    const fechaAsignacion = formatLocalDate(now);
+    // Solo inicializar si no hay datos previos o si es la primera vez que se abre
+    if (!formatData) {
+      const now = new Date();
+      const fechaAsignacion = formatLocalDate(now);
 
-    const bonoSeleccionado = bonos.find(
-      (b) => String(b.nombreBono) === String(asignaciones.bono)
-    );
+      // Inicializar con un bono por defecto si no hay uno seleccionado
+      const bonoInicial = asignaciones.bono || '';
+      
+      const bonoSeleccionado = bonos.find(
+        (b) => String(b.id) === String(bonoInicial)
+      );
 
-    const temporalidad = bonoSeleccionado?.temporalidad;
-    const duracionMes = bonoSeleccionado?.duracionMes;
-    console.log('bonoSeleccionado: ', bonoSeleccionado);
-    console.log('temporalidad: ', temporalidad);
-    console.log('duracionMes: ', duracionMes);
-    const fechaFinAsignacion =
-      temporalidad === 'permanente'
-        ? ''
-        : (calcularFechaFinAsignacion(now, parseInt(duracionMes)));
-    console.log('fechaFinAsignacion: ', fechaFinAsignacion);
-    setFormatData({
-      fechaAsignacion,
-      fechaFinAsignacion : formatLocalDate(fechaFinAsignacion),
-      activo: true,
-      bono: asignaciones.bono,
-      fichaEmpresa: ficha,
-      observaciones: '',
-    });
+      const temporalidad = bonoSeleccionado?.temporalidad;
+      const duracionMes = bonoSeleccionado?.duracionMes ? parseInt(bonoSeleccionado.duracionMes) : 0;
 
-    setHasChanges(true);
-  }, [show, asignaciones, bonos]);
+      let fechaFinAsignacion = '';
+      if (temporalidad !== 'permanente' && duracionMes > 0) {
+        fechaFinAsignacion = calcularFechaFinAsignacion(now, duracionMes);
+      }
+      
+      setFormatData({
+        fechaAsignacion,
+        fechaFinAsignacion,
+        activo: true,
+        bono: bonoInicial,
+        fichaEmpresa: ficha,
+        observaciones: '',
+      });
+
+      setHasChanges(false); // Cambiar a false para que no se pueda guardar sin seleccionar bono
+      setValidated(false); // Resetear validación
+    }
+  }, [show, bonos]); // Remover asignaciones y ficha de las dependencias
+
+  // Actualizar hasChanges cuando se selecciona un bono válido
+  useEffect(() => {
+    if (formatData?.bono && formatData.bono.trim() !== '' && formatData.bono.trim() !== 'Seleccione una opción') {
+      setHasChanges(true);
+    } else {
+      setHasChanges(false);
+    }
+  }, [formatData?.bono]);
+
+  // Resetear estado cuando se cierra el modal
+  useEffect(() => {
+    if (!show) {
+      setFormatData(null);
+      setValidated(false);
+      setHasChanges(false);
+    }
+  }, [show]);
 
   // Validación dinámica en el submit
   const handleSubmit = async (e: React.FormEvent) => {
@@ -86,18 +110,12 @@ export const AsignarBonosFichaEmpresaModal: React.FC<AsignarBonosFichaEmpresaMod
 
     // Validación estricta de campos requeridos y formato de fechas
     let isValid = true;
-    const fechaRegex = /^\d{4}-\d{2}-\d{2}$/;
     const bono = formatData?.bono;
-    const temporalidad = bonos.find(b => String(b.id) === String(bono))?.temporalidad;
-    const finalAsignacion = calcularFechaFinAsignacion(formatData?.fechaAsignacion, parseInt(bonos.find(b => String(b.id) === String(bono))?.duracionMes || '0'));
-    console.log('formatData: ', formatData);
-    console.log('bono: ', bono);
-    console.log('temporalidad: ', temporalidad);
-    console.log('finalAsignacion: ', formatLocalDate(finalAsignacion));
+    
     // Validar campos requeridos
-    if (!bono.trim() || bono.trim() === 'Seleccione una opción') {
-            isValid = false;
-        }
+    if (!bono || bono.trim() === '' || bono.trim() === 'Seleccione una opción') {
+      isValid = false;
+    }
 
     if (!isValid) {
       // No mostrar toast de error, solo dejar los mensajes en rojo bajo los campos
@@ -106,26 +124,21 @@ export const AsignarBonosFichaEmpresaModal: React.FC<AsignarBonosFichaEmpresaMod
 
     setLoading(true);
     try {
-        const nombresBonos = bonos.map(b => b.nombreBono);
-        const bonoId = nombresBonos.includes(bono) ? bonos.find(b => b.nombreBono === bono)?.id : parseInt(bono);
-        const bonoNombre = nombresBonos.includes(bono) ? bono : bonos.find(b => b.id === bonoId)?.nombreBono;
-        console.log('bonoNombre: ', bonoNombre);
-        const dataToSubmit = {
-            fechaAsignacion: formatData?.fechaAsignacion,
-            fechaFinAsignacion: temporalidad === 'permanente' ? undefined : formatLocalDate(finalAsignacion),
-            activo: formatData?.activo,
-            bono: bonoNombre,
-            fichaEmpresa: ficha
+        const bonoSeleccionado = bonos.find(b => String(b.id) === String(bono));
+        const bonoId = bonoSeleccionado?.id;
+
+        const dataToSubmit: AsignarBonoDTO = {
+            bonoId: Number(bonoId),
+            observaciones: formatData?.observaciones
         };
-        console.log('dataToSubmit: ', dataToSubmit);
+
         const response = await asignarBono(ficha.id, dataToSubmit);
-        console.log('response: ', response);
         if (response.success) {
             showSuccess('Bono asignado correctamente', 'El bono se ha asignado exitosamente a la ficha de empresa.', 5000);
             onSuccess?.();
             onHide();
         } else {
-            showError('Error al asignar bono', response.error || 'No se pudo asignar el bono. Intente nuevamente.', 6000);
+            showError('Error al asignar bono', response.message || 'No se pudo asignar el bono. Intente nuevamente.', 6000);
         }
     } catch (error: any) {
       // Solo mostrar toast si es un error inesperado del backend
@@ -136,9 +149,31 @@ export const AsignarBonosFichaEmpresaModal: React.FC<AsignarBonosFichaEmpresaMod
   };
     const handleInputChange = (e: any) => {
     const { name, value } = e.target;
-    const newFormData = { ...formatData, [name]: value } as AsignacionesBonos;
+    
+    if (name === 'bono') {
+      // Si se cambia el bono, actualizar las fechas
+      const bonoSeleccionado = bonos.find(b => String(b.id) === String(value));
+      const temporalidad = bonoSeleccionado?.temporalidad;
+      const duracionMes = bonoSeleccionado?.duracionMes ? parseInt(bonoSeleccionado.duracionMes) : 0;
 
-    setFormatData(newFormData);
+      let fechaFinAsignacion = '';
+      if (temporalidad !== 'permanente' && duracionMes > 0) {
+        const now = new Date();
+        fechaFinAsignacion = calcularFechaFinAsignacion(now, duracionMes);
+      }
+
+      const newFormData = { 
+        ...formatData, 
+        [name]: value,
+        fechaFinAsignacion
+      } as AsignacionesBonos;
+      
+      setFormatData(newFormData);
+    } else {
+      const newFormData = { ...formatData, [name]: value } as AsignacionesBonos;
+      setFormatData(newFormData);
+    }
+        
     if (validated) {
       setValidated(false);
     }
@@ -200,7 +235,7 @@ export const AsignarBonosFichaEmpresaModal: React.FC<AsignarBonosFichaEmpresaMod
                     <Form.Select
                         name="bono"
                         value={formatData?.bono || ''}
-                        onChange={(e) => setFormatData({ ...formatData, bono: e.target.value })}
+                        onChange={handleInputChange}
                         required
                         style={{ borderRadius: '8px' }}
                         isInvalid={
@@ -226,7 +261,7 @@ export const AsignarBonosFichaEmpresaModal: React.FC<AsignarBonosFichaEmpresaMod
               </Col>
               <Col md={6}>
                 <Form.Group>
-                  <Form.Label className="fw-semibold">Observaciones: <span className="text-danger"></span></Form.Label>
+                  <Form.Label className="fw-semibold">Observaciones</Form.Label>
                   <Form.Control
                     type="text"
                     name="observaciones"
@@ -273,13 +308,13 @@ export const AsignarBonosFichaEmpresaModal: React.FC<AsignarBonosFichaEmpresaMod
                         }
 
                         const fechaAsignacion = new Date(); 
-                        const duracionMes = bonoSeleccionado?.duracionMes ? parseInt(bonoSeleccionado.duracionMes) : undefined;
+                        const duracionMes = bonoSeleccionado?.duracionMes ? parseInt(bonoSeleccionado.duracionMes) : 0;
                         const fechaFin = calcularFechaFinAsignacion(fechaAsignacion, duracionMes);
                         return (
                             <Form.Control
                                 type="date"
                                 name="fechaFinAsignacion"
-                                value={formatLocalDate(fechaFin)}
+                                value={fechaFin}
                                 readOnly
                                 disabled
                                 style={{ borderRadius: '8px' }}
