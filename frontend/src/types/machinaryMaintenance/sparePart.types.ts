@@ -21,4 +21,5 @@ export interface UpdateSparePartData {
   marca?: string;
   modelo?: string;
   anio?: number;
+  modo?: 'editar' | 'agregarStock';
 }
