@@ -37,6 +37,7 @@ export const BonosPage: React.FC = () => {
     const [isDesactivado, setIsDesactivado] = useState(false);
     
     const [incluirInactivos, setIncluirInactivos] = useState(false);
+
     const [showFilters, setShowFilters] = useState(false);
     const [selectedBono, setSelectedBono] = useState<Bono | null>(null);
     const [showEditModal, setShowEditModal] = useState(false);
@@ -413,7 +414,7 @@ export const BonosPage: React.FC = () => {
                 onSuccess={handleCreateSuccess}
             />
 
-            {/* Modal reactivación */}
+             {/* Modal reactivación */}
             <Modal
                 show={showDesactivarModal}
                 onHide={() => setShowDesactivarModal(false)}
@@ -449,7 +450,7 @@ export const BonosPage: React.FC = () => {
                     </Alert>
                       
                     <div className="mb-3 p-3 bg-light rounded-3">
-                        <p className="mb-2 fw-semibold">¿Estás seguro que deseas desactivar al bono?</p>
+                        <p className="mb-2 fw-semibold">¿Estás seguro que deseas desactivar el bono?</p>
                         <div className="d-flex flex-column gap-1">
                             <div>
                                 <span className="fw-semibold text-muted">Nombre:</span> 

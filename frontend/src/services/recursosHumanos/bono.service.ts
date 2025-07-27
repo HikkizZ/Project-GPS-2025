@@ -23,7 +23,7 @@ export class BonoService {
 */
     // Funciones para usuarios administrador y superAdministrador 
     // Obtener todos los bonos o por filtros
-    async getAllBonos(query: BonoSearchQueryData = {}): Promise<ApiResponse<{bonos: Bono[], total: number}>> {
+     async getAllBonos(query: BonoSearchQueryData = {}): Promise<ApiResponse<{bonos: Bono[], total: number}>> {
         // Limpiar campos undefined antes de construir los parámetros
         const cleanQuery = Object.fromEntries(
         Object.entries(query).filter(([_, value]) => value !== undefined && value !== null && value !== '')
