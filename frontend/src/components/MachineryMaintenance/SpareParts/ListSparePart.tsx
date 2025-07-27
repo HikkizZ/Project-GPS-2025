@@ -172,11 +172,15 @@ const ListSparePart: React.FC<Props> = ({ data, onEdit, onDelete, totalItems, on
               onClose={() => setShowConfirmModal(false)}
               onConfirm={handleConfirmDelete}
               title="¿Eliminar repuesto?"
-              message={`¿Estás seguro que deseas eliminar el repuesto "${sparePartToDelete?.name}"? Esta acción no se puede deshacer.`}
               confirmText="Eliminar"
               cancelText="Cancelar"
               headerVariant="danger"
-              warningContent={<p>El repuesto será eliminado del sistema y no podrá ser utilizado en nuevas mantenciones.</p>}
+              warningContent={
+                <div>
+                  <p>¿Estás seguro que deseas eliminar el repuesto "${sparePartToDelete?.name}"? Esta acción no se puede deshacer.</p>
+                  <p>El repuesto será eliminado del sistema y no podrá ser utilizado en nuevas mantenciones.</p>
+                </div>
+              }
             />
 
     </Card>
