@@ -260,13 +260,36 @@ const MaintenanceRecordList: React.FC<Props> = ({
         confirmText="Eliminar"
         cancelText="Cancelar"
         headerVariant="danger"
+        headerIcon="bi-exclamation-triangle-fill"
+        confirmIcon="bi-trash"
+        cancelIcon="bi-x-circle"
         warningContent={
-          <div>
-            <p>¿Estás seguro de que deseas eliminar la mantención de la máquina <strong>"{recordToDelete?.maquinaria.grupo}"</strong>?</p>
-            <p>Esta acción eliminará la mantención <strong>permanentemente</strong> del sistema. No podrás recuperarla.</p>
-          </div>
+          <>
+            <p className="mb-2 mt-1">Esta acción:</p>
+            <ul className="mb-0">
+              <li>Eliminará la mantención del sistema permanentemente.</li>
+              <li>No podrás recuperarla una vez eliminada.</li>
+            </ul>
+          </>
         }
-      />
+      >
+        <div className="mb-3 p-3 bg-light rounded-3">
+          <p className="mb-2 fw-semibold">
+            ¿Estás seguro de que deseas eliminar la mantención?
+          </p>
+          <div className="d-flex flex-column gap-1">
+            <div>
+              <span className="fw-semibold text-muted">Grupo de maquinaria:</span>{" "}
+              <span className="ms-2">{recordToDelete?.maquinaria?.grupo ?? "N/A"}</span>
+            </div>
+            <div>
+              <span className="fw-semibold text-muted">Patente:</span>{" "}
+              <span className="ms-2">{recordToDelete?.maquinaria?.patente ?? "N/A"}</span>
+            </div>
+          </div>
+        </div>
+      </ConfirmModal>
+
 
 
 
