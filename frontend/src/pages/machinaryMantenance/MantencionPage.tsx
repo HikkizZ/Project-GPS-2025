@@ -55,7 +55,13 @@ const MantencionPage: React.FC = () => {
   const totalPages = Math.ceil(filteredRecords.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const paginatedRecords = filteredRecords.slice(startIndex, endIndex);
+
+  const sortedRecords = [...filteredRecords].sort((a, b) =>
+    a.maquinaria.patente.localeCompare(b.maquinaria.patente)
+  );
+
+const paginatedRecords = sortedRecords.slice(startIndex, endIndex);
+
 
   const handleOpenAssignModal = (record: MaintenanceRecord) => {
     setRecordToAssign(record);
@@ -273,7 +279,7 @@ const MantencionPage: React.FC = () => {
   };
 
     const handleDelete = async (id: number) => {
-      if (confirm("¿Estás seguro de que deseas eliminar esta mantención?")) {
+      {
         try {
           await deleteRecord(id)
           showSuccess("Mantención eliminada", "Se eliminó correctamente")
