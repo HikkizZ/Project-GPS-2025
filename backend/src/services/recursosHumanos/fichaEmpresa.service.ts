@@ -851,13 +851,7 @@ export async function assignBonoService (idFicha: number, data: AsignarBonoDTO):
         await queryRunner.manager.save(asignacionBono);
 
         // Registrar en historial laboral
-        const observacionesHistorial = `Asignación de bono: ${bono.nombreBono}
-Monto: $${bono.monto}
-Tipo: ${bono.tipoBono}
-Temporalidad: ${bono.temporalidad}
-Imponible: ${bono.imponible ? 'Sí' : 'No'}${bono.descripcion ? `
-Descripción del bono: ${bono.descripcion}` : ''}${fechaFin ? `
-Válido hasta: ${fechaFin.toISOString().split('T')[0]}` : ''}${data.observaciones ? `
+        const observacionesHistorial = `Asignación de bono: ${bono.nombreBono}, Monto: $${bono.monto}, Tipo: ${bono.tipoBono}, Temporalidad: ${bono.temporalidad}, Imponible: ${bono.imponible ? 'Sí' : 'No'}${bono.descripcion ? `, Descripción del bono: ${bono.descripcion}` : ''}${fechaFin ? `, Válido hasta: ${fechaFin.toISOString().split('T')[0]}` : ''}${data.observaciones ? `
 [OBSERVACIONES_BADGE]: ${data.observaciones}` : ''}`;
         
         const nuevoHistorial = new HistorialLaboral();
@@ -953,13 +947,7 @@ export async function updateAsignarBonoService( id: number, idFichaActual: numbe
 
             // Registrar cambio en historial laboral
             const observacionesHistorial = `Actualización de asignación de bono: ${bono.nombreBono}
-Monto: $${bono.monto}
-Tipo: ${bono.tipoBono}
-Temporalidad: ${bono.temporalidad}
-Imponible: ${bono.imponible ? 'Sí' : 'No'}
-Estado: ${asignacionBono.activo ? 'Activo' : 'Inactivo'}${bono.descripcion ? `
-Descripción del bono: ${bono.descripcion}` : ''}${cambios.fechaFinAsignacion ? `
-Válido hasta: ${cambios.fechaFinAsignacion.toISOString().split('T')[0]}` : ''}${data.observaciones ? `
+Monto: $${bono.monto}, Tipo: ${bono.tipoBono}, Temporalidad: ${bono.temporalidad}, Imponible: ${bono.imponible ? 'Sí' : 'No'}, Estado: ${asignacionBono.activo ? 'Activo' : 'Inactivo'}${bono.descripcion ? `, Descripción del bono: ${bono.descripcion}` : ''}${cambios.fechaFinAsignacion ? `, Válido hasta: ${cambios.fechaFinAsignacion.toISOString().split('T')[0]}` : ''}${data.observaciones ? `
 [OBSERVACIONES_BADGE]: ${data.observaciones}` : ''}`;
             
             const nuevoHistorial = new HistorialLaboral();
@@ -998,13 +986,7 @@ Válido hasta: ${cambios.fechaFinAsignacion.toISOString().split('T')[0]}` : ''}$
 
             // Registrar cambio de estado u observaciones en historial laboral
             if (data.activo !== undefined || data.observaciones !== undefined) {
-                const observacionesHistorial = `Actualización de asignación de bono: ${asignacionBono.bono.nombreBono}
-Monto: $${asignacionBono.bono.monto}
-Tipo: ${asignacionBono.bono.tipoBono}
-Temporalidad: ${asignacionBono.bono.temporalidad}
-Imponible: ${asignacionBono.bono.imponible ? 'Sí' : 'No'}
-Estado: ${asignacionBono.activo ? 'Activo' : 'Inactivo'}${asignacionBono.bono.descripcion ? `
-Descripción del bono: ${asignacionBono.bono.descripcion}` : ''}${data.observaciones ? `
+                const observacionesHistorial = `Actualización de asignación de bono: ${asignacionBono.bono.nombreBono}, Monto: $${asignacionBono.bono.monto}, Tipo: ${asignacionBono.bono.tipoBono}, Temporalidad: ${asignacionBono.bono.temporalidad}, Imponible: ${asignacionBono.bono.imponible ? 'Sí' : 'No'}, Estado: ${asignacionBono.activo ? 'Activo' : 'Inactivo'}${asignacionBono.bono.descripcion ? `, Descripción del bono: ${asignacionBono.bono.descripcion}` : ''}${data.observaciones ? `
 [OBSERVACIONES_BADGE]: ${data.observaciones}` : ''}`;
                 
                 const nuevoHistorial = new HistorialLaboral();

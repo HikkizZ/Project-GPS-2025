@@ -409,8 +409,8 @@ export default function HistorialLaboralPage() {
       lines.forEach(line => {
         const trimmedLine = line.trim();
         if (trimmedLine.startsWith('Asignación de bono:') || trimmedLine.startsWith('Actualización de asignación de bono:')) {
-          // Extraer el nombre del bono después de los dos puntos
-          const nombre = trimmedLine.split(':')[1]?.trim();
+          // Extraer el nombre del bono después de los dos puntos y antes de la primera coma
+          const nombre = trimmedLine.split(':')[1]?.split(',')[0]?.trim();
           if (nombre) {
             nombreBono = nombre;
           }
