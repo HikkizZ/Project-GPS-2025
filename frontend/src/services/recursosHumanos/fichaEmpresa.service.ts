@@ -236,7 +236,7 @@ export class FichaEmpresaService {
   }
 
   // Asignar bono 
-  async asignarBono(idFicha: number, data: AsignacionesBonos): Promise<ApiResponse<AsignarBonoDTO>> {
+  async asignarBono(idFicha: number, data: AsignarBonoDTO): Promise<ApiResponse<AsignarBonoDTO>> {
     try {
       const response = await apiClient.post<{ data: AsignarBonoDTO }>(
         `${this.baseURL}/${idFicha}/asignar`, 
@@ -302,4 +302,4 @@ export const updateFichaEmpresa = (id: number, data: any) => fichaEmpresaService
 export const uploadContrato = (fichaId: number, file: File) => fichaEmpresaService.uploadContrato(fichaId, file);
 export const downloadContrato = (fichaId: number) => fichaEmpresaService.downloadContrato(fichaId);
 export const deleteContrato = (fichaId: number) => fichaEmpresaService.deleteContrato(fichaId); 
-export const asignarBono = (idFicha: number, data: AsignacionesBonos) => fichaEmpresaService.asignarBono(idFicha, data);
+export const asignarBono = (idFicha: number, data: AsignarBonoDTO) => fichaEmpresaService.asignarBono(idFicha, data);
