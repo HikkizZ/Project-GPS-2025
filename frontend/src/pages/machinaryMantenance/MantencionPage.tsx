@@ -53,7 +53,6 @@ const MantencionPage: React.FC = () => {
   const [showEstadoModal, setShowEstadoModal] = useState(false);
   const [estadoSeleccionado, setEstadoSeleccionado] = useState<EstadoMantencion.COMPLETADA | EstadoMantencion.IRRECUPERABLE | null>(null);
 
-
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   
@@ -89,7 +88,6 @@ const MantencionPage: React.FC = () => {
 
         const trabajador = result.data[0];
 
-        // Retornar el ID del usuario (no del trabajador)
         return trabajador.usuario?.id || null;
       } catch (error) {
         console.error("Error al buscar trabajador por RUT:", error);
@@ -98,50 +96,53 @@ const MantencionPage: React.FC = () => {
     };
 
 const handleAcceptMaintenance = async (record: MaintenanceRecord) => {
-
-  let mecanicoId = user?.id || 0;
-
-  if (mecanicoId <= 0 && user?.rut) {
-    try {
-      const result = await trabajadorService.getTrabajadores({ rut: user.rut, todos: true });
-
-      if (!result.success || !result.data || result.data.length === 0) {
-        showError("Error", "No se encontró un trabajador con tu RUT.");
-        return;
-      }
-
-      const trabajador = result.data[0];
-
-      if (!trabajador.usuario?.id || trabajador.usuario.id <= 0) {
-        showError("Error", "El trabajador no tiene un ID de usuario válido.");
-        return;
-      }
-
-      mecanicoId = trabajador.usuario.id;
-    } catch (error) {
-      console.error("Error al buscar trabajador por RUT:", error);
-      showError("Error", "Ocurrió un error al buscar tu ID como mecánico.");
-      return;
-    }
-  }
-
-  if (mecanicoId <= 0) {
-    showError("Error", "El usuario actual no tiene un ID válido.");
+  if (!user?.rut) {
+    showError("Error", "No se encontró tu RUT. Contacta al administrador.");
     return;
   }
 
+  console.log("Obteniendo ID del usuario con RUT:", user.rut);
+
+  let mecanicoId: number | null = null;
+
+  try {
+    const result = await trabajadorService.getTrabajadores({ rut: user.rut, todos: true });
+
+    if (!result.success || !result.data || result.data.length === 0) {
+      showError("Error", "No se encontró un trabajador con tu RUT.");
+      return;
+    }
+
+    const trabajador = result.data[0];
+    mecanicoId = trabajador.usuario?.id ?? null;
+
+    if (!mecanicoId || mecanicoId <= 0) {
+      showError("Error", "El trabajador no tiene un ID de usuario válido.");
+      return;
+    }
+
+  } catch (error) {
+    console.error("Error al buscar trabajador por RUT:", error);
+    showError("Error", "Ocurrió un error al buscar tu ID como mecánico.");
+    return;
+  }
+
+  // Ejecutar la actualización si tenemos un ID válido
   try {
     await update(record.id, {
       mecanicoId,
       estado: EstadoMantencion.EN_PROCESO,
     });
+
     showSuccess("Mantención aceptada", "Has sido asignado como mecánico responsable.");
     reload();
   } catch (error) {
     console.error("Error al aceptar mantención:", error);
-    showError("Error", "No se pudo aceptar la mantención");
+    showError("Error", "No se pudo aceptar la mantención.");
   }
 };
+
+
 
 
 /* ---------------------------------------------------------------------------------------------------------- */
@@ -371,157 +372,159 @@ const handleAcceptMaintenance = async (record: MaintenanceRecord) => {
      <div className="d-flex">
       <MaintenanceSidebar />
       <div className="flex-grow-1"></div>
-    <Container fluid className="py-4">
-      <Row>
-        <Col>
-          {/* Header */}
-          <Card className="shadow-sm mb-3">
-            <Card.Header className="bg-gradient-primary text-white">
-              <div className="d-flex align-items-center justify-content-between">
-                <div className="d-flex align-items-center">
-                  <i className="bi bi-tools fs-4 me-3"></i>
-                  <div>
-                    <h3 className="mb-1">Registro de Mantenciones</h3>
-                    <p className="mb-0 opacity-75">
-                      Administra mantenciones activas y realiza nuevos registros
-                    </p>
+        <Container fluid className="py-4">
+          <Row>
+            <Col>
+              {/* Header */}
+              <Card className="shadow-sm mb-3">
+                <Card.Header className="bg-gradient-primary text-white">
+                  <div className="d-flex align-items-center justify-content-between">
+                    <div className="d-flex align-items-center">
+                      <i className="bi bi-tools fs-4 me-3"></i>
+                      <div>
+                        <h3 className="mb-1">Registro de Mantenciones</h3>
+                        <p className="mb-0 opacity-75">
+                          Administra mantenciones activas y realiza nuevos registros
+                        </p>
+                      </div>
+                    </div>
+                    <div className="d-flex gap-2">
+                      <Button
+                        variant={showFilters ? "outline-light" : "light"}
+                        onClick={() => setShowFilters(!showFilters)}
+                      >
+                        <i className={`bi bi-funnel${showFilters ? "-fill" : ""} me-2`} />
+                        {showFilters ? "Ocultar Filtros" : "Mostrar Filtros"}
+                      </Button>
+
+                      {["Mecánico", "Mantenciones de Maquinaria"].includes(user?.role) && (
+                        <Button variant="light" onClick={() => handleOpenModal()}>
+                          <i className="bi bi-plus-circle me-2"></i>
+                          Registrar Mantención
+                        </Button>
+                      )}
+                    </div>
                   </div>
-                </div>
-                <div className="d-flex gap-2">
-                  <Button
-                    variant={showFilters ? "outline-light" : "light"}
-                    onClick={() => setShowFilters(!showFilters)}
-                  >
-                    <i className={`bi bi-funnel${showFilters ? "-fill" : ""} me-2`} />
-                    {showFilters ? "Ocultar Filtros" : "Mostrar Filtros"}
-                  </Button>
+                </Card.Header>
+              </Card>
 
-                  <Button variant="light" onClick={() => handleOpenModal()}>
-                    <i className="bi bi-plus-circle me-2"></i>
-                    Registrar Mantención
-                  </Button>
-                </div>
-              </div>
-            </Card.Header>
-          </Card>
-
-  
-          {showFilters && (
-            <MantencionLocalFilters
-              filters={filterValues}
-              maquinarias={maquinarias}
-              mecanicos={mecanicos}
-              onFilterChange={handleFilterChange}
-              onReset={() => {
-                handleResetFilters()
-                setShowFilters(false) 
-              }}
-              hasActiveFilters={hasActiveFilters}
-            />
-          )}
-
-
-          {/* Contenido principal */}
-          <Card className="shadow-sm">
-            <Card.Header className="bg-light">
-              <h5 className="mb-0">
-                <i className="bi bi-list-ul me-2"></i>
-                Lista de Mantenciones
-              </h5>
-            </Card.Header>
-            <Card.Body className="p-0">
-              {loading ? (
-                <div className="text-center py-5">
-                  <Spinner animation="border" variant="primary" />
-                  <p className="mt-3 text-muted">Cargando mantenciones...</p>
-                </div>
-              ) : error ? (
-                <Alert variant="danger" className="m-3">
-                  <i className="bi bi-exclamation-triangle me-2"></i>
-                  {error}
-                </Alert>
-              ) : (
-                
-
-                //Lista las mantenciones
-                <MaintenanceRecordList
-                  records={paginatedRecords}
-                  onEdit={handleOpenModal}
-                  onDelete={handleDelete}
-                  onFinish={handleOpenFinishModal}
-                  onSpareParts={handleOpenSpareParts}
-                  onAssignMecanico={handleOpenAssignModal}
-                  onReload={reload}
-                  onAccept={handleAcceptMaintenance}
-                />
-              )}{!loading && !error && filteredRecords.length > itemsPerPage && (
-                <Pagination
-                  currentPage={currentPage}
-                  totalPages={totalPages}
-                  onPageChange={(page) => setCurrentPage(page)}
+      
+              {showFilters && (
+                <MantencionLocalFilters
+                  filters={filterValues}
+                  maquinarias={maquinarias}
+                  mecanicos={mecanicos}
+                  onFilterChange={handleFilterChange}
+                  onReset={() => {
+                    handleResetFilters()
+                    setShowFilters(false) 
+                  }}
+                  hasActiveFilters={hasActiveFilters}
                 />
               )}
-            </Card.Body>
-          </Card>
-          {/*Asigna Mecanico */}
-          <AssignMecanicoModal
-            show={showAssignModal}
-            onHide={handleCloseAssignModal}
-            onSubmit={handleAssignMecanico}
-            mecanicos={mecanicos}
-            currentMecanicoId={recordToAssign?.mecanicoAsignado?.id}
-          />
-          
-          {/* Cambiar el estado de completada o irrecuerable */}
-          <EstadoFinalizacionModal
-            show={showEstadoModal}
-            onHide={() => setShowEstadoModal(false)}
-            onSelectEstado={handleSeleccionEstado}
-          />
-          
-          {/* Modales */}
-          <MaintenanceRecordModal
-            show={showModal}
-            onHide={handleCloseModal}
-            onSubmit={handleCreateOrUpdate}
-            initialData={
-              editingRecord
-                ? {
-                    ...editingRecord,
-                    repuestosUtilizados: editingRecord.repuestosUtilizados.map((r) => ({
-                      repuestoId: r.id,
-                      cantidad: r.cantidad,
-                    })),
-                  }
-                : undefined
-            }
-            loading={creating || updating}
-          />
 
-          {selectedMantencionId !== null && (
-            <MaintenanceSparePartPanel
-              mantencionId={selectedMantencionId}
-              show={showSparePartPanel}
-              onHide={() => setShowSparePartPanel(false)}
-              onReload={reload}
-            />
-          )}
-          
-          <FinalizeMaintenanceModal
-            show={showFinishModal}
-            onHide={handleCloseFinishModal}
-            onSubmit={handleFinalize}
-            loading={updating}
-            fechaEntrada={finishingRecord?.fechaEntrada?.toString().split("T")[0] ?? ""}
-            estadoActual={finishingRecord?.estado ?? ""}
-            estadoSeleccionado={estadoSeleccionado ?? ""}
-          />
 
-          {/* Toasts */}
-          <Toast toasts={toasts} removeToast={removeToast} />
-        </Col>
-      </Row>
-    </Container>
+              {/* Contenido principal */}
+              <Card className="shadow-sm">
+                <Card.Header className="bg-light">
+                  <h5 className="mb-0">
+                    <i className="bi bi-list-ul me-2"></i>
+                    Lista de Mantenciones
+                  </h5>
+                </Card.Header>
+                <Card.Body className="p-0">
+                  {loading ? (
+                    <div className="text-center py-5">
+                      <Spinner animation="border" variant="primary" />
+                      <p className="mt-3 text-muted">Cargando mantenciones...</p>
+                    </div>
+                  ) : error ? (
+                    <Alert variant="danger" className="m-3">
+                      <i className="bi bi-exclamation-triangle me-2"></i>
+                      {error}
+                    </Alert>
+                  ) : (
+                    
+
+                    //Lista las mantenciones
+                    <MaintenanceRecordList
+                      records={paginatedRecords}
+                      onEdit={handleOpenModal}
+                      onDelete={handleDelete}
+                      onFinish={handleOpenFinishModal}
+                      onSpareParts={handleOpenSpareParts}
+                      onAssignMecanico={handleOpenAssignModal}
+                      onReload={reload}
+                      onAccept={handleAcceptMaintenance}
+                    />
+                  )}{!loading && !error && filteredRecords.length > itemsPerPage && (
+                    <Pagination
+                      currentPage={currentPage}
+                      totalPages={totalPages}
+                      onPageChange={(page) => setCurrentPage(page)}
+                    />
+                  )}
+                </Card.Body>
+              </Card>
+              {/*Asigna Mecanico */}
+              <AssignMecanicoModal
+                show={showAssignModal}
+                onHide={handleCloseAssignModal}
+                onSubmit={handleAssignMecanico}
+                mecanicos={mecanicos}
+                currentMecanicoId={recordToAssign?.mecanicoAsignado?.id}
+              />
+              
+              {/* Cambiar el estado de completada o irrecuerable */}
+              <EstadoFinalizacionModal
+                show={showEstadoModal}
+                onHide={() => setShowEstadoModal(false)}
+                onSelectEstado={handleSeleccionEstado}
+              />
+              
+              {/* Modales */}
+              <MaintenanceRecordModal
+                show={showModal}
+                onHide={handleCloseModal}
+                onSubmit={handleCreateOrUpdate}
+                initialData={
+                  editingRecord
+                    ? {
+                        ...editingRecord,
+                        repuestosUtilizados: editingRecord.repuestosUtilizados.map((r) => ({
+                          repuestoId: r.id,
+                          cantidad: r.cantidad,
+                        })),
+                      }
+                    : undefined
+                }
+                loading={creating || updating}
+              />
+
+              {selectedMantencionId !== null && (
+                <MaintenanceSparePartPanel
+                  mantencionId={selectedMantencionId}
+                  show={showSparePartPanel}
+                  onHide={() => setShowSparePartPanel(false)}
+                  onReload={reload}
+                />
+              )}
+              
+              <FinalizeMaintenanceModal
+                show={showFinishModal}
+                onHide={handleCloseFinishModal}
+                onSubmit={handleFinalize}
+                loading={updating}
+                fechaEntrada={finishingRecord?.fechaEntrada?.toString().split("T")[0] ?? ""}
+                estadoActual={finishingRecord?.estado ?? ""}
+                estadoSeleccionado={estadoSeleccionado ?? ""}
+              />
+
+              {/* Toasts */}
+              <Toast toasts={toasts} removeToast={removeToast} />
+            </Col>
+          </Row>
+        </Container>
     </div>
   );
 }
