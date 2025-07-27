@@ -3,40 +3,56 @@ import { SparePart } from "../../entity/MachineryMaintenance/SparePart.entity.js
 import { CreateSparePartDTO, UpdateSparePartDTO } from "../../types/MachineryMaintenance/sparePart.dto.js";
 import { ServiceResponse } from "../../../types.js";
 
+
+function contieneCaracteresEspeciales(texto: string): boolean {
+  const regex = /^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑüÜ\s().-]+$/;
+  return !regex.test(texto);
+}
+
 // Crear repuesto
 export async function createSparePart(data: CreateSparePartDTO): Promise<ServiceResponse<SparePart>> {
   try {
     const repo = AppDataSource.getRepository(SparePart);
 
-    const existe = await repo.findOne({
-      where:{
-        name: data.name.trim(),
-        marca: data.marca.trim(),
-        modelo: data.modelo.trim(),
-        grupo: data.grupo,
+    if (
+        contieneCaracteresEspeciales(data.name) ||
+        contieneCaracteresEspeciales(data.marca) ||
+        contieneCaracteresEspeciales(data.modelo)
+      ) {
+        return [null, "No se permiten caracteres especiales en nombre, marca o modelo"];
       }
-    })
 
-    if(existe){
-      return[null, "Ya existe un repuesto con ese nombre, marca, modelo y grupo de maquinaria"]
+    const duplicado = await repo
+      .createQueryBuilder("repuesto")
+      .where("LOWER(repuesto.name) = LOWER(:name)", { name: data.name.trim() })
+      .andWhere("LOWER(repuesto.marca) = LOWER(:marca)", { marca: data.marca.trim() })
+      .andWhere("LOWER(repuesto.modelo) = LOWER(:modelo)", { modelo: data.modelo.trim() })
+      .getOne();
+
+   if (duplicado) {
+    if (!duplicado.isActive) {
+      duplicado.isActive = true;
+      duplicado.stock = data.stock;
+      return [await repo.save(duplicado), null];
     }
+
+    return [null, "Ya existe un repuesto con ese nombre, marca y modelo"];
+  }
 
     if (data.stock < 0) {
-    return [null, "El stock no puede ser negativo"];
+      return [null, "El stock no puede ser negativo"];
     }
 
-    if (data.anio < 2000 || data.anio > new Date().getFullYear()){
-    return [null, "El año no puede ser negativo"];
+    if (data.anio < 2000 || data.anio > new Date().getFullYear()) {
+      return [null, `El año debe estar entre 2000 y ${new Date().getFullYear()}`];
     }
-
 
     const nuevo = repo.create({
-      name: data.name,
+      name: data.name.trim(),
       stock: data.stock,
-      marca: data.marca,
-      modelo: data.modelo,
+      marca: data.marca.trim(),
+      modelo: data.modelo.trim(),
       anio: data.anio,
-      grupo: data.grupo
     });
 
     const saved = await repo.save(nuevo);
@@ -48,11 +64,14 @@ export async function createSparePart(data: CreateSparePartDTO): Promise<Service
   }
 }
 
+
 // Obtener todos los repuestos
 export async function getAllSpareParts(): Promise<ServiceResponse<SparePart[]>> {
   try {
     const repo = AppDataSource.getRepository(SparePart);
-    const repuestos = await repo.find();
+    const repuestos = await repo.find({
+      where: { isActive: true }
+    });
 
     if (!repuestos.length) {
       return [null, "No hay repuestos registrados"];
@@ -69,7 +88,7 @@ export async function getAllSpareParts(): Promise<ServiceResponse<SparePart[]>> 
 export async function getSparePart(id: number): Promise<ServiceResponse<SparePart>> {
   try {
     const repo = AppDataSource.getRepository(SparePart);
-    const repuesto = await repo.findOneBy({ id });
+    const repuesto = await repo.findOneBy({ id, isActive: true });
 
     if (!repuesto) {
       return [null, "Repuesto no encontrado"];
@@ -92,57 +111,61 @@ export async function updateSparePart(id: number, data: UpdateSparePartDTO): Pro
     if (!existente) {
       return [null, "Repuesto no encontrado"];
     }
-    
-    const nombre = data.name?.trim() ?? existente.name;
-    const marca = data.marca?.trim() ?? existente.marca;
-    const modelo = data.modelo?.trim() ?? existente.modelo;
-    const grupo = data.grupo ?? existente.grupo;
 
-    const duplicado = await repo.findOne({
-      where: {
-        name: nombre,
-        marca: marca,
-        modelo: modelo,
-        grupo: grupo,
-      },
-    });
+    // Validaciones solo si se intenta modificar los campos
+    if (data.name !== undefined) {
+      const nombre = data.name.trim();
+      if (contieneCaracteresEspeciales(nombre)) {
+        return [null, "No se permiten caracteres especiales en el nombre"];
+      }
 
-    if (duplicado && duplicado.id !== id) {
-      return [null, "Ya existe un repuesto con ese nombre, marca, modelo y grupo de maquinaria"];
-    }
-   
-    if (data.stock !== undefined && data.stock < 0) {
-      return [null, "El stock no puede ser negativo"];
-    }
-
-    
-    if (
-      data.anio !== undefined &&
-      (data.anio < 2000 || data.anio > new Date().getFullYear())
-    ) {
-      return [null, `El año debe estar entre 2000 y ${new Date().getFullYear()}`];
-    }
-
-   
-    if (data.name && data.grupo) {
       const duplicado = await repo.findOne({
-        where: {
-          name: data.name.trim(),
-          grupo: data.grupo,
-        },
+        where: { name: nombre },
       });
 
       if (duplicado && duplicado.id !== id) {
         return [null, "Ya existe un repuesto con ese nombre en ese grupo"];
       }
+
+      existente.name = nombre;
     }
 
-    if (data.name !== undefined) existente.name = data.name;
-    if (data.stock !== undefined) existente.stock = data.stock;
-    if (data.marca !== undefined) existente.marca = data.marca;
-    if (data.modelo !== undefined) existente.modelo = data.modelo;
-    if (data.anio !== undefined) existente.anio = data.anio;
-    if (data.grupo !== undefined) existente.grupo = data.grupo;
+    if (data.marca !== undefined) {
+      const marca = data.marca.trim();
+      if (contieneCaracteresEspeciales(marca)) {
+        return [null, "No se permiten caracteres especiales en la marca"];
+      }
+      existente.marca = marca;
+    }
+
+    if (data.modelo !== undefined) {
+      const modelo = data.modelo.trim();
+      if (contieneCaracteresEspeciales(modelo)) {
+        return [null, "No se permiten caracteres especiales en el modelo"];
+      }
+      existente.modelo = modelo;
+    }
+
+    if (data.stock !== undefined) {
+      if (data.stock <= 0) {
+        return [null, "La cantidad de stock debe ser mayor que cero"];
+      }
+
+      if (data.modo === 'agregarStock') {
+        existente.stock += data.stock;
+      } else {
+        existente.stock = data.stock; 
+      }
+    }
+
+
+    if (data.anio !== undefined) {
+      const anioActual = new Date().getFullYear();
+      if (data.anio < 2000 || data.anio > anioActual) {
+        return [null, `El año debe estar entre 2000 y ${anioActual}`];
+      }
+      existente.anio = data.anio;
+    }
 
     const actualizado = await repo.save(existente);
     return [actualizado, null];
@@ -153,6 +176,7 @@ export async function updateSparePart(id: number, data: UpdateSparePartDTO): Pro
   }
 }
 
+
 // Eliminar repuesto
 export async function deleteSparePart(id: number): Promise<ServiceResponse<SparePart>> {
   try {
@@ -161,9 +185,10 @@ export async function deleteSparePart(id: number): Promise<ServiceResponse<Spare
 
     if (!existente) return [null, "Repuesto no encontrado"];
 
-    await repo.remove(existente);
-    return [existente, null];
+    existente.isActive = false;
+    const actualizado = await repo.save(existente);
 
+    return [actualizado, null];
   } catch (error) {
     console.error("Error al eliminar repuesto:", error);
     return [null, "Error al eliminar repuesto"];

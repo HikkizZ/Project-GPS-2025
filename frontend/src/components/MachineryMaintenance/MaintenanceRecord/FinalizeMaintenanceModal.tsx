@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Modal, Button, Form } from 'react-bootstrap';
-import { UpdateMaintenanceRecordData } from '@/types/machinaryMaintenance/maintenanceRecord.types';
+import { UpdateMaintenanceRecordData, EstadoMantencion  } from '@/types/machinaryMaintenance/maintenanceRecord.types';
 import { Toast, useToast } from "@/components/common/Toast"
 interface Props {
   show: boolean;
@@ -9,9 +9,10 @@ interface Props {
   loading?: boolean;
   fechaEntrada: string;
   estadoActual: string;
+  estadoSeleccionado: EstadoMantencion | "";
 }
 
-const FinalizeMaintenanceModal: React.FC<Props> = ({ show, onHide, onSubmit, loading, estadoActual, fechaEntrada }) => {
+const FinalizeMaintenanceModal: React.FC<Props> = ({ show, onHide, onSubmit, loading, estadoActual, fechaEntrada, estadoSeleccionado}) => {
   const [fechaSalida, setFechaSalida] = useState('');
   const [descripcionSalida, setDescripcionSalida] = useState('');
   const { showError, showSuccess } = useToast();
@@ -34,6 +35,7 @@ const FinalizeMaintenanceModal: React.FC<Props> = ({ show, onHide, onSubmit, loa
     onSubmit({
       fechaSalida,
       descripcionSalida: descripcionSalida.trim(),
+      estado: estadoSeleccionado as EstadoMantencion,
     }); 
   };
 

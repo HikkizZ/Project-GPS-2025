@@ -49,7 +49,6 @@ export interface CreateMaintenanceRecordData {
   maquinariaId: number;
   razonMantencion: RazonMantencion;
   descripcionEntrada: string;
-  mecanicoId: number; 
   repuestosUtilizados: {
     repuestoId: number;
     cantidad: number;

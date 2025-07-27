@@ -1,5 +1,3 @@
-import { GrupoMaquinaria } from '@/types/maquinaria.types';
-
 export interface SparePart {
   id: number;
   name: string;
@@ -7,7 +5,6 @@ export interface SparePart {
   marca: string;
   modelo: string;
   anio: number;
-  grupo: GrupoMaquinaria;
 }
 
 export interface CreateSparePartData {
@@ -16,7 +13,6 @@ export interface CreateSparePartData {
   marca: string;
   modelo: string;
   anio: number;
-  grupo: GrupoMaquinaria;
 }
 
 export interface UpdateSparePartData {
@@ -25,5 +21,5 @@ export interface UpdateSparePartData {
   marca?: string;
   modelo?: string;
   anio?: number;
-  grupo?: GrupoMaquinaria;
+  modo?: 'editar' | 'agregarStock';
 }

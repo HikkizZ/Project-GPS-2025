@@ -4,7 +4,7 @@ export type CreateMaintenanceRecordDTO = {
   maquinariaId: number;
   razonMantencion: RazonMantencion;
   descripcionEntrada: string;
-  mecanicoId: number;
+  mecanicoId?: number;
   repuestosUtilizados: {
     repuestoId: number;
     cantidad: number;
