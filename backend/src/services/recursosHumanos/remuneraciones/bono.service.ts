@@ -18,14 +18,26 @@ import { Between, Like, FindManyOptions, DeepPartial, Not } from "typeorm";
 import { date } from "joi";
 import { calcularFechaFin } from "../fichaEmpresa.service.js"; 
 
-export async function getAllBonosService(): Promise<ServiceResponse<{ bonos: Bono[]; total: number }>> {
+export async function getAllBonosService(incluirInactivos: boolean = false): Promise<ServiceResponse<{ bonos: Bono[]; total: number }>> {
     try {
         const bonosRep = AppDataSource.getRepository(Bono);
-        // Obtener todos los bonos ordenados por fecha de creación
-        const [bonos, total] = await bonosRep.findAndCount({ order: { fechaCreacion: "DESC" } });
+
+        // Crear el query builder para usar búsquedas más flexibles
+        const queryBuilder = bonosRep.createQueryBuilder('bono')
+            .leftJoinAndSelect('bono.asignaciones', 'asignaciones');
+
+        // Si no se incluyen inactivos, filtrar por enSistema=true
+        if (!incluirInactivos) {
+            queryBuilder.andWhere('bono.enSistema = :enSistema', { enSistema: true });
+        }
+
+        // Ordenar por fecha de creación descendente
+        queryBuilder.orderBy('bono.fechaCreacion', 'DESC');
+
+        const [bonos, total] = await queryBuilder.getManyAndCount();
 
         return [{ bonos, total }, null];
-    }catch (error) {
+    } catch (error) {
         console.error("Error al obtener bonos:", error);
         return [null, "Error interno del servidor"];
     }
@@ -186,17 +198,43 @@ try {
   }
 }
 
-// Eliminar Bono
-export async function deleteBonoService(id: number): Promise<ServiceResponse<Bono>> {
+
+
+// Desactivar Bono: Soft delete, asignacion cambia a inactiva
+export async function desactivarBonoService(id: number, motivo: string): Promise<ServiceResponse<Bono>> {
+    const queryRunner = AppDataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
     try {
-            const bonosRep = AppDataSource.getRepository(Bono);
-            const bono = await bonosRep.findOneBy({ id });
-            if (!bono) { return [null, "Bono no encontrado"] }
-            // Eliminar bono
-            await bonosRep.remove(bono);
-            return [bono, null];
+        const bono = await queryRunner.manager.findOne(Bono, { 
+            where: { id, enSistema: true }, 
+            relations: ["asignaciones"] 
+        });
+
+        if (!bono) {
+            await queryRunner.rollbackTransaction();
+            await queryRunner.release();
+            return [null, "Bono no encontrado o ya desactivado"];
+        }
+
+        // Soft delete del bono
+        bono.enSistema = false;
+        await queryRunner.manager.save(Bono, bono);
+
+        // Desactivar asignaciones relacionadas
+        for (const asignacion of bono.asignaciones) {
+            asignacion.activo = false; // Marcar como inactiva
+            asignacion.observaciones = motivo;
+            await queryRunner.manager.save(AsignarBono, asignacion);
+        }
+
+        await queryRunner.commitTransaction();
+        await queryRunner.release();
+        return [bono, null];
     } catch (error) {
-        console.error("Error al eliminar bono:", error);
+        console.error("Error al desactivar bono:", error);
+        await queryRunner.rollbackTransaction();
+        await queryRunner.release();
         return [null, "Error interno del servidor"];
     }
 }

@@ -4,7 +4,9 @@ import type {
   FichaEmpresa,
   FichaEmpresaSearchQuery,
   CreateFichaEmpresaData,
-  UpdateFichaEmpresaData
+  UpdateFichaEmpresaData,
+  AsignacionesBonos,
+  AsignarBonoDTO
 } from '../../types/recursosHumanos/fichaEmpresa.types';
 import { EstadoLaboral } from '../../types/recursosHumanos/fichaEmpresa.types';
 
@@ -233,6 +235,26 @@ export class FichaEmpresaService {
     }
   }
 
+  // Asignar bono 
+  async asignarBono(idFicha: number, data: AsignarBonoDTO): Promise<ApiResponse<AsignarBonoDTO>> {
+    try {
+      const response = await apiClient.post<{ data: AsignarBonoDTO }>(
+        `${this.baseURL}/${idFicha}/asignar`, 
+        { ...data });
+      return {
+        success: true,
+        message: 'Bono asignado exitosamente',
+        data: response.data
+      };
+    } catch (error: any) {
+      console.error('Error al asignar bono:', error);
+      return {
+        success: false,
+        message: error.response?.data?.message || error.message || 'Error al asignar bono'
+      };
+    }
+  }
+
   // Métodos estáticos para utilidades
   static formatSalario(salario: number): string {
     return new Intl.NumberFormat('es-CL', {
@@ -280,3 +302,4 @@ export const updateFichaEmpresa = (id: number, data: any) => fichaEmpresaService
 export const uploadContrato = (fichaId: number, file: File) => fichaEmpresaService.uploadContrato(fichaId, file);
 export const downloadContrato = (fichaId: number) => fichaEmpresaService.downloadContrato(fichaId);
 export const deleteContrato = (fichaId: number) => fichaEmpresaService.deleteContrato(fichaId); 
+export const asignarBono = (idFicha: number, data: AsignarBonoDTO) => fichaEmpresaService.asignarBono(idFicha, data);

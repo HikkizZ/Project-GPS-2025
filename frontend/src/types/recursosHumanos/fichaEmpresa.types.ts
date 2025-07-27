@@ -41,17 +41,28 @@ export interface FichaEmpresa {
   seguroCesantia?: string; // Seguro de Cesantía
   asignacionesBonos: {
     id: number;
+    observaciones?: string;
     fechaAsignacion: Date | string;
     fechaFinAsignacion?: Date | string | null;
     activo: boolean;
     bono: {
       id: number;
-      nombre: string;
-      monto: number;
-      tipo: string; // Puede ser 'empresarial' o 'estatal'
+      nombreBono: string;
+      monto: string;
+      tipoBono: "estatal" | "empresarial";
+      temporalidad: "permanente" | "recurrente" | "puntual";
       imponible: boolean;
     };
   }[];
+}
+
+export interface AsignacionesBonos {
+  fechaAsignacion: Date | string;
+  fechaFinAsignacion?: Date | string | null;
+  activo: boolean;
+  bono: string; // Bono que se asigna, puede ser un ID o un nombre
+  fichaEmpresa: FichaEmpresa;
+  observaciones?: string; // Observaciones sobre la asignación
 }
 
 export interface CreateFichaEmpresaData {
@@ -129,3 +140,49 @@ export interface FichaEmpresaSearchParams {
   previsionSalud?: string;
   seguroCesantia?: string;
 } 
+
+ export interface AsignarBonoDTO {
+    bonoId: number;
+    observaciones?: string;
+}
+export interface AsignarFichaEmpresaData {
+  asignacionesBonos: number[]; // IDs de los bonos a asignar
+}
+
+export interface UpdateAsignarBonoDTO {
+    fechaAsignacion?: string | Date;
+    activo?: boolean;
+    observaciones?: string;
+}
+
+export interface AsignarBonoQueryDTO {
+    id?: number;
+    trabajadorId?: number;
+    bonoId?: number;
+    activo?: boolean;
+    fechaEntregaDesde?: string | Date;
+    fechaEntregaHasta?: string | Date;
+    limit?: number;
+    offset?: number;
+}
+
+export interface AsignarBonoResponseDTO {
+    id: number;
+    trabajador: {
+        id: number;
+        nombres: string;
+        apellidoPaterno: string;
+        apellidoMaterno: string;
+        rut: string;
+    };
+    bono: {
+        id: number;
+        nombreBono: string;
+        monto: string;
+        tipoBono: "estatal" | "empresarial";
+        temporalidad: "permanente" | "recurrente" | "puntual";
+    };
+    fechaEntrega: Date;
+    activo: boolean;
+    observaciones?: string;
+}

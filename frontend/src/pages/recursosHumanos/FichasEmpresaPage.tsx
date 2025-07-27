@@ -7,7 +7,8 @@ import { formatAFP } from '@/utils/index';
 import { 
   FichaEmpresa, 
   FichaEmpresaSearchParams,
-  EstadoLaboral
+  EstadoLaboral,
+  AsignacionesBonos
 } from '@/types/recursosHumanos/fichaEmpresa.types';
 import { Trabajador } from '@/types/recursosHumanos/trabajador.types';
 import { EditarFichaEmpresaModal } from '@/components/recursosHumanos/EditarFichaEmpresaModal';
@@ -19,6 +20,7 @@ import { ModalHistorialLaboral } from '@/components/recursosHumanos/ModalHistori
 import { useHistorialLaboral } from '@/hooks/recursosHumanos/useHistorialLaboral';
 import historialLaboralService from '@/services/recursosHumanos/historialLaboral.service';
 import { TrabajadorDetalleModal } from '@/components/recursosHumanos/TrabajadorDetalleModal';
+import { AsignarBonosFichaEmpresaModal } from '@/components/recursosHumanos/ModalAsignarBonos';
 
 interface FichasEmpresaPageProps {
   trabajadorRecienRegistrado?: Trabajador | null;
@@ -74,6 +76,7 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
   const [incluirLicencias, setIncluirLicencias] = useState(false);
   const [incluirPermisos, setIncluirPermisos] = useState(false);
   const [incluirSinFechaFin, setIncluirSinFechaFin] = useState(false);
+  const [showAsignarBonoModal, setShowAsignarBonoModal] = useState(false);
 
   // Función para filtrar las fichas según los estados seleccionados
   // Ya no necesitamos filtrar aquí porque todo se maneja en el backend
@@ -385,6 +388,11 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
     setShowDetalleModal(true);
   };
 
+  const handleAsignarBono = (ficha: FichaEmpresa) => {
+    setSelectedFicha(ficha);
+    setShowAsignarBonoModal(true);
+  };
+
   // Si es usuario sin permisos administrativos o está en la ruta de ficha personal
   if ((user && !puedeGestionarFichas) || (puedeAccederModulosPersonales && window.location.pathname === '/fichas-empresa/mi-ficha')) {
     return (
@@ -540,8 +548,8 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                               {miFicha.asignacionesBonos && miFicha.asignacionesBonos.length > 0 ? (
                               <span className="status-badge">
                                 {miFicha.asignacionesBonos
-                                  .filter(asig => asig.activo && asig.bono && asig.bono.nombre)
-                                  .map(asig => asig.bono.nombre)
+                                  .filter(asig => asig.activo && asig.bono && asig.bono.nombreBono)
+                                  .map(asig => asig.bono.nombreBono)
                                   .join(', ')
                                 }
                               </span>
@@ -1103,8 +1111,8 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                             {ficha.asignacionesBonos && ficha.asignacionesBonos.length > 0 ? (
                               <span className="status-badge">
                                 {ficha.asignacionesBonos
-                                  .filter(asig => asig.activo && asig.bono && asig.bono.nombre)
-                                  .map(asig => asig.bono.nombre)
+                                  .filter(asig => asig.activo && asig.bono && asig.bono.nombreBono)
+                                  .map(asig => asig.bono.nombreBono)
                                   .join(', ')
                                 }
                               </span>
@@ -1144,6 +1152,13 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                                   <i className="bi bi-clock-history"></i>
                                 </Button>
                               )}
+                              <Button
+                                variant="outline-warning"
+                                onClick={() => handleAsignarBono(ficha)}
+                                title="Asignar Bono"
+                              >
+                                <i className="bi bi-plus"></i>
+                              </Button>
                               <Button
                                 variant="outline-secondary"
                                 onClick={() => handleVerDetalle(ficha)}
@@ -1192,6 +1207,22 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
         show={showDetalleModal}
         onHide={() => setShowDetalleModal(false)}
         trabajador={trabajadorDetalle}
+      />
+
+      {/* Modal para asignar bonos */}
+      <AsignarBonosFichaEmpresaModal
+        show={showAsignarBonoModal}
+        onHide={() => setShowAsignarBonoModal(false)}
+        asignaciones={{
+          fechaAsignacion: new Date(),
+          fechaFinAsignacion: null,
+          activo: true,
+          bono: '',
+          fichaEmpresa: selectedFicha!,
+          observaciones: ''
+        }}
+        ficha={selectedFicha!}
+        onSuccess={handleUpdateSuccess}
       />
 
       {/* Sistema de notificaciones */}
