@@ -97,6 +97,13 @@ export const updateSparePartValidation = Joi.object({
       "number.max": `El año no puede ser mayor a ${new Date().getFullYear()}.`
     }),
 
+    modo: Joi.string()
+    .valid("editar", "agregarStock")
+    .optional()
+    .messages({
+      "string.base": "El modo debe ser texto.",
+      "any.only": "El modo debe ser 'editar' o 'agregarStock'."
+    }),
 
 
 }).or("name", "stock", "marca", "modelo", "anio").messages({
