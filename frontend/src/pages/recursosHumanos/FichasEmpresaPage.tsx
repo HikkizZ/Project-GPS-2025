@@ -7,7 +7,8 @@ import { formatAFP } from '@/utils/index';
 import { 
   FichaEmpresa, 
   FichaEmpresaSearchParams,
-  EstadoLaboral
+  EstadoLaboral,
+  AsignacionesBonos
 } from '@/types/recursosHumanos/fichaEmpresa.types';
 import { Trabajador } from '@/types/recursosHumanos/trabajador.types';
 import { EditarFichaEmpresaModal } from '@/components/recursosHumanos/EditarFichaEmpresaModal';
@@ -19,6 +20,7 @@ import { ModalHistorialLaboral } from '@/components/recursosHumanos/ModalHistori
 import { useHistorialLaboral } from '@/hooks/recursosHumanos/useHistorialLaboral';
 import historialLaboralService from '@/services/recursosHumanos/historialLaboral.service';
 import { TrabajadorDetalleModal } from '@/components/recursosHumanos/TrabajadorDetalleModal';
+import { AsignarBonosFichaEmpresaModal } from '@/components/recursosHumanos/ModalAsignarBonos';
 
 interface FichasEmpresaPageProps {
   trabajadorRecienRegistrado?: Trabajador | null;
@@ -30,6 +32,17 @@ function formatMiles(value: string | number): string {
   const num = typeof value === 'number' ? value : value.replace(/\D/g, '');
   if (!num) return '';
   return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+}
+
+function formatAsignacionesBonos(ficha: FichaEmpresa): AsignacionesBonos {
+  return ficha.asignacionesBonos.map(asig => ({
+    fechaAsignacion: asig.fechaAsignacion,
+    fechaFinAsignacion: asig.fechaFinAsignacion || null,
+    activo: asig.activo,
+    bono: asig.bono, // Asumimos que 'bono' es un objeto con 'nombre'
+    fichaEmpresa: ficha,
+    observaciones: asig.observaciones || ''
+  }));
 }
 
 export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({ 
@@ -74,6 +87,7 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
   const [incluirLicencias, setIncluirLicencias] = useState(false);
   const [incluirPermisos, setIncluirPermisos] = useState(false);
   const [incluirSinFechaFin, setIncluirSinFechaFin] = useState(false);
+  const [showAsignarBonoModal, setShowAsignarBonoModal] = useState(false);
 
   // Función para filtrar las fichas según los estados seleccionados
   // Ya no necesitamos filtrar aquí porque todo se maneja en el backend
@@ -383,6 +397,11 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
     };
     setTrabajadorDetalle(trabajador);
     setShowDetalleModal(true);
+  };
+
+  const handleAsignarBono = (ficha: FichaEmpresa) => {
+    setSelectedFicha(ficha);
+    setShowAsignarBonoModal(true);
   };
 
   // Si es usuario sin permisos administrativos o está en la ruta de ficha personal
@@ -1145,6 +1164,13 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                                 </Button>
                               )}
                               <Button
+                                variant="outline-warning"
+                                onClick={() => handleAsignarBono(ficha)}
+                                title="Asignar Bono"
+                              >
+                                <i className="bi bi-plus"></i>
+                              </Button>
+                              <Button
                                 variant="outline-secondary"
                                 onClick={() => handleVerDetalle(ficha)}
                                 title="Ver detalles"
@@ -1192,6 +1218,15 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
         show={showDetalleModal}
         onHide={() => setShowDetalleModal(false)}
         trabajador={trabajadorDetalle}
+      />
+
+      {/* Modal para asignar bonos */}
+      <AsignarBonosFichaEmpresaModal
+        show={showAsignarBonoModal}
+        onHide={() => setShowAsignarBonoModal(false)}
+        asignaciones={selectedFicha? formatAsignacionesBonos(selectedFicha) : [] }
+        ficha={selectedFicha}
+        onSuccess={handleUpdateSuccess}
       />
 
       {/* Sistema de notificaciones */}
