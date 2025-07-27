@@ -43,10 +43,15 @@ const MantencionesCompletadasPage: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
     
-  const totalPages = Math.ceil(filteredRecords.length / itemsPerPage);
+  const sortedRecords = [...filteredRecords].sort((a, b) =>
+    a.maquinaria.patente.localeCompare(b.maquinaria.patente)
+  );
+
+  const totalPages = Math.ceil(sortedRecords.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const paginatedRecords = filteredRecords.slice(startIndex, endIndex);
+  const paginatedRecords = sortedRecords.slice(startIndex, endIndex);
+
 
   const hasActiveFilters = Object.values(filterValues).some((v) => v.trim() !== "");
 
