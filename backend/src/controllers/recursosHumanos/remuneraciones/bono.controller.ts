@@ -89,7 +89,7 @@ export async function getAllBonos(req: Request, res: Response): Promise<void> {
             return;
         }
 
-        handleSuccess(res, 200, "Bonos recuperadas exitosamente", resultado || {});
+        handleSuccess(res, 200, "Bonos recuperadas exitosamente", resultado || { bonos: [], total: 0 });
     } catch (error) {
         console.error("Error al obtener bonos:", error);
         handleErrorServer(res, 500, "Error interno del servidor");

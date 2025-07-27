@@ -69,6 +69,7 @@ export const TrabajadorQueryValidation = Joi.object({
         }),
 
     numeroEmergencia: Joi.string()
+        .allow('')
         .pattern(/^\+?[\d]{3,12}$/)
         .messages({
             "string.base": "El número de emergencia debe ser una cadena de texto.",
@@ -171,6 +172,7 @@ export const TrabajadorBodyValidation = Joi.object({
         }),
 
     numeroEmergencia: Joi.string()
+        .allow('')
         .pattern(/^\+?[\d]{9,12}$/)
         .optional()
         .messages({
@@ -256,6 +258,7 @@ export const TrabajadorUpdateValidation = Joi.object({
         }),
 
     numeroEmergencia: Joi.string()
+        .allow('')
         .pattern(/^\+?[\d]{9,12}$/)
         .messages({
             "string.base": "El número de emergencia debe ser una cadena de texto.",
@@ -345,6 +348,7 @@ export const TrabajadorReactivacionValidation = Joi.object({
         }),
 
     numeroEmergencia: Joi.string()
+        .allow('')
         .pattern(/^\+?[\d]{9,12}$/)
         .optional()
         .messages({

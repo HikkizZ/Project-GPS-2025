@@ -80,7 +80,7 @@ export class Trabajador {
   correoPersonal!: string;
 
   @Column({ type: "varchar", length: 12, nullable: true })
-  numeroEmergencia!: string;
+  numeroEmergencia!: string | null;
 
   @Column({ type: "varchar", length: 255, nullable: false })
   direccion!: string;

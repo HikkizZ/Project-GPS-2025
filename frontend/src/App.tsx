@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useRut } from './hooks/useRut';
 import { useTrabajadores } from './hooks/recursosHumanos/useTrabajadores';
@@ -27,6 +26,7 @@ import { UserRole } from './types/auth.types';
 import { ProtectedRoute } from './components/common/ProtectedRoute';
 import { usePermissions } from './hooks/usePermissions';
 import MiAreaPersonalPage from './pages/MiAreaPersonalPage';
+import { GestionRemuneracionesPage } from './pages/recursosHumanos/GestionRemuneracionesPage';
 
 //Importaciones de Mantenciones
 import MantencionPage from './pages/machinaryMantenance/MantencionPage';
@@ -705,41 +705,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
                         </Col>
                       )}
 
-                      {/* Tarjeta de Reportes - Próximamente */}
-                      <Col md={3} className="mb-4">
-                        <Card
-                          className="h-100 border-0 shadow-sm"
-                          style={{
-                            borderRadius: "20px",
-                            background: "white",
-                            border: "1px solid #f1f5f9",
-                            opacity: 0.8,
-                          }}
-                        >
-                          <Card.Body className="p-4 text-center">
-                            <div
-                              className="d-inline-flex align-items-center justify-content-center mb-4"
-                              style={{
-                                width: "80px",
-                                height: "80px",
-                                background: "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)",
-                                borderRadius: "24px",
-                                boxShadow: "0 8px 32px rgba(245, 158, 11, 0.2)",
-                              }}
-                            >
-                              <i className="bi bi-bar-chart text-white" style={{ fontSize: "2.5rem" }}></i>
-                            </div>
-                            <Card.Title className="fw-bold text-dark mb-2 fs-5">Reportes</Card.Title>
-                            <Card.Text className="text-muted small mb-3">Análisis y estadísticas</Card.Text>
-                            <div className="d-flex align-items-center justify-content-center">
-                              <small className="text-muted">
-                                <i className="bi bi-clock me-1"></i>
-                                Próximamente
-                              </small>
-                            </div>
-                          </Card.Body>
-                        </Card>
-                      </Col>
+
                     </Row>
                   </div>
                 </div>
@@ -867,6 +833,14 @@ function App() {
                       </ProtectedRoute>
                     } 
                   />
+                  <Route
+                  path="gestion-sueldos"
+                  element={
+                    <ProtectedRoute allowedRoles={["SuperAdministrador", "Administrador", "RecursosHumanos"]}>
+                      <GestionRemuneracionesPage />
+                    </ProtectedRoute>
+                  }
+                />
                   <Route 
                     path="mis-licencias-permisos" 
                     element={

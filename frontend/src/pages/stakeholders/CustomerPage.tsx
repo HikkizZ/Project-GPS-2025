@@ -1,17 +1,23 @@
-import type React from "react"
-import { useState, useEffect, useCallback } from "react"
-import { Container, Row, Col, Button, Card } from "react-bootstrap"
-import InventorySidebar from "@/components/inventory/layout/InventorySidebar"
-import CustomerModal from "@/components/stakeholders/CustomerModal"
-import ConfirmModal from "@/components/common/ConfirmModal"
-import { FiltersPanel } from "@/components/stakeholders/filters/FiltersPanel"
-import { CustomerTable } from "@/components/stakeholders/CustomerTable"
-import { useCustomers } from "@/hooks/stakeholders/useCustomers"
-import { usePdfExport } from "@/hooks/usePdfExport"
-import { useExcelExport } from "@/hooks/useExcelExport"
-import type { Customer, CreateCustomerData, UpdateCustomerData } from "@/types/stakeholders/customer.types"
-import { useToast, Toast } from "@/components/common/Toast"
-import "../../styles/pages/customers.css"
+import type React from "react";
+import { useState, useEffect, useCallback } from "react";
+import { useLocation } from "react-router-dom";
+import { Container, Row, Col, Button, Card } from "react-bootstrap";
+import InventorySidebar from "@/components/inventory/layout/InventorySidebar";
+import MaquinariaSidebar from "@/components/maquinaria/maquinariaSideBar";
+import CustomerModal from "@/components/stakeholders/CustomerModal";
+import ConfirmModal from "@/components/common/ConfirmModal";
+import { FiltersPanel } from "@/components/stakeholders/filters/FiltersPanel";
+import { CustomerTable } from "@/components/stakeholders/CustomerTable";
+import { useCustomers } from "@/hooks/stakeholders/useCustomers";
+import { usePdfExport } from "@/hooks/usePdfExport";
+import { useExcelExport } from "@/hooks/useExcelExport";
+import type {
+  Customer,
+  CreateCustomerData,
+  UpdateCustomerData,
+} from "@/types/stakeholders/customer.types";
+import { useToast, Toast } from "@/components/common/Toast";
+import "../../styles/pages/customers.css";
 
 export const CustomerPage: React.FC = () => {
   const {
@@ -24,111 +30,138 @@ export const CustomerPage: React.FC = () => {
     isCreating,
     isUpdating,
     isDeleting,
-  } = useCustomers()
+  } = useCustomers();
 
-  const { toasts, removeToast, showSuccess, showError } = useToast()
-  const { exportToPdf, isExporting: isExportingPdf } = usePdfExport()
-  const { exportToExcel, isExporting: isExportingExcel } = useExcelExport()
+  const { toasts, removeToast, showSuccess, showError } = useToast();
+  const { exportToPdf, isExporting: isExportingPdf } = usePdfExport();
+  const { exportToExcel, isExporting: isExportingExcel } = useExcelExport();
 
-  const [allCustomers, setAllCustomers] = useState<Customer[]>([])
-  const [filteredCustomers, setFilteredCustomers] = useState<Customer[]>([])
+  const [allCustomers, setAllCustomers] = useState<Customer[]>([]);
+  const [filteredCustomers, setFilteredCustomers] = useState<Customer[]>([]);
   const [localFilters, setLocalFilters] = useState({
     name: "",
     rut: "",
     email: "",
     address: "",
     phone: "",
-  })
-  const [showModal, setShowModal] = useState(false)
-  const [editingCustomer, setEditingCustomer] = useState<Customer | undefined>(undefined)
-  const [filters, setFilters] = useState({ rut: "", email: "" })
-  const [showFilters, setShowFilters] = useState(false)
-  const [customerToDelete, setCustomerToDelete] = useState<Customer | null>(null)
+  });
+  const [showModal, setShowModal] = useState(false);
+  const [editingCustomer, setEditingCustomer] = useState<Customer | undefined>(
+    undefined
+  );
+  const [filters, setFilters] = useState({ rut: "", email: "" });
+  const [showFilters, setShowFilters] = useState(false);
+  const [customerToDelete, setCustomerToDelete] = useState<Customer | null>(
+    null
+  );
 
   useEffect(() => {
-    setAllCustomers(customers)
-    setFilteredCustomers(customers)
-  }, [customers])
+    setAllCustomers(customers);
+    setFilteredCustomers(customers);
+  }, [customers]);
 
   useEffect(() => {
-    let filtered = [...allCustomers]
+    let filtered = [...allCustomers];
     if (localFilters.name) {
-      filtered = filtered.filter((customer) => customer.name.toLowerCase().includes(localFilters.name.toLowerCase()))
+      filtered = filtered.filter((customer) =>
+        customer.name.toLowerCase().includes(localFilters.name.toLowerCase())
+      );
     }
     if (localFilters.rut) {
-      filtered = filtered.filter((customer) => customer.rut.toLowerCase().includes(localFilters.rut.toLowerCase()))
+      filtered = filtered.filter((customer) =>
+        customer.rut.toLowerCase().includes(localFilters.rut.toLowerCase())
+      );
     }
     if (localFilters.email) {
-      filtered = filtered.filter((customer) => customer.email.toLowerCase().includes(localFilters.email.toLowerCase()))
+      filtered = filtered.filter((customer) =>
+        customer.email.toLowerCase().includes(localFilters.email.toLowerCase())
+      );
     }
     if (localFilters.address) {
       filtered = filtered.filter((customer) =>
-        customer.address.toLowerCase().includes(localFilters.address.toLowerCase()),
-      )
+        customer.address
+          .toLowerCase()
+          .includes(localFilters.address.toLowerCase())
+      );
     }
     if (localFilters.phone) {
-      filtered = filtered.filter((customer) => customer.phone.includes(localFilters.phone))
+      filtered = filtered.filter((customer) =>
+        customer.phone.includes(localFilters.phone)
+      );
     }
-    setFilteredCustomers(filtered)
-  }, [allCustomers, localFilters])
+    setFilteredCustomers(filtered);
+  }, [allCustomers, localFilters]);
 
   const handleCreateClick = () => {
-    setEditingCustomer(undefined)
-    setShowModal(true)
-  }
+    setEditingCustomer(undefined);
+    setShowModal(true);
+  };
 
   const handleEditClick = (customer: Customer) => {
-    setEditingCustomer(customer)
-    setShowModal(true)
-  }
+    setEditingCustomer(customer);
+    setShowModal(true);
+  };
 
   const handleDeleteClick = (customer: Customer) => {
-    setCustomerToDelete(customer)
-  }
+    setCustomerToDelete(customer);
+  };
 
   const confirmDeleteCustomer = async () => {
-    if (!customerToDelete) return
-    const result = await deleteCustomer(customerToDelete.id)
+    if (!customerToDelete) return;
+    const result = await deleteCustomer(customerToDelete.id);
     if (result.success) {
-      showSuccess("¡Cliente eliminado!", "El cliente se ha eliminado exitosamente del sistema", 4000)
+      showSuccess(
+        "¡Cliente eliminado!",
+        "El cliente se ha eliminado exitosamente del sistema",
+        4000
+      );
     } else {
-      showError("Error al eliminar", result.error || "Ocurrió un error al eliminar el cliente.")
+      showError(
+        "Error al eliminar",
+        result.error || "Ocurrió un error al eliminar el cliente."
+      );
     }
-    setCustomerToDelete(null)
-  }
+    setCustomerToDelete(null);
+  };
 
-  const handleSubmit = async (data: CreateCustomerData | UpdateCustomerData) => {
-    const isEdit = Boolean(editingCustomer)
+  const handleSubmit = async (
+    data: CreateCustomerData | UpdateCustomerData
+  ) => {
+    const isEdit = Boolean(editingCustomer);
     const result = isEdit
       ? await updateCustomer(editingCustomer!.id, data as UpdateCustomerData)
-      : await createCustomer(data as CreateCustomerData)
+      : await createCustomer(data as CreateCustomerData);
     if (result.success) {
-      showSuccess(isEdit ? "¡Cliente actualizado!" : "¡Cliente creado!", result.message, 4000)
-      setShowModal(false)
+      showSuccess(
+        isEdit ? "¡Cliente actualizado!" : "¡Cliente creado!",
+        result.message,
+        4000
+      );
+      setShowModal(false);
     } else {
-      showError("Error", result.error || "Ocurrió un error inesperado")
+      showError("Error", result.error || "Ocurrió un error inesperado");
     }
-  }
+  };
 
   const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setFilters((prev) => ({ ...prev, [name]: value }))
-  }
+    const { name, value } = e.target;
+    setFilters((prev) => ({ ...prev, [name]: value }));
+  };
 
   const handleFilterSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    await loadCustomers(filters)
-  }
+    e.preventDefault();
+    await loadCustomers(filters);
+  };
 
   const handleFilterReset = async () => {
-    setFilters({ rut: "", email: "" })
-    await loadCustomers({})
-  }
+    setFilters({ rut: "", email: "" });
+    await loadCustomers({});
+  };
 
   const handleLocalFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setLocalFilters((prev) => ({ ...prev, [name]: value }))
-  }
+    const { name, value } = e.target;
+    setLocalFilters((prev) => ({ ...prev, [name]: value }));
+  };
 
   const handleLocalFilterReset = () => {
     setLocalFilters({
@@ -137,29 +170,29 @@ export const CustomerPage: React.FC = () => {
       email: "",
       address: "",
       phone: "",
-    })
-  }
+    });
+  };
 
   const handleExportToPdf = useCallback(async () => {
     if (filteredCustomers.length === 0) {
-      showError("Sin datos para exportar", "No hay clientes para exportar.")
-      return
+      showError("Sin datos para exportar", "No hay clientes para exportar.");
+      return;
     }
 
-    const tempDiv = document.createElement("div")
-    tempDiv.id = "temp-customers-export"
-    tempDiv.style.position = "absolute"
-    tempDiv.style.left = "-9999px"
-    tempDiv.style.top = "0"
-    tempDiv.style.width = "1400px"
-    tempDiv.style.backgroundColor = "white"
-    tempDiv.style.padding = "20px"
-    document.body.appendChild(tempDiv)
+    const tempDiv = document.createElement("div");
+    tempDiv.id = "temp-customers-export";
+    tempDiv.style.position = "absolute";
+    tempDiv.style.left = "-9999px";
+    tempDiv.style.top = "0";
+    tempDiv.style.width = "1400px";
+    tempDiv.style.backgroundColor = "white";
+    tempDiv.style.padding = "20px";
+    document.body.appendChild(tempDiv);
 
     try {
-      const { createRoot } = await import("react-dom/client")
-      const root = createRoot(tempDiv)
-      const React = await import("react")
+      const { createRoot } = await import("react-dom/client");
+      const root = createRoot(tempDiv);
+      const React = await import("react");
 
       const ExportTable = React.createElement(
         "div",
@@ -175,14 +208,18 @@ export const CustomerPage: React.FC = () => {
               style: { marginBottom: "20px", textAlign: "center" },
             },
             [
-              React.createElement("h2", { key: "title" }, "Directorio de Clientes"),
+              React.createElement(
+                "h2",
+                { key: "title" },
+                "Directorio de Clientes"
+              ),
               React.createElement(
                 "p",
                 {
                   key: "date",
                   style: { color: "#666", margin: "5px 0" },
                 },
-                `Generado el: ${new Date().toLocaleDateString("es-ES")}`,
+                `Generado el: ${new Date().toLocaleDateString("es-ES")}`
               ),
               React.createElement(
                 "p",
@@ -190,9 +227,9 @@ export const CustomerPage: React.FC = () => {
                   key: "count",
                   style: { color: "#666", margin: "5px 0" },
                 },
-                `Total de clientes: ${filteredCustomers.length}`,
+                `Total de clientes: ${filteredCustomers.length}`
               ),
-            ],
+            ]
           ),
           React.createElement(
             "table",
@@ -227,7 +264,7 @@ export const CustomerPage: React.FC = () => {
                           width: "20%",
                         },
                       },
-                      "Nombre",
+                      "Nombre"
                     ),
                     React.createElement(
                       "th",
@@ -241,7 +278,7 @@ export const CustomerPage: React.FC = () => {
                           width: "15%",
                         },
                       },
-                      "RUT",
+                      "RUT"
                     ),
                     React.createElement(
                       "th",
@@ -255,7 +292,7 @@ export const CustomerPage: React.FC = () => {
                           width: "25%",
                         },
                       },
-                      "Dirección",
+                      "Dirección"
                     ),
                     React.createElement(
                       "th",
@@ -269,7 +306,7 @@ export const CustomerPage: React.FC = () => {
                           width: "15%",
                         },
                       },
-                      "Teléfono",
+                      "Teléfono"
                     ),
                     React.createElement(
                       "th",
@@ -283,10 +320,10 @@ export const CustomerPage: React.FC = () => {
                           width: "25%",
                         },
                       },
-                      "Correo Electrónico",
+                      "Correo Electrónico"
                     ),
-                  ],
-                ),
+                  ]
+                )
               ),
               React.createElement(
                 "tbody",
@@ -296,7 +333,9 @@ export const CustomerPage: React.FC = () => {
                     "tr",
                     {
                       key: customer.id,
-                      style: { backgroundColor: index % 2 === 0 ? "#fff" : "#f8f9fa" },
+                      style: {
+                        backgroundColor: index % 2 === 0 ? "#fff" : "#f8f9fa",
+                      },
                     },
                     [
                       React.createElement(
@@ -309,7 +348,7 @@ export const CustomerPage: React.FC = () => {
                             fontWeight: "bold",
                           },
                         },
-                        customer.name,
+                        customer.name
                       ),
                       React.createElement(
                         "td",
@@ -320,7 +359,7 @@ export const CustomerPage: React.FC = () => {
                             padding: "8px",
                           },
                         },
-                        customer.rut,
+                        customer.rut
                       ),
                       React.createElement(
                         "td",
@@ -331,7 +370,7 @@ export const CustomerPage: React.FC = () => {
                             padding: "8px",
                           },
                         },
-                        customer.address,
+                        customer.address
                       ),
                       React.createElement(
                         "td",
@@ -342,7 +381,7 @@ export const CustomerPage: React.FC = () => {
                             padding: "8px",
                           },
                         },
-                        customer.phone,
+                        customer.phone
                       ),
                       React.createElement(
                         "td",
@@ -353,43 +392,59 @@ export const CustomerPage: React.FC = () => {
                             padding: "8px",
                           },
                         },
-                        customer.email,
+                        customer.email
                       ),
-                    ],
-                  ),
-                ),
+                    ]
+                  )
+                )
               ),
-            ],
+            ]
           ),
-        ],
-      )
+        ]
+      );
 
-      root.render(ExportTable)
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      root.render(ExportTable);
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      const currentDate = new Date().toLocaleDateString("es-ES")
-      const filename = `directorio-clientes-${currentDate.replace(/\//g, "-")}.pdf`
-      const success = await exportToPdf("temp-customers-export-content", filename)
+      const currentDate = new Date().toLocaleDateString("es-ES");
+      const filename = `directorio-clientes-${currentDate.replace(
+        /\//g,
+        "-"
+      )}.pdf`;
+      const success = await exportToPdf(
+        "temp-customers-export-content",
+        filename
+      );
 
       if (success) {
-        showSuccess("¡Exportación exitosa!", "El directorio PDF se ha exportado correctamente.", 4000)
+        showSuccess(
+          "¡Exportación exitosa!",
+          "El directorio PDF se ha exportado correctamente.",
+          4000
+        );
       } else {
-        showError("Error en la exportación", "No se pudo exportar el directorio PDF. Por favor, inténtalo de nuevo.")
+        showError(
+          "Error en la exportación",
+          "No se pudo exportar el directorio PDF. Por favor, inténtalo de nuevo."
+        );
       }
     } catch (error) {
-      console.error("Error en exportación PDF:", error)
-      showError("Error en la exportación", "No se pudo exportar el directorio PDF. Por favor, inténtalo de nuevo.")
+      console.error("Error en exportación PDF:", error);
+      showError(
+        "Error en la exportación",
+        "No se pudo exportar el directorio PDF. Por favor, inténtalo de nuevo."
+      );
     } finally {
       if (document.body.contains(tempDiv)) {
-        document.body.removeChild(tempDiv)
+        document.body.removeChild(tempDiv);
       }
     }
-  }, [filteredCustomers, exportToPdf, showSuccess, showError])
+  }, [filteredCustomers, exportToPdf, showSuccess, showError]);
 
   const handleExportToExcel = useCallback(async () => {
     if (filteredCustomers.length === 0) {
-      showError("Sin datos para exportar", "No hay clientes para exportar.")
-      return
+      showError("Sin datos para exportar", "No hay clientes para exportar.");
+      return;
     }
 
     try {
@@ -400,49 +455,76 @@ export const CustomerPage: React.FC = () => {
         Dirección: customer.address,
         Teléfono: customer.phone,
         "Correo Electrónico": customer.email,
-      }))
+      }));
 
       const summaryData = [
         { Métrica: "Total de Clientes", Valor: filteredCustomers.length },
         {
           Métrica: "Clientes con Email",
-          Valor: filteredCustomers.filter((c) => c.email && c.email.trim() !== "").length,
+          Valor: filteredCustomers.filter(
+            (c) => c.email && c.email.trim() !== ""
+          ).length,
         },
         {
           Métrica: "Clientes con Teléfono",
-          Valor: filteredCustomers.filter((c) => c.phone && c.phone.trim() !== "").length,
+          Valor: filteredCustomers.filter(
+            (c) => c.phone && c.phone.trim() !== ""
+          ).length,
         },
         {
           Métrica: "Clientes con Dirección",
-          Valor: filteredCustomers.filter((c) => c.address && c.address.trim() !== "").length,
+          Valor: filteredCustomers.filter(
+            (c) => c.address && c.address.trim() !== ""
+          ).length,
         },
-        { Métrica: "Fecha de Exportación", Valor: new Date().toLocaleDateString("es-ES") },
-      ]
+        {
+          Métrica: "Fecha de Exportación",
+          Valor: new Date().toLocaleDateString("es-ES"),
+        },
+      ];
 
       const sheets = [
         { data: summaryData, sheetName: "Resumen" },
         { data: excelData, sheetName: "Clientes" },
-      ]
+      ];
 
-      const filename = "directorio-clientes"
-      await exportToExcel(excelData, filename, "Clientes")
+      const filename = "directorio-clientes";
+      await exportToExcel(excelData, filename, "Clientes");
 
-      showSuccess("¡Exportación exitosa!", "El directorio Excel se ha exportado correctamente.", 4000)
+      showSuccess(
+        "¡Exportación exitosa!",
+        "El directorio Excel se ha exportado correctamente.",
+        4000
+      );
     } catch (error) {
-      console.error("Error en exportación Excel:", error)
-      showError("Error en la exportación", "No se pudo exportar el directorio Excel. Por favor, inténtalo de nuevo.")
+      console.error("Error en exportación Excel:", error);
+      showError(
+        "Error en la exportación",
+        "No se pudo exportar el directorio Excel. Por favor, inténtalo de nuevo."
+      );
     }
-  }, [filteredCustomers, exportToExcel, showSuccess, showError])
+  }, [filteredCustomers, exportToExcel, showSuccess, showError]);
 
-  const hasActiveFilters = Object.values(filters).some((value) => value.trim() !== "")
-  const hasActiveLocalFilters = Object.values(localFilters).some((value) => value.trim() !== "")
+  const hasActiveFilters = Object.values(filters).some(
+    (value) => value.trim() !== ""
+  );
+  const hasActiveLocalFilters = Object.values(localFilters).some(
+    (value) => value.trim() !== ""
+  );
+
+  const location = useLocation();
+  const currentPath = location.pathname;
+
+  const SidebarComponent = currentPath.startsWith("/maquinaria")
+    ? MaquinariaSidebar
+    : InventorySidebar;
 
   return (
     <Container fluid className="inventory-page p-0">
       <div className="d-flex">
         {/* Sidebar lateral */}
         <div className="inventory-sidebar-wrapper">
-          <InventorySidebar />
+          <SidebarComponent />
         </div>
         {/* Contenido principal */}
         <div className="inventory-main-content flex-grow-1">
@@ -457,7 +539,9 @@ export const CustomerPage: React.FC = () => {
                         <i className="bi bi-people fs-4 me-3"></i>
                         <div>
                           <h3 className="mb-1">Gestión de Clientes</h3>
-                          <p className="mb-0 opacity-75">Administrar información de clientes del sistema</p>
+                          <p className="mb-0 opacity-75">
+                            Administrar información de clientes del sistema
+                          </p>
                         </div>
                       </div>
                       <div className="d-flex gap-2">
@@ -465,7 +549,11 @@ export const CustomerPage: React.FC = () => {
                         <Button
                           variant="outline-light"
                           onClick={handleExportToPdf}
-                          disabled={isExportingPdf || filteredCustomers.length === 0 || isLoading}
+                          disabled={
+                            isExportingPdf ||
+                            filteredCustomers.length === 0 ||
+                            isLoading
+                          }
                           title="Exportar directorio a PDF"
                         >
                           {isExportingPdf ? (
@@ -487,7 +575,11 @@ export const CustomerPage: React.FC = () => {
                         <Button
                           variant="outline-light"
                           onClick={handleExportToExcel}
-                          disabled={isExportingExcel || filteredCustomers.length === 0 || isLoading}
+                          disabled={
+                            isExportingExcel ||
+                            filteredCustomers.length === 0 ||
+                            isLoading
+                          }
                           title="Exportar directorio a Excel"
                         >
                           {isExportingExcel ? (
@@ -511,7 +603,11 @@ export const CustomerPage: React.FC = () => {
                           className="me-2"
                           onClick={() => setShowFilters(!showFilters)}
                         >
-                          <i className={`bi bi-funnel${showFilters ? "-fill" : ""} me-2`}></i>
+                          <i
+                            className={`bi bi-funnel${
+                              showFilters ? "-fill" : ""
+                            } me-2`}
+                          ></i>
                           {showFilters ? "Ocultar" : "Mostrar"} Panel de Filtros
                         </Button>
                         <Button variant="light" onClick={handleCreateClick}>
@@ -579,15 +675,21 @@ export const CustomerPage: React.FC = () => {
               }
             >
               <div className="mb-3 p-3 bg-light rounded-3">
-                <p className="mb-2 fw-semibold">¿Estás seguro que deseas eliminar al cliente?</p>
+                <p className="mb-2 fw-semibold">
+                  ¿Estás seguro que deseas eliminar al cliente?
+                </p>
                 <div className="d-flex flex-column gap-1">
                   <div>
                     <span className="fw-semibold text-muted">Nombre:</span>{" "}
-                    <span className="ms-2">{customerToDelete?.name || "N/A"}</span>
+                    <span className="ms-2">
+                      {customerToDelete?.name || "N/A"}
+                    </span>
                   </div>
                   <div>
                     <span className="fw-semibold text-muted">RUT:</span>{" "}
-                    <span className="ms-2">{customerToDelete?.rut || "N/A"}</span>
+                    <span className="ms-2">
+                      {customerToDelete?.rut || "N/A"}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -598,5 +700,5 @@ export const CustomerPage: React.FC = () => {
         </div>
       </div>
     </Container>
-  )
-}
+  );
+};

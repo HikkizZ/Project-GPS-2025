@@ -5,17 +5,14 @@ import type {
     BonoSearchQueryData,
     CreateBonoData,
     UpdateBonoData,
-    BonoResponseData,
     BonoSearchParamsData,
     Bono,
     BonoOperationResult
 } from '../../types/recursosHumanos/bono.types';
 
 export class BonoService {
-    
-    
     private baseURL = '/bonos';
-
+/*
     private getHeaders() {
         const token = localStorage.getItem('auth_token');
         return {
@@ -23,47 +20,31 @@ export class BonoService {
             'Authorization': `Bearer ${token}`
         };
     }
-
-    
-
-    //Funciones para usuarios admin
-    
-    async getAllBonos(): Promise<ApiResponse<Bono[]>> {
+*/
+    // Funciones para usuarios administrador y superAdministrador 
+    // Obtener todos los bonos o por filtros
+    async getAllBonos(query: BonoSearchQueryData = {}): Promise<ApiResponse<{bonos: Bono[], total: number}>> {
+        // Limpiar campos undefined antes de construir los parámetros
+        const cleanQuery = Object.fromEntries(
+        Object.entries(query).filter(([_, value]) => value !== undefined && value !== null && value !== '')
+        );
+        
+        const params = new URLSearchParams(cleanQuery as any).toString();
+        const url = params ? `${this.baseURL}?${params}` : this.baseURL;
         try {
-            // Usar fetch directamente para obtener la respuesta completa
-            const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}${this.baseURL}/`, {
-                method: 'GET',
-                headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-                }
-            });
-            
-            // Verificar si la respuesta es JSON válida
-            const contentType = response.headers.get('content-type');
-            if (!contentType || !contentType.includes('application/json')) {
-            const textResponse = await response.text();
-            return {
-                success: false,
-                message: `Error del servidor: ${response.status} ${response.statusText}`
-            };
-            }
+            // Usar get directamente para obtener la respuesta completa
+            const response = await apiClient.get<{ status: string; message: string; data: { bonos: Bono[]; total: number } }>(url);
 
-            const responseData = await response.json();
-            console.log('URL:', `${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}${this.baseURL}/`);
-            
-            if (response.ok && responseData.status === 'success') {
-                return {
+            console.log("Obteniendo bonos con query:", cleanQuery);
+            console.log('URL:', `${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}${url}`);
+            console.log('Token:', localStorage.getItem('auth_token'));
+            console.log('Response data:', response);
+            return {
                 success: true,
-                message: responseData.message || 'Bonos obtenidos exitosamente',
-                data: responseData.data || []
-                };
-            }
-
-            return {
-                success: false,
-                message: responseData.message || 'Error al obtener bonos'
-        };
+                data: response.data,
+                message: 'Bonos obtenidos exitosamente',
+            };
+            
         } catch (error: any) {
             console.error('Error al obtener bonos:', error);
             return {
@@ -73,48 +54,47 @@ export class BonoService {
         }
     }
 
-
-    async crearBono( bonoData: CreateBonoData ): Promise<BonoOperationResult> {
+    // Crear nuevo bono - solo permitido para usuarios Administrador y SuperAdministrador
+    async crearBono( bonoData: CreateBonoData ): Promise<any> {
 
         try{
-            const formData = new FormData();
+            const response = await apiClient.post(`${this.baseURL}/`, bonoData);
 
-            formData.append( 'nombre', bonoData.nombreBono );
-            formData.append( 'monto', bonoData.monto.toString() );
-            formData.append( 'tipoBono', bonoData.tipoBono );
-            formData.append( 'temporalidad', bonoData.temporalidad );
-            formData.append( 'descripcion', bonoData.descripcion );
-            formData.append( 'imponible', bonoData.temporalidad );
+            // Si la respuesta es un error HTTP 400 pero tiene datos, manejarlo como respuesta válida
+            const responseData = response.data || response;
             
-
-            const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}${this.baseURL}`, {
-                method: 'POST',
-                headers: this.getHeaders(),
-                body: formData
-            });
-
-            const responseData = await response.json();
-            
+            console.log("Creando bono con datos:", bonoData);
             console.log('URL:', `${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}${this.baseURL}/`);
             console.log('Token:', localStorage.getItem('auth_token'));
             console.log('Response data:', responseData);
+            console.log('Response data type:', typeof responseData);
+            console.log('Response data keys:', Object.keys(responseData));
+            console.log('Response data.status:', responseData.status);
 
-
-            if (response.ok && responseData.status === 'success') {
+            // Verificar si la respuesta del backend indica éxito
+            if (responseData.status === 'success') {
                 return {
                     success: true,
                     data: responseData.data
                 };
             }
             
+            // Si responseData tiene un id, significa que el bono se creó exitosamente
+            if (responseData.id) {
+                return {
+                    success: true,
+                    data: responseData
+                };
+            }
+            
             return {
                 success: false,
-                error: responseData.message || 'Error al crear solicitud',
+                error: responseData.message || 'Error al crear bono',
                 errors: responseData.errors
             };
 
         } catch( error: any ){
-            console.error('Error al crear solicitud:', error);
+            console.error('Error al crear bono:', error);
             return {
                 success: false,
                 error: error.message || 'Error al crear solicitud'
@@ -126,9 +106,10 @@ export class BonoService {
         try {
 
             const response = await apiClient.put<{ data: Bono }>(`${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}${this.baseURL}/${bonoId}`, bonoData);
-            
-            
-            
+            console.log("Actualizando bono con ID:", bonoId);
+            console.log('URL:', `${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}${this.baseURL}/${bonoId}`);
+            console.log('Token:', localStorage.getItem('auth_token'));
+            console.log('Response data:', response.data);
             return {
                 success: true,
                 message: 'Bono actualizado exitosamente',
@@ -144,66 +125,42 @@ export class BonoService {
         }
     }
 
-    async eliminarBono( bonoId: number ): Promise<BonoOperationResult> {
+    async eliminarBono( bonoId: number ): Promise<ApiResponse> {
         try {
-            const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}${this.baseURL}/${bonoId}`, {
-                method: 'DELETE',
-                headers: this.getHeaders()
-            });
-            const responseData = await response.json();
-            if (response.ok && responseData.status === 'success') {
-                return {
-                    success: true,
-                    data: responseData.data
-                };
-            }
+            const response = await apiClient.delete<{ data: Bono }>(`${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}${this.baseURL}/${bonoId}`);
+            
             return {
-                success: false,
-                error: responseData.message || 'Error al eliminar bono',
-                errors: responseData.errors
+                success: true,
+                message: 'Bono eliminado exitosamente'
             };
         } catch (error: any) {
             console.error('Error al eliminar bono:', error);
             return {
                 success: false,
-                error: error.message || 'Error al eliminar bono'
+                error: error.message || 'Error al eliminar bono',
+                message: error.response?.data?.message || 'Error al eliminar bono'
             };
         }
     }
 
-    async obtenerBonoPorId( bonoId: number ): Promise<BonoOperationResult> {
+    async obtenerBonoPorId(bonoId: number): Promise<BonoOperationResult> {
         try {
-            const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}${this.baseURL}/${bonoId}`, {
-                method: 'GET',
-                headers: this.getHeaders()
-            });
-            const responseData = await response.json();
-            if (response.ok && responseData.status === 'success') {
-                return {
-                    success: true,
-                    data: responseData.data
-                };
-            }
+            const response = await apiClient.get<{ data: Bono; message: string }>(`${this.baseURL}/${bonoId}`);
+
             return {
-                success: false,
-                error: responseData.message || 'Error al obtener bono',
-                errors: responseData.errors
+                success: true,
+                data: response.data
             };
         } catch (error: any) {
             console.error('Error al obtener bono:', error);
             return {
                 success: false,
-                error: error.message || 'Error al obtener bono'
+                error: error.response?.data?.message || error.message || 'Error al obtener bono'
             };
         }
     }
-
-    //Funciones para usuarios recursos humanos
-
 }
 
-const bonoService = new BonoService();
-export default bonoService;
-
-export const obtenerBono = (id: number) => { return bonoService.obtenerBonoPorId(id) };
-export const actualizarBono = (id: number, bonoData: UpdateBonoData) => { return bonoService.actualizarBono(id, bonoData) };
+export const bonoService = new BonoService();
+export const actualizarBono = (id: number, data: UpdateBonoData) => bonoService.actualizarBono(id, data);
+export const crearBono = (data: CreateBonoData) => bonoService.crearBono(data);

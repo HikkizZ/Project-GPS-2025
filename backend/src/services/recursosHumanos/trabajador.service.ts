@@ -160,7 +160,10 @@ function limpiarCamposTexto(data: Partial<Trabajador>): Partial<Trabajador> {
     if (dataCopia.apellidoMaterno) dataCopia.apellidoMaterno = dataCopia.apellidoMaterno.trim().replace(/\s+/g, ' ');
     if (dataCopia.telefono) dataCopia.telefono = dataCopia.telefono.trim();
     if (dataCopia.correoPersonal) dataCopia.correoPersonal = dataCopia.correoPersonal.trim();
-    if (dataCopia.numeroEmergencia) dataCopia.numeroEmergencia = dataCopia.numeroEmergencia.trim();
+    if (dataCopia.numeroEmergencia) {
+        const numeroLimpio = dataCopia.numeroEmergencia.trim();
+        dataCopia.numeroEmergencia = numeroLimpio === '' ? null : numeroLimpio;
+    }
     if (dataCopia.direccion) dataCopia.direccion = dataCopia.direccion.trim().replace(/\s+/g, ' ');
     if (dataCopia.rut) dataCopia.rut = dataCopia.rut.trim();
     

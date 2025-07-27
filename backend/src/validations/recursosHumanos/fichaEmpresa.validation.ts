@@ -118,9 +118,11 @@ export const FichaEmpresaBodyValidation = Joi.object({
             "string.base": "La AFP debe ser una cadena de texto"
         }),
 
-    seguroCesantia: Joi.boolean()
+    seguroCesantia: Joi.string()
+        .valid('Sí', 'No')
         .messages({
-            "boolean.base": "El seguro de cesantía debe ser un valor booleano (true o false)"
+            "any.only": "El seguro de cesantía debe ser 'Sí' o 'No'",
+            "string.base": "El seguro de cesantía debe ser una cadena de texto"
         }),
 
     fechaInicioContrato: Joi.date()
@@ -224,9 +226,11 @@ export const FichaEmpresaUpdateValidation = Joi.object({
             "string.base": "La AFP debe ser una cadena de texto"
         }),
 
-    seguroCesantia: Joi.boolean()
+    seguroCesantia: Joi.string()
+        .valid('Sí', 'No')
         .messages({
-            "boolean.base": "El seguro de cesantía debe ser un valor booleano (true o false)"
+            "any.only": "El seguro de cesantía debe ser 'Sí' o 'No'",
+            "string.base": "El seguro de cesantía debe ser una cadena de texto"
         }),
 
     fechaInicioContrato: Joi.date()
