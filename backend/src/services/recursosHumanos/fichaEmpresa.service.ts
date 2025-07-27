@@ -408,7 +408,7 @@ export async function updateFichaEmpresaService(
                 const fechaFinDate = new Date(fechaFinNueva);
                 const fechaInicioDate = new Date(fechaInicio);
                 if (fechaFinDate <= fechaInicioDate) {
-                    return [null, { message: "La fecha de fin de contrato debe ser posterior a la fecha de inicio" }];
+                    return [null, { message: "La fecha de fin de contrato debe ser al menos un día posterior a la fecha de inicio" }];
                 }
             }
         }
@@ -447,7 +447,7 @@ export async function updateFichaEmpresaService(
             // Solo comparar si ya existe una fecha de inicio previa
             if (fichaActual.fechaInicioContrato) {
                 if (fechaFin <= fichaActual.fechaInicioContrato) {
-                    return [null, { message: "La fecha de fin de contrato debe ser posterior a la fecha de inicio" }];
+                    return [null, { message: "La fecha de fin de contrato debe ser al menos un día posterior a la fecha de inicio" }];
                 }
             }
             // Si no existe fecha de inicio previa, permitir el ingreso sin comparar
@@ -831,7 +831,7 @@ export async function assignBonoService (idFicha: number, data: AsignarBonoDTO):
         if (fechaFin && fechaFin <= fechaInicio) {
             await queryRunner.rollbackTransaction();
             await queryRunner.release();
-            return [null, "La fecha de fin debe ser posterior a la fecha de inicio"];
+            return [null, "La fecha de fin debe ser al menos un día posterior a la fecha de inicio"];
         }
         
         //Obtener data de la asignación
