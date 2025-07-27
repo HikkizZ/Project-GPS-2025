@@ -12,12 +12,18 @@ import SparePartLocalFilters from "@/components/MachineryMaintenance/SpareParts/
 import { Toast, useToast } from "@/components/common/Toast"
 import MaintenanceSidebar from "@/components/MachineryMaintenance/MaintenanceSidebar"
 import  Pagination  from "@/components/MachineryMaintenance/Pagination"
+import { useAuth } from "@/context/useAuth";
+
 
 const SparePartsPage: React.FC = () => {
   const { spareParts, loading, error, reload } = useSpareParts()
   const { create, loading: creating } = useCreateSparePart()
   const { updateSparePart, loading: updating } = useUpdateSparePart()
   const { deleteSparePart, loading: deleting } = useDeleteSparePart()
+  const { user } = useAuth();
+
+  const puedeRegistrar = user?.role === "Mantenciones de Maquinaria";
+
 
   const { toasts, removeToast, showSuccess, showError } = useToast()
 
@@ -39,6 +45,7 @@ const SparePartsPage: React.FC = () => {
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = sortedFilteredParts.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(sortedFilteredParts.length / itemsPerPage);
+  
 
 
   const hasActiveFilters = Object.values(filters).some((v) => v.trim() !== "")
@@ -145,10 +152,13 @@ const SparePartsPage: React.FC = () => {
                         <i className={`bi bi-funnel${showFilters ? "-fill" : ""} me-2`} />
                         {showFilters ? "Ocultar Filtros" : "Mostrar Filtros"}
                       </Button>
-                      <Button variant="light" onClick={() => handleOpenModal()} className="d-flex align-items-center">
-                        <i className="bi bi-plus-circle me-2"></i>
-                        Registrar Repuesto
-                      </Button>
+                      {puedeRegistrar && (
+                        <Button variant="light" onClick={() => handleOpenModal()} className="d-flex align-items-center">
+                          <i className="bi bi-plus-circle me-2"></i>
+                          Registrar Repuesto
+                        </Button>
+                      )}
+
                     </div>
                   </div>
                 </Card.Header>
