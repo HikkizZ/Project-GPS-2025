@@ -16,7 +16,7 @@ const InventoryEntryModal: React.FC<InventoryEntryModalProps> = ({ show, onClose
       <Modal.Header className="bg-gradient-primary text-white" closeButton>
         <Modal.Title>
           <i className="bi bi-box-arrow-in-down me-2"></i>
-          Registrar Ingreso de Material
+          Registrar Compra de Material
         </Modal.Title>
       </Modal.Header>
       <Modal.Body>

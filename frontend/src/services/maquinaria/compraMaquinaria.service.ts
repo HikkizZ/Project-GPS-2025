@@ -44,6 +44,7 @@ export class CompraMaquinariaService {
     }
   }
 
+  // MANTENER LA FUNCIÓN ORIGINAL SIN CAMBIOS
   async obtenerTodasLasCompras(): Promise<ApiResponse<CompraMaquinaria[]>> {
     try {
       const response = await apiClient.get(`${this.baseURL}/`)
@@ -51,6 +52,26 @@ export class CompraMaquinariaService {
         success: true,
         message: "Compras obtenidas exitosamente",
         data: response.data || [],
+      }
+    } catch (error: any) {
+      console.error("Error al obtener compras:", error)
+      return {
+        success: false,
+        message: error.response?.data?.message || error.message || "Error al obtener las compras",
+      }
+    }
+  }
+
+  // NUEVA FUNCIÓN PARA OBTENER CON INACTIVAS
+  async obtenerTodasLasComprasConInactivas(): Promise<ApiResponse<CompraMaquinaria[]>> {
+    try {
+      const response = await apiClient.get(`${this.baseURL}/`, {
+        params: { incluirInactivas: true },
+      })
+      return {
+        success: true,
+        message: "Compras obtenidas exitosamente",
+        data: response.data?.data || response.data || [],
       }
     } catch (error: any) {
       console.error("Error al obtener compras:", error)
@@ -180,6 +201,38 @@ export class CompraMaquinariaService {
       }
     }
   }
+
+  // NUEVOS MÉTODOS PARA SOFT DELETE
+  async eliminarCompra(id: number): Promise<ApiResponse<void>> {
+    try {
+      const response = await apiClient.delete(`${this.baseURL}/${id}`)
+      return {
+        success: true,
+        message: "Compra eliminada exitosamente (soft delete)",
+      }
+    } catch (error: any) {
+      return {
+        success: false,
+        message: error.response?.data?.message || error.message || "Error al eliminar la compra",
+      }
+    }
+  }
+
+  async restaurarCompra(id: number): Promise<ApiResponse<CompraMaquinaria>> {
+    try {
+      const response = await apiClient.patch(`${this.baseURL}/${id}/restaurar`)
+      return {
+        success: true,
+        message: "Compra restaurada exitosamente",
+        data: response.data?.data || response.data,
+      }
+    } catch (error: any) {
+      return {
+        success: false,
+        message: error.response?.data?.message || error.message || "Error al restaurar la compra",
+      }
+    }
+  }
 }
 
 export const compraMaquinariaService = new CompraMaquinariaService()
@@ -191,3 +244,5 @@ export const obtenerCompraPorId = (id: number) => compraMaquinariaService.obtene
 export const actualizarCompra = (id: number, data: Partial<CreateCompraMaquinaria>, file?: File) =>
   compraMaquinariaService.actualizarCompra(id, data, file)
 export const eliminarPadron = (id: number) => compraMaquinariaService.eliminarPadron(id)
+export const eliminarCompra = (id: number) => compraMaquinariaService.eliminarCompra(id)
+export const restaurarCompra = (id: number) => compraMaquinariaService.restaurarCompra(id)

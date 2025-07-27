@@ -22,11 +22,12 @@ export class VentaMaquinariaService {
       console.error("Error al registrar venta:", error)
       return {
         success: false,
-        message: error.message || "Error al registrar la venta",
+        message: error.response?.data?.message || error.message || "Error al registrar la venta",
       }
     }
   }
 
+  // MANTENER LA FUNCIÓN ORIGINAL SIN CAMBIOS
   async obtenerTodasLasVentas(): Promise<ApiResponse<VentaMaquinaria[]>> {
     try {
       const response = await apiClient.get(`${this.baseURL}/`)
@@ -39,7 +40,27 @@ export class VentaMaquinariaService {
       console.error("Error al obtener ventas:", error)
       return {
         success: false,
-        message: error.message || "Error al obtener las ventas",
+        message: error.response?.data?.message || error.message || "Error al obtener las ventas",
+      }
+    }
+  }
+
+  // NUEVA FUNCIÓN PARA OBTENER CON INACTIVAS
+  async obtenerTodasLasVentasConInactivas(): Promise<ApiResponse<VentaMaquinaria[]>> {
+    try {
+      const response = await apiClient.get(`${this.baseURL}/`, {
+        params: { incluirInactivas: true },
+      })
+      return {
+        success: true,
+        message: "Ventas obtenidas exitosamente",
+        data: response.data?.data || response.data || [],
+      }
+    } catch (error: any) {
+      console.error("Error al obtener ventas:", error)
+      return {
+        success: false,
+        message: error.response?.data?.message || error.message || "Error al obtener las ventas",
       }
     }
   }
@@ -56,7 +77,7 @@ export class VentaMaquinariaService {
       console.error("Error al obtener venta:", error)
       return {
         success: false,
-        message: error.message || "Error al obtener la venta",
+        message: error.response?.data?.message || error.message || "Error al obtener la venta",
       }
     }
   }
@@ -73,7 +94,7 @@ export class VentaMaquinariaService {
       console.error("Error al obtener ventas por maquinaria:", error)
       return {
         success: false,
-        message: error.message || "Error al obtener ventas por maquinaria",
+        message: error.response?.data?.message || error.message || "Error al obtener ventas por maquinaria",
       }
     }
   }
@@ -92,7 +113,7 @@ export class VentaMaquinariaService {
       console.error("Error al obtener ventas por fecha:", error)
       return {
         success: false,
-        message: error.message || "Error al obtener ventas por fecha",
+        message: error.response?.data?.message || error.message || "Error al obtener ventas por fecha",
       }
     }
   }
@@ -111,7 +132,7 @@ export class VentaMaquinariaService {
       console.error("Error al obtener total de ventas:", error)
       return {
         success: false,
-        message: error.message || "Error al obtener total de ventas",
+        message: error.response?.data?.message || error.message || "Error al obtener total de ventas",
       }
     }
   }
@@ -128,23 +149,39 @@ export class VentaMaquinariaService {
       console.error("Error al actualizar venta:", error)
       return {
         success: false,
-        message: error.message || "Error al actualizar la venta",
+        message: error.response?.data?.message || error.message || "Error al actualizar la venta",
       }
     }
   }
 
-  async eliminarVenta(id: number): Promise<ApiResponse> {
+  // NUEVOS MÉTODOS PARA SOFT DELETE
+  async eliminarVenta(id: number): Promise<ApiResponse<void>> {
     try {
-      await apiClient.delete(`${this.baseURL}/${id}`)
+      const response = await apiClient.delete(`${this.baseURL}/${id}`)
       return {
         success: true,
-        message: "Venta eliminada exitosamente",
+        message: "Venta eliminada exitosamente (soft delete)",
       }
     } catch (error: any) {
-      console.error("Error al eliminar venta:", error)
       return {
         success: false,
-        message: error.message || "Error al eliminar la venta",
+        message: error.response?.data?.message || error.message || "Error al eliminar la venta",
+      }
+    }
+  }
+
+  async restaurarVenta(id: number): Promise<ApiResponse<VentaMaquinaria>> {
+    try {
+      const response = await apiClient.patch(`${this.baseURL}/${id}/restaurar`)
+      return {
+        success: true,
+        message: "Venta restaurada exitosamente",
+        data: response.data?.data || response.data,
+      }
+    } catch (error: any) {
+      return {
+        success: false,
+        message: error.response?.data?.message || error.message || "Error al restaurar la venta",
       }
     }
   }
@@ -159,3 +196,4 @@ export const obtenerVentaPorId = (id: number) => ventaMaquinariaService.obtenerV
 export const actualizarVenta = (id: number, data: Partial<CreateVentaMaquinaria>) =>
   ventaMaquinariaService.actualizarVenta(id, data)
 export const eliminarVenta = (id: number) => ventaMaquinariaService.eliminarVenta(id)
+export const restaurarVenta = (id: number) => ventaMaquinariaService.restaurarVenta(id)

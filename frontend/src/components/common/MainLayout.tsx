@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useRut } from '@/hooks/useRut';
 import { GlobalMessages } from './GlobalMessages';
@@ -19,6 +19,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ user, onLogout, children }) => 
   const { toasts, removeToast } = useToast();
   const buttonRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLUListElement>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
 
   const isInDashboard = location.pathname === '/dashboard';
   const hideVolver = location.pathname === '/trabajadores/historial-laboral' || location.pathname === '/recursos-humanos';
@@ -36,6 +38,33 @@ const MainLayout: React.FC<MainLayoutProps> = ({ user, onLogout, children }) => 
       navigate(-1);
     }
   };
+
+  const toggleMobileMenu = () => {
+    setMobileMenuOpen(!mobileMenuOpen);
+  };
+
+  const closeMobileMenu = () => {
+    setMobileMenuOpen(false);
+  };
+
+  // Cerrar menú móvil al cambiar de ruta
+  useEffect(() => {
+    closeMobileMenu();
+  }, [location.pathname]);
+
+  // Escuchar cambios en el tamaño de la ventana
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+      // Cerrar menú móvil si la pantalla se hace más grande
+      if (window.innerWidth > 767) {
+        closeMobileMenu();
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     const btn = buttonRef.current;
@@ -73,40 +102,171 @@ const MainLayout: React.FC<MainLayoutProps> = ({ user, onLogout, children }) => 
     };
   }, []);
 
+  // Renderizar botones de navegación
+  const renderNavButtons = (isMobile = false) => {
+    const buttonClass = isMobile 
+      ? "btn btn-outline-light w-100 mb-2 text-start" 
+      : "btn btn-outline-light me-3 px-3 py-2 fw-semibold";
+    
+    const buttonStyle = isMobile 
+      ? { borderRadius: '0.5rem', transition: 'all 0.3s ease' }
+      : { borderRadius: '25px', transition: 'all 0.3s ease' };
+
+    return (
+      <>
+        <button 
+          className={buttonClass}
+          onClick={() => {
+            navigate('/dashboard');
+            if (isMobile) closeMobileMenu();
+          }}
+          style={buttonStyle}
+          data-title="Ir al inicio"
+        >
+          <i className="bi bi-house me-2"></i>
+          <span className="btn-text">Inicio</span>
+        </button>
+        
+        {/* Botones adicionales para la página de trabajadores */}
+        {location.pathname === '/trabajadores' && (
+          <>
+            <button 
+              className={buttonClass}
+              onClick={() => {
+                navigate('/fichas-empresa');
+                if (isMobile) closeMobileMenu();
+              }}
+              style={buttonStyle}
+              data-title="Ver fichas de empresa"
+            >
+              <i className="bi bi-file-earmark-text me-2"></i>
+              <span className="btn-text">Ficha de Empresa</span>
+            </button>
+            <button 
+              className={buttonClass}
+              onClick={() => {
+                navigate('/usuarios');
+                if (isMobile) closeMobileMenu();
+              }}
+              style={buttonStyle}
+              data-title="Gestionar usuarios"
+            >
+              <i className="bi bi-people me-2"></i>
+              <span className="btn-text">Usuarios</span>
+            </button>
+          </>
+        )}
+
+        {/* Botones adicionales para la página de fichas de empresa */}
+        {location.pathname === '/fichas-empresa' && (
+          <>
+            <button 
+              className={buttonClass}
+              onClick={() => {
+                navigate('/trabajadores');
+                if (isMobile) closeMobileMenu();
+              }}
+              style={buttonStyle}
+              data-title="Ver trabajadores"
+            >
+              <i className="bi bi-people-fill me-2"></i>
+              <span className="btn-text">Trabajadores</span>
+            </button>
+            <button 
+              className={buttonClass}
+              onClick={() => {
+                navigate('/usuarios');
+                if (isMobile) closeMobileMenu();
+              }}
+              style={buttonStyle}
+              data-title="Gestionar usuarios"
+            >
+              <i className="bi bi-people me-2"></i>
+              <span className="btn-text">Usuarios</span>
+            </button>
+          </>
+        )}
+
+        {/* Botones adicionales para la página de usuarios */}
+        {location.pathname === '/usuarios' && (
+          <>
+            <button 
+              className={buttonClass}
+              onClick={() => {
+                navigate('/trabajadores');
+                if (isMobile) closeMobileMenu();
+              }}
+              style={buttonStyle}
+              data-title="Ver trabajadores"
+            >
+              <i className="bi bi-people-fill me-2"></i>
+              <span className="btn-text">Trabajadores</span>
+            </button>
+            <button 
+              className={buttonClass}
+              onClick={() => {
+                navigate('/fichas-empresa');
+                if (isMobile) closeMobileMenu();
+              }}
+              style={buttonStyle}
+              data-title="Ver fichas de empresa"
+            >
+              <i className="bi bi-file-earmark-text me-2"></i>
+              <span className="btn-text">Ficha de Empresa</span>
+            </button>
+          </>
+        )}
+        
+        {!isInDashboard && !hideVolver && (
+          <button 
+            className={buttonClass}
+            onClick={() => {
+              handleNavbarVolver();
+              if (isMobile) closeMobileMenu();
+            }}
+            style={buttonStyle}
+            data-title="Volver a la página anterior"
+          >
+            <i className="bi bi-arrow-left me-2"></i>
+            <span className="btn-text">
+              {location.pathname === '/gestion-personal'
+                ? 'Volver a Recursos Humanos'
+                : (location.pathname === '/trabajadores' || location.pathname === '/fichas-empresa' || location.pathname === '/usuarios')
+                  ? 'Volver a Gestión del Personal'
+                  : 'Volver'}
+            </span>
+          </button>
+        )}
+      </>
+    );
+  };
+
   return (
     <div className="min-vh-100 d-flex flex-column">
       {/* Navbar */}
-      <nav className="navbar navbar-expand-lg navbar-dark bg-gradient-primary">
+      <nav className="navbar navbar-expand-lg navbar-dark">
         <div className="container-fluid">
           <span className="navbar-brand mb-0 h1 fw-bold" onClick={() => navigate('/dashboard')}>
             <i className="bi bi-truck me-2"></i>
-            S.G. Lamas
+            <span className="brand-text">S.G. Lamas</span>
           </span>
-          <div className="navbar-nav ms-auto d-flex flex-row align-items-center">
+          
+          {/* Botón hamburguesa para móvil */}
+          {windowWidth <= 767 && (
             <button 
-              className="btn btn-outline-light me-3 px-3 py-2 fw-semibold"
-              onClick={() => navigate('/dashboard')}
-              style={{ borderRadius: '25px', transition: 'all 0.3s ease' }}
+              className="navbar-toggler"
+              onClick={toggleMobileMenu}
+              aria-label="Toggle navigation"
+              aria-expanded={mobileMenuOpen}
             >
-              <i className="bi bi-house me-2"></i>
-              Inicio
+              <i className={`bi ${mobileMenuOpen ? 'bi-x-lg' : 'bi-list'}`}></i>
             </button>
+          )}
+          
+          {/* Navegación principal */}
+          <div className="navbar-nav ms-auto d-flex flex-row align-items-center">
+            {renderNavButtons(false)}
             
-            {!isInDashboard && !hideVolver && (
-              <button 
-                className="btn btn-outline-light me-3 px-3 py-2 fw-semibold"
-                onClick={handleNavbarVolver}
-                style={{ borderRadius: '25px', transition: 'all 0.3s ease' }}
-              >
-                <i className="bi bi-arrow-left me-2"></i>
-                {location.pathname === '/gestion-personal'
-                  ? 'Volver a Recursos Humanos'
-                  : (location.pathname === '/trabajadores' || location.pathname === '/fichas-empresa' || location.pathname === '/usuarios')
-                    ? 'Volver a Gestión del Personal'
-                    : 'Volver'}
-              </button>
-            )}
-
             <div className="navbar-user-dropdown" style={{ position: 'relative' }}>
               <button
                 ref={buttonRef}
@@ -117,7 +277,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ user, onLogout, children }) => 
                 style={{ borderRadius: '25px', transition: 'all 0.3s ease' }}
               >
                 <i className="bi bi-person-circle me-2"></i>
-                {user.name}
+                <span className="btn-text">{user.name}</span>
               </button>
               <ul
                 ref={menuRef}
@@ -153,6 +313,13 @@ const MainLayout: React.FC<MainLayoutProps> = ({ user, onLogout, children }) => 
           </div>
         </div>
       </nav>
+
+      {/* Menú móvil */}
+      {windowWidth <= 767 && (
+        <div className={`navbar-mobile-menu ${mobileMenuOpen ? 'show' : ''}`}>
+          {renderNavButtons(true)}
+        </div>
+      )}
 
       {/* Contenido */}
       <main className="flex-grow-1 bg-light">

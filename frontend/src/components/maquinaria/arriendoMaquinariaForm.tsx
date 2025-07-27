@@ -2,8 +2,8 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import type { CreateArriendoMaquinaria } from "../../types/arriendoMaquinaria.types"
 import { useMaquinaria } from "../../hooks/maquinaria/useMaquinaria"
-import { arriendoMaquinariaService } from "../../services/maquinaria/arriendoMaquinaria.service"
-import type { ClienteMaquinaria } from "../../types/arriendoMaquinaria.types"
+import { useCustomers } from "../../hooks/stakeholders/useCustomers"
+import { useAuth } from "../../context"
 
 interface ArriendoMaquinariaFormProps {
   onSubmit: (data: CreateArriendoMaquinaria) => Promise<void>
@@ -16,17 +16,14 @@ export const ArriendoMaquinariaForm: React.FC<ArriendoMaquinariaFormProps> = ({
   loading = false,
   initialData = {},
 }) => {
-  // Usar el mismo hook que funciona en ventas
   const { maquinarias, loading: maquinariasLoading } = useMaquinaria()
+  const { customers, isLoading: customersLoading } = useCustomers()
+  const { user } = useAuth()
 
-  // Estado para clientes
-  const [clientes, setClientes] = useState<ClienteMaquinaria[]>([])
-  const [clientesLoading, setClientesLoading] = useState(false)
-
-  // Filtrar solo maquinarias disponibles
+  const isSuperAdmin = user?.role === "SuperAdministrador"
   const maquinariasDisponibles = maquinarias.filter((m) => m.estado === "disponible")
 
-  const [formData, setFormData] = useState<CreateArriendoMaquinaria>({
+  const [formData, setFormData] = useState<CreateArriendoMaquinaria & { customerId?: number }>({
     numeroReporte: initialData.numeroReporte || "",
     patente: initialData.patente || "",
     rutCliente: initialData.rutCliente || "",
@@ -36,55 +33,17 @@ export const ArriendoMaquinariaForm: React.FC<ArriendoMaquinariaFormProps> = ({
     kmFinal: initialData.kmFinal || 0,
     valorServicio: initialData.valorServicio || 0,
     fechaTrabajo: initialData.fechaTrabajo || new Date().toISOString().split("T")[0],
+    customerId: undefined,
   })
 
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [selectedMaquinaria, setSelectedMaquinaria] = useState<any>(null)
 
-  // Cargar clientes al montar el componente y cuando se abre el modal
-  const fetchClientes = async () => {
-    console.log("🔄 Form: Iniciando fetchClientes...")
-    setClientesLoading(true)
-    try {
-      const response = await arriendoMaquinariaService.obtenerClientesMaquinaria()
-      console.log("📊 Form: Respuesta completa:", response)
-
-      if (response.success && response.data) {
-        console.log("✅ Form: Clientes cargados:", response.data.length)
-        console.log("📋 Form: Lista de clientes:", response.data)
-        setClientes(response.data)
-      } else {
-        console.error("❌ Form: Error en respuesta:", response.message)
-      }
-    } catch (error) {
-      console.error("💥 Form: Error al cargar clientes:", error)
-    } finally {
-      setClientesLoading(false)
-    }
-  }
-
-  useEffect(() => {
-    console.log("🚀 Form: useEffect para cargar clientes...")
-    fetchClientes()
-  }, [])
-
-  // Debug logs
-  useEffect(() => {
-    console.log("🎯 Form: Estado del formulario:", {
-      maquinarias: maquinariasDisponibles.length,
-      clientes: clientes.length,
-      maquinariasLoading,
-      clientesLoading,
-    })
-  }, [maquinariasDisponibles.length, clientes.length, maquinariasLoading, clientesLoading])
-
-  // Actualizar datos cuando se selecciona una maquinaria
   useEffect(() => {
     if (formData.patente) {
       const maquinaria = maquinariasDisponibles.find((m) => m.patente === formData.patente)
       if (maquinaria) {
         setSelectedMaquinaria(maquinaria)
-        // Sugerir kilometraje final basado en el actual + 50km
         if (formData.kmFinal === 0) {
           setFormData((prev) => ({
             ...prev,
@@ -97,27 +56,11 @@ export const ArriendoMaquinariaForm: React.FC<ArriendoMaquinariaFormProps> = ({
     }
   }, [formData.patente, maquinariasDisponibles])
 
-  // Actualizar datos cuando se selecciona un cliente
-  useEffect(() => {
-    if (formData.rutCliente) {
-      const cliente = clientes.find((c) => c.rut === formData.rutCliente)
-      if (cliente) {
-        console.log("🔍 Form: Cliente seleccionado:", cliente)
-        setFormData((prev) => ({
-          ...prev,
-          nombreCliente: cliente.nombre,
-        }))
-      }
-    }
-  }, [formData.rutCliente, clientes])
-
-  // Función para formatear números con separadores de miles
   const formatNumber = (value: number): string => {
     if (value === 0) return ""
     return value.toLocaleString("es-CL")
   }
 
-  // Función para parsear números desde string formateado
   const parseNumber = (value: string): number => {
     if (!value || value.trim() === "") return 0
     const cleanValue = value.replace(/[.\s]/g, "")
@@ -125,10 +68,13 @@ export const ArriendoMaquinariaForm: React.FC<ArriendoMaquinariaFormProps> = ({
     return isNaN(parsed) ? 0 : parsed
   }
 
-  // Función para generar número de reporte automático
   const generateReportNumber = (): string => {
-    const randomNum = Math.floor(Math.random() * 90000) + 10000 // Genera número entre 10000-99999
+    const randomNum = Math.floor(Math.random() * 90000) + 10000
     return randomNum.toString()
+  }
+
+  const handleGoToClientes = () => {
+    window.open("/inventario/clientes", "_blank")
   }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -146,11 +92,20 @@ export const ArriendoMaquinariaForm: React.FC<ArriendoMaquinariaFormProps> = ({
         [name]: Number(value) || 0,
       }))
     } else if (name === "numeroReporte") {
-      // Solo permitir números para el número de reporte
       const numericValue = value.replace(/\D/g, "").slice(0, 5)
       setFormData((prev) => ({
         ...prev,
         [name]: numericValue,
+      }))
+    } else if (name === "customerId") {
+      const customerId = value ? Number(value) : undefined
+      const selectedCustomer = customers.find((c) => c.id === customerId)
+
+      setFormData((prev) => ({
+        ...prev,
+        customerId,
+        rutCliente: selectedCustomer?.rut || "",
+        nombreCliente: selectedCustomer?.name || "",
       }))
     } else {
       setFormData((prev) => ({
@@ -159,7 +114,6 @@ export const ArriendoMaquinariaForm: React.FC<ArriendoMaquinariaFormProps> = ({
       }))
     }
 
-    // Limpiar error del campo
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: "" }))
     }
@@ -175,19 +129,16 @@ export const ArriendoMaquinariaForm: React.FC<ArriendoMaquinariaFormProps> = ({
     }
 
     if (!formData.patente) newErrors.patente = "Debe seleccionar una maquinaria"
-    if (!formData.rutCliente) newErrors.rutCliente = "Debe seleccionar un cliente"
-    if (!formData.nombreCliente.trim()) newErrors.nombreCliente = "El nombre del cliente es requerido"
+    if (!formData.customerId) newErrors.customerId = "Debe seleccionar un cliente"
     if (!formData.obra.trim()) newErrors.obra = "La obra es requerida"
     if (!formData.fechaTrabajo) newErrors.fechaTrabajo = "La fecha de trabajo es requerida"
     if (formData.valorServicio <= 0) newErrors.valorServicio = "El valor del servicio debe ser mayor a 0"
     if (formData.kmFinal <= 0) newErrors.kmFinal = "El kilometraje final debe ser mayor a 0"
 
-    // Validar kilometraje final vs actual
     if (selectedMaquinaria && formData.kmFinal <= selectedMaquinaria.kilometrajeActual) {
       newErrors.kmFinal = `El kilometraje final debe ser mayor a ${selectedMaquinaria.kilometrajeActual} km (actual)`
     }
 
-    // Validar que la fecha no sea futura
     const fechaSeleccionada = new Date(formData.fechaTrabajo)
     const hoy = new Date()
     hoy.setHours(23, 59, 59, 999)
@@ -204,27 +155,37 @@ export const ArriendoMaquinariaForm: React.FC<ArriendoMaquinariaFormProps> = ({
     if (!validateForm()) return
 
     try {
-      // Asegurarse de que los datos numéricos sean números
-      const dataToSubmit = {
-        ...formData,
+      const { customerId, ...dataToSubmit } = formData
+      const finalData = {
+        ...dataToSubmit,
         kmFinal: Number(formData.kmFinal),
         valorServicio: Number(formData.valorServicio),
       }
 
-      console.log("📤 Form: Enviando datos validados:", JSON.stringify(dataToSubmit, null, 2))
-      await onSubmit(dataToSubmit)
+      await onSubmit(finalData)
+
+      setFormData({
+        numeroReporte: "",
+        patente: "",
+        rutCliente: "",
+        nombreCliente: "",
+        obra: "",
+        detalle: "",
+        kmFinal: 0,
+        valorServicio: 0,
+        fechaTrabajo: new Date().toISOString().split("T")[0],
+        customerId: undefined,
+      })
+      setErrors({})
+      setSelectedMaquinaria(null)
     } catch (error) {
-      console.error("💥 Form: Error al enviar formulario:", error)
+      if (process.env.NODE_ENV === "development") {
+        console.error("Error al enviar formulario:", error)
+      }
     }
   }
 
-  // Función para recargar clientes (útil si se agrega un cliente nuevo)
-  const handleRefreshClientes = () => {
-    console.log("🔄 Form: Recargando clientes...")
-    fetchClientes()
-  }
-
-  if (maquinariasLoading || clientesLoading) {
+  if (maquinariasLoading || customersLoading) {
     return (
       <div className="text-center py-4">
         <div className="spinner-border text-primary" role="status">
@@ -233,7 +194,7 @@ export const ArriendoMaquinariaForm: React.FC<ArriendoMaquinariaFormProps> = ({
         <p className="mt-2 text-muted">
           Cargando datos del formulario...
           {maquinariasLoading && " (maquinarias)"}
-          {clientesLoading && " (clientes)"}
+          {customersLoading && " (clientes)"}
         </p>
       </div>
     )
@@ -241,15 +202,9 @@ export const ArriendoMaquinariaForm: React.FC<ArriendoMaquinariaFormProps> = ({
 
   return (
     <form onSubmit={handleSubmit}>
-      {/* Debug info - TEMPORAL */}
-      <div className="alert alert-info mb-3">
-        <strong>Debug:</strong> Maquinarias: {maquinariasDisponibles.length} | Clientes: {clientes.length} | Loading: M=
-        {maquinariasLoading.toString()} C={clientesLoading.toString()}
-      </div>
-
       <div className="form-section">
         <h5 className="section-title">
-          <i className="bi bi-file-text me-2"></i>
+          <i className="bi bi-info-circle me-2"></i>
           Información del Reporte
         </h5>
         <div className="row g-3">
@@ -273,11 +228,19 @@ export const ArriendoMaquinariaForm: React.FC<ArriendoMaquinariaFormProps> = ({
                 onClick={() => setFormData((prev) => ({ ...prev, numeroReporte: generateReportNumber() }))}
                 title="Generar número automático"
               >
-                <i className="bi bi-arrow-clockwise"></i>
+                🔄
               </button>
               {errors.numeroReporte && <div className="invalid-feedback">{errors.numeroReporte}</div>}
             </div>
-            <div className="form-text">Formato: solo números (ej: 12345)</div>
+            <div className="form-text">
+              Formato: solo números (ej: 12345)
+              {isSuperAdmin && (
+                <div className="text-info mt-1">
+                  <i className="bi bi-shield-check me-1"></i>
+                  <strong>SuperAdmin:</strong> Puedes reutilizar números de reportes eliminados
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="col-md-6">
@@ -377,58 +340,72 @@ export const ArriendoMaquinariaForm: React.FC<ArriendoMaquinariaFormProps> = ({
           Información del Cliente
         </h5>
         <div className="row g-3">
-          <div className="col-md-6">
+          <div className="col-md-12">
             <label className="form-label">
               Cliente <span className="text-danger">*</span>
             </label>
             <div className="input-group">
               <select
-                name="rutCliente"
-                className={`form-select ${errors.rutCliente ? "is-invalid" : ""}`}
-                value={formData.rutCliente}
+                name="customerId"
+                className={`form-select ${errors.customerId ? "is-invalid" : ""}`}
+                value={formData.customerId || ""}
                 onChange={handleChange}
+                disabled={customersLoading}
               >
-                <option value="">Seleccione un cliente</option>
-                {clientes.map((cliente) => (
-                  <option key={cliente.id} value={cliente.rut}>
-                    {cliente.nombre} - {cliente.rut}
+                <option value="">Seleccionar cliente</option>
+                {customers.map((customer) => (
+                  <option key={customer.id} value={customer.id}>
+                    {customer.name} - {customer.rut}
                   </option>
                 ))}
               </select>
               <button
                 type="button"
-                className="btn btn-outline-secondary"
-                onClick={handleRefreshClientes}
-                title="Actualizar lista de clientes"
+                className="btn btn-outline-primary"
+                onClick={handleGoToClientes}
+                title="Ir a gestión de clientes (nueva pestaña)"
+                disabled={customersLoading}
               >
-                <i className="bi bi-arrow-clockwise"></i>
+                <i className="bi bi-people me-1"></i>
+                Agregar Cliente
               </button>
-              {errors.rutCliente && <div className="invalid-feedback">{errors.rutCliente}</div>}
             </div>
+            {errors.customerId && <div className="invalid-feedback">{errors.customerId}</div>}
+            {customersLoading && <div className="form-text">Cargando clientes...</div>}
+            {!customersLoading && customers.length === 0 && (
+              <div className="form-text text-warning">
+                <i className="bi bi-exclamation-triangle me-1"></i>
+                No hay clientes disponibles.{" "}
+                <button
+                  type="button"
+                  className="btn btn-link p-0 text-decoration-underline"
+                  onClick={handleGoToClientes}
+                >
+                  Crear nuevo cliente
+                </button>
+              </div>
+            )}
             <div className="form-text">
-              Si no encuentras el cliente, puedes{" "}
-              <a href="/maquinaria/clientes" target="_blank" rel="noopener noreferrer">
-                agregarlo aquí
-              </a>{" "}
-              y luego actualizar la lista.
+              <i className="bi bi-info-circle me-1"></i>
+              Usa el botón "Gestionar" para crear nuevos clientes sin perder este formulario
             </div>
           </div>
 
-          <div className="col-md-6">
-            <label className="form-label">
-              Nombre del Cliente <span className="text-danger">*</span>
-            </label>
-            <input
-              type="text"
-              name="nombreCliente"
-              className={`form-control ${errors.nombreCliente ? "is-invalid" : ""}`}
-              value={formData.nombreCliente}
-              onChange={handleChange}
-              placeholder="Se completa automáticamente"
-              readOnly={!!formData.rutCliente}
-            />
-            {errors.nombreCliente && <div className="invalid-feedback">{errors.nombreCliente}</div>}
-          </div>
+          {formData.customerId && formData.nombreCliente && (
+            <div className="col-md-12">
+              <div className="alert alert-info">
+                <h6 className="alert-heading">ℹ️ Cliente Seleccionado</h6>
+                <div className="row">
+                  <div className="col-md-6">
+                    <strong>Nombre:</strong> {formData.nombreCliente}
+                  </div>
+                  <div className="col-md-6">
+                    <strong>RUT:</strong> {formData.rutCliente}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

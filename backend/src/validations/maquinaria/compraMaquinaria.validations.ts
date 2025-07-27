@@ -201,7 +201,6 @@ export const fechaRangoValidation = [
         throw new Error("La fecha de fin debe ser posterior o igual a la fecha de inicio")
       }
 
-      // Validar que el rango no sea mayor a 1 año
       const unAno = 365 * 24 * 60 * 60 * 1000
       if (fechaFin.getTime() - fechaInicio.getTime() > unAno) {
         throw new Error("El rango de fechas no puede ser mayor a 1 año")

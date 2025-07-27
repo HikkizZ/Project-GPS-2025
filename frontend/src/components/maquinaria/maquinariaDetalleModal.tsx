@@ -165,90 +165,94 @@ export const MaquinariaDetalleModal: React.FC<MaquinariaDetalleModalProps> = ({ 
         </div>
 
         {/* Historial de Compras */}
-        {maquinaria.compras && maquinaria.compras.length > 0 && (
+        {maquinaria.compras && maquinaria.compras.filter((compra) => compra.isActive !== false).length > 0 && (
           <div className="mb-4">
             <h5>
               <i className="bi bi-truck me-2"></i>
               Historial de Compras
             </h5>
-            {maquinaria.compras.map((compra, index) => (
-              <div key={index} className="bg-light p-3 rounded mb-2">
-                <Row className="g-2">
-                  <Col md={6}>
-                    <div>
-                      <label className="fw-bold">Fecha de Compra:</label>
-                      <div>{formatDate(compra.fechaCompra)}</div>
-                    </div>
-                  </Col>
-                  <Col md={6}>
-                    <div>
-                      <label className="fw-bold">Valor:</label>
-                      <div className="fw-bold text-danger">{formatCurrency(compra.valorCompra)}</div>
-                    </div>
-                  </Col>
-                  {compra.proveedor && (
-                    <Col md={12}>
+            {maquinaria.compras
+              .filter((compra) => compra.isActive !== false)
+              .map((compra, index) => (
+                <div key={index} className="bg-light p-3 rounded mb-2">
+                  <Row className="g-2">
+                    <Col md={6}>
                       <div>
-                        <label className="fw-bold">Proveedor:</label>
-                        <div>{compra.proveedor}</div>
+                        <label className="fw-bold">Fecha de Compra:</label>
+                        <div>{formatDate(compra.fechaCompra)}</div>
                       </div>
                     </Col>
-                  )}
-                  {compra.observaciones && (
-                    <Col md={12}>
+                    <Col md={6}>
                       <div>
-                        <label className="fw-bold">Observaciones:</label>
-                        <div className="text-muted">{compra.observaciones}</div>
+                        <label className="fw-bold">Valor:</label>
+                        <div className="fw-bold text-danger">{formatCurrency(compra.valorCompra)}</div>
                       </div>
                     </Col>
-                  )}
-                </Row>
-              </div>
-            ))}
+                    {compra.proveedor && (
+                      <Col md={12}>
+                        <div>
+                          <label className="fw-bold">Proveedor:</label>
+                          <div>{compra.proveedor}</div>
+                        </div>
+                      </Col>
+                    )}
+                    {compra.observaciones && (
+                      <Col md={12}>
+                        <div>
+                          <label className="fw-bold">Observaciones:</label>
+                          <div className="text-muted">{compra.observaciones}</div>
+                        </div>
+                      </Col>
+                    )}
+                  </Row>
+                </div>
+              ))}
           </div>
         )}
 
         {/* Historial de Ventas */}
-        {maquinaria.ventas && maquinaria.ventas.length > 0 && (
+        {maquinaria.ventas && maquinaria.ventas.filter((venta) => venta.isActive !== false).length > 0 && (
           <div className="mb-4">
             <h5>
               <i className="bi bi-cash-coin me-2"></i>
               Historial de Ventas
             </h5>
-            {maquinaria.ventas.map((venta, index) => (
-              <div key={index} className="bg-light p-3 rounded mb-2">
-                <Row className="g-2">
-                  <Col md={6}>
-                    <div>
-                      <label className="fw-bold">Fecha de Venta:</label>
-                      <div>{formatDate(venta.fechaVenta)}</div>
-                    </div>
-                  </Col>
-                  <Col md={6}>
-                    <div>
-                      <label className="fw-bold">Valor de Venta:</label>
-                      <div className="fw-bold text-success">{formatCurrency(venta.valorVenta)}</div>
-                    </div>
-                  </Col>
-                  {venta.comprador && (
-                    <Col md={12}>
+            {maquinaria.ventas
+              .filter((venta) => venta.isActive !== false)
+              .map((venta, index) => (
+                <div key={index} className="bg-light p-3 rounded mb-2">
+                  <Row className="g-2">
+                    <Col md={6}>
                       <div>
-                        <label className="fw-bold">Comprador:</label>
-                        <div>{venta.comprador}</div>
+                        <label className="fw-bold">Fecha de Venta:</label>
+                        <div>{formatDate(venta.fechaVenta)}</div>
                       </div>
                     </Col>
-                  )}
-                  {venta.observaciones && (
-                    <Col md={12}>
+                    <Col md={6}>
                       <div>
-                        <label className="fw-bold">Observaciones:</label>
-                        <div className="text-muted">{venta.observaciones}</div>
+                        <label className="fw-bold">Valor de Venta:</label>
+                        <div className="fw-bold text-success">{formatCurrency(venta.valorVenta)}</div>
                       </div>
                     </Col>
-                  )}
-                </Row>
-              </div>
-            ))}
+                    {venta.comprador && (
+                      <Col md={12}>
+                        <div>
+                          <label className="fw-bold">Comprador:</label>
+                          <div>{venta.comprador}</div>
+                        </div>
+                      </Col>
+                    )}
+                    {venta.observaciones && (
+                      <Col md={12}>
+                        <div>
+                          <label className="fw-bold">Observaciones:</label>
+                          <div className="text-muted">{venta.observaciones}</div>
+                        </div>
+                      </Col>
+                    )}
+                  </Row>
+                </div>
+              ))}
           </div>
         )}
 
@@ -269,11 +273,11 @@ export const MaquinariaDetalleModal: React.FC<MaquinariaDetalleModalProps> = ({ 
           </div>
         </div>
 
-        {/* Información adicional si no hay compras */}
-        {(!maquinaria.compras || maquinaria.compras.length === 0) && (
+        {/* Información adicional si no hay compras activas */}
+        {(!maquinaria.compras || maquinaria.compras.filter((compra) => compra.isActive !== false).length === 0) && (
           <Alert variant="info">
             <i className="bi bi-info-circle me-2"></i>
-            Esta maquinaria no tiene historial de compras registrado
+            Esta maquinaria no tiene historial de compras activo registrado
           </Alert>
         )}
       </Modal.Body>

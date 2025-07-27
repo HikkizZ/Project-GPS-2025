@@ -31,7 +31,8 @@ export class CompraMaquinariaController {
 
   obtenerTodasLasCompras = async (req: Request, res: Response): Promise<void> => {
     try {
-      const compras = await this.compraMaquinariaService.obtenerTodasLasCompras()
+      const incluirInactivas = req.query.incluirInactivas === "true"
+      const compras = await this.compraMaquinariaService.obtenerTodasLasCompras(incluirInactivas)
 
       res.status(200).json({
         success: true,
@@ -49,7 +50,8 @@ export class CompraMaquinariaController {
   obtenerCompraPorId = async (req: Request, res: Response): Promise<void> => {
     try {
       const { id } = req.params
-      const compra = await this.compraMaquinariaService.obtenerCompraPorId(Number(id))
+      const incluirInactivas = req.query.incluirInactivas === "true"
+      const compra = await this.compraMaquinariaService.obtenerCompraPorId(Number(id), incluirInactivas)
 
       if (!compra) {
         res.status(404).json({
@@ -75,7 +77,11 @@ export class CompraMaquinariaController {
   obtenerComprasPorMaquinaria = async (req: Request, res: Response): Promise<void> => {
     try {
       const { maquinariaId } = req.params
-      const compras = await this.compraMaquinariaService.obtenerComprasPorMaquinaria(Number(maquinariaId))
+      const incluirInactivas = req.query.incluirInactivas === "true"
+      const compras = await this.compraMaquinariaService.obtenerComprasPorMaquinaria(
+        Number(maquinariaId),
+        incluirInactivas,
+      )
 
       res.status(200).json({
         success: true,
@@ -93,10 +99,12 @@ export class CompraMaquinariaController {
   obtenerComprasPorFecha = async (req: Request, res: Response): Promise<void> => {
     try {
       const { fechaInicio, fechaFin } = req.query
+      const incluirInactivas = req.query.incluirInactivas === "true"
 
       const compras = await this.compraMaquinariaService.obtenerComprasPorFecha(
         fechaInicio as string,
         fechaFin as string,
+        incluirInactivas,
       )
 
       res.status(200).json({
@@ -129,6 +137,43 @@ export class CompraMaquinariaController {
       res.status(500).json({
         success: false,
         message: "Error al actualizar compra",
+        error: error.message,
+      })
+    }
+  }
+
+  eliminarCompra = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { id } = req.params
+      await this.compraMaquinariaService.eliminarCompra(Number(id))
+
+      res.status(200).json({
+        success: true,
+        message: "Compra eliminada exitosamente (soft delete)",
+      })
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        message: "Error al eliminar compra",
+        error: error.message,
+      })
+    }
+  }
+
+  restaurarCompra = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { id } = req.params
+      const compraRestaurada = await this.compraMaquinariaService.restaurarCompra(Number(id))
+
+      res.status(200).json({
+        success: true,
+        message: "Compra restaurada exitosamente",
+        data: compraRestaurada,
+      })
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        message: "Error al restaurar compra",
         error: error.message,
       })
     }

@@ -1,50 +1,221 @@
-import React from 'react';
-import { Table, Button } from 'react-bootstrap';
+import React, {useState} from 'react';
+import { Table, Card, Button, Badge } from 'react-bootstrap';
 import { SparePart } from '@/types/machinaryMaintenance/sparePart.types';
+import { useUpdateSparePart } from '@/hooks/MachinaryMaintenance/SparePart/useUpdateSparePart';
+import AddStockModal from '@/components/MachineryMaintenance/SpareParts/AddStockModal'
+import { useAuth } from '@/context/useAuth';
+import ConfirmModal from "@/components/common/ConfirmModal"; 
 
 interface Props {
   data: SparePart[];
   onEdit: (repuesto: SparePart) => void;
   onDelete: (id: number) => void;
   onReload: () => void;
+  totalItems: number;
 }
 
-const ListSparePart: React.FC<Props> = ({ data, onEdit, onDelete }) => {
-  const sortedData = [...data].sort((a, b) => a.name.localeCompare(b.name));
+const ListSparePart: React.FC<Props> = ({ data, onEdit, onDelete, totalItems, onReload }) => {
+
+  const getStockColor = (stock: number) => {
+    if (stock > 20) return 'success';
+    if (stock >= 5) return 'warning';
+    if (stock === 0) return 'secondary';
+    return 'danger';
+  };
+
+  const { user } = useAuth();
+  const role = user?.role;
+
+
+
+  const { updateSparePart, loading } = useUpdateSparePart();
+  const [showAddStockModal, setShowAddStockModal] = useState(false);
+  const [selectedSparePart, setSelectedSparePart] = useState<SparePart | null>(null);
+  
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [sparePartToDelete, setSparePartToDelete] = useState<SparePart | null>(null);
+
+  const handleShowConfirmDelete = (repuesto: SparePart) => {
+    setSparePartToDelete(repuesto);
+    setShowConfirmModal(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (sparePartToDelete) {
+      onDelete(sparePartToDelete.id);
+      setShowConfirmModal(false);
+      setSparePartToDelete(null);
+    }
+  };
+
+
+
+  const handleShowAddStockModal = (repuesto: SparePart) => {
+    setSelectedSparePart(repuesto);
+    setShowAddStockModal(true);
+  };
+
+  const handleAddStock = async (id: number, cantidad: number) => {
+    try {
+      const updated = await updateSparePart(id, {
+        stock: cantidad,
+        modo: 'agregarStock', 
+      });
+      onReload(); 
+    } catch (error) {
+      console.error("Error al agregar stock:", error);
+    } finally {
+      setShowAddStockModal(false);
+    }
+  };
+
 
   return (
+    <Card className="shadow-sm">
+      <Card.Body>
+        {data.length === 0 ? (
+          <div className="text-center py-5">
+            <i className="bi bi-box fs-1 text-muted mb-3 d-block"></i>
+            <h5 className="text-muted">No hay repuestos registrados</h5>
+            <p className="text-muted">Cuando registres repuestos, aparecerán aquí</p>
+          </div>
+        ) : (
+          <>
+            <div className="d-flex justify-content-between  mb-3">
+              <h6 className="mb-0">
+                <i className="bi bi-tools me-2"></i>
+                Repuestos Registrados ({totalItems})
+              </h6>
+            </div>
+            <div className="table-responsive">
+              <Table hover className="align-middle table-sm">
+                <thead className="table-light">
+                  <tr>
+                    <th>Nombre</th>
+                    <th>Marca</th>
+                    <th>Modelo</th>
+                    <th>Año</th>
+                    <th>Stock</th>
+                    {role !== "Mecánico" && <th>Acciones</th>}
+                  </tr>
+                </thead>
+                <tbody>
+                  {[...data]
+                    .sort((a, b) => a.name.localeCompare(b.name))
+                    .map((repuesto) => (
+                    <tr key={repuesto.id}>
+                      <td>{repuesto.name}</td>
+                      <td>{repuesto.marca}</td>
+                      <td>{repuesto.modelo}</td>
+                      <td>{repuesto.anio}</td>
+                      <td>
+                        <Badge bg={getStockColor(repuesto.stock)} className="px-3">
+                          {repuesto.stock}
+                        </Badge>
+                      </td>
+                     {role !== "Mecánico" && (
+                        <td>
+                          <div className="align-middle table-sm">
+                            {role === "Mantenciones de Maquinaria" && (
+                              <Button
+                                variant="info"
+                                size="sm"
+                                className="px-1 me-1"
+                                onClick={() => handleShowAddStockModal(repuesto)}
+                              >
+                                <i className="bi bi-plus-circle"></i>
+                              </Button>
+                            )}
+                            {role === "SuperAdministrador" && (
+                              <>
+                                <Button
+                                  variant="warning"
+                                  size="sm"
+                                  className="px-1"
+                                  onClick={() => onEdit(repuesto)}
+                                >
+                                  <i className="bi bi-pencil"></i>
+                                </Button>
+                                <Button
+                                  variant="danger"
+                                  size="sm"
+                                  className="px-1"
+                                  onClick={() => handleShowConfirmDelete(repuesto)}
+                                >
+                                  <i className="bi bi-trash"></i>
+                                </Button>
 
-    
-    <Table striped bordered hover responsive>
-      
-      <thead>
-        <tr>
-          <th>Nombre</th>
-          <th>Stock</th>
-          <th>Marca</th>
-          <th>Modelo</th>
-          <th>Año</th>
-          <th>Grupo</th>
-          <th style={{ minWidth: '150px' }}>Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        {sortedData.map((repuesto) => (
-          <tr key={repuesto.id}>
-            <td>{repuesto.name}</td>
-            <td>{repuesto.stock}</td>
-            <td>{repuesto.marca}</td>
-            <td>{repuesto.modelo}</td>
-            <td>{repuesto.anio}</td>
-            <td>{repuesto.grupo}</td>
-            <td>
-              <Button variant="warning" size="sm" onClick={() => onEdit(repuesto)}>Editar</Button>{' '}
-              <Button variant="danger" size="sm" onClick={() => onDelete(repuesto.id)}>Eliminar</Button>
+                              </>
+                            )}
+                          </div>
                         </td>
-          </tr>
-        ))}
-      </tbody>
-    </Table>
+                      )}
+
+                    </tr>
+                  ))}
+                </tbody>
+              </Table>
+            </div>
+          </>
+        )}
+      </Card.Body>
+
+            <AddStockModal
+              show={showAddStockModal}
+              onHide={() => setShowAddStockModal(false)}
+              repuesto={selectedSparePart}
+              onConfirm={handleAddStock}
+            />
+            
+            <ConfirmModal
+              show={showConfirmModal}
+              onClose={() => setShowConfirmModal(false)}
+              onConfirm={handleConfirmDelete}
+              title="¿Eliminar repuesto?"
+              confirmText="Eliminar"
+              cancelText="Cancelar"
+              headerVariant="danger"
+              headerIcon="bi-exclamation-triangle-fill"
+              confirmIcon="bi-trash"
+              cancelIcon="bi-x-circle"
+              warningContent={
+                <>
+                  <p className="mb-2 mt-1">Esta acción:</p>
+                  <ul className="mb-0">
+                    <li>Marcará el repuesto como eliminado en el sistema.</li>
+                    <li>No podrá ser utilizado en futuras mantenciones.</li>
+                    <li>El historial de mantenciones no se verá afectado.</li>
+                  </ul>
+                </>
+              }
+            >
+              <div className="mb-3 p-3 bg-light rounded-3">
+                <p className="mb-2 fw-semibold">
+                  ¿Estás seguro que deseas eliminar el siguiente repuesto?
+                </p>
+                <div className="d-flex flex-column gap-1">
+                  <div>
+                    <span className="fw-semibold text-muted">Nombre:</span>{" "}
+                    <span className="ms-2">{sparePartToDelete?.name ?? "N/A"}</span>
+                  </div>
+                  <div>
+                    <span className="fw-semibold text-muted">Marca:</span>{" "}
+                    <span className="ms-2">{sparePartToDelete?.marca ?? "N/A"}</span>
+                  </div>
+                  <div>
+                    <span className="fw-semibold text-muted">Modelo:</span>{" "}
+                    <span className="ms-2">{sparePartToDelete?.modelo ?? "N/A"}</span>
+                  </div>
+                  <div>
+                    <span className="fw-semibold text-muted">Año:</span>{" "}
+                    <span className="ms-2">{sparePartToDelete?.anio ?? "N/A"}</span>
+                  </div>
+                </div>
+              </div>
+            </ConfirmModal>
+
+
+    </Card>
   );
 };
 

@@ -15,7 +15,7 @@ export enum EstadoMaquinaria {
   FUERA_SERVICIO = "fuera_servicio",
 }
 
-// Interfaces base
+// Interfaces base actualizadas con padronUrl
 export interface Maquinaria {
   id: number
   patente: string
@@ -24,6 +24,8 @@ export interface Maquinaria {
   modelo: string
   anio: number
   estado: EstadoMaquinaria
+  padronUrl?: string // Nuevo campo
+  isActive: boolean
   fechaCreacion: Date
   fechaActualizacion: Date
 }
@@ -40,14 +42,12 @@ export interface CompraMaquinaria {
   avaluoFiscal: number
   numeroChasis: string
   kilometrajeInicial: number
+  supplierId?: number
+  supplierRut?: string
   proveedor?: string
   observaciones?: string
-  // Campos del padrón
   padronUrl?: string
-  padronFilename?: string
-  padronFileType?: "image" | "pdf"
-  padronOriginalName?: string
-  padronFileSize?: number
+  isActive: boolean
   fechaCreacion: Date
   fechaActualizacion: Date
   maquinaria?: Maquinaria
@@ -63,14 +63,16 @@ export interface VentaMaquinaria {
   anio: number
   fechaVenta: string
   valorVenta: number
+  customerId: number
+  customerRut: string
   comprador: string
   observaciones?: string
+  isActive: boolean
   fechaCreacion: Date
   fechaActualizacion: Date
   maquinaria?: Maquinaria
   maquinaria_id?: number
 }
-
 
 export interface Conductor {
   id: number
@@ -81,11 +83,12 @@ export interface Conductor {
   email?: string
   licenciaConducir: string
   fechaVencimientoLicencia: string
+  isActive: boolean
   fechaCreacion: Date
   fechaActualizacion: Date
 }
 
-// Tipos para crear/actualizar
+// Tipos para crear/actualizar (isActive se maneja internamente)
 export interface CreateMaquinaria {
   patente: string
   grupo: GrupoMaquinaria
@@ -93,6 +96,7 @@ export interface CreateMaquinaria {
   modelo: string
   anio: number
   estado?: EstadoMaquinaria
+  padronUrl?: string // Nuevo campo
 }
 
 export interface UpdateMaquinaria {
@@ -102,6 +106,7 @@ export interface UpdateMaquinaria {
   modelo?: string
   anio?: number
   estado?: EstadoMaquinaria
+  padronUrl?: string // Nuevo campo
 }
 
 export interface CreateCompraMaquinaria {
@@ -115,14 +120,11 @@ export interface CreateCompraMaquinaria {
   avaluoFiscal: number
   numeroChasis: string
   kilometrajeInicial?: number
+  supplierRut?: string
+  supplierId?: number
   proveedor?: string
   observaciones?: string
-  // Campos del padrón (opcionales en creación, se llenan automáticamente)
   padronUrl?: string
-  padronFilename?: string
-  padronFileType?: "image" | "pdf"
-  padronOriginalName?: string
-  padronFileSize?: number
 }
 
 export interface UpdateCompraMaquinaria {
@@ -136,19 +138,17 @@ export interface UpdateCompraMaquinaria {
   avaluoFiscal?: number
   numeroChasis?: string
   kilometrajeInicial?: number
+  supplierRut?: string
+  supplierId?: number
   proveedor?: string
   observaciones?: string
-  // Campos del padrón - permitir undefined para no actualizar
   padronUrl?: string | undefined
-  padronFilename?: string | undefined
-  padronFileType?: "image" | "pdf" | undefined
-  padronOriginalName?: string | undefined
-  padronFileSize?: number | undefined
 }
 
 // Nuevos tipos para el servicio
 export interface CreateCompraMaquinariaData extends CreateCompraMaquinaria {
   maquinaria_id?: number
+  isActive?: boolean
 }
 
 export interface UpdateCompraMaquinariaData extends UpdateCompraMaquinaria {
@@ -157,13 +157,10 @@ export interface UpdateCompraMaquinariaData extends UpdateCompraMaquinaria {
 
 export interface CreateVentaMaquinaria {
   patente: string
-  grupo: GrupoMaquinaria
-  marca: string
-  modelo: string
-  anio: number
-  fechaVenta: string
+  fechaVenta: Date
+  valorCompra: number
   valorVenta: number
-  comprador: string
+  customerRut: string
   observaciones?: string
 }
 
@@ -175,7 +172,7 @@ export interface UpdateVentaMaquinaria {
   anio?: number
   fechaVenta?: string
   valorVenta?: number
-  comprador?: string
+  customerRut?: string
   observaciones?: string
 }
 
@@ -208,6 +205,7 @@ export interface FiltrosMaquinaria {
   estado?: string
   fechaInicio?: string
   fechaFin?: string
+  incluirInactivas?: boolean
 }
 
 export interface FiltrosCompra {
@@ -217,6 +215,7 @@ export interface FiltrosCompra {
   grupo?: string
   fechaInicio?: string
   fechaFin?: string
+  incluirInactivas?: boolean
 }
 
 export interface FiltrosVenta {
@@ -226,6 +225,7 @@ export interface FiltrosVenta {
   grupo?: string
   fechaInicio?: string
   fechaFin?: string
+  incluirInactivas?: boolean
 }
 
 export interface FiltrosArriendo {
@@ -237,6 +237,7 @@ export interface FiltrosArriendo {
   fechaFin?: string
   maquinaria_id?: number
   conductor_id?: number
+  incluirInactivas?: boolean
 }
 
 export interface PaginationResult<T> {

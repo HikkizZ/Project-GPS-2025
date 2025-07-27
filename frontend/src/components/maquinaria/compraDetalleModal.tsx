@@ -1,3 +1,5 @@
+"use client"
+
 import type React from "react"
 import { Modal, Button, Row, Col, Badge, Alert } from "react-bootstrap"
 import type { CompraMaquinaria } from "../../types/maquinaria.types"
@@ -13,6 +15,11 @@ interface CompraDetalleModalProps {
 export const CompraDetalleModal: React.FC<CompraDetalleModalProps> = ({ show, onHide, compra, onEliminarPadron }) => {
   // Definir la URL base del API
   const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000"
+
+  // Función helper para determinar si una compra está activa
+  const isCompraActiva = (compra: CompraMaquinaria) => {
+    return compra.isActive !== false
+  }
 
   const formatCurrency = (value: number | undefined | null) => {
     if (!value || value === 0) return "$0"
@@ -60,9 +67,32 @@ export const CompraDetalleModal: React.FC<CompraDetalleModalProps> = ({ show, on
         <Modal.Title>
           <i className="bi bi-eye me-2"></i>
           Detalles de Compra - {compra.patente}
+          {/* Mostrar estado en el título */}
+          <div className="mt-1">
+            {!isCompraActiva(compra) ? (
+              <Badge bg="secondary">
+                <i className="bi bi-x-circle me-1"></i>
+                Compra Inactiva
+              </Badge>
+            ) : (
+              <Badge bg="success">
+                <i className="bi bi-check-circle me-1"></i>
+                Compra Activa
+              </Badge>
+            )}
+          </div>
         </Modal.Title>
       </Modal.Header>
       <Modal.Body>
+        {/* Alerta para compras inactivas */}
+        {!isCompraActiva(compra) && (
+          <Alert variant="warning" className="mb-4">
+            <i className="bi bi-exclamation-triangle me-2"></i>
+            <strong>Compra Inactiva:</strong> Esta compra ha sido eliminada (soft delete) y no está activa en el
+            sistema.
+          </Alert>
+        )}
+
         {/* Padrón - Sección Principal */}
         <div className="mb-4">
           <h5>
@@ -118,9 +148,8 @@ export const CompraDetalleModal: React.FC<CompraDetalleModalProps> = ({ show, on
                   </div>
                 </div>
               )}
-
-              {/* Botón para eliminar padrón */}
-              {onEliminarPadron && (
+              {/* Botón para eliminar padrón - solo si la compra está activa */}
+              {onEliminarPadron && isCompraActiva(compra) && (
                 <div className="mt-3">
                   <Button variant="outline-danger" size="sm" onClick={handleEliminarPadron}>
                     <i className="bi bi-trash me-2"></i>
@@ -241,7 +270,41 @@ export const CompraDetalleModal: React.FC<CompraDetalleModalProps> = ({ show, on
             <Col md={12}>
               <div>
                 <label className="fw-bold">Proveedor:</label>
-                <div>{compra.proveedor || "No especificado"}</div>
+                {compra.supplier ? (
+                  <div className="mt-2">
+                    <div className="d-flex align-items-center gap-2">
+                      <Badge bg="info">
+                        <i className="bi bi-building me-1"></i>
+                        {compra.supplier.name}
+                      </Badge>
+                      <small className="text-muted">RUT: {compra.supplier.rut}</small>
+                    </div>
+                    <div className="mt-1">
+                      <small className="text-muted">
+                        <i className="bi bi-envelope me-1"></i>
+                        {compra.supplier.email}
+                      </small>
+                      <span className="mx-2">•</span>
+                      <small className="text-muted">
+                        <i className="bi bi-telephone me-1"></i>
+                        {compra.supplier.phone}
+                      </small>
+                    </div>
+                    <div className="mt-1">
+                      <small className="text-muted">
+                        <i className="bi bi-geo-alt me-1"></i>
+                        {compra.supplier.address}
+                      </small>
+                    </div>
+                  </div>
+                ) : compra.proveedor ? (
+                  <div className="text-muted">
+                    <i className="bi bi-info-circle me-1"></i>
+                    {compra.proveedor} (registro legacy)
+                  </div>
+                ) : (
+                  <div className="text-muted">No especificado</div>
+                )}
               </div>
             </Col>
             {compra.observaciones && (

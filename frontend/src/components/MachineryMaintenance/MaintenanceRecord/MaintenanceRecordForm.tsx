@@ -3,7 +3,6 @@ import { Form, Button, Spinner } from 'react-bootstrap';
 import { CreateMaintenanceRecordData, RazonMantencion } from '@/types/machinaryMaintenance/maintenanceRecord.types';
 import { userService } from '@/services/user.service';
 import { maquinariaService } from '@/services/maquinaria/maquinaria.service';
-import { SafeUser } from '@/types';
 import { Maquinaria } from '@/types/maquinaria.types';
 
 interface Props {
@@ -16,14 +15,12 @@ interface Props {
 const MaintenanceRecordForm: React.FC<Props> = ({ initialData = {}, onSubmit, loading }) => {
   const [form, setForm] = useState<CreateMaintenanceRecordData>({
     maquinariaId: 0,
-    mecanicoId: 0,
     razonMantencion: RazonMantencion.RUTINA,
     descripcionEntrada: '',
     repuestosUtilizados: [],
     ...initialData,
   });
 
-  const [mecanicos, setMecanicos] = useState<SafeUser[]>([]);
   const [maquinarias, setMaquinarias] = useState<Maquinaria[]>([]);
   const [grupoSeleccionado, setGrupoSeleccionado] = useState('');
   const [patenteSeleccionada, setPatenteSeleccionada] = useState('');
@@ -32,27 +29,24 @@ const MaintenanceRecordForm: React.FC<Props> = ({ initialData = {}, onSubmit, lo
   useEffect(() => {
     async function cargarDatos() {
       try {
-        const [maquinariasRes, mecanicosRes] = await Promise.all([
-          maquinariaService.obtenerTodasLasMaquinarias(),
-          userService.getUsers({ role: 'Mecánico' }),
-        ]);
-
+        const maquinariasRes = await maquinariaService.obtenerTodasLasMaquinarias();
         const maquinarias = maquinariasRes.data || [];
-        const mecanicos = mecanicosRes.data || [];
-
         setMaquinarias(maquinarias);
-        setMecanicos(mecanicos);
 
         if (initialData) {
           setForm((prev) => ({
             ...prev,
             maquinariaId: (initialData as any).maquinaria?.id ?? initialData.maquinariaId ?? 0,
-            mecanicoId: (initialData as any).mecanicoAsignado?.id ?? initialData.mecanicoId ?? 0,
             razonMantencion: initialData.razonMantencion ?? RazonMantencion.RUTINA,
             descripcionEntrada: initialData.descripcionEntrada ?? '',
             repuestosUtilizados: initialData.repuestosUtilizados ?? [],
           }));
+
+          setGrupoSeleccionado((initialData as any).maquinaria?.grupo ?? '');
+          setPatenteSeleccionada((initialData as any).maquinaria?.patente ?? '');
+          setnumeroChasisSelecionado((initialData as any).maquinaria?.numeroChasis ?? '');
         }
+
       } catch (error) {
         console.error("Error cargando datos:", error);
       }
@@ -60,6 +54,7 @@ const MaintenanceRecordForm: React.FC<Props> = ({ initialData = {}, onSubmit, lo
 
     cargarDatos();
   }, []);
+
 
   useEffect(() => {
     const numeroChasis = maquinarias.filter(
@@ -101,7 +96,6 @@ const MaintenanceRecordForm: React.FC<Props> = ({ initialData = {}, onSubmit, lo
 
     const formToSend: CreateMaintenanceRecordData = {
       maquinariaId: maquinariaEncontrada.id,
-      mecanicoId: form.mecanicoId,
       razonMantencion: form.razonMantencion,
       descripcionEntrada: form.descripcionEntrada,
       repuestosUtilizados: form.repuestosUtilizados,
@@ -109,6 +103,14 @@ const MaintenanceRecordForm: React.FC<Props> = ({ initialData = {}, onSubmit, lo
 
     onSubmit(formToSend);
   };
+
+  function formatGrupoNombre(grupo: string): string {
+    return grupo
+      .toLowerCase()
+      .split('_')
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  }
 
   return (
     <Form onSubmit={handleSubmit}>
@@ -123,7 +125,7 @@ const MaintenanceRecordForm: React.FC<Props> = ({ initialData = {}, onSubmit, lo
           >
             <option value="">Seleccione grupo</option>
             {[...new Set(maquinarias.map(m => m.grupo))].map(grupo => (
-              <option key={grupo} value={grupo}>{grupo}</option>
+              <option key={grupo} value={grupo}>{formatGrupoNombre(grupo)}</option>
             ))}
           </select>
         </div>
@@ -167,22 +169,7 @@ const MaintenanceRecordForm: React.FC<Props> = ({ initialData = {}, onSubmit, lo
 
       <br />
 
-      <Form.Group controlId="mecanicoId">
-        <Form.Label>Mecánico</Form.Label>
-        <Form.Select
-          name="mecanicoId"
-          value={form.mecanicoId}
-          onChange={handleChange}
-          required
-        >
-          <option value="">Seleccione un mecánico</option>
-          {mecanicos.map((mecanico) => (
-            <option key={mecanico.id} value={mecanico.id}>
-              {mecanico.name}
-            </option>
-          ))}
-        </Form.Select>
-      </Form.Group>
+
 
       <br />
 

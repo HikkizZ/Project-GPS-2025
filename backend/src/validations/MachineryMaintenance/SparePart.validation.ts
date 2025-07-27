@@ -1,7 +1,4 @@
 import Joi from "joi";
-import { GrupoMaquinaria } from "../../entity/maquinaria/maquinaria.entity.js";
-
-const gruposValidos = Object.values(GrupoMaquinaria);
 
 export const createSparePartValidation = Joi.object({
   name: Joi.string()
@@ -54,14 +51,6 @@ export const createSparePartValidation = Joi.object({
       "number.min": "El año no puede ser menor a 2000.",
       "number.max": `El año no puede ser mayor a ${new Date().getFullYear()}.`
     }),
-
-  grupo: Joi.string()
-    .valid(...gruposValidos)
-    .required()
-    .messages({
-      "any.required": "El grupo es obligatorio.",
-      "any.only": `El grupo debe ser uno de: ${gruposValidos.join(", ")}.`
-    })
 }).messages({
   "object.unknown": "No se permiten propiedades adicionales."
 });
@@ -108,13 +97,16 @@ export const updateSparePartValidation = Joi.object({
       "number.max": `El año no puede ser mayor a ${new Date().getFullYear()}.`
     }),
 
-  grupo: Joi.string()
-    .valid(...gruposValidos)
+    modo: Joi.string()
+    .valid("editar", "agregarStock")
+    .optional()
     .messages({
-      "any.only": `El grupo debe ser uno de: ${gruposValidos.join(", ")}.`
-    })
+      "string.base": "El modo debe ser texto.",
+      "any.only": "El modo debe ser 'editar' o 'agregarStock'."
+    }),
 
-}).or("name", "stock", "marca", "modelo", "anio", "grupo").messages({
+
+}).or("name", "stock", "marca", "modelo", "anio").messages({
   "object.unknown": "No se permiten propiedades adicionales.",
   "object.missing": "Debes proporcionar al menos un campo para actualizar."
 });

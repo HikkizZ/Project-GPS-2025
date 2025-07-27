@@ -1,25 +1,25 @@
-import { Router } from "express"
-import { VentaMaquinariaController } from "../../controllers/maquinaria/ventaMaquinaria.controller.js"
+import { Router } from "express";
+import { VentaMaquinariaController } from "../../controllers/maquinaria/ventaMaquinaria.controller.js";
 import {
   registrarVentaValidation,
   ventaIdValidation,
   patenteValidation,
   fechaRangoValidation,
   compradorValidation,
-} from "../../validations/maquinaria/ventaMaquinaria.validations.js"
-import { authenticateJWT } from "../../middlewares/authentication.middleware.js"
-import { verifyRole } from "../../middlewares/authorization.middleware.js"
+} from "../../validations/maquinaria/ventaMaquinaria.validations.js";
+import { authenticateJWT } from "../../middlewares/authentication.middleware.js";
+import { verifyRole } from "../../middlewares/authorization.middleware.js";
 
+const router = Router();
+const ventaMaquinariaController = new VentaMaquinariaController();
 
-const router = Router()
-const ventaMaquinariaController = new VentaMaquinariaController()
+router.post("/", authenticateJWT, verifyRole(["Arriendo"]), registrarVentaValidation, ventaMaquinariaController.registrarVenta);
+router.get("/", authenticateJWT, verifyRole(["Arriendo"]), ventaMaquinariaController.obtenerTodasLasVentas);
+router.get("/fecha", authenticateJWT, verifyRole(["Arriendo"]), fechaRangoValidation, ventaMaquinariaController.obtenerVentasPorFecha);
+router.get("/patente/:patente", authenticateJWT, verifyRole(["Arriendo"]), patenteValidation, ventaMaquinariaController.obtenerVentasPorPatente);
+router.get("/comprador/:comprador", authenticateJWT, verifyRole(["Arriendo"]), compradorValidation, ventaMaquinariaController.obtenerVentasPorComprador);
+router.get("/:id", authenticateJWT, verifyRole(["Arriendo"]), ventaIdValidation, ventaMaquinariaController.obtenerVentaPorId);
+router.delete("/:id", authenticateJWT, verifyRole(["SuperAdministrador"]), ventaIdValidation, ventaMaquinariaController.eliminarVenta);
+router.patch("/:id/restaurar", authenticateJWT, verifyRole(["SuperAdministrador"]), ventaIdValidation, ventaMaquinariaController.restaurarVenta);
 
-// Rutas principales
-router.post("/", authenticateJWT, verifyRole(["arriendo"]),registrarVentaValidation, ventaMaquinariaController.registrarVenta)
-router.get("/", authenticateJWT, verifyRole(["arriendo"]),ventaMaquinariaController.obtenerTodasLasVentas)
-router.get("/fecha", authenticateJWT, verifyRole(["arriendo"]),fechaRangoValidation, ventaMaquinariaController.obtenerVentasPorFecha)
-router.get("/patente/:patente", authenticateJWT, verifyRole(["arriendo"]),patenteValidation, ventaMaquinariaController.obtenerVentasPorPatente)
-router.get("/comprador/:comprador", authenticateJWT, verifyRole(["arriendo"]),compradorValidation, ventaMaquinariaController.obtenerVentasPorComprador)
-router.get("/:id", ventaIdValidation, authenticateJWT, verifyRole(["arriendo"]),ventaMaquinariaController.obtenerVentaPorId)
-
-export default router
+export default router;

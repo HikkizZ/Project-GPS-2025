@@ -2,7 +2,6 @@ import { Entity, PrimaryGeneratedColumn, Column, Index, OneToMany } from "typeor
 import { CompraMaquinaria } from "./compraMaquinaria.entity.js"
 import { VentaMaquinaria } from "./ventaMaquinaria.entity.js"
 
-
 export enum GrupoMaquinaria {
   CAMION_TOLVA = "camion_tolva",
   BATEA = "batea",
@@ -24,7 +23,6 @@ export enum EstadoMaquinaria {
 export class Maquinaria {
   @PrimaryGeneratedColumn()
   id!: number
-
 
   @Column({ type: "varchar", length: 20, nullable: false })
   patente!: string
@@ -54,11 +52,9 @@ export class Maquinaria {
   @Column({ type: "decimal", precision: 15, scale: 2, nullable: false })
   avaluoFiscal!: number
 
-
   @Index({ unique: true })
   @Column({ type: "varchar", length: 100, nullable: false, unique: true })
   numeroChasis!: string
-
 
   @Column({ type: "int", nullable: false })
   kilometrajeInicial!: number
@@ -72,6 +68,14 @@ export class Maquinaria {
     default: EstadoMaquinaria.DISPONIBLE,
   })
   estado!: EstadoMaquinaria
+
+  // Campo agregado para el archivo del padrón
+  @Column({ type: "varchar", length: 500, nullable: true })
+  padronUrl?: string
+
+  // Campo agregado para soft delete
+  @Column({ type: "boolean", default: true })
+  isActive!: boolean
 
   // Relaciones
   @OneToMany(

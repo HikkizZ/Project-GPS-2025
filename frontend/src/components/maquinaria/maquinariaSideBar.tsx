@@ -12,23 +12,27 @@ const MaquinariaSidebar: React.FC = () => {
       <Nav className="flex-column" variant="pills">
         <Nav.Link as={NavLink} to="/maquinaria" end>
           <i className="bi bi-list-ul me-2" />
-          Inventario General
+          Inventario Maquinaria
         </Nav.Link>
         <Nav.Link as={NavLink} to="/maquinaria/arriendos">
           <i className="bi bi-calendar-check me-2" />
-          Arriendos
+          Arriendos Maquinaria
         </Nav.Link>
         <Nav.Link as={NavLink} to="/maquinaria/compras">
           <i className="bi bi-truck me-2" />
-          Compras
+          Compras Maquinaria
         </Nav.Link>
         <Nav.Link as={NavLink} to="/maquinaria/ventas">
           <i className="bi bi-cash-coin me-2" />
-          Ventas
+          Ventas Maquinaria
         </Nav.Link>
-        <Nav.Link as={NavLink} to="/maquinaria/clientes">
+        <Nav.Link as={NavLink} to="/inventario/clientes">
           <i className="bi bi-people me-2" />
           Clientes
+        </Nav.Link>
+        <Nav.Link as={NavLink} to="/maquinaria/proveedores">
+          <i className="bi bi-people me-2" />
+          Proveedores
         </Nav.Link>
       </Nav>
     </div>
