@@ -214,7 +214,7 @@ const MaintenanceRecordList: React.FC<Props> = ({
                               <Button
                                 variant="primary"
                                 size="sm"
-                                onClick={() => onAssignMecanico(m)}
+                                onClick={() => onAccept(m)}
                               >
                                 <i className="bi bi-person-check"></i> Aceptar Mantención
                               </Button>
