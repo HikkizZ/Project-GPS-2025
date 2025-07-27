@@ -215,7 +215,9 @@ export const MaquinariaPage: React.FC = () => {
                                 <td className="font-monospace">
                                   {maquinaria.kilometrajeActual?.toLocaleString("es-CL") || "0"} km
                                 </td>
-                                <td className="font-monospace text-end">{formatCurrency(maquinaria.avaluoFiscal)}</td>
+                                <td className="font-monospace text-start">
+                                  {formatCurrency(maquinaria.avaluoFiscal)}
+                                </td>
                                 <td>
                                   <Button
                                     variant="outline-primary"
@@ -226,6 +228,7 @@ export const MaquinariaPage: React.FC = () => {
                                     <i className="bi bi-eye"></i>
                                   </Button>
                                 </td>
+
                               </tr>
                             ))}
                           </tbody>

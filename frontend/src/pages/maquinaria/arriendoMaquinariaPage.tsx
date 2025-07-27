@@ -1,35 +1,69 @@
+"use client"
+
 import type React from "react"
 import { useState, useEffect } from "react"
-import { Modal, Container, Row, Col, Card, Button, Table, Alert, Spinner, Form, InputGroup } from "react-bootstrap"
+import {
+  Modal,
+  Container,
+  Row,
+  Col,
+  Card,
+  Button,
+  Table,
+  Alert,
+  Spinner,
+  Form,
+  InputGroup,
+  Badge,
+  Toast,
+  ToastContainer,
+} from "react-bootstrap"
 import { ArriendoMaquinariaForm } from "../../components/maquinaria/arriendoMaquinariaForm"
 import { ArriendoDetalleModal } from "../../components/maquinaria/arriendoDetalleModal"
 import { EstadoPagoModal } from "../../components/maquinaria/estadoPagoModal"
 import MaquinariaSidebar from "../../components/maquinaria/maquinariaSideBar"
 import { useArriendoMaquinaria } from "../../hooks/maquinaria/useArriendoMaquinaria"
 import { useExcelExport } from "../../hooks/useExcelExport"
+import { useAuth } from "../../context"
 import type { CreateArriendoMaquinaria, ArriendoMaquinaria } from "../../types/arriendoMaquinaria.types"
 
 export const ArriendoMaquinariaPage: React.FC = () => {
-  const { reportes, loading, error, crearReporte, refetch } = useArriendoMaquinaria()
+  // SIMPLIFICADO: Hook sin paginación como el módulo de compras
+  const { reportes, loading, error, crearReporte, eliminarReporte, restaurarReporte, refetch } = useArriendoMaquinaria()
+
   const { exportToExcel, isExporting } = useExcelExport()
+  const { user } = useAuth()
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [selectedReporte, setSelectedReporte] = useState<ArriendoMaquinaria | null>(null)
   const [showDetalleModal, setShowDetalleModal] = useState(false)
   const [showEstadoPagoModal, setShowEstadoPagoModal] = useState(false)
 
-  // Estados para filtros y búsqueda
+  // Estados para notificaciones
+  const [showSuccessToast, setShowSuccessToast] = useState(false)
+  const [successMessage, setSuccessMessage] = useState("")
+
+  // Verificar si el usuario es SuperAdministrador
+  const isSuperAdmin = user?.role === "SuperAdministrador"
+
+  // Estados para filtros y búsqueda LOCAL
   const [filteredReportes, setFilteredReportes] = useState<ArriendoMaquinaria[]>([])
   const [searchNumeroReporte, setSearchNumeroReporte] = useState("")
   const [selectedPatente, setSelectedPatente] = useState("")
   const [selectedCliente, setSelectedCliente] = useState("")
+  const [includeInactive, setIncludeInactive] = useState(false)
 
   // Obtener listas únicas para los filtros
   const patentesUnicas = [...new Set(reportes.map((r) => r.patente))].sort()
-  const clientesUnicos = [...new Set(reportes.map((r) => r.nombreCliente))].sort()
+  const clientesUnicos = [...new Set(reportes.map((r) => r.nombreCliente || "Sin cliente"))].sort()
 
-  // Efecto para filtrar reportes cuando cambian los filtros o la lista de reportes
+  // Efecto para filtrar reportes
   useEffect(() => {
     let reportesFiltrados = [...reportes]
+
+    // Filtro por estado activo/inactivo
+    if (!includeInactive) {
+      reportesFiltrados = reportesFiltrados.filter((r) => r.isActive !== false)
+    }
 
     // Filtro por número de reporte
     if (searchNumeroReporte.trim()) {
@@ -45,24 +79,66 @@ export const ArriendoMaquinariaPage: React.FC = () => {
 
     // Filtro por cliente
     if (selectedCliente) {
-      reportesFiltrados = reportesFiltrados.filter((reporte) => reporte.nombreCliente === selectedCliente)
+      reportesFiltrados = reportesFiltrados.filter((reporte) => {
+        const nombreCliente = reporte.nombreCliente || "Sin cliente"
+        return nombreCliente === selectedCliente
+      })
     }
 
     setFilteredReportes(reportesFiltrados)
-  }, [reportes, searchNumeroReporte, selectedPatente, selectedCliente])
+  }, [reportes, searchNumeroReporte, selectedPatente, selectedCliente, includeInactive])
 
   const handleSubmit = async (data: CreateArriendoMaquinaria) => {
     try {
       await crearReporte(data)
       setShowCreateModal(false)
+
+      // Mostrar notificación de éxito
+      setSuccessMessage(`Reporte ${data.numeroReporte} creado exitosamente`)
+      setShowSuccessToast(true)
+
+      // Limpiar filtros para asegurar que se vea el nuevo reporte
+      setSearchNumeroReporte("")
+      setSelectedPatente("")
+      setSelectedCliente("")
     } catch (error) {
-      // El error ya se maneja en el hook
+      // Error ya manejado en el hook
     }
   }
 
   const handleVerDetalles = (reporte: ArriendoMaquinaria) => {
     setSelectedReporte(reporte)
     setShowDetalleModal(true)
+  }
+
+  const handleEliminarReporte = async (reporte: ArriendoMaquinaria) => {
+    if (
+      !window.confirm(`¿Está seguro de eliminar el reporte ${reporte.numeroReporte}? Esta acción se puede revertir.`)
+    ) {
+      return
+    }
+
+    try {
+      await eliminarReporte(reporte.id)
+      setSuccessMessage(`Reporte ${reporte.numeroReporte} eliminado exitosamente`)
+      setShowSuccessToast(true)
+    } catch (error) {
+      // Error ya manejado en el hook
+    }
+  }
+
+  const handleRestaurarReporte = async (reporte: ArriendoMaquinaria) => {
+    if (!window.confirm(`¿Está seguro de restaurar el reporte ${reporte.numeroReporte}?`)) {
+      return
+    }
+
+    try {
+      await restaurarReporte(reporte.id)
+      setSuccessMessage(`Reporte ${reporte.numeroReporte} restaurado exitosamente`)
+      setShowSuccessToast(true)
+    } catch (error) {
+      // Error ya manejado en el hook
+    }
   }
 
   const handleClearFilters = () => {
@@ -89,25 +165,39 @@ export const ArriendoMaquinariaPage: React.FC = () => {
     }
   }
 
+  // Función helper para determinar si un reporte está activo
+  const isReporteActivo = (reporte: ArriendoMaquinaria) => {
+    return reporte.isActive !== false
+  }
+
   const handleExportarExcel = async () => {
     try {
-      // Exportar los reportes filtrados, no todos
-      const datosParaExcel = filteredReportes.map((reporte) => ({
+      setShowCreateModal(false)
+
+      if (reportes.length === 0) {
+        alert("No hay datos para exportar")
+        return
+      }
+
+      const datosParaExcel = reportes.map((reporte) => ({
         "Número Reporte": reporte.numeroReporte,
         Patente: reporte.patente,
         "Marca/Modelo": `${reporte.marca} ${reporte.modelo}`,
-        Cliente: reporte.nombreCliente,
-        "RUT Cliente": reporte.rutCliente,
+        Cliente: reporte.nombreCliente || "Sin cliente",
+        "RUT Cliente": reporte.rutCliente || "-",
         Obra: reporte.obra,
         "Fecha Trabajo": formatDate(reporte.fechaTrabajo),
         "Km Final": reporte.kmFinal || 0,
         "Valor Servicio": reporte.valorServicio || 0,
+        Estado: isReporteActivo(reporte) ? "Activo" : "Inactivo",
         Detalle: reporte.detalle || "-",
       }))
 
       await exportToExcel(datosParaExcel, "reportes_trabajo_maquinaria", "Reportes")
+
+      setSuccessMessage("Archivo Excel exportado exitosamente")
+      setShowSuccessToast(true)
     } catch (error) {
-      console.error("Error al exportar:", error)
       alert("Error al generar el archivo Excel")
     }
   }
@@ -115,12 +205,14 @@ export const ArriendoMaquinariaPage: React.FC = () => {
   // Verifica si hay filtros activos
   const hasActiveFilters = searchNumeroReporte.trim() || selectedPatente || selectedCliente
 
+  // Separar reportes activos e inactivos para mostrar estadísticas
+  const reportesActivos = filteredReportes.filter((r) => isReporteActivo(r))
+  const reportesInactivos = filteredReportes.filter((r) => !isReporteActivo(r))
+
   return (
     <div className="d-flex">
-      {/* Sidebar */}
       <MaquinariaSidebar />
 
-      {/* Contenido principal */}
       <div className="flex-grow-1">
         <Container fluid className="py-4">
           <Row>
@@ -130,7 +222,9 @@ export const ArriendoMaquinariaPage: React.FC = () => {
                 <Card.Header className="bg-gradient-primary text-white">
                   <div className="d-flex align-items-center justify-content-between">
                     <div className="d-flex align-items-center">
-                      <i className="bi bi-file-text fs-4 me-3"></i>
+                      <div className="fs-4 me-3">
+                        <i className="bi bi-clipboard-data"></i>
+                      </div>
                       <div>
                         <h3 className="mb-1">Reportes de Trabajo Diario</h3>
                         <p className="mb-0 opacity-75">Registra el trabajo diario realizado por cada maquinaria</p>
@@ -148,7 +242,7 @@ export const ArriendoMaquinariaPage: React.FC = () => {
                       </Button>
                       <Button
                         onClick={handleExportarExcel}
-                        disabled={isExporting || filteredReportes.length === 0}
+                        disabled={isExporting || reportes.length === 0}
                         className="text-white fw-bold d-flex align-items-center"
                         style={{
                           backgroundColor: "#28a745",
@@ -181,6 +275,43 @@ export const ArriendoMaquinariaPage: React.FC = () => {
                 </Card.Header>
               </Card>
 
+              {/* Panel de configuración de vista */}
+              <Card className="shadow-sm mb-3">
+                <Card.Header className="bg-light">
+                  <div className="d-flex justify-content-between align-items-center">
+                    <h5 className="mb-0">
+                      <i className="bi bi-gear me-2"></i>
+                      Configuración de Vista
+                    </h5>
+                  </div>
+                </Card.Header>
+                <Card.Body>
+                  <Row className="g-3 align-items-end">
+                    <Col md={3}>
+                      <div className="d-flex align-items-center">
+                        <Form.Check
+                          type="switch"
+                          id="include-inactive-switch"
+                          label="Incluir reportes inactivos"
+                          checked={includeInactive}
+                          onChange={(e) => setIncludeInactive(e.target.checked)}
+                          disabled={loading}
+                        />
+                      </div>
+                    </Col>
+
+                    <Col md={9}>
+                      <div className="d-flex gap-2 align-items-center">
+                        <span className="text-muted small">📊 Total: {reportes.length} reportes</span>
+                        <Button variant="outline-secondary" size="sm" onClick={refetch} disabled={loading}>
+                          {loading ? <span className="spinner-border spinner-border-sm" role="status"></span> : "🔄"}
+                        </Button>
+                      </div>
+                    </Col>
+                  </Row>
+                </Card.Body>
+              </Card>
+
               {/* Panel de filtros y búsqueda */}
               <Card className="shadow-sm mb-3">
                 <Card.Header className="bg-light">
@@ -192,8 +323,7 @@ export const ArriendoMaquinariaPage: React.FC = () => {
                     <div className="d-flex gap-2">
                       {hasActiveFilters && (
                         <Button variant="outline-secondary" size="sm" onClick={handleClearFilters}>
-                          <i className="bi bi-x-circle me-1"></i>
-                          Limpiar Filtros
+                          ❌ Limpiar Filtros
                         </Button>
                       )}
                     </div>
@@ -204,9 +334,7 @@ export const ArriendoMaquinariaPage: React.FC = () => {
                     <Col md={4}>
                       <Form.Label>Buscar por Número de Reporte</Form.Label>
                       <InputGroup>
-                        <InputGroup.Text>
-                          <i className="bi bi-search"></i>
-                        </InputGroup.Text>
+                        <InputGroup.Text>🔍</InputGroup.Text>
                         <Form.Control
                           type="text"
                           placeholder="Ej: 12345"
@@ -215,7 +343,7 @@ export const ArriendoMaquinariaPage: React.FC = () => {
                         />
                         {searchNumeroReporte && (
                           <Button variant="outline-secondary" onClick={() => setSearchNumeroReporte("")}>
-                            <i className="bi bi-x"></i>
+                            ❌
                           </Button>
                         )}
                       </InputGroup>
@@ -251,15 +379,10 @@ export const ArriendoMaquinariaPage: React.FC = () => {
                     <Col>
                       <div className="d-flex align-items-center gap-3">
                         <span className="text-muted">
-                          <i className="bi bi-info-circle me-1"></i>
-                          Mostrando {filteredReportes.length} de {reportes.length} reportes
+                          ℹ️ Mostrando {filteredReportes.length} de {reportes.length} reportes
                         </span>
-                        {hasActiveFilters && (
-                          <span className="badge bg-primary">
-                            <i className="bi bi-funnel-fill me-1"></i>
-                            Filtros activos
-                          </span>
-                        )}
+                        {hasActiveFilters && <span className="badge bg-primary">🔍 Filtros activos</span>}
+                        {includeInactive && <span className="badge bg-warning text-dark">👁️ Incluyendo inactivos</span>}
                       </div>
                     </Col>
                   </Row>
@@ -269,8 +392,7 @@ export const ArriendoMaquinariaPage: React.FC = () => {
               {/* Mensajes de error */}
               {error && (
                 <Alert variant="danger" className="mb-3">
-                  <i className="bi bi-exclamation-triangle me-2"></i>
-                  {error}
+                  ⚠️ {error}
                 </Alert>
               )}
 
@@ -288,32 +410,40 @@ export const ArriendoMaquinariaPage: React.FC = () => {
                   <Card.Header className="bg-light">
                     <div className="d-flex justify-content-between align-items-center">
                       <h5 className="mb-0">
-                        <i className="bi bi-list-ul me-2"></i>
+                        <i className="bi bi-table me-2"></i>
                         Historial de Reportes
                         {hasActiveFilters && <span className="badge bg-secondary ms-2">Filtrado</span>}
                       </h5>
-                      <div>
-                        <span className="badge bg-primary">Total: {filteredReportes.length} reportes</span>
+                      <div className="d-flex gap-2">
+                        <Badge bg="success">Activos: {reportesActivos.length}</Badge>
+                        {reportesInactivos.length > 0 && (
+                          <Badge bg="secondary">Inactivos: {reportesInactivos.length}</Badge>
+                        )}
+                        <Badge bg="primary">Total: {filteredReportes.length}</Badge>
                       </div>
                     </div>
                   </Card.Header>
                   <Card.Body className="p-0">
                     {filteredReportes.length === 0 ? (
                       <div className="text-center py-5">
-                        <i className="bi bi-file-text fs-1 text-muted mb-3 d-block"></i>
+                        <div className="fs-1 text-muted mb-3">📄</div>
                         {hasActiveFilters ? (
                           <>
                             <h5 className="text-muted">No se encontraron reportes</h5>
                             <p className="text-muted mb-3">No hay reportes que coincidan con los filtros aplicados</p>
                             <Button variant="outline-primary" onClick={handleClearFilters}>
-                              <i className="bi bi-funnel me-2"></i>
-                              Limpiar Filtros
+                              🔍 Limpiar Filtros
                             </Button>
                           </>
-                        ) : (
+                        ) : reportes.length === 0 ? (
                           <>
                             <h5 className="text-muted">No hay reportes registrados</h5>
                             <p className="text-muted mb-0">Comienza registrando tu primer reporte de trabajo diario</p>
+                          </>
+                        ) : (
+                          <>
+                            <h5 className="text-muted">No hay reportes para mostrar</h5>
+                            <p className="text-muted mb-3">Intenta cambiar los filtros</p>
                           </>
                         )}
                       </div>
@@ -322,6 +452,7 @@ export const ArriendoMaquinariaPage: React.FC = () => {
                         <Table hover className="mb-0">
                           <thead className="table-light">
                             <tr>
+                              <th>Estado</th>
                               <th>N° Reporte</th>
                               <th>Patente</th>
                               <th>Cliente</th>
@@ -334,10 +465,23 @@ export const ArriendoMaquinariaPage: React.FC = () => {
                           </thead>
                           <tbody>
                             {filteredReportes.map((reporte) => (
-                              <tr key={reporte.id}>
+                              <tr key={reporte.id} className={!isReporteActivo(reporte) ? "table-secondary" : ""}>
+                                <td>
+                                  {!isReporteActivo(reporte) ? (
+                                    <Badge bg="secondary">
+                                      <i className="bi bi-x-circle me-1"></i>
+                                      Inactivo
+                                    </Badge>
+                                  ) : (
+                                    <Badge bg="success">
+                                      <i className="bi bi-check-circle me-1"></i>
+                                      Activo
+                                    </Badge>
+                                  )}
+                                </td>
                                 <td className="font-monospace fw-bold">{reporte.numeroReporte}</td>
                                 <td className="font-monospace fw-bold">{reporte.patente}</td>
-                                <td>{reporte.nombreCliente}</td>
+                                <td>{reporte.nombreCliente || "Sin cliente"}</td>
                                 <td>{formatDate(reporte.fechaTrabajo)}</td>
                                 <td className="text-truncate" style={{ maxWidth: "200px" }} title={reporte.obra}>
                                   {reporte.obra}
@@ -353,6 +497,29 @@ export const ArriendoMaquinariaPage: React.FC = () => {
                                     >
                                       <i className="bi bi-eye"></i>
                                     </Button>
+
+                                    {/* Botones de soft delete solo para SuperAdministrador */}
+                                    {isSuperAdmin && (
+                                      <>
+                                        {isReporteActivo(reporte) ? (
+                                          <Button
+                                            variant="outline-danger"
+                                            onClick={() => handleEliminarReporte(reporte)}
+                                            title="Eliminar reporte (soft delete)"
+                                          >
+                                            <i className="bi bi-trash"></i>
+                                          </Button>
+                                        ) : (
+                                          <Button
+                                            variant="outline-success"
+                                            onClick={() => handleRestaurarReporte(reporte)}
+                                            title="Restaurar reporte"
+                                          >
+                                            <i className="bi bi-arrow-clockwise"></i>
+                                          </Button>
+                                        )}
+                                      </>
+                                    )}
                                   </div>
                                 </td>
                               </tr>
@@ -380,7 +547,7 @@ export const ArriendoMaquinariaPage: React.FC = () => {
           className="text-white"
         >
           <Modal.Title className="fw-semibold">
-            <i className="bi bi-file-text me-2"></i>
+            <i className="bi bi-plus-circle me-2"></i>
             Registrar Nuevo Reporte de Trabajo
           </Modal.Title>
         </Modal.Header>
@@ -398,6 +565,16 @@ export const ArriendoMaquinariaPage: React.FC = () => {
 
       {/* Modal de Estado de Pago */}
       <EstadoPagoModal show={showEstadoPagoModal} onHide={() => setShowEstadoPagoModal(false)} />
+
+      {/* Toast de notificaciones */}
+      <ToastContainer position="top-end" className="p-3">
+        <Toast show={showSuccessToast} onClose={() => setShowSuccessToast(false)} delay={4000} autohide>
+          <Toast.Header>
+            <strong className="me-auto">✅ Éxito</strong>
+          </Toast.Header>
+          <Toast.Body>{successMessage}</Toast.Body>
+        </Toast>
+      </ToastContainer>
     </div>
   )
 }

@@ -1,26 +1,33 @@
 import type React from "react"
 import { useState } from "react"
-import { Modal, Container, Row, Col, Card, Button, Table, Alert, Spinner } from "react-bootstrap"
+import { Modal, Container, Row, Col, Card, Button, Table, Alert, Spinner, Badge } from "react-bootstrap"
 import { VentaMaquinariaForm } from "../../components/maquinaria/ventaMaquinariaForm"
 import { VentaDetalleModal } from "../../components/maquinaria/ventaDetalleModal"
 import MaquinariaSidebar from "../../components/maquinaria/maquinariaSideBar"
 import { useVentaMaquinaria } from "../../hooks/maquinaria/useVentaMaquinaria"
 import { useExcelExport } from "../../hooks/useExcelExport"
+import { useAuth } from "../../context"
 import type { CreateVentaMaquinaria, VentaMaquinaria } from "../../types/maquinaria.types"
 
 export const VentaMaquinariaPage: React.FC = () => {
-  const { ventas, loading, error, registrarVenta, eliminarVenta, refetch } = useVentaMaquinaria()
+  const { ventas, loading, error, registrarVenta, eliminarVenta, restaurarVenta, refetch } = useVentaMaquinaria()
   const { exportToExcel, isExporting } = useExcelExport()
+  const { user } = useAuth()
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [selectedVenta, setSelectedVenta] = useState<VentaMaquinaria | null>(null)
   const [showDetalleModal, setShowDetalleModal] = useState(false)
+
+  // Verificar si el usuario es SuperAdministrador
+  const isSuperAdmin = user?.role === "SuperAdministrador"
 
   const handleSubmit = async (data: CreateVentaMaquinaria) => {
     try {
       await registrarVenta(data)
       setShowCreateModal(false)
       // Forzar actualización después de crear
-      refetch()
+      setTimeout(() => {
+        refetch()
+      }, 100)
     } catch (error) {
       console.error("Error al registrar venta:", error)
     }
@@ -29,6 +36,40 @@ export const VentaMaquinariaPage: React.FC = () => {
   const handleVerDetalles = (venta: VentaMaquinaria) => {
     setSelectedVenta(venta)
     setShowDetalleModal(true)
+  }
+
+  const handleEliminarVenta = async (venta: VentaMaquinaria) => {
+    if (
+      !window.confirm(
+        `¿Está seguro de eliminar la venta de la maquinaria ${venta.patente}? Esta acción se puede revertir.`,
+      )
+    ) {
+      return
+    }
+
+    try {
+      await eliminarVenta(venta.id)
+      // Refrescar la lista para mostrar el cambio de estado
+      refetch()
+    } catch (error) {
+      console.error("Error al eliminar venta:", error)
+      alert("Error al eliminar la venta")
+    }
+  }
+
+  const handleRestaurarVenta = async (venta: VentaMaquinaria) => {
+    if (!window.confirm(`¿Está seguro de restaurar la venta de la maquinaria ${venta.patente}?`)) {
+      return
+    }
+
+    try {
+      await restaurarVenta(venta.id)
+      // Refrescar la lista para mostrar el cambio de estado
+      refetch()
+    } catch (error) {
+      console.error("Error al restaurar venta:", error)
+      alert("Error al restaurar la venta")
+    }
   }
 
   const formatCurrency = (value: number | undefined | null) => {
@@ -60,6 +101,11 @@ export const VentaMaquinariaPage: React.FC = () => {
     return ((venta.valorVenta - venta.valorCompra) / venta.valorCompra) * 100
   }
 
+  // Función helper para determinar si una venta está activa
+  const isVentaActiva = (venta: VentaMaquinaria) => {
+    return venta.isActive !== false
+  }
+
   const handleExportarExcel = async () => {
     try {
       const datosParaExcel = ventas.map((venta) => {
@@ -73,7 +119,8 @@ export const VentaMaquinariaPage: React.FC = () => {
           "Valor Venta": venta.valorVenta || 0,
           Ganancia: ganancia,
           "Porcentaje Ganancia": `${porcentaje.toFixed(2)}%`,
-          Comprador: venta.comprador || "Sin comprador",
+          Cliente: venta.customer?.name || venta.comprador || "Sin cliente",
+          Estado: isVentaActiva(venta) ? "Activa" : "Inactiva",
           Observaciones: venta.observaciones || "",
         }
       })
@@ -84,6 +131,10 @@ export const VentaMaquinariaPage: React.FC = () => {
       alert("Error al generar el archivo Excel")
     }
   }
+
+  // Separar ventas activas e inactivas para mostrar estadísticas
+  const ventasActivas = ventas.filter((v) => isVentaActiva(v))
+  const ventasInactivas = ventas.filter((v) => !isVentaActiva(v))
 
   return (
     <div className="d-flex">
@@ -163,6 +214,13 @@ export const VentaMaquinariaPage: React.FC = () => {
                         <i className="bi bi-list-ul me-2"></i>
                         Historial de Ventas
                       </h5>
+                      <div className="d-flex gap-2">
+                        <Badge bg="success">Activas: {ventasActivas.length}</Badge>
+                        {ventasInactivas.length > 0 && (
+                          <Badge bg="secondary">Inactivas: {ventasInactivas.length}</Badge>
+                        )}
+                        <Badge bg="primary">Total: {ventas.length}</Badge>
+                      </div>
                     </div>
                   </Card.Header>
                   <Card.Body className="p-0">
@@ -181,14 +239,15 @@ export const VentaMaquinariaPage: React.FC = () => {
                         <Table hover className="mb-0">
                           <thead className="table-light">
                             <tr>
-                              <th>Patente</th>
-                              <th>Fecha Venta</th>
-                              <th>Valor Compra</th>
-                              <th>Valor Venta</th>
-                              <th>Ganancia</th>
-                              <th>% Ganancia</th>
-                              <th>Comprador</th>
-                              <th>Acciones</th>
+                              <th className="text-center">Estado</th>
+                              <th className="text-center">Patente</th>
+                              <th className="text-center">Fecha Venta</th>
+                              <th className="text-end">Valor Compra</th>
+                              <th className="text-end">Valor Venta</th>
+                              <th className="text-end">Ganancia</th>
+                              <th className="text-end">% Ganancia</th>
+                              <th>Cliente</th>
+                              <th className="text-center">Acciones</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -197,9 +256,25 @@ export const VentaMaquinariaPage: React.FC = () => {
                               const porcentaje = calcularPorcentajeGanancia(venta)
 
                               return (
-                                <tr key={venta.id || `venta-${index}`}>
-                                  <td className="font-monospace fw-bold">{venta.patente}</td>
-                                  <td>{formatDate(venta.fechaVenta)}</td>
+                                <tr
+                                  key={venta.id || `venta-${index}`}
+                                  className={!isVentaActiva(venta) ? "table-secondary" : ""}
+                                >
+                                  <td className="text-center">
+                                    {!isVentaActiva(venta) ? (
+                                      <Badge bg="secondary">
+                                        <i className="bi bi-x-circle me-1"></i>
+                                        Inactiva
+                                      </Badge>
+                                    ) : (
+                                      <Badge bg="success">
+                                        <i className="bi bi-check-circle me-1"></i>
+                                        Activa
+                                      </Badge>
+                                    )}
+                                  </td>
+                                  <td className="text-center font-monospace fw-bold">{venta.patente}</td>
+                                  <td className="text-center">{formatDate(venta.fechaVenta)}</td>
                                   <td className="text-end font-monospace">{formatCurrency(venta.valorCompra)}</td>
                                   <td className="text-end font-monospace">{formatCurrency(venta.valorVenta)}</td>
                                   <td
@@ -210,8 +285,8 @@ export const VentaMaquinariaPage: React.FC = () => {
                                   <td className={`text-end ${ganancia >= 0 ? "text-success" : "text-danger"}`}>
                                     {porcentaje.toFixed(2)}%
                                   </td>
-                                  <td>{venta.comprador || "-"}</td>
-                                  <td>
+                                  <td>{venta.customer?.name || venta.comprador || "-"}</td>
+                                  <td className="text-center">
                                     <div className="btn-group btn-group-sm">
                                       <Button
                                         variant="outline-primary"
@@ -220,6 +295,29 @@ export const VentaMaquinariaPage: React.FC = () => {
                                       >
                                         <i className="bi bi-eye"></i>
                                       </Button>
+
+                                      {/* Botones de soft delete solo para SuperAdministrador */}
+                                      {isSuperAdmin && (
+                                        <>
+                                          {isVentaActiva(venta) ? (
+                                            <Button
+                                              variant="outline-danger"
+                                              onClick={() => handleEliminarVenta(venta)}
+                                              title="Eliminar venta (soft delete)"
+                                            >
+                                              <i className="bi bi-trash"></i>
+                                            </Button>
+                                          ) : (
+                                            <Button
+                                              variant="outline-success"
+                                              onClick={() => handleRestaurarVenta(venta)}
+                                              title="Restaurar venta"
+                                            >
+                                              <i className="bi bi-arrow-clockwise"></i>
+                                            </Button>
+                                          )}
+                                        </>
+                                      )}
                                     </div>
                                   </td>
                                 </tr>

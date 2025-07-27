@@ -2,6 +2,7 @@ import type React from "react"
 import { useState } from "react"
 import { GrupoMaquinaria, type CreateCompraMaquinaria } from "../../types/maquinaria.types"
 import { PatenteInput } from "../common/PatenteInput"
+import { useSuppliers } from "../../hooks/stakeholders/useSuppliers"
 
 interface CompraMaquinariaFormProps {
   onSubmit: (data: CreateCompraMaquinaria, file?: File) => Promise<void>
@@ -14,6 +15,8 @@ export const CompraMaquinariaForm: React.FC<CompraMaquinariaFormProps> = ({
   loading = false,
   initialData = {},
 }) => {
+  const { suppliers, isLoading: loadingSuppliers } = useSuppliers()
+
   const [formData, setFormData] = useState<CreateCompraMaquinaria>({
     patente: initialData.patente || "",
     grupo: initialData.grupo || GrupoMaquinaria.ESCAVADORA,
@@ -25,53 +28,55 @@ export const CompraMaquinariaForm: React.FC<CompraMaquinariaFormProps> = ({
     avaluoFiscal: initialData.avaluoFiscal || 0,
     numeroChasis: initialData.numeroChasis || "",
     kilometrajeInicial: initialData.kilometrajeInicial || 0,
-    proveedor: initialData.proveedor || "",
+    supplierId: initialData.supplierId || undefined,
     observaciones: initialData.observaciones || "",
   })
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [errors, setErrors] = useState<Record<string, string>>({})
 
-  // Función para formatear números con separadores de miles
   const formatNumber = (value: number): string => {
     if (value === 0) return ""
     return value.toLocaleString("es-CL")
   }
 
-  // Función para parsear números desde string formateado
   const parseNumber = (value: string): number => {
     if (!value || value.trim() === "") return 0
-    // Remover puntos y espacios, mantener solo números
     const cleanValue = value.replace(/[.\s]/g, "")
     const parsed = Number.parseInt(cleanValue, 10)
     return isNaN(parsed) ? 0 : parsed
+  }
+
+  const handleGoToProveedores = () => {
+    window.open("/inventario/proveedores", "_blank")
   }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
 
     if (name === "valorCompra" || name === "avaluoFiscal") {
-      // Para campos monetarios, parsear el valor
       const numericValue = parseNumber(value)
       setFormData((prev) => ({
         ...prev,
         [name]: numericValue,
       }))
     } else if (name === "anio" || name === "kilometrajeInicial") {
-      // Para otros campos numéricos
       setFormData((prev) => ({
         ...prev,
         [name]: Number(value) || 0,
       }))
+    } else if (name === "supplierId") {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value ? Number(value) : undefined,
+      }))
     } else {
-      // Para campos de texto
       setFormData((prev) => ({
         ...prev,
         [name]: value,
       }))
     }
 
-    // Limpiar error del campo
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: "" }))
     }
@@ -80,14 +85,12 @@ export const CompraMaquinariaForm: React.FC<CompraMaquinariaFormProps> = ({
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
-      // Validar tipo de archivo
-      const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp"]
+      const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp", "application/pdf"]
       if (!allowedTypes.includes(file.type)) {
-        setErrors((prev) => ({ ...prev, padron: "Solo se permiten imágenes (JPEG, PNG, GIF, WebP)" }))
+        setErrors((prev) => ({ ...prev, padron: "Solo se permiten imágenes (JPEG, PNG, GIF, WebP) o PDF" }))
         return
       }
 
-      // Validar tamaño (25MB máximo)
       if (file.size > 25 * 1024 * 1024) {
         setErrors((prev) => ({ ...prev, padron: "El archivo no puede ser mayor a 25MB" }))
         return
@@ -101,7 +104,6 @@ export const CompraMaquinariaForm: React.FC<CompraMaquinariaFormProps> = ({
   const handlePatenteChange = (patente: string) => {
     setFormData((prev) => ({ ...prev, patente }))
 
-    // Limpiar error de patente
     if (errors.patente) {
       setErrors((prev) => ({ ...prev, patente: "" }))
     }
@@ -358,15 +360,46 @@ export const CompraMaquinariaForm: React.FC<CompraMaquinariaFormProps> = ({
         <div className="row g-3">
           <div className="col-md-12">
             <label className="form-label">Proveedor</label>
-            <input
-              type="text"
-              name="proveedor"
-              className="form-control"
-              value={formData.proveedor}
-              onChange={handleChange}
-              placeholder="Caterpillar Chile"
-              maxLength={255}
-            />
+            <div className="input-group">
+              <select
+                name="supplierId"
+                className={`form-select ${errors.supplierId ? "is-invalid" : ""}`}
+                value={formData.supplierId || ""}
+                onChange={handleChange}
+                disabled={loadingSuppliers}
+              >
+                <option value="">Seleccionar proveedor (opcional)</option>
+                {suppliers.map((supplier) => (
+                  <option key={supplier.id} value={supplier.id}>
+                    {supplier.name} - {supplier.rut}
+                  </option>
+                ))}
+              </select>
+              <button
+                type="button"
+                className="btn btn-outline-primary"
+                onClick={handleGoToProveedores}
+                title="Ir a gestión de proveedores"
+                disabled={loadingSuppliers}
+              >
+                <i className="bi bi-people me-1"></i>
+                Agregar Proveedor
+              </button>
+            </div>
+            {errors.supplierId && <div className="invalid-feedback">{errors.supplierId}</div>}
+            {loadingSuppliers && <div className="form-text">Cargando proveedores...</div>}
+            {!loadingSuppliers && suppliers.length === 0 && (
+              <div className="form-text text-warning">
+                No hay proveedores disponibles.{" "}
+                <button
+                  type="button"
+                  className="btn btn-link p-0 text-decoration-underline"
+                  onClick={handleGoToProveedores}
+                >
+                  Crear nuevo proveedor
+                </button>
+              </div>
+            )}
           </div>
 
           <div className="col-md-12">

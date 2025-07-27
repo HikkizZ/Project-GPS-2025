@@ -9,32 +9,10 @@ export class MaquinariaController {
     this.maquinariaService = new MaquinariaService()
   }
 
-  create = async (req: Request, res: Response): Promise<void> => {
-    try {
-      const errors = validationResult(req)
-      if (!errors.isEmpty()) {
-        res.status(400).json({ errors: errors.array() })
-        return
-      }
-
-      const maquinaria = await this.maquinariaService.create(req.body)
-      res.status(201).json({
-        success: true,
-        message: "Maquinaria creada exitosamente",
-        data: maquinaria,
-      })
-    } catch (error) {
-      res.status(500).json({
-        success: false,
-        message: "Error al crear la maquinaria",
-        error: error instanceof Error ? error.message : "Error desconocido",
-      })
-    }
-  }
-
   findAll = async (req: Request, res: Response): Promise<void> => {
     try {
-      const maquinarias = await this.maquinariaService.findAll()
+      const incluirInactivas = req.query.incluirInactivas === "true"
+      const maquinarias = await this.maquinariaService.findAll(incluirInactivas)
       res.status(200).json({
         success: true,
         data: maquinarias,
@@ -51,7 +29,8 @@ export class MaquinariaController {
   findOne = async (req: Request, res: Response): Promise<void> => {
     try {
       const { id } = req.params
-      const maquinaria = await this.maquinariaService.findOne(Number(id))
+      const incluirInactivas = req.query.incluirInactivas === "true"
+      const maquinaria = await this.maquinariaService.findOne(Number(id), incluirInactivas)
       res.status(200).json({
         success: true,
         data: maquinaria,
@@ -68,7 +47,8 @@ export class MaquinariaController {
   findByPatente = async (req: Request, res: Response): Promise<void> => {
     try {
       const { patente } = req.params
-      const maquinaria = await this.maquinariaService.findByPatente(patente)
+      const incluirInactivas = req.query.incluirInactivas === "true"
+      const maquinaria = await this.maquinariaService.findByPatente(patente, incluirInactivas)
       res.status(200).json({
         success: true,
         data: maquinaria,
@@ -84,8 +64,15 @@ export class MaquinariaController {
 
   update = async (req: Request, res: Response): Promise<void> => {
     try {
+      const errors = validationResult(req)
+      if (!errors.isEmpty()) {
+        res.status(400).json({ errors: errors.array() })
+        return
+      }
+
       const { id } = req.params
-      const maquinaria = await this.maquinariaService.update(Number(id), req.body)
+      const file = req.file
+      const maquinaria = await this.maquinariaService.update(Number(id), req.body, file)
       res.status(200).json({
         success: true,
         message: "Maquinaria actualizada exitosamente",
@@ -135,6 +122,12 @@ export class MaquinariaController {
 
   actualizarKilometraje = async (req: Request, res: Response): Promise<void> => {
     try {
+      const errors = validationResult(req)
+      if (!errors.isEmpty()) {
+        res.status(400).json({ errors: errors.array() })
+        return
+      }
+
       const { id } = req.params
       const { kilometraje } = req.body
       const maquinaria = await this.maquinariaService.actualizarKilometraje(Number(id), kilometraje)
@@ -154,6 +147,12 @@ export class MaquinariaController {
 
   cambiarEstado = async (req: Request, res: Response): Promise<void> => {
     try {
+      const errors = validationResult(req)
+      if (!errors.isEmpty()) {
+        res.status(400).json({ errors: errors.array() })
+        return
+      }
+
       const { id } = req.params
       const { estado } = req.body
       const maquinaria = await this.maquinariaService.cambiarEstado(Number(id), estado)
@@ -171,5 +170,86 @@ export class MaquinariaController {
     }
   }
 
-  // MÉTODO obtenerPorGrupo() ELIMINADO - Funcionalidad redundante
+  // Nuevos métodos para soft delete
+  softRemove = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { id } = req.params
+      await this.maquinariaService.softRemove(Number(id))
+      res.status(200).json({
+        success: true,
+        message: "Maquinaria desactivada exitosamente (soft delete)",
+      })
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: "Error al desactivar la maquinaria",
+        error: error instanceof Error ? error.message : "Error desconocido",
+      })
+    }
+  }
+
+  restore = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { id } = req.params
+      const maquinaria = await this.maquinariaService.restore(Number(id))
+      res.status(200).json({
+        success: true,
+        message: "Maquinaria restaurada exitosamente",
+        data: maquinaria,
+      })
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: "Error al restaurar la maquinaria",
+        error: error instanceof Error ? error.message : "Error desconocido",
+      })
+    }
+  }
+
+  // Nuevos métodos para manejo de archivos del padrón
+  actualizarPadron = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { id } = req.params
+      const file = req.file
+
+      if (!file) {
+        res.status(400).json({
+          success: false,
+          message: "No se proporcionó ningún archivo",
+        })
+        return
+      }
+
+      const maquinaria = await this.maquinariaService.actualizarPadron(Number(id), file)
+      res.status(200).json({
+        success: true,
+        message: "Padrón actualizado exitosamente",
+        data: maquinaria,
+      })
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: "Error al actualizar el padrón",
+        error: error instanceof Error ? error.message : "Error desconocido",
+      })
+    }
+  }
+
+  eliminarPadron = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { id } = req.params
+      const maquinaria = await this.maquinariaService.eliminarPadron(Number(id))
+      res.status(200).json({
+        success: true,
+        message: "Padrón eliminado exitosamente",
+        data: maquinaria,
+      })
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: "Error al eliminar el padrón",
+        error: error instanceof Error ? error.message : "Error desconocido",
+      })
+    }
+  }
 }

@@ -1,4 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from "typeorm"
+import { Customer } from "../stakeholders/customer.entity.js"
 
 @Entity("ventas_maquinaria")
 export class VentaMaquinaria {
@@ -21,20 +22,31 @@ export class VentaMaquinaria {
   @Column({ type: "decimal", precision: 15, scale: 2, nullable: false })
   valorVenta!: number // Valor de venta
 
-  // Campos opcionales
+  // Relación con Customer
+  @Column({ type: "int", nullable: false })
+  customerId!: number
+
+  @Column({ type: "varchar", length: 12, nullable: false })
+  customerRut!: string
+
   @Column({ type: "varchar", length: 255, nullable: true })
-  comprador?: string
+  comprador?: string // Nombre del customer (desnormalizado para consultas rápidas)
 
   @Column({ type: "text", nullable: true })
   observaciones?: string
 
+  @Column({ type: "boolean", default: true })
+  isActive!: boolean
+
   @Column({ type: "timestamp", default: () => "CURRENT_TIMESTAMP" })
   fechaRegistro!: Date
 
-  @ManyToOne(
-    "maquinarias",
-    (maquinarias: any) => maquinarias.ventas,
-  )
+  // Relaciones
+  @ManyToOne("maquinarias", (maquinarias: any) => maquinarias.ventas)
   @JoinColumn({ name: "maquinariaId" })
   maquinaria!: any
+
+  @ManyToOne(() => Customer, { nullable: false })
+  @JoinColumn({ name: "customerId" })
+  customer!: Customer
 }

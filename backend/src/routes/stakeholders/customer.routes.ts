@@ -15,7 +15,7 @@ const router: Router = Router();
 
 router.use(authenticateJWT);
 
-router.use(verifyRole(["Administrador", "SuperAdministrador", "Ventas", "Gerencia"]));
+router.use(verifyRole(["Administrador", "SuperAdministrador", "Ventas", "Gerencia", "Arriendo"]));
 
 router
     .get("/all", getCustomers)
