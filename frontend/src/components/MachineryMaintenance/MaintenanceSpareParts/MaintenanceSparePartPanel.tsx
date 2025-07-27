@@ -30,7 +30,9 @@ const MaintenanceSparePartPanel: React.FC<Props> = ({ mantencionId, show, onHide
     const { user } = useAuth();
       
     
+    const isAutorizado = ["SuperAdministrador", "Mecánico"].includes(user?.role);
     const isSuperAdmin = user?.role === "SuperAdministrador";
+
 
 
     const [cantidad, setCantidad] = useState<number>(1);
@@ -120,7 +122,7 @@ const MaintenanceSparePartPanel: React.FC<Props> = ({ mantencionId, show, onHide
         <Modal.Title>Repuestos Utilizados</Modal.Title>
       </Modal.Header>
       <Modal.Body>
-        {isSuperAdmin && (
+        {isAutorizado && (
           <Form className="mb-3">
             <Form.Group>
               <Form.Label>Repuesto</Form.Label>
@@ -174,7 +176,7 @@ const MaintenanceSparePartPanel: React.FC<Props> = ({ mantencionId, show, onHide
                   <td style={{ textAlign: 'center' }}>{r.repuesto?.name ?? 'Desconocido'}</td>
                   <td style={{ textAlign: 'center' }}>{r.cantidadUtilizada}</td>
 
-                  {isSuperAdmin && (
+                 {isSuperAdmin && (
                     <td
                       style={{
                         textAlign: 'center',
