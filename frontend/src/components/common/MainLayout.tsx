@@ -32,6 +32,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ user, onLogout, children }) => 
       navigate('/gestion-personal', { replace: true });
     } else if (location.pathname === '/gestion-personal') {
       navigate('/recursos-humanos', { replace: true });
+    } else if (location.pathname === '/gestion-sueldos' || location.pathname === '/bonos') {
+      navigate('/recursos-humanos', { replace: true });
     } else {
       navigate(-1);
     }
@@ -158,6 +160,54 @@ const MainLayout: React.FC<MainLayoutProps> = ({ user, onLogout, children }) => 
             </button>
           </>
         )}
+
+        {/* Botones adicionales para la página de gestión de sueldos */}
+        {location.pathname === '/gestion-sueldos' && (
+          <>
+            <button 
+              className="btn btn-outline-light me-3 px-3 py-2 fw-semibold"
+              onClick={() => navigate('/fichas-empresa')}
+              style={{ borderRadius: '25px', transition: 'all 0.3s ease' }}
+              data-title="Ver fichas de empresa"
+            >
+              <i className="bi bi-file-earmark-text me-2"></i>
+              <span className="btn-text">Fichas de Empresa</span>
+            </button>
+            <button 
+              className="btn btn-outline-light me-3 px-3 py-2 fw-semibold"
+              onClick={() => navigate('/bonos')}
+              style={{ borderRadius: '25px', transition: 'all 0.3s ease' }}
+              data-title="Gestionar bonos"
+            >
+              <i className="bi bi-cash-stack me-2"></i>
+              <span className="btn-text">Bonos</span>
+            </button>
+          </>
+        )}
+
+        {/* Botones adicionales para la página de bonos */}
+        {location.pathname === '/bonos' && (
+          <>
+            <button 
+              className="btn btn-outline-light me-3 px-3 py-2 fw-semibold"
+              onClick={() => navigate('/fichas-empresa')}
+              style={{ borderRadius: '25px', transition: 'all 0.3s ease' }}
+              data-title="Ver fichas de empresa"
+            >
+              <i className="bi bi-file-earmark-text me-2"></i>
+              <span className="btn-text">Fichas de Empresa</span>
+            </button>
+            <button 
+              className="btn btn-outline-light me-3 px-3 py-2 fw-semibold"
+              onClick={() => navigate('/gestion-sueldos')}
+              style={{ borderRadius: '25px', transition: 'all 0.3s ease' }}
+              data-title="Ver gestión de sueldos"
+            >
+              <i className="bi bi-calculator me-2"></i>
+              <span className="btn-text">Gestión de Sueldos</span>
+            </button>
+          </>
+        )}
         
         {!isInDashboard && !hideVolver && (
           <button 
@@ -172,7 +222,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({ user, onLogout, children }) => 
                 ? 'Volver a Recursos Humanos'
                 : (location.pathname === '/trabajadores' || location.pathname === '/fichas-empresa' || location.pathname === '/usuarios')
                   ? 'Volver a Gestión del Personal'
-                  : 'Volver'}
+                  : (location.pathname === '/gestion-sueldos' || location.pathname === '/bonos')
+                    ? 'Volver a Recursos Humanos'
+                    : 'Volver'}
             </span>
           </button>
         )}
