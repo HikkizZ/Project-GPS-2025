@@ -32,6 +32,10 @@
   padding: 0;
   margin: 0;
   letter-spacing: -0.025em;
+  white-space: nowrap;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
 }
 
 .navbar-brand:hover {
@@ -42,10 +46,30 @@
   margin-right: var(--spacing-sm);
 }
 
+.navbar-brand .brand-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Contenedor de navegación principal */
+.navbar-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  flex: 1;
+}
+
 /* Botones del navbar */
 .navbar .btn-outline-light {
   border: 1px solid rgba(255, 255, 255, 0.5);
   font-size: 0.875rem;
+  white-space: nowrap;
+  transition: all 0.3s ease;
+  min-width: fit-content;
+  position: relative;
 }
 
 .navbar .btn-outline-light:hover {
@@ -101,6 +125,7 @@
   display: inline-block;
   width: fit-content;
   margin-right: 15px;
+  flex-shrink: 0;
 }
 
 .navbar-user-dropdown .dropdown-menu {
@@ -145,4 +170,318 @@
   padding: 0.4rem 0.75rem;
   border-radius: 0.4rem;
   font-size: 0.98rem;
+}
+
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+
+/* Pantallas grandes (1200px y más) */
+@media (min-width: 1200px) {
+  .navbar .container-fluid {
+    padding: 0 2rem;
+  }
+  
+  .navbar .btn-outline-light {
+    font-size: 0.875rem;
+    padding: 0.5rem 1rem;
+  }
+  
+  .navbar-brand .brand-text {
+    max-width: none;
+  }
+}
+
+/* Pantallas medianas (992px - 1199px) */
+@media (max-width: 1199px) and (min-width: 992px) {
+  .navbar .container-fluid {
+    padding: 0 1.5rem;
+  }
+  
+  .navbar .btn-outline-light {
+    font-size: 0.8rem;
+    padding: 0.4rem 0.8rem;
+  }
+  
+  .navbar-brand {
+    font-size: 1.1rem;
+  }
+  
+  .navbar-brand .brand-text {
+    max-width: 150px;
+  }
+}
+
+/* Pantallas pequeñas (768px - 991px) */
+@media (max-width: 991px) and (min-width: 768px) {
+  .navbar .container-fluid {
+    padding: 0 1rem;
+  }
+  
+  .navbar .btn-outline-light {
+    font-size: 0.75rem;
+    padding: 0.35rem 0.7rem;
+  }
+  
+  .navbar-brand {
+    font-size: 1rem;
+  }
+  
+  .navbar-brand .brand-text {
+    max-width: 120px;
+  }
+  
+  .navbar-nav {
+    gap: 0.5rem;
+  }
+  
+  /* Ocultar texto de botones largos, mostrar solo iconos */
+  .navbar .btn-outline-light .btn-text {
+    display: none;
+  }
+  
+  .navbar .btn-outline-light i {
+    margin-right: 0 !important;
+  }
+  
+  .navbar .btn-outline-light {
+    min-width: 40px;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50% !important;
+    position: relative;
+  }
+  
+  /* Mostrar tooltip en hover */
+  .navbar .btn-outline-light:hover::after {
+    content: attr(data-title);
+    position: absolute;
+    bottom: -35px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+    white-space: nowrap;
+    z-index: 1000;
+    pointer-events: none;
+    opacity: 0;
+    animation: fadeInTooltip 0.2s ease-out forwards;
+  }
+  
+  /* Animación para tooltips */
+  @keyframes fadeInTooltip {
+    to {
+      opacity: 1;
+    }
+  }
+  
+  /* Mejorar la apariencia de los botones circulares */
+  .navbar .btn-outline-light:hover {
+    transform: scale(1.1);
+    box-shadow: 0 2px 8px rgba(255, 255, 255, 0.2);
+  }
+  
+  /* Asegurar que el dropdown del usuario mantenga su texto */
+  .navbar-user-dropdown .btn-outline-light .btn-text {
+    display: inline;
+  }
+  
+  .navbar-user-dropdown .btn-outline-light {
+    min-width: auto;
+    width: auto;
+    height: auto;
+    border-radius: 25px !important;
+  }
+  
+  .navbar-user-dropdown .btn-outline-light i {
+    margin-right: 0.5rem !important;
+  }
+}
+
+/* Pantallas muy pequeñas (menos de 768px) */
+@media (max-width: 767px) {
+  .navbar .container-fluid {
+    padding: 0 0.75rem;
+  }
+  
+  .navbar-brand {
+    font-size: 0.9rem;
+  }
+  
+  .navbar-brand i {
+    margin-right: 0.25rem;
+  }
+  
+  .navbar-brand .brand-text {
+    max-width: 100px;
+  }
+  
+  /* Ocultar todos los botones excepto el dropdown del usuario */
+  .navbar-nav .btn-outline-light:not(.dropdown-toggle) {
+    display: none;
+  }
+  
+  /* Mostrar menú hamburguesa para navegación */
+  .navbar-mobile-menu {
+    display: block !important;
+  }
+  
+  .navbar-nav {
+    display: none;
+  }
+  
+  /* Ajustar dropdown del usuario */
+  .navbar-user-dropdown {
+    margin-right: 0;
+  }
+  
+  .navbar-user-dropdown .btn-outline-light {
+    font-size: 0.7rem;
+    padding: 0.3rem 0.6rem;
+  }
+  
+  .navbar-user-dropdown .btn-outline-light i {
+    margin-right: 0.25rem;
+  }
+}
+
+/* Pantallas extra pequeñas (menos de 576px) */
+@media (max-width: 575px) {
+  .navbar .container-fluid {
+    padding: 0 0.5rem;
+  }
+  
+  .navbar-brand {
+    font-size: 0.8rem;
+  }
+  
+  .navbar-brand .brand-text {
+    max-width: 80px;
+  }
+  
+  .navbar-user-dropdown .btn-outline-light {
+    font-size: 0.65rem;
+    padding: 0.25rem 0.5rem;
+  }
+  
+  .navbar-user-dropdown .btn-outline-light .btn-text {
+    display: none;
+  }
+  
+  .navbar-user-dropdown .btn-outline-light i {
+    margin-right: 0 !important;
+  }
+}
+
+/* ============================================
+   MENÚ MÓVIL
+   ============================================ */
+
+.navbar-mobile-menu {
+  display: none;
+  position: fixed;
+  top: 56px;
+  left: 0;
+  right: 0;
+  background: var(--gradient-primary);
+  z-index: 1000;
+  padding: 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  animation: slideDown 0.3s ease-out;
+}
+
+.navbar-mobile-menu.show {
+  display: block;
+}
+
+.navbar-mobile-menu .btn-outline-light {
+  display: block;
+  width: 100%;
+  margin-bottom: 0.5rem;
+  text-align: left;
+  border-radius: 0.5rem !important;
+  padding: 0.75rem 1rem;
+}
+
+.navbar-mobile-menu .btn-outline-light:last-child {
+  margin-bottom: 0;
+}
+
+/* Botón hamburguesa */
+.navbar-toggler {
+  display: none;
+  border: none;
+  background: transparent;
+  color: white;
+  font-size: 1.25rem;
+  padding: 0.5rem;
+  margin-left: 0.5rem;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.navbar-toggler:hover {
+  opacity: 0.8;
+}
+
+@media (max-width: 767px) {
+  .navbar-toggler {
+    display: block;
+  }
+}
+
+/* Animación para el menú móvil */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ============================================
+   MEJORAS ADICIONALES
+   ============================================ */
+
+/* Asegurar que los tooltips no interfieran con la navegación */
+.navbar .btn-outline-light:hover::after {
+  pointer-events: none;
+}
+
+/* Mejorar la transición de los botones */
+.navbar .btn-outline-light {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Asegurar que el dropdown del usuario siempre sea visible */
+.navbar-user-dropdown {
+  z-index: 1001;
+}
+
+/* Mejorar la legibilidad del texto en botones pequeños */
+@media (max-width: 991px) {
+  .navbar .btn-outline-light {
+    font-weight: 600;
+  }
+}
+
+/* Mejorar la experiencia de hover en botones circulares */
+@media (max-width: 991px) and (min-width: 768px) {
+  .navbar .btn-outline-light {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .navbar .btn-outline-light:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.9);
+  }
 } 
