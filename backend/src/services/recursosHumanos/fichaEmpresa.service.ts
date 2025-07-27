@@ -755,7 +755,7 @@ export async function deleteContratoService( id: number ): Promise<ServiceRespon
 }
 
 // Asignar Bono
-export async function assignBonoService (idFicha: number, data: AsignarBonoDTO): Promise<ServiceResponse<AsignarBono>> {
+export async function assignBonoService (idFicha: number, data: AsignarBonoDTO, usuarioAutenticado?: User): Promise<ServiceResponse<AsignarBono>> {
     // Crear un query runner para manejar transacciones
     const queryRunner = AppDataSource.createQueryRunner();
     await queryRunner.connect();
@@ -881,7 +881,7 @@ export async function assignBonoService (idFicha: number, data: AsignarBonoDTO):
         (nuevoHistorial as any).fechaInicioLicenciaPermiso = fichaActual.fechaInicioLicenciaPermiso || null;
         (nuevoHistorial as any).fechaFinLicenciaPermiso = fichaActual.fechaFinLicenciaPermiso || null;
         (nuevoHistorial as any).motivoLicenciaPermiso = fichaActual.motivoLicenciaPermiso || null;
-        nuevoHistorial.registradoPor = fichaActual.trabajador?.usuario || null;
+        nuevoHistorial.registradoPor = usuarioAutenticado || fichaActual.trabajador?.usuario || null;
 
         await historialRepo.save(nuevoHistorial);
 
@@ -898,7 +898,7 @@ export async function assignBonoService (idFicha: number, data: AsignarBonoDTO):
 }
 
 // Actualizar estado Asignación de Bono
-export async function updateAsignarBonoService( id: number, idFichaActual: number, data: UpdateAsignarBonoDTO ): Promise<ServiceResponse<AsignarBono>> {
+export async function updateAsignarBonoService( id: number, idFichaActual: number, data: UpdateAsignarBonoDTO, usuarioAutenticado?: User ): Promise<ServiceResponse<AsignarBono>> {
     const queryRunner = AppDataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -978,7 +978,7 @@ Monto: $${montoFormateado}, Tipo: ${bono.tipoBono}, Temporalidad: ${bono.tempora
             (nuevoHistorial as any).fechaInicioLicenciaPermiso = fichaActual.fechaInicioLicenciaPermiso || null;
             (nuevoHistorial as any).fechaFinLicenciaPermiso = fichaActual.fechaFinLicenciaPermiso || null;
             (nuevoHistorial as any).motivoLicenciaPermiso = fichaActual.motivoLicenciaPermiso || null;
-            nuevoHistorial.registradoPor = fichaActual.trabajador?.usuario || null;
+            nuevoHistorial.registradoPor = usuarioAutenticado || fichaActual.trabajador?.usuario || null;
 
             await historialRepo.save(nuevoHistorial);
 
@@ -1018,7 +1018,7 @@ Monto: $${montoFormateado}, Tipo: ${bono.tipoBono}, Temporalidad: ${bono.tempora
                 (nuevoHistorial as any).fechaInicioLicenciaPermiso = fichaActual.fechaInicioLicenciaPermiso || null;
                 (nuevoHistorial as any).fechaFinLicenciaPermiso = fichaActual.fechaFinLicenciaPermiso || null;
                 (nuevoHistorial as any).motivoLicenciaPermiso = fichaActual.motivoLicenciaPermiso || null;
-                nuevoHistorial.registradoPor = fichaActual.trabajador?.usuario || null;
+                nuevoHistorial.registradoPor = usuarioAutenticado || fichaActual.trabajador?.usuario || null;
 
                 await historialRepo.save(nuevoHistorial);
             }

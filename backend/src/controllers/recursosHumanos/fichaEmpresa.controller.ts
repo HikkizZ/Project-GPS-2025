@@ -294,7 +294,7 @@ export async function asignarBono(req: Request, res: Response): Promise<void> {
               
         // Asignar el bono al trabajador
         const id = parseInt(req.params.idFicha);
-        const [ asignacionBono, errorAsignacion ] = await assignBonoService( id, validationResult.value );
+        const [ asignacionBono, errorAsignacion ] = await assignBonoService( id, validationResult.value, req.user );
         if (errorAsignacion) {
             handleErrorClient(res, 400, errorAsignacion as string);
             return;
@@ -359,7 +359,7 @@ export async function updateAsignacionBono(req: Request, res: Response): Promise
             handleErrorClient(res, 400, "No se puede actualizar una asignación de bono inactiva");
             return;
         }
-        const [updatedAsignacionBono, error] = await updateAsignarBonoService(AsignarId, idFicha, validationResult.value);
+        const [updatedAsignacionBono, error] = await updateAsignarBonoService(AsignarId, idFicha, validationResult.value, req.user);
         if (error) {
             handleErrorClient(res, 400, error as string);
             return;

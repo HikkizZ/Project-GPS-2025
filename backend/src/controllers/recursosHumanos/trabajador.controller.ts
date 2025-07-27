@@ -86,7 +86,13 @@ export async function updateTrabajador(req: Request, res: Response): Promise<voi
             return;
         }
 
-        const [trabajador, serviceError] = await updateTrabajadorService(parseInt(req.params.id), validationResult.value);
+        // Agregar el usuario autenticado como registradoPor
+        const dataWithRegistradoPor = {
+            ...validationResult.value,
+            registradoPor: req.user
+        };
+
+        const [trabajador, serviceError] = await updateTrabajadorService(parseInt(req.params.id), dataWithRegistradoPor);
 
         if (serviceError) {
             const errorMessage = typeof serviceError === 'string' ? serviceError : serviceError.message;
