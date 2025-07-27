@@ -175,13 +175,45 @@ const ListSparePart: React.FC<Props> = ({ data, onEdit, onDelete, totalItems, on
               confirmText="Eliminar"
               cancelText="Cancelar"
               headerVariant="danger"
+              headerIcon="bi-exclamation-triangle-fill"
+              confirmIcon="bi-trash"
+              cancelIcon="bi-x-circle"
               warningContent={
-                <div>
-                  <p>¿Estás seguro que deseas eliminar el repuesto "${sparePartToDelete?.name}"? Esta acción no se puede deshacer.</p>
-                  <p>El repuesto será eliminado del sistema y no podrá ser utilizado en nuevas mantenciones.</p>
-                </div>
+                <>
+                  <p className="mb-2 mt-1">Esta acción:</p>
+                  <ul className="mb-0">
+                    <li>Marcará el repuesto como eliminado en el sistema.</li>
+                    <li>No podrá ser utilizado en futuras mantenciones.</li>
+                    <li>El historial de mantenciones no se verá afectado.</li>
+                  </ul>
+                </>
               }
-            />
+            >
+              <div className="mb-3 p-3 bg-light rounded-3">
+                <p className="mb-2 fw-semibold">
+                  ¿Estás seguro que deseas eliminar el siguiente repuesto?
+                </p>
+                <div className="d-flex flex-column gap-1">
+                  <div>
+                    <span className="fw-semibold text-muted">Nombre:</span>{" "}
+                    <span className="ms-2">{sparePartToDelete?.name ?? "N/A"}</span>
+                  </div>
+                  <div>
+                    <span className="fw-semibold text-muted">Marca:</span>{" "}
+                    <span className="ms-2">{sparePartToDelete?.marca ?? "N/A"}</span>
+                  </div>
+                  <div>
+                    <span className="fw-semibold text-muted">Modelo:</span>{" "}
+                    <span className="ms-2">{sparePartToDelete?.modelo ?? "N/A"}</span>
+                  </div>
+                  <div>
+                    <span className="fw-semibold text-muted">Año:</span>{" "}
+                    <span className="ms-2">{sparePartToDelete?.anio ?? "N/A"}</span>
+                  </div>
+                </div>
+              </div>
+            </ConfirmModal>
+
 
     </Card>
   );

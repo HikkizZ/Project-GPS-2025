@@ -100,8 +100,6 @@ const MantencionPage: React.FC = () => {
     };
 
 const handleAcceptMaintenance = async (record: MaintenanceRecord) => {
-  console.log("1");
-  console.log("USER CONTEXT:", user);
 
   let mecanicoId = user?.id || 0;
 
@@ -122,7 +120,6 @@ const handleAcceptMaintenance = async (record: MaintenanceRecord) => {
       }
 
       mecanicoId = trabajador.usuario.id;
-      console.log("ID obtenido desde trabajador:", mecanicoId);
     } catch (error) {
       console.error("Error al buscar trabajador por RUT:", error);
       showError("Error", "Ocurrió un error al buscar tu ID como mecánico.");
@@ -135,14 +132,11 @@ const handleAcceptMaintenance = async (record: MaintenanceRecord) => {
     return;
   }
 
-  console.log("2");
   try {
-    console.log("3");
     await update(record.id, {
       mecanicoId,
-      estado: "en_proceso",
+      estado: EstadoMantencion.EN_PROCESO,
     });
-    console.log("5");
     showSuccess("Mantención aceptada", "Has sido asignado como mecánico responsable.");
     reload();
   } catch (error) {
