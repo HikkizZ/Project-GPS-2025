@@ -34,11 +34,12 @@ const SparePartsPage: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
+  const sortedFilteredParts = [...filteredParts].sort((a, b) => a.name.localeCompare(b.name));
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = filteredParts.slice(indexOfFirstItem, indexOfLastItem);
+  const currentItems = sortedFilteredParts.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(sortedFilteredParts.length / itemsPerPage);
 
-  const totalPages = Math.ceil(filteredParts.length / itemsPerPage);
 
   const hasActiveFilters = Object.values(filters).some((v) => v.trim() !== "")
 
@@ -211,6 +212,7 @@ const SparePartsPage: React.FC = () => {
                 onSubmit={handleCreateOrUpdate}
                 initialData={editingPart || undefined}
                 loading={creating || updating}
+                allParts={spareParts} 
               />
 
               {/* Toasts */}
