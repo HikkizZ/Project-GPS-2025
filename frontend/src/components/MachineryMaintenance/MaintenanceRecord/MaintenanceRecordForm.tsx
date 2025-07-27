@@ -29,14 +29,8 @@ const MaintenanceRecordForm: React.FC<Props> = ({ initialData = {}, onSubmit, lo
   useEffect(() => {
     async function cargarDatos() {
       try {
-        const [maquinariasRes, mecanicosRes] = await Promise.all([
-          maquinariaService.obtenerTodasLasMaquinarias(),
-          userService.getUsers({ role: 'Mecánico' }),
-        ]);
-
+        const maquinariasRes = await maquinariaService.obtenerTodasLasMaquinarias();
         const maquinarias = maquinariasRes.data || [];
-        const mecanicos = mecanicosRes.data || [];
-
         setMaquinarias(maquinarias);
 
         if (initialData) {
@@ -47,11 +41,11 @@ const MaintenanceRecordForm: React.FC<Props> = ({ initialData = {}, onSubmit, lo
             descripcionEntrada: initialData.descripcionEntrada ?? '',
             repuestosUtilizados: initialData.repuestosUtilizados ?? [],
           }));
-        }
 
-        setGrupoSeleccionado((initialData as any).maquinaria?.grupo ?? '');
-        setPatenteSeleccionada((initialData as any).maquinaria?.patente ?? '');
-        setnumeroChasisSelecionado((initialData as any).maquinaria?.numeroChasis ?? '');
+          setGrupoSeleccionado((initialData as any).maquinaria?.grupo ?? '');
+          setPatenteSeleccionada((initialData as any).maquinaria?.patente ?? '');
+          setnumeroChasisSelecionado((initialData as any).maquinaria?.numeroChasis ?? '');
+        }
 
       } catch (error) {
         console.error("Error cargando datos:", error);
@@ -60,6 +54,7 @@ const MaintenanceRecordForm: React.FC<Props> = ({ initialData = {}, onSubmit, lo
 
     cargarDatos();
   }, []);
+
 
   useEffect(() => {
     const numeroChasis = maquinarias.filter(
