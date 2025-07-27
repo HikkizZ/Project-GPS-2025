@@ -29,12 +29,18 @@ const AssignMecanicoModal: React.FC<Props> = ({ show, onHide, onSubmit, mecanico
             value={selectedId}
             onChange={(e) => setSelectedId(Number(e.target.value))}
           >
-            <option value="">-- Seleccionar --</option>
-            {mecanicos.map((m) => (
-              <option key={m.id} value={m.id}>
-                {m.nombres} {m.apellidoPaterno} {m.apellidoMaterno}
-              </option>
-            ))}
+            {mecanicos.length === 0 ? (
+              <option disabled value="">No hay mecánicos disponibles</option>
+            ) : (
+              <>
+                <option value="">-- Seleccionar --</option>
+                {mecanicos.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.nombres ?? "?"} {m.apellidoPaterno ?? ""} {m.apellidoMaterno ?? ""}
+                  </option>
+                ))}
+              </>
+            )}
           </Form.Select>
         </Form.Group>
       </Modal.Body>
