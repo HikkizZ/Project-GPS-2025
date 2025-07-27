@@ -10,7 +10,7 @@ interface AsignarBonosFichaEmpresaModalProps {
   onHide: () => void;
   asignaciones: AsignacionesBonos;
   ficha: FichaEmpresa;
-  onUpdate?: () => void;
+  onSuccess?: () => void;
 }
 
 // Función para formatear fecha sin problemas de zona horaria
@@ -37,7 +37,7 @@ export const AsignarBonosFichaEmpresaModal: React.FC<AsignarBonosFichaEmpresaMod
   onHide,
   asignaciones,
   ficha,
-  onUpdate
+  onSuccess
 }) => {
   const [loading, setLoading] = useState(false);
   const [validated, setValidated] = useState(false);
@@ -92,19 +92,20 @@ export const AsignarBonosFichaEmpresaModal: React.FC<AsignarBonosFichaEmpresaMod
     try {
         const nombresBonos = bonos.map(b => b.nombreBono);
         const bonoId = nombresBonos.includes(bono) ? bonos.find(b => b.nombreBono === bono)?.id : parseInt(bono);
+        const bonoNombre = nombresBonos.includes(bono) ? bono : bonos.find(b => b.id === bonoId)?.nombreBono;
       
         const dataToSubmit = {
             fechaAsignacion: formatData?.fechaAsignacion,
             fechaFinAsignacion: formatData?.fechaFinAsignacion,
             activo: formatData?.activo,
-            bono: bonoId,
+            bono: bonoNombre,
             fichaEmpresa: ficha
         };
-      
-        const response = await asignarBono(dataToSubmit);
+
+        const response = await asignarBono(ficha.id, dataToSubmit);
         if (response.success) {
             showSuccess('Bono asignado correctamente', 'El bono se ha asignado exitosamente a la ficha de empresa.', 5000);
-            onUpdate?.();
+            onSuccess?.();
             onHide();
         } else {
             showError('Error al asignar bono', response.error || 'No se pudo asignar el bono. Intente nuevamente.', 6000);
@@ -153,7 +154,12 @@ export const AsignarBonosFichaEmpresaModal: React.FC<AsignarBonosFichaEmpresaMod
             <div className="row">
               <div className="col-md-8">
                 <span className="text-muted">Trabajador:</span>
-                <strong className="ms-1">{ficha.trabajador.nombres} {ficha.trabajador.apellidoPaterno} {ficha.trabajador.apellidoMaterno}</strong>
+                <strong className="ms-1">
+                {ficha && ficha.trabajador
+                  ? `${ficha.trabajador.nombres} ${ficha.trabajador.apellidoPaterno} ${ficha.trabajador.apellidoMaterno}`
+                  : <span className="text-danger">Sin datos</span>
+                }
+              </strong>
               </div>
             </div>
           </div>
@@ -197,7 +203,7 @@ export const AsignarBonosFichaEmpresaModal: React.FC<AsignarBonosFichaEmpresaMod
                   <Form.Control
                     type="text"
                     name="observaciones"
-                    value={formatData.observaciones || ''}
+                    value={formatData?.observaciones ?? ''}
                     style={{ borderRadius: '8px' }}
                     placeholder="Ej: Tecnología"
                   />
@@ -238,7 +244,7 @@ export const AsignarBonosFichaEmpresaModal: React.FC<AsignarBonosFichaEmpresaMod
                         }
 
                         const fechaAsignacion = new Date(); // o formatData.fechaAsignacion si la tienes guardada
-                        const duracionMes = parseInt(bonoSeleccionado.duracionMes);
+                        const duracionMes = bonoSeleccionado?.duracionMes ? parseInt(bonoSeleccionado.duracionMes) : undefined;
 
                         const fechaFin = calcularFechaFinAsignacion(fechaAsignacion, duracionMes);
 
