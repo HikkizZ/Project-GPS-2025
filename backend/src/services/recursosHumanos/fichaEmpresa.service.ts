@@ -858,7 +858,7 @@ Temporalidad: ${bono.temporalidad}
 Imponible: ${bono.imponible ? 'Sí' : 'No'}${bono.descripcion ? `
 Descripción del bono: ${bono.descripcion}` : ''}${fechaFin ? `
 Válido hasta: ${fechaFin.toISOString().split('T')[0]}` : ''}${data.observaciones ? `
-Observaciones: ${data.observaciones}` : ''}`;
+[OBSERVACIONES_BADGE]: ${data.observaciones}` : ''}`;
         
         const nuevoHistorial = new HistorialLaboral();
         nuevoHistorial.trabajador = fichaActual.trabajador;
@@ -960,7 +960,7 @@ Imponible: ${bono.imponible ? 'Sí' : 'No'}
 Estado: ${asignacionBono.activo ? 'Activo' : 'Inactivo'}${bono.descripcion ? `
 Descripción del bono: ${bono.descripcion}` : ''}${cambios.fechaFinAsignacion ? `
 Válido hasta: ${cambios.fechaFinAsignacion.toISOString().split('T')[0]}` : ''}${data.observaciones ? `
-Observaciones: ${data.observaciones}` : ''}`;
+[OBSERVACIONES_BADGE]: ${data.observaciones}` : ''}`;
             
             const nuevoHistorial = new HistorialLaboral();
             nuevoHistorial.trabajador = fichaActual.trabajador;
@@ -1005,7 +1005,7 @@ Temporalidad: ${asignacionBono.bono.temporalidad}
 Imponible: ${asignacionBono.bono.imponible ? 'Sí' : 'No'}
 Estado: ${asignacionBono.activo ? 'Activo' : 'Inactivo'}${asignacionBono.bono.descripcion ? `
 Descripción del bono: ${asignacionBono.bono.descripcion}` : ''}${data.observaciones ? `
-Observaciones: ${data.observaciones}` : ''}`;
+[OBSERVACIONES_BADGE]: ${data.observaciones}` : ''}`;
                 
                 const nuevoHistorial = new HistorialLaboral();
                 nuevoHistorial.trabajador = fichaActual.trabajador;

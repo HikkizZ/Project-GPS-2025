@@ -383,6 +383,14 @@ export default function HistorialLaboralPage() {
     return descripcion.replace(/(\d{4})-(\d{2})-(\d{2})/g, (_m, y, m, d) => `${d}-${m}-${y}`);
   }
 
+  // Función para eliminar las líneas con formato especial de la descripción
+  function limpiarDescripcionBono(descripcion: string): string {
+    if (!descripcion) return descripcion;
+    const lines = descripcion.split('\n');
+    const linesFiltradas = lines.filter(line => !line.trim().startsWith('[OBSERVACIONES_BADGE]:'));
+    return linesFiltradas.join('\n');
+  }
+
   // Reemplazar la función renderCamposManuales por una versión que parsea los campos modificados desde observaciones si corresponde
   const renderCamposManuales = (item: any) => {
     const campos: string[] = [];
@@ -406,8 +414,8 @@ export default function HistorialLaboralPage() {
           if (nombre) {
             nombreBono = nombre;
           }
-        } else if (trimmedLine.startsWith('Observaciones:')) {
-          // Extraer las observaciones
+        } else if (trimmedLine.startsWith('[OBSERVACIONES_BADGE]:')) {
+          // Extraer las observaciones del formato especial
           const obs = trimmedLine.split(':')[1]?.trim();
           if (obs) {
             observaciones = obs;
@@ -997,6 +1005,8 @@ export default function HistorialLaboralPage() {
                                   <i className="bi bi-info-circle me-1"></i>
                                   {(observacionesItem.includes('Licencia') || observacionesItem.includes('Permiso'))
                                     ? formatearDescripcionLicenciaPermiso(observacionesItem)
+                                    : (observacionesItem.includes('Asignación de bono:') || observacionesItem.includes('Actualización de asignación de bono:'))
+                                    ? limpiarDescripcionBono(observacionesItem)
                                     : formatearDescripcionObservaciones(observacionesItem, traduccionCampos)}
                                 </p>
                               </div>
