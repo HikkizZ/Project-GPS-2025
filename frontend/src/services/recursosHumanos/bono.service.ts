@@ -152,7 +152,7 @@ export class BonoService {
                 message: response.data?.message || 'Bono desactivado exitosamente',
             };
         } catch (error: any) {
-    console.error('Error al desactivar bono:', error);
+            console.error('Error al desactivar bono:', error);
             return {
                 success: false,
                 error: error.response?.data?.message || error.message || 'Error al desactivar bono',
