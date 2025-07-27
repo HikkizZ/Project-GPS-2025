@@ -20,8 +20,7 @@ import maquinariaRoutes from "./maquinaria/maquinaria.routes.js"
 import compraMaquinariaRoutes from "./maquinaria/compraMaquinaria.routes.js"
 import ventaMaquinariaRoutes from "./maquinaria/ventaMaquinaria.routes.js"
 import arriendoMaquinariaRoutes from "./maquinaria/arriendoMaquinaria.routes.js"
-import clienteMaquinariaRoutes from "./maquinaria/clienteMaquinaria.routes.js"
-import updateImageRoutes from "./updateImage.routes.js" // ✅ NUEVA RUTA
+import updateImageRoutes from "./updateImage.routes.js" 
 import inventoryEntryRoutes from './inventory/inventoryEntry.routes.js';
 import bonosRoutes from './recursosHumanos/remuneraciones/bonos.routes.js';
 
@@ -75,9 +74,8 @@ router.use("/maquinaria", maquinariaRoutes)
 router.use("/compra-maquinaria", compraMaquinariaRoutes)
 router.use("/ventas-maquinaria", ventaMaquinariaRoutes)
 router.use("/arriendos-maquinaria", arriendoMaquinariaRoutes)
-router.use("/clientes-maquinaria", clienteMaquinariaRoutes) // cliente de maquinaria
 
 /* Nueva ruta para subir imágenes */
-router.use("/update-image", updateImageRoutes) // ✅ Agregada
+router.use("/update-image", updateImageRoutes)
 
 export default router

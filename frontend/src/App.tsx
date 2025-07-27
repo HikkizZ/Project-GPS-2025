@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useRut } from './hooks/useRut';
 import { useTrabajadores } from './hooks/recursosHumanos/useTrabajadores';
@@ -12,6 +11,7 @@ import { SupplierPage } from './pages/stakeholders/SupplierPage';
 import { CustomerPage } from './pages/stakeholders/CustomerPage';
 import { InventoryPage } from './pages/inventory/InventoryPage';
 import { ProductPage } from './pages/inventory/ProductPage';
+import { ReportsPage } from './pages/inventory/ReportsPage';
 import { authService } from './services/auth.service';
 import { Card, Row, Col } from 'react-bootstrap';
 import { useNavigate, Routes, Route, Navigate, useLocation } from 'react-router-dom';
@@ -23,6 +23,10 @@ import GestionPersonalPage from './pages/GestionPersonalPage';
 import { LoginPage } from './pages/LoginPage';
 import { useAuth } from './context';
 import { UserRole } from './types/auth.types';
+import { ProtectedRoute } from './components/common/ProtectedRoute';
+import { usePermissions } from './hooks/usePermissions';
+import MiAreaPersonalPage from './pages/MiAreaPersonalPage';
+import { GestionRemuneracionesPage } from './pages/recursosHumanos/GestionRemuneracionesPage';
 
 //Importaciones de Mantenciones
 import MantencionPage from './pages/machinaryMantenance/MantencionPage';
@@ -35,7 +39,6 @@ import { CompraMaquinariaPage } from "./pages/maquinaria/compraMaquinariaPage"
 import { VentaMaquinariaPage } from "./pages/maquinaria/ventaMaquinariaPage"
 import { MaquinariaPage } from "./pages/maquinaria/maquinariaPage"
 import { ArriendoMaquinariaPage } from "./pages/maquinaria/arriendoMaquinariaPage"
-import { ClienteMaquinariaPage } from "./pages/maquinaria/clienteMaquinariaPage"
 
 const RegistrarTrabajadorPage: React.FC<{
   onSuccess: (trabajador: Trabajador) => void
@@ -338,15 +341,17 @@ interface DashboardProps {
   user: { name: string; role: string; rut: string }
 }
 const Dashboard: React.FC<DashboardProps> = ({ user }) => {
+  const { user: authUser } = useAuth();
   const [currentPage, setCurrentPage] = useState("home")
   const [successMessage, setSuccessMessage] = useState("")
   const [recienRegistrado, setRecienRegistrado] = useState<Trabajador | null>(null)
   const navigate = useNavigate()
 
-  // Roles que tienen acceso completo a todas las funcionalidades
-  const rolesPrivilegiados: UserRole[] = ["SuperAdministrador", "Administrador", "RecursosHumanos"]
+  // Usar el hook de permisos
+  const { canAccessRRHH, canAccessInventory, canAccessMaquinaria, canAccessMyLicenses, canAccessBonos, canAccessPersonalModules } = usePermissions()
 
-  // Verificar si el usuario tiene permisos completos
+  // Roles que tienen acceso completo a todas las funcionalidades (para compatibilidad)
+  const rolesPrivilegiados: UserRole[] = ["SuperAdministrador", "Administrador", "RecursosHumanos"]
   const tienePermisosCompletos = rolesPrivilegiados.includes(user.role as UserRole)
 
   const handleTrabajadorCreated = (trabajador: Trabajador) => {
@@ -444,28 +449,29 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
                       </div>
                     </div>
                     <Row>
-                      <Col md={3} className="mb-4">
-                        <Card
-                          className="h-100 border-0 shadow-lg"
-                          style={{
-                            cursor: "pointer",
-                            borderRadius: "20px",
-                            transition: "all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
-                            background: "white",
-                            border: "1px solid #e3f2fd",
-                          }}
-                          onClick={() => navigate("/recursos-humanos")}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.transform = "translateY(-12px) scale(1.02)"
-                            e.currentTarget.style.boxShadow = "0 25px 50px rgba(13, 110, 253, 0.25)"
-                            e.currentTarget.style.borderColor = "#0d6efd"
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.transform = "translateY(0) scale(1)"
-                            e.currentTarget.style.boxShadow = "0 10px 30px rgba(0, 0, 0, 0.1)"
-                            e.currentTarget.style.borderColor = "#e3f2fd"
-                          }}
-                        >
+                      {canAccessRRHH && (
+                        <Col md={3} className="mb-4">
+                          <Card
+                            className="h-100 border-0 shadow-lg"
+                            style={{
+                              cursor: "pointer",
+                              borderRadius: "20px",
+                              transition: "all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
+                              background: "white",
+                              border: "1px solid #e3f2fd",
+                            }}
+                            onClick={() => navigate("/recursos-humanos")}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.transform = "translateY(-12px) scale(1.02)"
+                              e.currentTarget.style.boxShadow = "0 25px 50px rgba(13, 110, 253, 0.25)"
+                              e.currentTarget.style.borderColor = "#0d6efd"
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.transform = "translateY(0) scale(1)"
+                              e.currentTarget.style.boxShadow = "0 10px 30px rgba(0, 0, 0, 0.1)"
+                              e.currentTarget.style.borderColor = "#e3f2fd"
+                            }}
+                          >
                           <Card.Body className="p-4 text-center">
                             <div
                               className="d-inline-flex align-items-center justify-content-center mb-4"
@@ -510,95 +516,99 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
                           </Card.Body>
                         </Card>
                       </Col>
+                      )}
 
-                      <Col md={3} className="mb-4">
-                        <Card
-                          className="h-100 border-0 shadow-lg"
-                          style={{
-                            cursor: 'pointer',
-                            borderRadius: '20px',
-                            transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
-                            background: 'white',
-                            border: '1px solid #e3f2fd'
-                          }}
-                          onClick={() => navigate('/inventario')}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.transform = 'translateY(-12px) scale(1.02)';
-                            e.currentTarget.style.boxShadow = '0 25px 50px rgba(13, 110, 253, 0.25)';
-                            e.currentTarget.style.borderColor = '#0d6efd';
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.transform = 'translateY(0) scale(1)';
-                            e.currentTarget.style.boxShadow = '0 10px 30px rgba(0, 0, 0, 0.1)';
-                            e.currentTarget.style.borderColor = '#e3f2fd';
-                          }}
-                        >
-                          <Card.Body className="p-4 text-center">
-                            <div
-                              className="d-inline-flex align-items-center justify-content-center mb-4"
-                              style={{
-                                width: '80px',
-                                height: '80px',
-                                background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                                borderRadius: '24px',
-                                position: 'relative',
-                                boxShadow: '0 8px 32px rgba(16, 185, 129, 0.2)'
-                              }}
-                            >
-                              <i className="bi bi-box-seam text-white" style={{ fontSize: '2.5rem' }}></i>
+                      {canAccessInventory && (
+                        <Col md={3} className="mb-4">
+                          <Card
+                            className="h-100 border-0 shadow-lg"
+                            style={{
+                              cursor: 'pointer',
+                              borderRadius: '20px',
+                              transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+                              background: 'white',
+                              border: '1px solid #e3f2fd'
+                            }}
+                            onClick={() => navigate('/inventario')}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.transform = 'translateY(-12px) scale(1.02)';
+                              e.currentTarget.style.boxShadow = '0 25px 50px rgba(13, 110, 253, 0.25)';
+                              e.currentTarget.style.borderColor = '#0d6efd';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.transform = 'translateY(0) scale(1)';
+                              e.currentTarget.style.boxShadow = '0 10px 30px rgba(0, 0, 0, 0.1)';
+                              e.currentTarget.style.borderColor = '#e3f2fd';
+                            }}
+                          >
+                            <Card.Body className="p-4 text-center">
                               <div
+                                className="d-inline-flex align-items-center justify-content-center mb-4"
                                 style={{
-                                  position: 'absolute',
-                                  top: '-8px',
-                                  right: '-8px',
-                                  width: '24px',
-                                  height: '24px',
-                                  background: '#28a745',
-                                  borderRadius: '50%',
-                                  border: '3px solid white',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center'
+                                  width: '80px',
+                                  height: '80px',
+                                  background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                                  borderRadius: '24px',
+                                  position: 'relative',
+                                  boxShadow: '0 8px 32px rgba(16, 185, 129, 0.2)'
                                 }}
                               >
-                                <i className="bi bi-check text-white" style={{ fontSize: '0.7rem' }}></i>
+                                <i className="bi bi-box-seam text-white" style={{ fontSize: '2.5rem' }}></i>
+                                <div
+                                  style={{
+                                    position: 'absolute',
+                                    top: '-8px',
+                                    right: '-8px',
+                                    width: '24px',
+                                    height: '24px',
+                                    background: '#28a745',
+                                    borderRadius: '50%',
+                                    border: '3px solid white',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center'
+                                  }}
+                                >
+                                  <i className="bi bi-check text-white" style={{ fontSize: '0.7rem' }}></i>
+                                </div>
                               </div>
-                            </div>
-                            <Card.Title className="fw-bold text-dark mb-2 fs-5">Inventario</Card.Title>
-                            <Card.Text className="text-muted small mb-3">Control de stock y productos</Card.Text>
-                            <div className="d-flex align-items-center justify-content-center">
-                              <small className="text-primary fw-semibold">
-                                <i className="bi bi-arrow-right me-1"></i>
-                                Acceder
-                              </small>
-                            </div>
-                          </Card.Body>
-                        </Card>
-                      </Col>
+                              <Card.Title className="fw-bold text-dark mb-2 fs-5">Inventario</Card.Title>
+                              <Card.Text className="text-muted small mb-3">Control de stock y productos</Card.Text>
+                              <div className="d-flex align-items-center justify-content-center">
+                                <small className="text-primary fw-semibold">
+                                  <i className="bi bi-arrow-right me-1"></i>
+                                  Acceder
+                                </small>
+                              </div>
+                            </Card.Body>
+                          </Card>
+                        </Col>
+                      )}
 
-                      {/* TARJETA DE MAQUINARIA ACTUALIZADA - AHORA FUNCIONAL */}
-                      <Col md={3} className="mb-4">
-                        <Card
-                          className="h-100 border-0 shadow-lg"
-                          style={{
-                            cursor: "pointer",
-                            borderRadius: "20px",
-                            transition: "all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
-                            background: "white",
-                            border: "1px solid #e0f2fe",
-                          }}
-                          onClick={() => navigate("/dashboard-maquinaria")}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.transform = "translateY(-12px) scale(1.02)"
-                            e.currentTarget.style.boxShadow = "0 25px 50px rgba(6, 182, 212, 0.25)"
-                            e.currentTarget.style.borderColor = "#06b6d4"
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.transform = "translateY(0) scale(1)"
-                            e.currentTarget.style.boxShadow = "0 10px 30px rgba(0, 0, 0, 0.1)"
-                            e.currentTarget.style.borderColor = "#e0f2fe"
-                          }}
-                        >
+                      {/* TARJETA DE MAQUINARIA PROTEGIDA */}
+                      {canAccessMaquinaria && (
+                        <Col md={3} className="mb-4">
+                          <Card
+                            className="h-100 border-0 shadow-lg"
+                            style={{
+                              cursor: "pointer",
+                              borderRadius: "20px",
+                              transition: "all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
+                              background: "white",
+                              border: "1px solid #e0f2fe",
+                            }}
+                            onClick={() => navigate("/dashboard-maquinaria")}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.transform = "translateY(-12px) scale(1.02)"
+                              e.currentTarget.style.boxShadow = "0 25px 50px rgba(6, 182, 212, 0.25)"
+                              e.currentTarget.style.borderColor = "#06b6d4"
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.transform = "translateY(0) scale(1)"
+                              e.currentTarget.style.boxShadow = "0 10px 30px rgba(0, 0, 0, 0.1)"
+                              e.currentTarget.style.borderColor = "#e0f2fe"
+                            }}
+                          >
                           <Card.Body className="p-4 text-center">
                             <div
                               className="d-inline-flex align-items-center justify-content-center mb-4"
@@ -643,41 +653,59 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
                           </Card.Body>
                         </Card>
                       </Col>
+                      )}
 
-                      <Col md={3} className="mb-4">
-                        <Card
-                          className="h-100 border-0 shadow-sm"
-                          style={{
-                            borderRadius: "20px",
-                            background: "white",
-                            border: "1px solid #f1f5f9",
-                            opacity: 0.8,
-                          }}
-                        >
-                          <Card.Body className="p-4 text-center">
-                            <div
-                              className="d-inline-flex align-items-center justify-content-center mb-4"
-                              style={{
-                                width: "80px",
-                                height: "80px",
-                                background: "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)",
-                                borderRadius: "24px",
-                                boxShadow: "0 8px 32px rgba(245, 158, 11, 0.2)",
-                              }}
-                            >
-                              <i className="bi bi-bar-chart text-white" style={{ fontSize: "2.5rem" }}></i>
-                            </div>
-                            <Card.Title className="fw-bold text-dark mb-2 fs-5">Reportes</Card.Title>
-                            <Card.Text className="text-muted small mb-3">Análisis y estadísticas</Card.Text>
-                            <div className="d-flex align-items-center justify-content-center">
-                              <small className="text-muted">
-                                <i className="bi bi-clock me-1"></i>
-                                Próximamente
-                              </small>
-                            </div>
-                          </Card.Body>
-                        </Card>
-                      </Col>
+                      {/* Tarjeta de Mi Área Personal - Para usuarios básicos y administradores */}
+                      {canAccessPersonalModules && (
+                        <Col md={3} className="mb-4">
+                          <Card
+                            className="h-100 border-0 shadow-lg"
+                            style={{
+                              cursor: "pointer",
+                              borderRadius: "20px",
+                              transition: "all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
+                              background: "white",
+                              border: "1px solid #e0e7ff",
+                            }}
+                            onClick={() => navigate("/mi-area-personal")}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.transform = "translateY(-12px) scale(1.02)"
+                              e.currentTarget.style.boxShadow = "0 25px 50px rgba(59, 130, 246, 0.25)"
+                              e.currentTarget.style.borderColor = "#3b82f6"
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.transform = "translateY(0) scale(1)"
+                              e.currentTarget.style.boxShadow = "0 10px 30px rgba(0, 0, 0, 0.1)"
+                              e.currentTarget.style.borderColor = "#e0e7ff"
+                            }}
+                          >
+                            <Card.Body className="p-4 text-center">
+                              <div
+                                className="d-inline-flex align-items-center justify-content-center mb-4"
+                                style={{
+                                  width: "80px",
+                                  height: "80px",
+                                  background: "linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)",
+                                  borderRadius: "24px",
+                                  boxShadow: "0 8px 32px rgba(59, 130, 246, 0.3)",
+                                }}
+                              >
+                                <i className="bi bi-person-badge text-white" style={{ fontSize: "2.5rem" }}></i>
+                              </div>
+                              <Card.Title className="fw-bold text-dark mb-2 fs-5">Mi Área Personal</Card.Title>
+                              <Card.Text className="text-muted small mb-3">Mi cuenta, licencias y ficha de empresa</Card.Text>
+                              <div className="d-flex align-items-center justify-content-center">
+                                <small className="text-primary fw-semibold">
+                                  <i className="bi bi-arrow-right me-1"></i>
+                                  Acceder
+                                </small>
+                              </div>
+                            </Card.Body>
+                          </Card>
+                        </Col>
+                      )}
+
+
                     </Row>
                   </div>
                 </div>
@@ -730,45 +758,227 @@ function App() {
         element={
           isAuthenticated ? (
             <MainLayout user={safeUser} onLogout={logout}>
-              <Routes>
-                <Route path="dashboard" element={<Dashboard user={safeUser} />} />
-                <Route path="recursos-humanos" element={<DashboardRecursosHumanos />} />
-                <Route path="trabajadores" element={<TrabajadoresPage />} />
-                <Route path="trabajadores/historial-laboral" element={<HistorialLaboralPage />} />
-                <Route path="fichas-empresa" element={<FichasEmpresaPage />} />
-                <Route path="fichas-empresa/mi-ficha" element={<FichasEmpresaPage />} />
-                <Route path="bonos" element={<BonosPage />} />
-                <Route path="usuarios" element={<UsersPage />} />
-                <Route path="gestion-personal" element={<GestionPersonalPage />} />
-                <Route path="gestion-licencias-permisos" element={<GestionLicenciasPermisosPage />} />
-                <Route path="mis-licencias-permisos" element={<MisLicenciasPermisosPage />} />
-                <Route path="inventario/proveedores" element={<SupplierPage />} />
-                <Route path="inventario/clientes" element={<CustomerPage />} />
-                <Route path="inventario/productos" element={<ProductPage />} />
-                <Route path="inventario" element={<InventoryPage />} />
+                              <Routes>
+                  <Route path="dashboard" element={<Dashboard user={safeUser} />} />
+                  <Route path="mi-area-personal" element={<MiAreaPersonalPage />} />
+                  <Route 
+                    path="recursos-humanos" 
+                    element={
+                      <ProtectedRoute allowedRoles={["SuperAdministrador", "Administrador", "RecursosHumanos"]}>
+                        <DashboardRecursosHumanos />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  <Route 
+                    path="trabajadores" 
+                    element={
+                      <ProtectedRoute allowedRoles={["SuperAdministrador", "Administrador", "RecursosHumanos"]}>
+                        <TrabajadoresPage />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  <Route 
+                    path="trabajadores/historial-laboral" 
+                    element={
+                      <ProtectedRoute allowedRoles={["SuperAdministrador", "Administrador", "RecursosHumanos"]}>
+                        <HistorialLaboralPage />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  <Route 
+                    path="fichas-empresa" 
+                    element={
+                      <ProtectedRoute allowedRoles={["SuperAdministrador", "Administrador", "RecursosHumanos"]}>
+                        <FichasEmpresaPage />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  <Route 
+                    path="fichas-empresa/mi-ficha" 
+                    element={
+                      <ProtectedRoute allowedRoles={["SuperAdministrador", "Administrador", "RecursosHumanos", "Usuario", "Gerencia", "Ventas", "Arriendo", "Finanzas", "Mecánico", "Mantenciones de Maquinaria"]}>
+                        <FichasEmpresaPage />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  <Route 
+                    path="bonos" 
+                    element={
+                      <ProtectedRoute allowedRoles={["SuperAdministrador", "Administrador", "RecursosHumanos"]}>
+                        <BonosPage />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  <Route 
+                    path="usuarios" 
+                    element={
+                      <ProtectedRoute allowedRoles={["SuperAdministrador", "Administrador", "RecursosHumanos"]}>
+                        <UsersPage />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  <Route 
+                    path="gestion-personal" 
+                    element={
+                      <ProtectedRoute allowedRoles={["SuperAdministrador", "Administrador", "RecursosHumanos"]}>
+                        <GestionPersonalPage />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  <Route 
+                    path="gestion-licencias-permisos" 
+                    element={
+                      <ProtectedRoute allowedRoles={["SuperAdministrador", "Administrador", "RecursosHumanos"]}>
+                        <GestionLicenciasPermisosPage />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  <Route
+                  path="gestion-sueldos"
+                  element={
+                    <ProtectedRoute allowedRoles={["SuperAdministrador", "Administrador", "RecursosHumanos"]}>
+                      <GestionRemuneracionesPage />
+                    </ProtectedRoute>
+                  }
+                />
+                  <Route 
+                    path="mis-licencias-permisos" 
+                    element={
+                      <ProtectedRoute allowedRoles={["SuperAdministrador", "Administrador", "RecursosHumanos", "Usuario", "Gerencia", "Ventas", "Arriendo", "Finanzas", "Mecánico", "Mantenciones de Maquinaria"]}>
+                        <MisLicenciasPermisosPage />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  <Route 
+                    path="inventario/proveedores" 
+                    element={
+                      <ProtectedRoute allowedRoles={["Administrador", "SuperAdministrador", "Ventas", "Gerencia", "Finanzas"]}>
+                        <SupplierPage />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  <Route 
+                    path="maquinaria/proveedores" 
+                    element={
+                      <ProtectedRoute allowedRoles={["Administrador", "SuperAdministrador", "Ventas", "Gerencia", "Finanzas", "Arriendo"]}>
+                        <SupplierPage />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  <Route 
+                    path="inventario/clientes" 
+                    element={
+                      <ProtectedRoute allowedRoles={["Administrador", "SuperAdministrador", "Ventas", "Gerencia", "Finanzas"]}>
+                        <CustomerPage />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  <Route 
+                    path="inventario/productos" 
+                    element={
+                      <ProtectedRoute allowedRoles={["Administrador", "SuperAdministrador", "Ventas", "Gerencia", "Finanzas"]}>
+                        <ProductPage />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  <Route 
+                    path="inventario/reportes" 
+                    element={
+                      <ProtectedRoute allowedRoles={["Administrador", "SuperAdministrador", "Ventas", "Gerencia", "Finanzas"]}>
+                        <ReportsPage />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  <Route 
+                    path="inventario" 
+                    element={
+                      <ProtectedRoute allowedRoles={["Administrador", "SuperAdministrador", "Ventas", "Gerencia", "Finanzas"]}>
+                        <InventoryPage />
+                      </ProtectedRoute>
+                    } 
+                  />
                 <Route path="/" element={<Navigate to="dashboard" replace />} />
 
-                {/* RUTAS DE MAQUINARIA ACTUALIZADAS */}
-                <Route path="maquinaria" element={<MaquinariaPage />} />
-                <Route path="maquinaria/compras" element={<CompraMaquinariaPage />} />
-                <Route path="maquinaria/ventas" element={<VentaMaquinariaPage />} />
-                <Route path="maquinaria/arriendos" element={<ArriendoMaquinariaPage />} />
-                <Route path="maquinaria/clientes" element={<ClienteMaquinariaPage />} />
+                {/* RUTAS DE MAQUINARIA PROTEGIDAS */}
+                <Route 
+                  path="maquinaria" 
+                  element={
+                    <ProtectedRoute allowedRoles={["SuperAdministrador", "Arriendo", "Mecánico", "Mantenciones de Maquinaria"]}>
+                      <MaquinariaPage />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="maquinaria/compras" 
+                  element={
+                    <ProtectedRoute allowedRoles={["SuperAdministrador", "Arriendo", "Mecánico", "Mantenciones de Maquinaria"]}>
+                      <CompraMaquinariaPage />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="maquinaria/ventas" 
+                  element={
+                    <ProtectedRoute allowedRoles={["SuperAdministrador", "Arriendo", "Mecánico", "Mantenciones de Maquinaria"]}>
+                      <VentaMaquinariaPage />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="maquinaria/arriendos" 
+                  element={
+                    <ProtectedRoute allowedRoles={["SuperAdministrador", "Arriendo", "Mecánico", "Mantenciones de Maquinaria"]}>
+                      <ArriendoMaquinariaPage />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="maquinaria/trabajo" 
+                  element={
+                    <ProtectedRoute allowedRoles={["SuperAdministrador", "Arriendo", "Mecánico", "Mantenciones de Maquinaria"]}>
+                      <MaquinariaPage />
+                    </ProtectedRoute>
+                  } 
+                />
 
                 <Route path="*" element={<Navigate to="dashboard" replace />} />
                 <Route path="*" element={<div className="container py-4"><div className="alert alert-warning"><h4>Página no encontrada</h4><p>La página que buscas no existe. <a href="/dashboard">Volver al dashboard</a></p></div></div>} />
 
-                {/* Mantención maquinaria */}
-                <Route path="spare-parts" element={<SparePartsPage />} />
-                <Route path="maintenance-records" element={<MantencionPage />} />
-                <Route path="maintenance-completed" element={<MantencionesCompletadasPage />} />
+                {/* Mantención maquinaria PROTEGIDA */}
+                <Route 
+                  path="spare-parts" 
+                  element={
+                    <ProtectedRoute allowedRoles={["Administrador", "SuperAdministrador", "Mecánico", "Mantenciones de Maquinaria"]}>
+                      <SparePartsPage />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="maintenance-records" 
+                  element={
+                    <ProtectedRoute allowedRoles={["Administrador", "SuperAdministrador", "Mecánico", "Mantenciones de Maquinaria"]}>
+                      <MantencionPage />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="maintenance-completed" 
+                  element={
+                    <ProtectedRoute allowedRoles={["Administrador", "SuperAdministrador", "Mecánico", "Mantenciones de Maquinaria"]}>
+                      <MantencionesCompletadasPage />
+                    </ProtectedRoute>
+                  } 
+                />
 
-                {/* RUTAS DE MAQUINARIA ACTUALIZADAS */}
-                <Route path="dashboard-maquinaria" element={<DashboardMaquinaria />} />
-                <Route path="maquinaria/trabajo" element={<MaquinariaPage />} />
-                <Route path="maquinaria" element={<MaquinariaPage />} />
-                <Route path="maquinaria/compras" element={<CompraMaquinariaPage />} />
-                <Route path="maquinaria/ventas" element={<VentaMaquinariaPage />} />
+                {/* Dashboard de Maquinaria PROTEGIDO */}
+                <Route 
+                  path="dashboard-maquinaria" 
+                  element={
+                    <ProtectedRoute allowedRoles={["SuperAdministrador", "Arriendo", "Mecánico", "Mantenciones de Maquinaria"]}>
+                      <DashboardMaquinaria />
+                    </ProtectedRoute>
+                  } 
+                />
               </Routes>
             </MainLayout>
           ) : (

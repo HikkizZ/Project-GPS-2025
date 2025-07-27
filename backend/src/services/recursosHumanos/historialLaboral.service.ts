@@ -16,6 +16,8 @@ interface HistorialUnificado {
     id: number;
     name: string;
     role: string;
+    rut?: string | null;
+    corporateEmail?: string | null;
   } | null;
   trabajadorId: number;
 }
@@ -163,6 +165,7 @@ export async function getHistorialUnificadoByTrabajadorService(trabajadorId: num
                     fechaFinLicenciaPermiso: item.fechaFinLicenciaPermiso,
                     motivoLicenciaPermiso: item.motivoLicenciaPermiso,
                     motivoDesvinculacion: item.motivoDesvinculacion,
+                    motivoReactivacion: item.motivoReactivacion,
                     observaciones: item.observaciones,
                     contratoURL: item.contratoURL,
                     afp: item.afp,
@@ -172,7 +175,9 @@ export async function getHistorialUnificadoByTrabajadorService(trabajadorId: num
                 registradoPor: item.registradoPor ? {
                     id: item.registradoPor.id,
                     name: item.registradoPor.name,
-                    role: item.registradoPor.role
+                    role: item.registradoPor.role,
+                    rut: item.registradoPor.rut,
+                    corporateEmail: item.registradoPor.corporateEmail
                 } : null,
                 trabajadorId
             });

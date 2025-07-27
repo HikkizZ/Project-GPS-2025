@@ -69,6 +69,7 @@ export const TrabajadorQueryValidation = Joi.object({
         }),
 
     numeroEmergencia: Joi.string()
+        .allow('')
         .pattern(/^\+?[\d]{3,12}$/)
         .messages({
             "string.base": "El número de emergencia debe ser una cadena de texto.",
@@ -171,6 +172,7 @@ export const TrabajadorBodyValidation = Joi.object({
         }),
 
     numeroEmergencia: Joi.string()
+        .allow('')
         .pattern(/^\+?[\d]{9,12}$/)
         .optional()
         .messages({
@@ -256,6 +258,7 @@ export const TrabajadorUpdateValidation = Joi.object({
         }),
 
     numeroEmergencia: Joi.string()
+        .allow('')
         .pattern(/^\+?[\d]{9,12}$/)
         .messages({
             "string.base": "El número de emergencia debe ser una cadena de texto.",
@@ -345,6 +348,7 @@ export const TrabajadorReactivacionValidation = Joi.object({
         }),
 
     numeroEmergencia: Joi.string()
+        .allow('')
         .pattern(/^\+?[\d]{9,12}$/)
         .optional()
         .messages({
@@ -353,12 +357,21 @@ export const TrabajadorReactivacionValidation = Joi.object({
         }),
 
     direccion: Joi.string()
-        .min(5)
-        .max(200)
+        .max(500)
         .optional()
         .messages({
             "string.base": "La dirección debe ser una cadena de texto.",
-            "string.min": "La dirección debe tener al menos 5 caracteres.",
-            "string.max": "La dirección no puede exceder los 200 caracteres."
+            "string.max": "La dirección no puede exceder los 500 caracteres."
+        }),
+
+    motivoReactivacion: Joi.string()
+        .min(3)
+        .max(1000)
+        .required()
+        .messages({
+            "string.base": "El motivo de reactivación debe ser una cadena de texto.",
+            "string.min": "El motivo de reactivación debe tener al menos 3 caracteres.",
+            "string.max": "El motivo de reactivación no puede exceder los 1000 caracteres.",
+            "any.required": "El motivo de reactivación es requerido."
         })
 });

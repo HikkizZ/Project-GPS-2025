@@ -73,7 +73,10 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
     jornadaLaboral: '',
     sueldoBase: '',
     fechaInicioContrato: '',
-    fechaFinContrato: ''
+    fechaFinContrato: '',
+    afp: '',
+    previsionSalud: '',
+    seguroCesantia: ''
   });
 
   // Toast notifications
@@ -86,7 +89,10 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
     jornadaLaboral: (ficha.jornadaLaboral && ficha.jornadaLaboral !== 'Por Definir') ? ficha.jornadaLaboral : '',
     sueldoBase: ficha.sueldoBase ? formatMiles(ficha.sueldoBase) : '',
     fechaInicioContrato: ficha.fechaInicioContrato ? formatLocalDate(ficha.fechaInicioContrato) : '',
-    fechaFinContrato: ficha.fechaFinContrato ? formatLocalDate(ficha.fechaFinContrato) : ''
+    fechaFinContrato: ficha.fechaFinContrato ? formatLocalDate(ficha.fechaFinContrato) : '',
+    afp: (ficha.afp && ficha.afp !== 'Por Definir') ? ficha.afp : '',
+    previsionSalud: (ficha.previsionSalud && ficha.previsionSalud !== 'Por Definir') ? ficha.previsionSalud : '',
+    seguroCesantia: ficha.seguroCesantia || ''
   });
 
   useEffect(() => {
@@ -98,7 +104,10 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
         jornadaLaboral: (ficha.jornadaLaboral && ficha.jornadaLaboral !== 'Por Definir') ? ficha.jornadaLaboral : '',
         sueldoBase: ficha.sueldoBase ? formatMiles(ficha.sueldoBase) : '',
         fechaInicioContrato: ficha.fechaInicioContrato ? formatLocalDate(ficha.fechaInicioContrato) : '',
-        fechaFinContrato: ficha.fechaFinContrato ? formatLocalDate(ficha.fechaFinContrato) : ''
+        fechaFinContrato: ficha.fechaFinContrato ? formatLocalDate(ficha.fechaFinContrato) : '',
+        afp: (ficha.afp && ficha.afp !== 'Por Definir') ? ficha.afp : '',
+        previsionSalud: (ficha.previsionSalud && ficha.previsionSalud !== 'Por Definir') ? ficha.previsionSalud : '',
+        seguroCesantia: ficha.seguroCesantia || ''
       };
       setFormData(newFormData);
       setInitialFormData(newFormData);
@@ -199,7 +208,7 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
   };
 
   // Detectar si es el primer update (todos los campos clave vacíos o por defecto)
-  const esPrimerUpdate = !ficha.cargo && !ficha.area && !ficha.tipoContrato && !ficha.jornadaLaboral && (!ficha.sueldoBase || ficha.sueldoBase === 0);
+  const esPrimerUpdate = !ficha.cargo && !ficha.area && !ficha.tipoContrato && !ficha.jornadaLaboral && (!ficha.sueldoBase || ficha.sueldoBase === 0) && !ficha.afp && !ficha.previsionSalud;
 
   // Lógica para habilitar/deshabilitar fecha fin según tipo de contrato
   const tipoContratoActual = formData.tipoContrato;
@@ -214,6 +223,8 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
     let isValid = true;
     const fechaRegex = /^\d{4}-\d{2}-\d{2}$/;
     const tipoContrato = formData.tipoContrato;
+    const afp = formData.afp;
+    const previsionSalud = formData.previsionSalud;
     const fechaFin = formData.fechaFinContrato;
 
     // Validar campos requeridos
@@ -223,6 +234,12 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
     if (!formData.jornadaLaboral || formData.jornadaLaboral === 'Por Definir') isValid = false;
     if (!formData.sueldoBase || parseInt(cleanNumber(formData.sueldoBase)) <= 0) isValid = false;
     if (!formData.fechaInicioContrato || !fechaRegex.test(formData.fechaInicioContrato)) isValid = false;
+    if (!formData.afp || afp === 'Por Definir') {
+      isValid = false;
+    }
+    if (!formData.previsionSalud || previsionSalud === 'Por Definir') {
+      isValid = false;
+    } 
 
     // Validación específica de Fecha Fin
     if (tipoContrato === 'Plazo Fijo' || tipoContrato === 'Por Obra' || tipoContrato === 'Part-Time') {
@@ -250,7 +267,10 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
         jornadaLaboral: formData.jornadaLaboral,
         sueldoBase: sueldoBaseNumber,
         fechaInicioContrato: formData.fechaInicioContrato,
-        fechaFinContrato: tipoContrato === 'Indefinido' ? undefined : formData.fechaFinContrato || undefined
+        fechaFinContrato: tipoContrato === 'Indefinido' ? undefined : formData.fechaFinContrato || undefined,
+        afp: formData.afp,
+        previsionSalud: formData.previsionSalud,
+        seguroCesantia: formData.seguroCesantia
       };
       let response;
       if (selectedFile) {
@@ -509,6 +529,74 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
               </Col>
             </Row>
 
+            <Row>
+              {/* AFP, Previsión de Salud Y seguro cesantia*/}
+              <Col md={4}>
+                <Form.Group>
+                  <Form.Label className="fw-semibold">AFP <span className="text-danger">*</span></Form.Label>
+                  <Form.Select
+                    name="afp"
+                    value={formData.afp}
+                    onChange={handleInputChange}
+                    required
+                    style={{ borderRadius: '8px' }}
+                    isInvalid={validated && (!formData.afp || formData.afp === 'Por Definir')}
+                  >
+                    <option value="">Seleccione...</option>
+                    <option value="modelo">AFP Modelo</option>
+                    <option value="capital">AFP Capital</option>
+                    <option value="habitat">AFP Habitat</option>
+                    <option value="cuprum">AFP Cuprum</option>
+                    <option value="provida">AFP Provida</option>
+                    <option value="planvital">AFP PlanVital</option>
+                    <option value="uno">AFP Uno</option>
+                  </Form.Select>
+                  <Form.Control.Feedback type="invalid">
+                    {validated && (!formData.afp || formData.afp === 'Por Definir') && 'Completa este campo'}
+                  </Form.Control.Feedback>
+                </Form.Group>
+              </Col>
+              <Col md={4}>
+                <Form.Group>
+                  <Form.Label className="fw-semibold">Previsión de Salud <span className="text-danger">*</span></Form.Label>
+                  <Form.Select
+                    name="previsionSalud"
+                    value={formData.previsionSalud}
+                    onChange={handleInputChange}
+                    required
+                    style={{ borderRadius: '8px' }}
+                    isInvalid={validated && (!formData.previsionSalud || formData.previsionSalud === 'Por Definir')}
+                  >
+                    <option value="">Seleccione...</option>
+                    <option value="FONASA">Fonasa</option>
+                    <option value="ISAPRE">Isapre</option>
+                  </Form.Select>
+                  <Form.Control.Feedback type="invalid">
+                    {validated && (!formData.previsionSalud || formData.previsionSalud === 'Por Definir') && 'Completa este campo'}
+                  </Form.Control.Feedback>
+                </Form.Group>
+              </Col>
+              <Col md={4}>
+                <Form.Group>
+                  <Form.Label className="fw-semibold">Seguro de Cesantía <span className="text-danger">*</span></Form.Label>
+                  <Form.Select
+                    name="seguroCesantia"
+                    value={formData.seguroCesantia}
+                    onChange={handleInputChange}
+                    required
+                    style={{ borderRadius: '8px' }}
+                    isInvalid={validated && (!formData.seguroCesantia || formData.seguroCesantia === 'Por Definir')}
+                  >
+                    <option value="">Seleccione...</option>
+                    <option value="Sí">Sí</option>
+                    <option value="No">No</option>
+                  </Form.Select>
+                  <Form.Control.Feedback type="invalid">
+                    {validated && (!formData.seguroCesantia || formData.seguroCesantia === 'Por Definir') && 'Completa este campo'}
+                  </Form.Control.Feedback>
+                </Form.Group>
+              </Col>
+            </Row>
             {/* Sección de Contrato */}
             <div style={{ borderTop: '1px solid #e9ecef', paddingTop: '1rem', marginTop: '1rem' }}>
               <h6 className="text-primary mb-3 fw-semibold">Contrato</h6>

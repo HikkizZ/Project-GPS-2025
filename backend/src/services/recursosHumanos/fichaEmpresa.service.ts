@@ -32,7 +32,7 @@ interface SearchFichaParams {
     jornadaLaboral?: string;
     afp?: string;
     previsionSalud?: string;
-    seguroCesantia?: boolean;
+    seguroCesantia?: string;
 
     // Búsqueda por rango salarial
     sueldoBaseDesde?: number;
@@ -436,19 +436,21 @@ export async function updateFichaEmpresaService(
         }
 
         if ('seguroCesantia' in fichaData && fichaData.seguroCesantia !== undefined) {
-            if (typeof fichaData.seguroCesantia !== 'boolean') {
-                return [null, { message: "El seguro de cesantía debe ser un valor booleano" }];
+            const valoresValidos = ["Sí", "No"];
+            if (!valoresValidos.includes(fichaData.seguroCesantia)) {
+                return [null, { message: "El seguro de cesantía debe ser 'Sí' o 'No'" }];
             }
         }
 
         if ('fechaFinContrato' in fichaData && fichaData.fechaFinContrato) {
             const fechaFin = new Date(fichaData.fechaFinContrato);
-            if (!fichaActual.fechaInicioContrato) {
-                return [null, { message: "No existe fecha de inicio de contrato para comparar" }];
+            // Solo comparar si ya existe una fecha de inicio previa
+            if (fichaActual.fechaInicioContrato) {
+                if (fechaFin <= fichaActual.fechaInicioContrato) {
+                    return [null, { message: "La fecha de fin de contrato debe ser posterior a la fecha de inicio" }];
+                }
             }
-            if (fechaFin <= fichaActual.fechaInicioContrato) {
-                return [null, { message: "La fecha de fin de contrato debe ser posterior a la fecha de inicio" }];
-            }
+            // Si no existe fecha de inicio previa, permitir el ingreso sin comparar
         }
 
         if ('tipoContrato' in fichaData && fichaData.tipoContrato) {

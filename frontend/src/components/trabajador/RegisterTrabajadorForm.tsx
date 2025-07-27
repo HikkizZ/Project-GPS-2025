@@ -115,7 +115,12 @@ export const VerificarRUTModal: React.FC<VerificarRUTModalProps> = ({
           </small>
         </div>
 
-        <Form>
+        <Form
+          onSubmit={e => {
+            e.preventDefault();
+            handleVerificar();
+          }}
+        >
           <Row>
             <Col>
               <Form.Group>
@@ -138,33 +143,34 @@ export const VerificarRUTModal: React.FC<VerificarRUTModalProps> = ({
               </Form.Group>
             </Col>
           </Row>
-
+          <div className="d-flex justify-content-end gap-2 mt-4">
+            <Button variant="secondary" onClick={handleClose} disabled={loading} type="button">
+              <i className="bi bi-x-circle me-2"></i>
+              Cancelar
+            </Button>
+            <Button 
+              variant="primary" 
+              onClick={handleVerificar} 
+              disabled={loading || !rut.trim()}
+              type="submit"
+            >
+              {loading ? (
+                <>
+                  <Spinner size="sm" className="me-2" />
+                  Verificando...
+                </>
+              ) : (
+                <>
+                  <i className="bi bi-search me-2"></i>
+                  Verificar RUT
+                </>
+              )}
+            </Button>
+          </div>
         </Form>
       </Modal.Body>
 
-      <Modal.Footer>
-        <Button variant="secondary" onClick={handleClose} disabled={loading}>
-          <i className="bi bi-x-circle me-2"></i>
-          Cancelar
-        </Button>
-        <Button 
-          variant="primary" 
-          onClick={handleVerificar} 
-          disabled={loading || !rut.trim()}
-        >
-          {loading ? (
-            <>
-              <Spinner size="sm" className="me-2" />
-              Verificando...
-            </>
-          ) : (
-            <>
-              <i className="bi bi-search me-2"></i>
-              Verificar RUT
-            </>
-          )}
-        </Button>
-      </Modal.Footer>
+      {/* El Modal.Footer se elimina porque los botones ahora están dentro del Form para mejor accesibilidad y manejo de Enter */}
     </Modal>
   );
 };
@@ -190,7 +196,8 @@ export const ReactivarTrabajadorModal: React.FC<ReactivarTrabajadorModalProps> =
     correoPersonal: trabajador.correoPersonal || '',
     telefono: trabajador.telefono || '',
     numeroEmergencia: trabajador.numeroEmergencia || '',
-    direccion: trabajador.direccion || ''
+    direccion: trabajador.direccion || '',
+    motivoReactivacion: ''
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const { showSuccess, showError } = useToast();
@@ -222,6 +229,11 @@ export const ReactivarTrabajadorModal: React.FC<ReactivarTrabajadorModalProps> =
       newErrors.correoPersonal = 'El correo personal es requerido';
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.correoPersonal)) {
       newErrors.correoPersonal = 'El formato del correo no es válido';
+    }
+    if (!formData.motivoReactivacion.trim()) {
+      newErrors.motivoReactivacion = 'El motivo de reactivación es requerido';
+    } else if (formData.motivoReactivacion.trim().length < 3) {
+      newErrors.motivoReactivacion = 'El motivo de reactivación debe tener al menos 3 caracteres';
     }
 
     setErrors(newErrors);
@@ -261,7 +273,8 @@ export const ReactivarTrabajadorModal: React.FC<ReactivarTrabajadorModalProps> =
       correoPersonal: trabajador.correoPersonal || '',
       telefono: trabajador.telefono || '',
       numeroEmergencia: trabajador.numeroEmergencia || '',
-      direccion: trabajador.direccion || ''
+      direccion: trabajador.direccion || '',
+      motivoReactivacion: ''
     });
     setErrors({});
     setLoading(false);
@@ -458,6 +471,31 @@ export const ReactivarTrabajadorModal: React.FC<ReactivarTrabajadorModalProps> =
             </Col>
           </Row>
 
+          <Row className="mb-3">
+            <Col>
+              <Form.Group>
+                <Form.Label>Motivo de Reactivación <span className="text-danger">*</span></Form.Label>
+                <Form.Control
+                  as="textarea"
+                  rows={3}
+                  name="motivoReactivacion"
+                  value={formData.motivoReactivacion}
+                  onChange={handleInputChange}
+                  isInvalid={!!errors.motivoReactivacion}
+                  disabled={loading}
+                  placeholder="Explique el motivo por el cual se reactiva al trabajador..."
+                />
+                <Form.Control.Feedback type="invalid">
+                  {errors.motivoReactivacion}
+                </Form.Control.Feedback>
+                <Form.Text className="text-muted">
+                  <i className="bi bi-info-circle me-1"></i>
+                  Es importante documentar el motivo de la reactivación para auditoría y seguimiento.
+                </Form.Text>
+              </Form.Group>
+            </Col>
+          </Row>
+
           <Alert variant="success" className="mt-3">
             <i className="bi bi-info-circle me-2"></i>
             <strong>Al reactivar:</strong>
@@ -478,7 +516,7 @@ export const ReactivarTrabajadorModal: React.FC<ReactivarTrabajadorModalProps> =
         <Button 
           variant="success" 
           onClick={handleSubmit} 
-          disabled={loading}
+          disabled={loading || !formData.motivoReactivacion.trim() || !!errors.motivoReactivacion}
         >
           {loading ? (
             <>

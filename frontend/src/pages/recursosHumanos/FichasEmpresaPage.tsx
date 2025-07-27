@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useFichaEmpresa } from '@/hooks/recursosHumanos/useFichaEmpresa';
 import { useAuth, useUI } from '@/context';
 import { useRut } from '@/hooks/useRut';
+import { formatAFP } from '@/utils/index';
 import { 
   FichaEmpresa, 
   FichaEmpresaSearchParams,
@@ -59,7 +60,10 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
   } = useFichaEmpresa();
 
   const [searchQuery, setSearchQuery] = useState<FichaEmpresaSearchParams>({
-    estado: EstadoLaboral.ACTIVO
+    estado: EstadoLaboral.ACTIVO,
+    afp: '',
+    previsionSalud: '',
+    seguroCesantia: ''
   });
   const [showFilters, setShowFilters] = useState(false);
   const [selectedFicha, setSelectedFicha] = useState<FichaEmpresa | null>(null);
@@ -207,7 +211,12 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
   };
 
   const handleReset = () => {
-    setSearchQuery({ estado: EstadoLaboral.ACTIVO });
+    setSearchQuery({ 
+      estado: EstadoLaboral.ACTIVO,
+      afp: '',
+      previsionSalud: '',
+      seguroCesantia: ''
+    });
     setIncluirDesvinculados(false);
     setIncluirLicencias(false);
     setIncluirPermisos(false);
@@ -294,6 +303,12 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
         return 'bg-secondary';
     }
   };
+
+  const getSeguroBadgeClass = (seguroCesantia: string | null | undefined) => {
+    if (seguroCesantia === 'Sí') return 'bg-success';
+    if (seguroCesantia === 'No') return 'bg-danger';
+    return 'bg-warning';
+  }
 
   // Función helper para campos "Por Definir"
   const getFieldClass = (value: string) => {
@@ -440,7 +455,7 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
 
                           <div className="info-field">
                             <i className="bi bi-clock"></i>
-                            <label>Jornada</label>
+                            <label>Jornada Laboral</label>
                             <div className={`value ${getFieldClass(miFicha.jornadaLaboral)}`}>
                               {miFicha.jornadaLaboral === 'Por Definir' ? 
                                 <span className="pending">Por Definir</span> : 
@@ -455,18 +470,57 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                             <div className="value">{formatFecha(miFicha.fechaInicioContrato)}</div>
                           </div>
 
-                          {miFicha.fechaFinContrato && (
-                            <div className="info-field">
-                              <i className="bi bi-calendar-x"></i>
-                              <label>Fecha Fin</label>
-                              <div className="value">{formatFecha(miFicha.fechaFinContrato)}</div>
+                          <div className="info-field">
+                            <i className="bi bi-calendar-x"></i>
+                            <label>Fecha Fin</label>
+                            <div className="value">
+                              {miFicha.fechaFinContrato ? 
+                                formatFecha(miFicha.fechaFinContrato) : 
+                                "-"
+                              }
                             </div>
-                          )}
+                          </div>
 
                           <div className="info-field">
                             <i className="bi bi-cash"></i>
                             <label>Sueldo Base</label>
                             <div className="value text-success">{formatSueldo(miFicha.sueldoBase)}</div>
+                          </div>
+
+                          <div className="info-field">
+                            <i className="bi bi-graph-up"></i>
+                            <label>AFP</label>
+                            <div className={`value ${getFieldClass(miFicha.afp)}`}>
+                              {miFicha.afp === 'Por Definir' ? 
+                                <span className="pending">Por Definir</span> : 
+                                formatAFP(miFicha.afp)
+                              }
+                            </div>
+                          </div>
+
+                          <div className="info-field">
+                            <i className="bi bi-heart"></i>
+                            <label>Previsión salud</label>
+                            <div className={`value ${getFieldClass(miFicha.previsionSalud)}`}>
+                              {miFicha.previsionSalud === 'Por Definir' ? 
+                                <span className="pending">Por Definir</span> : 
+                                miFicha.previsionSalud
+                              }
+                            </div>
+                          </div>
+
+                          <div className="info-field">
+                            <i className="bi bi-breadcase"></i>
+                            <label>Seguro Cesantía</label>
+                            <div className="value">
+                              {miFicha.seguroCesantia ? (
+                                <span className={`status-badge ${miFicha.seguroCesantia === 'Sí' ? 'success' : 'danger'}`}>
+                                  {miFicha.seguroCesantia}
+                                </span>
+                              ) : (
+                                <span className="text-muted">-</span>
+                              )}
+                            </div>
                           </div>
 
                           <div className="info-field">
@@ -476,6 +530,44 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                               <span className={`status-badge ${miFicha.estado.toLowerCase()}`}>
                                 {miFicha.estado}
                               </span>
+                            </div>
+                          </div>
+
+                          <div className ="info-field">
+                            <i className='bi bi-calendar2-check'></i>
+                            <label> Bonos Asignados </label>
+                            <div className="value">
+                              {miFicha.asignacionesBonos && miFicha.asignacionesBonos.length > 0 ? (
+                              <span className="status-badge">
+                                {miFicha.asignacionesBonos
+                                  .filter(asig => asig.activo && asig.bono && asig.bono.nombre)
+                                  .map(asig => asig.bono.nombre)
+                                  .join(', ')
+                                }
+                              </span>
+                            ) : (
+                              <span className="text-muted">No hay bonos asignados</span>
+                            )}
+                            </div>
+                          </div>
+
+                          <div className="info-field">
+                            <i className="bi bi-file-earmark-text"></i>
+                            <label>Contrato</label>
+                            <div className="value">
+                              {miFicha.contratoURL ? (
+                                <Button
+                                  variant="outline-primary"
+                                  size="sm"
+                                  onClick={() => handleDownloadContrato(miFicha.id)}
+                                  className="btn-download-contrato"
+                                >
+                                  <i className="bi bi-download me-1"></i>
+                                  Descargar Contrato
+                                </Button>
+                              ) : (
+                                <span className="text-muted">No hay contrato adjunto</span>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -512,6 +604,22 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                           <label>Teléfono</label>
                           <div className="value">{formatTelefono(miFicha.trabajador.telefono)}</div>
                         </div>
+
+                        {miFicha.trabajador.numeroEmergencia && (
+                          <div className="info-field">
+                            <i className="bi bi-telephone-plus"></i>
+                            <label>Teléfono de Emergencia</label>
+                            <div className="value">{formatTelefono(miFicha.trabajador.numeroEmergencia)}</div>
+                          </div>
+                        )}
+
+                        {miFicha.trabajador.direccion && (
+                          <div className="info-field">
+                            <i className="bi bi-geo-alt"></i>
+                            <label>Dirección</label>
+                            <div className="value">{miFicha.trabajador.direccion}</div>
+                          </div>
+                        )}
 
                         <div className="info-field">
                           <i className="bi bi-calendar-check"></i>
@@ -690,6 +798,53 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                         <option value="Plazo Fijo">Plazo Fijo</option>
                         <option value="Por Obra">Por Obra</option>
                         <option value="Part-Time">Part-Time</option>
+                      </Form.Select>
+                    </Form.Group>
+                  </div>
+                  <div className="col-md-3">
+                    <Form.Group>
+                      <Form.Label className="fw-semibold">AFP:</Form.Label>
+                      <Form.Select
+                        value={searchQuery.afp || ''}
+                        onChange={(e) => setSearchQuery({ ...searchQuery, afp: e.target.value })}
+                        style={{ borderRadius: '8px' }}
+                      >
+                        <option value="">Todas las AFP</option>
+                        <option value="habitat">AFP Habitat</option>
+                        <option value="provida">AFP Provida</option>
+                        <option value="modelo">AFP Modelo</option>
+                        <option value="cuprum">AFP Cuprum</option>
+                        <option value="capital">AFP Capital</option>
+                        <option value="planvital">AFP PlanVital</option>
+                        <option value="uno">AFP Uno</option>
+                      </Form.Select>
+                    </Form.Group>
+                  </div>
+                  <div className="col-md-3">
+                    <Form.Group>
+                      <Form.Label className="fw-semibold">Previsión Salud:</Form.Label>
+                      <Form.Select
+                        value={searchQuery.previsionSalud || ''}
+                        onChange={(e) => setSearchQuery({ ...searchQuery, previsionSalud: e.target.value })}
+                        style={{ borderRadius: '8px' }}
+                      >
+                        <option value="">Todas las previsiones</option>
+                        <option value="FONASA">FONASA</option>
+                        <option value="ISAPRE">ISAPRE</option>
+                      </Form.Select>
+                    </Form.Group>
+                  </div>
+                  <div className="col-md-3">
+                    <Form.Group>
+                      <Form.Label className="fw-semibold">Seguro Cesantía:</Form.Label>
+                      <Form.Select
+                        value={searchQuery.seguroCesantia || ''}
+                        onChange={(e) => setSearchQuery({ ...searchQuery, seguroCesantia: e.target.value })}
+                        style={{ borderRadius: '8px' }}
+                      >
+                        <option value="">Todos los seguros</option>
+                        <option value="Sí">Sí</option>
+                        <option value="No">No</option>
                       </Form.Select>
                     </Form.Group>
                   </div>
@@ -876,10 +1031,14 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                         <th>Área</th>
                         <th>Estado</th>
                         <th>Tipo Contrato</th>
-                        <th>Jornada</th>
+                        <th>Jornada Laboral</th>
                         <th>Fecha Inicio</th>
                         <th>Fecha Fin</th>
                         <th>Sueldo Base</th>
+                        <th>AFP</th>
+                        <th>Previsión Salud</th>
+                        <th>Seguro Cesantía</th>
+                        <th>Bonos Asignados</th>
                         <th>Acciones</th>
                       </tr>
                     </thead>
@@ -921,6 +1080,39 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                           <td>{formatFecha(ficha.fechaInicioContrato)}</td>
                           <td>{ficha.fechaFinContrato ? formatFecha(ficha.fechaFinContrato) : '-'}</td>
                           <td>{formatSueldo(ficha.sueldoBase)}</td>
+                          <td>
+                            <span className={getFieldClass(ficha.afp || '-')}>
+                              {formatAFP(ficha.afp)}
+                            </span>
+                          </td>
+                          <td>
+                            <span className={getFieldClass(ficha.previsionSalud || '-')}>
+                              {ficha.previsionSalud || '-'}
+                            </span>
+                          </td>
+                          <td>
+                            {ficha.seguroCesantia ? (
+                              <span className={`badge ${ficha.seguroCesantia === 'Sí' ? 'bg-success' : 'bg-danger'}`}>
+                                {ficha.seguroCesantia}
+                              </span>
+                            ) : (
+                              <span className="text-muted">-</span>
+                            )}
+                          </td>
+                          <td> 
+                            {ficha.asignacionesBonos && ficha.asignacionesBonos.length > 0 ? (
+                              <span className="status-badge">
+                                {ficha.asignacionesBonos
+                                  .filter(asig => asig.activo && asig.bono && asig.bono.nombre)
+                                  .map(asig => asig.bono.nombre)
+                                  .join(', ')
+                                }
+                              </span>
+                            ) : (
+                              <span className="text-muted">No hay bonos asignados</span>
+                            )}
+                          </td>
+
                           <td>
                             <div className="btn-group">
                               {/* Ocultar botón de editar si es la ficha del usuario actual */}

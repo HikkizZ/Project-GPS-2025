@@ -160,7 +160,10 @@ function limpiarCamposTexto(data: Partial<Trabajador>): Partial<Trabajador> {
     if (dataCopia.apellidoMaterno) dataCopia.apellidoMaterno = dataCopia.apellidoMaterno.trim().replace(/\s+/g, ' ');
     if (dataCopia.telefono) dataCopia.telefono = dataCopia.telefono.trim();
     if (dataCopia.correoPersonal) dataCopia.correoPersonal = dataCopia.correoPersonal.trim();
-    if (dataCopia.numeroEmergencia) dataCopia.numeroEmergencia = dataCopia.numeroEmergencia.trim();
+    if (dataCopia.numeroEmergencia) {
+        const numeroLimpio = dataCopia.numeroEmergencia.trim();
+        dataCopia.numeroEmergencia = numeroLimpio === '' ? null : numeroLimpio;
+    }
     if (dataCopia.direccion) dataCopia.direccion = dataCopia.direccion.trim().replace(/\s+/g, ' ');
     if (dataCopia.rut) dataCopia.rut = dataCopia.rut.trim();
     
@@ -439,6 +442,13 @@ export async function desvincularTrabajadorService(id: number, motivo: string, u
             return [null, "No se puede desvincular a un trabajador mientras esté con licencia médica o permiso administrativo."];
         }
 
+        // Validación: No permitir desvinculación si falta la fecha de inicio de contrato
+        if (!trabajador.fichaEmpresa || !trabajador.fichaEmpresa.fechaInicioContrato) {
+            await queryRunner.rollbackTransaction();
+            await queryRunner.release();
+            return [null, "Debes ingresar la fecha de inicio de contrato (en la ficha de empresa) antes de desvincular al trabajador."];
+        }
+
 
         // Soft delete del trabajador
         trabajador.enSistema = false;
@@ -670,6 +680,7 @@ export async function reactivarTrabajadorService(
         telefono?: string;
         numeroEmergencia?: string;
         direccion?: string;
+        motivoReactivacion: string;
     },
     userId: number
 ): Promise<ServiceResponse<{ trabajador: Trabajador, nuevoCorreoCorporativo: string, credencialesEnviadas: boolean }>> {
@@ -716,7 +727,10 @@ export async function reactivarTrabajadorService(
         }
 
         // 3. Limpiar y validar datos
-        const datosLimpios = limpiarCamposTexto(data);
+        const datosLimpios = {
+            ...limpiarCamposTexto(data),
+            motivoReactivacion: data.motivoReactivacion.trim()
+        };
         
         if (!datosLimpios.nombres || !datosLimpios.apellidoPaterno || !datosLimpios.apellidoMaterno || !datosLimpios.correoPersonal) {
             await queryRunner.rollbackTransaction();
@@ -783,6 +797,7 @@ export async function reactivarTrabajadorService(
             jornadaLaboral: trabajador.fichaEmpresa.jornadaLaboral,
             sueldoBase: trabajador.fichaEmpresa.sueldoBase,
             fechaInicio: new Date(),
+            motivoReactivacion: datosLimpios.motivoReactivacion,
             observaciones: `Reactivación de trabajador. Nuevo correo corporativo: ${nuevoCorreoCorporativo}`,
             contratoURL: trabajador.fichaEmpresa.contratoURL,
             afp: trabajador.fichaEmpresa.afp,

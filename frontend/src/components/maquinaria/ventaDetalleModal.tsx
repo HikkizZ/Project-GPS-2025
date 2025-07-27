@@ -1,5 +1,5 @@
 import type React from "react"
-import { Modal, Button, Row, Col } from "react-bootstrap"
+import { Modal, Button, Row, Col, Badge, Alert } from "react-bootstrap"
 import type { VentaMaquinaria } from "../../types/maquinaria.types"
 
 interface VentaDetalleModalProps {
@@ -9,6 +9,11 @@ interface VentaDetalleModalProps {
 }
 
 export const VentaDetalleModal: React.FC<VentaDetalleModalProps> = ({ show, onHide, venta }) => {
+  // Función helper para determinar si una venta está activa
+  const isVentaActiva = (venta: VentaMaquinaria) => {
+    return venta.isActive !== false
+  }
+
   const formatCurrency = (value: number | undefined | null) => {
     if (!value || value === 0) return "$0"
     return new Intl.NumberFormat("es-CL", {
@@ -49,9 +54,31 @@ export const VentaDetalleModal: React.FC<VentaDetalleModalProps> = ({ show, onHi
         <Modal.Title>
           <i className="bi bi-eye me-2"></i>
           Detalles de la Venta - {venta.patente}
+          {/* Mostrar estado en el título */}
+          <div className="mt-1">
+            {!isVentaActiva(venta) ? (
+              <Badge bg="secondary">
+                <i className="bi bi-x-circle me-1"></i>
+                Venta Inactiva
+              </Badge>
+            ) : (
+              <Badge bg="success">
+                <i className="bi bi-check-circle me-1"></i>
+                Venta Activa
+              </Badge>
+            )}
+          </div>
         </Modal.Title>
       </Modal.Header>
       <Modal.Body>
+        {/* Alerta para ventas inactivas */}
+        {!isVentaActiva(venta) && (
+          <Alert variant="warning" className="mb-4">
+            <i className="bi bi-exclamation-triangle me-2"></i>
+            <strong>Venta Inactiva:</strong> Esta venta ha sido eliminada (soft delete) y no está activa en el sistema.
+          </Alert>
+        )}
+
         {/* Información de la Maquinaria */}
         <div className="mb-4">
           <h5>
@@ -83,8 +110,42 @@ export const VentaDetalleModal: React.FC<VentaDetalleModalProps> = ({ show, onHi
           <Row className="g-3">
             <Col md={12}>
               <div>
-                <label className="fw-bold">Comprador:</label>
-                <div>{venta.comprador || "No especificado"}</div>
+                <label className="fw-bold">Cliente:</label>
+                {venta.customer ? (
+                  <div className="mt-2">
+                    <div className="d-flex align-items-center gap-2">
+                      <Badge bg="info">
+                        <i className="bi bi-person me-1"></i>
+                        {venta.customer.name}
+                      </Badge>
+                      <small className="text-muted">RUT: {venta.customer.rut}</small>
+                    </div>
+                    <div className="mt-1">
+                      <small className="text-muted">
+                        <i className="bi bi-envelope me-1"></i>
+                        {venta.customer.email}
+                      </small>
+                      <span className="mx-2">•</span>
+                      <small className="text-muted">
+                        <i className="bi bi-telephone me-1"></i>
+                        {venta.customer.phone}
+                      </small>
+                    </div>
+                    <div className="mt-1">
+                      <small className="text-muted">
+                        <i className="bi bi-geo-alt me-1"></i>
+                        {venta.customer.address}
+                      </small>
+                    </div>
+                  </div>
+                ) : venta.comprador ? (
+                  <div className="text-muted">
+                    <i className="bi bi-info-circle me-1"></i>
+                    {venta.comprador} (registro legacy)
+                  </div>
+                ) : (
+                  <div className="text-muted">No especificado</div>
+                )}
               </div>
             </Col>
           </Row>

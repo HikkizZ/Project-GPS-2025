@@ -38,6 +38,9 @@ export class HistorialLaboral {
   motivoDesvinculacion!: string;
 
   @Column({ type: "text", nullable: true })
+  motivoReactivacion!: string;
+
+  @Column({ type: "text", nullable: true })
   observaciones!: string;
 
   @Column({ type: "varchar", length: 255, nullable: true })
@@ -49,8 +52,8 @@ export class HistorialLaboral {
   @Column({ type: "varchar", length: 50, nullable: true })
   previsionSalud!: string;
 
-  @Column({ type: "boolean", nullable: true })
-  seguroCesantia!: boolean;
+  @Column({ type: "varchar", length: 10, nullable: true })
+  seguroCesantia!: string | null;
 
   @Column({ type: "varchar", length: 30, nullable: true })
   estado!: string;

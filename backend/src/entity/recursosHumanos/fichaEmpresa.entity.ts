@@ -31,6 +31,11 @@ export enum TipoPrevisionSalud {
     FONASA = "FONASA"
 }
 
+export enum TipoSeguroCesantia {
+    SI = "Sí",
+    NO = "No"
+}
+
 @Entity("fichas_empresa")
 export class FichaEmpresa {
   @PrimaryGeneratedColumn()
@@ -78,8 +83,8 @@ export class FichaEmpresa {
   @Column({ type: "enum", enum: companiaFondoAFP, nullable: true })
   afp!: companiaFondoAFP;
 
-  @Column({ type: "boolean", nullable: true })
-  seguroCesantia!: boolean;
+  @Column({ type: "enum", enum: TipoSeguroCesantia, nullable: true })
+  seguroCesantia!: TipoSeguroCesantia;
 
   @Column({
     type: "date",

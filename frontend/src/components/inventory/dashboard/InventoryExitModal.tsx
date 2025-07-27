@@ -16,7 +16,7 @@ const InventoryExitModal: React.FC<InventoryExitModalProps> = ({ show, onClose, 
       <Modal.Header className="bg-gradient-primary text-white" closeButton>
         <Modal.Title>
           <i className="bi bi-box-arrow-up me-2"></i>
-          Registrar Venta
+          Registrar Venta de Materiales
         </Modal.Title>
       </Modal.Header>
       <Modal.Body>

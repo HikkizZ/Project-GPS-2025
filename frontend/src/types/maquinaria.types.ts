@@ -1,3 +1,7 @@
+// Importar tipos de stakeholders desde la ubicación correcta
+import type { Supplier } from "./stakeholders/supplier.types"
+import type { Customer } from "./stakeholders/customer.types"
+
 export enum GrupoMaquinaria {
   CAMION_TOLVA = "camion_tolva",
   BATEA = "batea",
@@ -48,7 +52,10 @@ export interface CompraMaquinaria {
   avaluoFiscal: number
   numeroChasis: string
   kilometrajeInicial: number
-  proveedor?: string
+  // Relación con Supplier
+  supplierId?: number
+  supplierRut?: string
+  proveedor?: string // Nombre del supplier (desnormalizado)
   observaciones?: string
   // Campos del padrón agregados
   padronUrl?: string
@@ -58,7 +65,10 @@ export interface CompraMaquinaria {
   padronFileSize?: number
   fechaCreacion: string
   fechaActualizacion: string
+  // Campo para soft delete
+  isActive?: boolean
   maquinaria?: Maquinaria
+  supplier?: Supplier
 }
 
 export interface VentaMaquinaria {
@@ -68,9 +78,15 @@ export interface VentaMaquinaria {
   fechaVenta: string
   valorCompra: number
   valorVenta: number
-  comprador?: string
+  // Relación con Customer
+  customerId: number
+  customerRut: string
+  comprador?: string // Nombre del customer (desnormalizado)
   observaciones?: string
+  // Campo para soft delete
+  isActive?: boolean
   maquinaria?: Maquinaria
+  customer?: Customer
 }
 
 export interface CreateCompraMaquinaria {
@@ -84,7 +100,7 @@ export interface CreateCompraMaquinaria {
   avaluoFiscal: number
   numeroChasis: string
   kilometrajeInicial: number
-  proveedor?: string
+  supplierId?: number // Cambiar de proveedor a supplierId
   observaciones?: string
 }
 
@@ -93,7 +109,7 @@ export interface CreateVentaMaquinaria {
   fechaVenta: string
   valorCompra: number
   valorVenta: number
-  comprador?: string
+  customerId: number // Cambiar de comprador a customerId
   observaciones?: string
 }
 

@@ -1,6 +1,9 @@
-import React from 'react';
-import { Modal, Card, Row, Col, Badge, Button } from 'react-bootstrap';
+import React, { useState } from 'react';
+import { Modal, Card, Row, Col, Badge, Button, Spinner } from 'react-bootstrap';
 import { Trabajador } from '@/types/recursosHumanos/trabajador.types';
+import { downloadContrato } from '@/services/recursosHumanos/fichaEmpresa.service';
+import { useToast } from '@/components/common/Toast';
+import { formatAFP } from '../../utils/index';
 
 interface TrabajadorDetalleModalProps {
   show: boolean;
@@ -9,7 +12,24 @@ interface TrabajadorDetalleModalProps {
 }
 
 export const TrabajadorDetalleModal: React.FC<TrabajadorDetalleModalProps> = ({ show, onHide, trabajador }) => {
+  const [isDownloading, setIsDownloading] = useState(false);
+  const { showSuccess, showError } = useToast();
+
   if (!trabajador) return null;
+
+  const handleDownloadContrato = async () => {
+    if (!trabajador.fichaEmpresa?.id) return;
+    
+    try {
+      setIsDownloading(true);
+      await downloadContrato(trabajador.fichaEmpresa.id);
+      showSuccess('Descarga exitosa', 'El contrato se ha descargado correctamente', 4000);
+    } catch (error: any) {
+      showError('Error de descarga', error.message || 'Error al descargar el contrato', 6000);
+    } finally {
+      setIsDownloading(false);
+    }
+  };
 
   return (
     <Modal show={show} onHide={onHide} size="lg" centered>
@@ -54,7 +74,36 @@ export const TrabajadorDetalleModal: React.FC<TrabajadorDetalleModalProps> = ({ 
                     <div><strong>Sueldo Base:</strong> {trabajador.fichaEmpresa?.sueldoBase ? `$${trabajador.fichaEmpresa.sueldoBase.toLocaleString()}` : '-'}</div>
                     <div><strong>Fecha Inicio Contrato:</strong> {trabajador.fichaEmpresa?.fechaInicioContrato ? new Date(trabajador.fichaEmpresa.fechaInicioContrato).toLocaleDateString() : '-'}</div>
                     <div><strong>Fecha Fin Contrato:</strong> {trabajador.fichaEmpresa?.fechaFinContrato ? new Date(trabajador.fichaEmpresa.fechaFinContrato).toLocaleDateString() : '-'}</div>
+                    <div><strong>AFP:</strong> {formatAFP(trabajador.fichaEmpresa?.afp)}</div>
+                    <div><strong>Salud:</strong> {trabajador.fichaEmpresa?.previsionSalud || '-'}</div>
+                    <div><strong>Seguro Cesantía:</strong> {trabajador.fichaEmpresa?.seguroCesantia || '-'}</div>
+                    <div><strong>Bonos Asignados:</strong> {trabajador.fichaEmpresa?.asignacionesBonos?.map(asignacion => asignacion.bono.nombre).join(', ') || '-'}</div>
                     <div><strong>Estado:</strong> {trabajador.fichaEmpresa?.estado || '-'}</div>
+                    <div><strong>Contrato:</strong> 
+                      {trabajador.fichaEmpresa?.contratoURL ? (
+                        <Button 
+                          variant="outline-primary" 
+                          size="sm" 
+                          className="ms-2"
+                          onClick={handleDownloadContrato}
+                          disabled={isDownloading}
+                        >
+                          {isDownloading ? (
+                            <>
+                              <Spinner size="sm" className="me-1" />
+                              Descargando...
+                            </>
+                          ) : (
+                            <>
+                              <i className="bi bi-download me-1"></i>
+                              Descargar Contrato
+                            </>
+                          )}
+                        </Button>
+                      ) : (
+                        <span className="text-muted ms-2">No hay contrato adjunto</span>
+                      )}
+                    </div>
                   </>
                 )}
                 {trabajador.usuario && (

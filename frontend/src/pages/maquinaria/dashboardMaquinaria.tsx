@@ -74,8 +74,8 @@ const DashboardMaquinaria: React.FC = () => {
       else if (user.corporateEmail) query.corporateEmail = user.corporateEmail
       else throw new Error("No se puede identificar al usuario (falta id, rut o corporateEmail)")
       await userService.updateUser(query, { password: newPassword })
-      setSuccessMsg("") // Limpiar mensaje local
-      setShowAccountModal(false) // Cerrar modal
+      setSuccessMsg("")
+      setShowAccountModal(false)
       showSuccess("¡Contraseña actualizada!", "Tu contraseña se ha actualizado exitosamente", 3000) // Toast global
       setNewPassword("")
     } catch (err: any) {
@@ -89,7 +89,7 @@ const DashboardMaquinaria: React.FC = () => {
     <Container fluid className="py-2" style={{ paddingBottom: "2.3rem" }}>
       <Row>
         <Col>
-          {/* Header Elegante */}
+          {/* Header */}
           <div
             className="card shadow-lg border-0 mb-4 main-card-spacing"
             style={{ borderRadius: "12px", overflow: "hidden" }}

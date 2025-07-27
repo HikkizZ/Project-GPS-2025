@@ -14,6 +14,8 @@ export interface FichaEmpresa {
     apellidoMaterno: string;
     rut: string;
     telefono: string;
+    numeroEmergencia?: string;
+    direccion?: string;
     fechaIngreso: Date | string;
     fechaNacimiento?: Date | string;
     usuario?: {
@@ -34,6 +36,22 @@ export interface FichaEmpresa {
   fechaFinLicenciaPermiso?: Date | string | null;
   motivoLicenciaPermiso?: string | null;
   contratoURL?: string | null;
+  afp?: string | null; // Aseguradora de Fondos de Pensiones
+  previsionSalud?: string | null; // Institución de Salud Previsional
+  seguroCesantia?: string; // Seguro de Cesantía
+  asignacionesBonos: {
+    id: number;
+    fechaAsignacion: Date | string;
+    fechaFinAsignacion?: Date | string | null;
+    activo: boolean;
+    bono: {
+      id: number;
+      nombre: string;
+      monto: number;
+      tipo: string; // Puede ser 'empresarial' o 'estatal'
+      imponible: boolean;
+    };
+  }[];
 }
 
 export interface CreateFichaEmpresaData {
@@ -63,6 +81,9 @@ export interface FichaEmpresaSearchQuery {
   fechaInicioHasta?: Date | string;
   fechaFinDesde?: Date | string;
   fechaFinHasta?: Date | string;
+  afp?: string;
+  previsionSalud?: string;
+  seguroCesantia?: string;
 }
 
 export interface UpdateFichaEmpresaData {
@@ -74,6 +95,9 @@ export interface UpdateFichaEmpresaData {
   fechaInicioContrato?: string;
   fechaFinContrato?: string;
   contratoURL?: string;
+  afp?: string;
+  previsionSalud?: string;
+  seguroCesantia?: string;
 }
 
 export interface ActualizarEstadoData {
@@ -101,4 +125,7 @@ export interface FichaEmpresaSearchParams {
   fechaFinDesde?: string;
   fechaFinHasta?: string;
   incluirSinFechaFin?: boolean;
+  afp?: string;
+  previsionSalud?: string;
+  seguroCesantia?: string;
 } 

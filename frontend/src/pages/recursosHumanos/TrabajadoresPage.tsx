@@ -32,7 +32,19 @@ export const TrabajadoresPage: React.FC = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [searchParams, setSearchParams] = useState<TrabajadorSearchQuery>({});
   const [desvincularError, setDesvincularError] = useState<string>('');
+  const [motivoDesvinculacionError, setMotivoDesvinculacionError] = useState<string>('');
   const [isDesvinculando, setIsDesvinculando] = useState(false);
+
+  // Función para manejar el cambio del motivo de desvinculación
+  const handleMotivoDesvinculacionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const value = e.target.value;
+    setMotivoDesvinculacion(value);
+    
+    // Limpiar error cuando el usuario empiece a escribir
+    if (motivoDesvinculacionError) {
+      setMotivoDesvinculacionError('');
+    }
+  };
   const [showEditModal, setShowEditModal] = useState(false);
   const [rutError, setRutError] = useState<string | null>(null);
   const [showDetalleModal, setShowDetalleModal] = useState(false);
@@ -88,16 +100,33 @@ export const TrabajadoresPage: React.FC = () => {
     setTrabajadorToDesvincular(trabajador);
     setShowDesvincularModal(true);
     setDesvincularError('');
+    setMotivoDesvinculacionError('');
     setMotivoDesvinculacion('');
   };
 
   // Función para ejecutar la desvinculación
   const handleDesvincularConfirm = async () => {
-    if (!trabajadorToDesvincular || !motivoDesvinculacion.trim()) return;
+    if (!trabajadorToDesvincular) return;
+
+    // Validar motivo de desvinculación
+    if (!motivoDesvinculacion.trim()) {
+      setMotivoDesvinculacionError('El motivo de desvinculación es requerido');
+      return;
+    } else if (motivoDesvinculacion.trim().length < 3) {
+      setMotivoDesvinculacionError('El motivo de desvinculación debe tener al menos 3 caracteres');
+      return;
+    }
+
+    // Validación: no permitir si falta la fecha de inicio de contrato
+    if (!trabajadorToDesvincular.fichaEmpresa || !trabajadorToDesvincular.fichaEmpresa.fechaInicioContrato) {
+      setDesvincularError('Debes ingresar la fecha de inicio de contrato (en la ficha de empresa) antes de desvincular al trabajador.');
+      return;
+    }
 
     try {
       setIsDesvinculando(true);
       setDesvincularError('');
+      setMotivoDesvinculacionError('');
       const result = await desvincularTrabajador(trabajadorToDesvincular.id, motivoDesvinculacion);
       if (result.success) {
         setShowDesvincularModal(false);
@@ -457,33 +486,58 @@ export const TrabajadoresPage: React.FC = () => {
                             <td>{trabajador.direccion}</td>
                             <td>{new Date(trabajador.fechaIngreso).toLocaleDateString()}</td>
                             <td className="text-center">
-                              {/* Ocultar acciones si es el admin principal o si es el usuario actual */}
-                              {(trabajador.correoPersonal !== 'admin.principal@gmail.com' && !esTrabajadorActual(trabajador)) && (
+                              {/* Ocultar acciones si es el admin principal */}
+                              {trabajador.correoPersonal !== 'admin.principal@gmail.com' && (
                                 <div className="btn-group">
-                                  <Button 
-                                    variant="outline-primary" 
-                                    className="me-2"
-                                    onClick={() => handleEditClick(trabajador)}
-                                    title="Editar trabajador"
-                                    disabled={!trabajador.enSistema}
-                                  >
-                                    <i className="bi bi-pencil"></i>
-                                  </Button>
-                                  <Button 
-                                    variant="outline-danger" 
-                                    onClick={() => handleDesvincularClick(trabajador)}
-                                    title="Desvincular trabajador"
-                                    disabled={!trabajador.enSistema}
-                                  >
-                                    <i className="bi bi-person-x"></i>
-                                  </Button>
-                                  <Button
-                                    variant="outline-secondary"
-                                    onClick={() => handleVerDetalle(trabajador)}
-                                    title="Ver detalles"
-                                  >
-                                    <i className="bi bi-eye"></i>
-                                  </Button>
+                                  {/* Si es el usuario actual y tiene rol adecuado, solo mostrar el ojo */}
+                                  {esTrabajadorActual(trabajador) && (user?.role === 'RecursosHumanos' || user?.role === 'Administrador') ? (
+                                    <Button
+                                      variant="outline-secondary"
+                                      onClick={() => handleVerDetalle(trabajador)}
+                                      title="Ver detalles"
+                                    >
+                                      <i className="bi bi-eye"></i>
+                                    </Button>
+                                  ) :
+                                  // Si NO es el usuario actual, mostrar todas las acciones
+                                  (!esTrabajadorActual(trabajador)) && (
+                                    <>
+                                      <Button 
+                                        variant="outline-primary" 
+                                        className="me-2"
+                                        onClick={() => handleEditClick(trabajador)}
+                                        title="Editar trabajador"
+                                        disabled={!trabajador.enSistema}
+                                      >
+                                        <i className="bi bi-pencil"></i>
+                                      </Button>
+                                      <Button 
+                                        variant="outline-danger" 
+                                        onClick={() => handleDesvincularClick(trabajador)}
+                                        title="Desvincular trabajador"
+                                        disabled={!trabajador.enSistema}
+                                      >
+                                        <i className="bi bi-person-x"></i>
+                                      </Button>
+                                      {/* Botón de reactivar solo si está desvinculado */}
+                                      {!trabajador.enSistema && (
+                                        <Button
+                                          variant="outline-success"
+                                          onClick={() => handleReactivacion(trabajador)}
+                                          title="Reactivar trabajador"
+                                        >
+                                          <i className="bi bi-person-check"></i>
+                                        </Button>
+                                      )}
+                                      <Button
+                                        variant="outline-secondary"
+                                        onClick={() => handleVerDetalle(trabajador)}
+                                        title="Ver detalles"
+                                      >
+                                        <i className="bi bi-eye"></i>
+                                      </Button>
+                                    </>
+                                  )}
                                 </div>
                               )}
                             </td>
@@ -579,12 +633,6 @@ export const TrabajadoresPage: React.FC = () => {
           </Modal.Title>
         </Modal.Header>
         <Modal.Body style={{ padding: '1.5rem' }}>
-          {desvincularError && (
-            <Alert variant="danger" className="border-0 mb-3" style={{ borderRadius: '12px' }}>
-              <i className="bi bi-exclamation-circle me-2"></i>
-              {desvincularError}
-            </Alert>
-          )}
           <Alert variant="warning" className="border-0 mb-3" style={{ borderRadius: '12px' }}>
             <div className="d-flex align-items-start">
               <i className="bi bi-exclamation-triangle me-3 mt-1 text-warning"></i>
@@ -621,12 +669,26 @@ export const TrabajadoresPage: React.FC = () => {
               as="textarea"
               rows={3}
               value={motivoDesvinculacion}
-              onChange={(e) => setMotivoDesvinculacion(e.target.value)}
+              onChange={handleMotivoDesvinculacionChange}
+              isInvalid={!!motivoDesvinculacionError}
               placeholder="Ingrese el motivo de la desvinculación..."
               required
               style={{ borderRadius: '8px' }}
             />
+            <Form.Control.Feedback type="invalid">
+              {motivoDesvinculacionError}
+            </Form.Control.Feedback>
+            <Form.Text className="text-muted">
+              <i className="bi bi-info-circle me-1"></i>
+              Es importante documentar el motivo de la desvinculación para auditoría y seguimiento.
+            </Form.Text>
           </Form.Group>
+          {desvincularError && (
+            <Alert variant="danger" className="border-0 mt-3 mb-0" style={{ borderRadius: '12px' }}>
+              <i className="bi bi-exclamation-circle me-2"></i>
+              {desvincularError}
+            </Alert>
+          )}
         </Modal.Body>
         <Modal.Footer style={{ padding: '1rem 1.5rem', borderTop: '1px solid #dee2e6' }}>
           <Button 
@@ -641,7 +703,7 @@ export const TrabajadoresPage: React.FC = () => {
           <Button 
             variant="danger" 
             onClick={handleDesvincularConfirm}
-            disabled={isDesvinculando || !motivoDesvinculacion.trim()}
+            disabled={isDesvinculando || !motivoDesvinculacion.trim() || !!motivoDesvinculacionError}
             style={{ borderRadius: '20px', fontWeight: '500' }}
           >
             {isDesvinculando ? (

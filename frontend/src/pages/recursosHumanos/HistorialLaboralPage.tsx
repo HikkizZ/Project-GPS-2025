@@ -7,6 +7,7 @@ import { trabajadorService } from '@/services/recursosHumanos/trabajador.service
 import '@/styles/pages/historialLaboral.css';
 import { useAuth } from '@/context';
 import { useRut } from '@/hooks/useRut';
+import { formatAFP } from '../../utils/index';
 
 type FiltroTipo = 'todos' | 'inicial' | 'laboral' | 'licencias' | 'personales' | 'usuario';
 type ModoVista = 'tradicional' | 'unificado';
@@ -204,9 +205,9 @@ export default function HistorialLaboralPage() {
     return <Badge bg={color}>{estado}</Badge>;
   };
 
-  const formatSeguroCesantia = (seguro?: boolean | null) => {
+  const formatSeguroCesantia = (seguro?: string | null) => {
     if (seguro === null || seguro === undefined) return '-';
-    return seguro ? <Badge bg="success">Sí</Badge> : <Badge bg="danger">No</Badge>;
+    return seguro === 'Sí' ? <Badge bg="success">Sí</Badge> : <Badge bg="danger">No</Badge>;
   };
 
   const handleDescargarContrato = async (historialId: number) => {
@@ -347,12 +348,37 @@ export default function HistorialLaboralPage() {
       const match = s.match(/([a-zA-ZñÑáéíóúÁÉÍÓÚ]+) \(de '([^']*)' a '([^']*)'\)/);
       if (match) {
         const campo = match[1];
+        const valorAnterior = match[2];
+        const valorNuevo = match[3];
         const campoFormal = traduccionCampos[campo] || campo.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
-        return s.replace(campo, campoFormal);
+        
+        // Formatear valores específicos
+        let valorAnteriorFormateado = valorAnterior;
+        let valorNuevoFormateado = valorNuevo;
+        
+        if (campo === 'afp') {
+          valorAnteriorFormateado = formatAFP(valorAnterior);
+          valorNuevoFormateado = formatAFP(valorNuevo);
+        }
+        
+        return `${campoFormal} (de '${valorAnteriorFormateado}' a '${valorNuevoFormateado}')`;
       }
       return s;
     });
-    return `Actualización de información laboral: ${cambios.join(', ')}${sufijo}`;
+    // Reemplazar fechas aaaa-mm-dd por dd-mm-aaaa en toda la descripción
+    const formatFechaTexto = (fecha: string) => {
+      if (!fecha) return '';
+      const [year, month, day] = fecha.split('-');
+      return `${day}-${month}-${year}`;
+    };
+    let descripcion = `Actualización de información laboral: ${cambios.join(', ')}${sufijo}`;
+    descripcion = descripcion.replace(/(\d{4})-(\d{2})-(\d{2})/g, (_m, y, m, d) => `${d}-${m}-${y}`);
+    return descripcion;
+  }
+
+  function formatearDescripcionLicenciaPermiso(descripcion: string): string {
+    if (!descripcion) return '';
+    return descripcion.replace(/(\d{4})-(\d{2})-(\d{2})/g, (_m, y, m, d) => `${d}-${m}-${y}`);
   }
 
   // Reemplazar la función renderCamposManuales por una versión que parsea los campos modificados desde observaciones si corresponde
@@ -383,7 +409,13 @@ export default function HistorialLaboralPage() {
           const valorNuevo = match[3];
           // Usar el diccionario de traducción si existe
           const campoFormal = traduccionCampos[campo] || campo.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
-          campos.push(`${campoFormal}: ${valorNuevo}`);
+          if (campo === 'fechaInicioContrato' || campo === 'fechaFinContrato') {
+            campos.push(`${campoFormal}: ${formatFecha(valorNuevo)}`);
+          } else if (campo === 'afp') {
+            campos.push(`${campoFormal}: ${formatAFP(valorNuevo)}`);
+          } else {
+            campos.push(`${campoFormal}: ${valorNuevo}`);
+          }
         }
       });
       // Si la observación contenía subida de contrato, agregar el badge
@@ -402,11 +434,18 @@ export default function HistorialLaboralPage() {
       const esAmbos = obs === 'Actualización de información laboral y subida de contrato PDF';
       const esLicenciaPermiso = obs.includes('Licencia') || obs.includes('Permiso');
       const esDesvinculacion = obs.includes('Desvinculación');
+      const esReactivacion = obs.includes('Reactivación');
       
       // Para desvinculaciones, mostrar solo el motivo de desvinculación
       if (esDesvinculacion) {
         if (detalles.motivoDesvinculacion) {
           campos.push(`Motivo: ${detalles.motivoDesvinculacion}`);
+        }
+      }
+      // Para reactivaciones, mostrar solo el motivo de reactivación
+      else if (esReactivacion) {
+        if (detalles.motivoReactivacion) {
+          campos.push(`Motivo: ${detalles.motivoReactivacion}`);
         }
       }
       // Para licencias/permisos, mostrar solo fechas y motivo
@@ -436,13 +475,13 @@ export default function HistorialLaboralPage() {
           campos.push(`Sueldo: ${formatSueldo(detalles.sueldoBase)}`);
         }
         if (detalles.afp) {
-          campos.push(`AFP: ${detalles.afp}`);
+          campos.push(`AFP: ${formatAFP(detalles.afp)}`);
         }
         if (detalles.previsionSalud) {
           campos.push(`Previsión Salud: ${detalles.previsionSalud}`);
         }
         if (detalles.seguroCesantia !== undefined && detalles.seguroCesantia !== null) {
-          campos.push(`Seguro Cesantía: ${formatSeguroCesantia(detalles.seguroCesantia)}`);
+          campos.push(`Seguro Cesantía: ${formatSeguroCesantia(String(detalles.seguroCesantia))}`);
         }
       } else if (esSubidaContrato) {
         campos.push('Subida de Contrato');
@@ -453,9 +492,9 @@ export default function HistorialLaboralPage() {
         if (detalles.tipoContrato) campos.push(`Tipo Contrato: ${detalles.tipoContrato}`);
         if (detalles.jornadaLaboral) campos.push(`Jornada: ${detalles.jornadaLaboral}`);
         if (detalles.sueldoBase !== undefined && detalles.sueldoBase !== null) campos.push(`Sueldo: ${formatSueldo(detalles.sueldoBase)}`);
-        if (detalles.afp) campos.push(`AFP: ${detalles.afp}`);
+        if (detalles.afp) campos.push(`AFP: ${formatAFP(detalles.afp)}`);
         if (detalles.previsionSalud) campos.push(`Previsión Salud: ${detalles.previsionSalud}`);
-        if (detalles.seguroCesantia !== undefined && detalles.seguroCesantia !== null) campos.push(`Seguro Cesantía: ${formatSeguroCesantia(detalles.seguroCesantia)}`);
+        if (detalles.seguroCesantia !== undefined && detalles.seguroCesantia !== null) campos.push(`Seguro Cesantía: ${formatSeguroCesantia(String(detalles.seguroCesantia))}`);
         campos.push('Subida de Contrato');
       } else {
         // Para otros tipos de registro, usar la lógica anterior (más selectiva)
@@ -470,8 +509,8 @@ export default function HistorialLaboralPage() {
         }
       }
       
-      // Campos específicos para otros tipos (no licencias/permisos ni desvinculaciones)
-      if (!esLicenciaPermiso && !esDesvinculacion) {
+      // Campos específicos para otros tipos (no licencias/permisos, desvinculaciones ni reactivaciones)
+      if (!esLicenciaPermiso && !esDesvinculacion && !esReactivacion) {
         if (detalles.rut) {
           campos.push(`RUT: ${detalles.rut}`);
         }
@@ -491,6 +530,12 @@ export default function HistorialLaboralPage() {
       if (esDesvinculacionTradicional) {
         if (itemTradicional.motivoDesvinculacion) {
           campos.push(`Motivo: ${itemTradicional.motivoDesvinculacion}`);
+        }
+      }
+      // Para reactivaciones en vista tradicional, mostrar solo el motivo
+      else if (itemTradicional.observaciones?.includes('Reactivación')) {
+        if (itemTradicional.motivoReactivacion) {
+          campos.push(`Motivo: ${itemTradicional.motivoReactivacion}`);
         }
       }
       // Para licencias/permisos en vista tradicional, mostrar solo fechas y motivo
@@ -630,7 +675,7 @@ export default function HistorialLaboralPage() {
       <Row className="mb-4">
         <Col>
           <Card className="border-0 shadow-sm">
-            <Card.Body className="bg-gradient-primary text-white">
+            <Card.Body className="text-white" style={{ background: 'var(--gradient-primary)' }}>
               <Row className="align-items-center">
                 <Col>
                   <h2 className="mb-0 text-white">
@@ -908,7 +953,9 @@ export default function HistorialLaboralPage() {
                                 </div>
                                 <p className="mb-0 small bg-light p-2 rounded">
                                   <i className="bi bi-info-circle me-1"></i>
-                                  {formatearDescripcionObservaciones(observacionesItem, traduccionCampos)}
+                                  {(observacionesItem.includes('Licencia') || observacionesItem.includes('Permiso'))
+                                    ? formatearDescripcionLicenciaPermiso(observacionesItem)
+                                    : formatearDescripcionObservaciones(observacionesItem, traduccionCampos)}
                                 </p>
                               </div>
                             )}
@@ -998,28 +1045,30 @@ export default function HistorialLaboralPage() {
                 <div className="text-secondary mb-1">Nombre completo</div>
                 <div className="d-flex align-items-center">
                   <i className="bi bi-person-circle text-primary me-2"></i>
-                  {revisorSeleccionado.name}
+                  {revisorSeleccionado.name || <span className="text-muted">No disponible</span>}
                 </div>
               </div>
               <div className="mb-3">
                 <div className="text-secondary mb-1">Rol</div>
                 <div className="d-flex align-items-center">
                   <i className="bi bi-person-badge text-primary me-2"></i>
-                  {revisorSeleccionado.role === 'SuperAdministrador' ? 'SuperAdministrador' : revisorSeleccionado.role}
+                  {revisorSeleccionado.role === 'RRHH' ? 'Recursos Humanos' : revisorSeleccionado.role || <span className="text-muted">No disponible</span>}
                 </div>
               </div>
-              {/* <div className="mb-3">
-                <div className="text-secondary mb-1">RUT</div>
-                <div className="d-flex align-items-center">
-                  <i className="bi bi-person-vcard text-primary me-2"></i>
-                  {revisorSeleccionado.rut ? (
-                    <span>{revisorSeleccionado.rut}</span>
-                  ) : (
-                    <span className="text-muted">No disponible</span>
-                  )}
+              {revisorSeleccionado.role !== 'SuperAdministrador' && (
+                <div className="mb-3">
+                  <div className="text-secondary mb-1">RUT</div>
+                  <div className="d-flex align-items-center">
+                    <i className="bi bi-person-vcard text-primary me-2"></i>
+                    {revisorSeleccionado.rut ? (
+                      <span>{revisorSeleccionado.rut}</span>
+                    ) : (
+                      <span className="text-muted">No disponible</span>
+                    )}
+                  </div>
                 </div>
-              </div>
-              <div className="mb-3">
+              )}
+              <div>
                 <div className="text-secondary mb-1">Correo Corporativo</div>
                 <div className="d-flex align-items-center">
                   <i className="bi bi-envelope text-primary me-2"></i>
@@ -1031,7 +1080,7 @@ export default function HistorialLaboralPage() {
                     <span className="text-muted">No disponible</span>
                   )}
                 </div>
-              </div> */}
+              </div>
             </div>
           )}
         </Modal.Body>

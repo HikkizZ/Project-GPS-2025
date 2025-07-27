@@ -803,26 +803,22 @@ export const ListaGestionSolicitudes: React.FC = () => {
                 <strong>Tipo:</strong> {solicitudSeleccionada.tipo} | 
                 <strong className="ms-2">Período:</strong> {formatearFecha(solicitudSeleccionada.fechaInicio)} - {formatearFecha(solicitudSeleccionada.fechaFin)}
               </div>
-              
-              <Form.Group>
-                <Form.Label>
-                  {accionRespuesta === 'aprobar' ? 'Comentarios adicionales' : 'Motivo del rechazo *'}
-                </Form.Label>
-                <Form.Control
-                  as="textarea"
-                  rows={4}
-                  placeholder={accionRespuesta === 'aprobar' 
-                    ? 'Comentarios opcionales sobre la aprobación...' 
-                    : 'Explique el motivo del rechazo...'
-                  }
-                  value={respuestaTexto}
-                  onChange={(e) => setRespuestaTexto(e.target.value)}
-                  maxLength={500}
-                />
-                <Form.Text className="text-muted">
-                  {respuestaTexto.length}/500 caracteres
-                </Form.Text>
-              </Form.Group>
+              {accionRespuesta === 'rechazar' && (
+                <Form.Group>
+                  <Form.Label>Motivo del rechazo *</Form.Label>
+                  <Form.Control
+                    as="textarea"
+                    rows={4}
+                    placeholder="Explique el motivo del rechazo..."
+                    value={respuestaTexto}
+                    onChange={(e) => setRespuestaTexto(e.target.value)}
+                    maxLength={500}
+                  />
+                  <Form.Text className="text-muted">
+                    {respuestaTexto.length}/500 caracteres
+                  </Form.Text>
+                </Form.Group>
+              )}
             </div>
           )}
         </Modal.Body>
@@ -881,13 +877,15 @@ export const ListaGestionSolicitudes: React.FC = () => {
                   {revisorSeleccionado.role === 'RRHH' ? 'Recursos Humanos' : revisorSeleccionado.role}
                 </div>
               </div>
-              <div className="mb-3">
-                <div className="text-secondary mb-1">RUT</div>
-                <div className="d-flex align-items-center">
-                  <i className="bi bi-person-vcard text-primary me-2"></i>
-                  {revisorSeleccionado.rut}
+              {revisorSeleccionado.role !== 'SuperAdministrador' && (
+                <div className="mb-3">
+                  <div className="text-secondary mb-1">RUT</div>
+                  <div className="d-flex align-items-center">
+                    <i className="bi bi-person-vcard text-primary me-2"></i>
+                    {revisorSeleccionado.rut}
+                  </div>
                 </div>
-              </div>
+              )}
               <div>
                 <div className="text-secondary mb-1">Correo Corporativo</div>
                 <div className="d-flex align-items-center">
