@@ -21,6 +21,7 @@ import { useHistorialLaboral } from '@/hooks/recursosHumanos/useHistorialLaboral
 import historialLaboralService from '@/services/recursosHumanos/historialLaboral.service';
 import { TrabajadorDetalleModal } from '@/components/recursosHumanos/TrabajadorDetalleModal';
 import { AsignarBonosFichaEmpresaModal } from '@/components/recursosHumanos/ModalAsignarBonos';
+import { ModalDetallesBono } from '@/components/recursosHumanos/ModalDetallesBono';
 
 interface FichasEmpresaPageProps {
   trabajadorRecienRegistrado?: Trabajador | null;
@@ -77,6 +78,9 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
   const [incluirPermisos, setIncluirPermisos] = useState(false);
   const [incluirSinFechaFin, setIncluirSinFechaFin] = useState(false);
   const [showAsignarBonoModal, setShowAsignarBonoModal] = useState(false);
+  const [showDetallesBonoModal, setShowDetallesBonoModal] = useState(false);
+  const [selectedBono, setSelectedBono] = useState<any>(null);
+  const [selectedAsignacion, setSelectedAsignacion] = useState<any>(null);
 
   // Función para filtrar las fichas según los estados seleccionados
   // Ya no necesitamos filtrar aquí porque todo se maneja en el backend
@@ -391,6 +395,13 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
   const handleAsignarBono = (ficha: FichaEmpresa) => {
     setSelectedFicha(ficha);
     setShowAsignarBonoModal(true);
+  };
+
+  const handleVerDetallesBono = (bono: any, asignacion: any, ficha: FichaEmpresa) => {
+    setSelectedBono(bono);
+    setSelectedAsignacion(asignacion);
+    setSelectedFicha(ficha);
+    setShowDetallesBonoModal(true);
   };
 
   // Si es usuario sin permisos administrativos o está en la ruta de ficha personal
@@ -1127,13 +1138,24 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                           </td>
                           <td> 
                             {ficha.asignacionesBonos && ficha.asignacionesBonos.length > 0 ? (
-                              <span className="status-badge">
+                              <div>
                                 {ficha.asignacionesBonos
                                   .filter(asig => asig.activo && asig.bono && asig.bono.nombreBono)
-                                  .map(asig => asig.bono.nombreBono)
-                                  .join(', ')
+                                  .map((asig, index) => (
+                                    <span key={asig.id}>
+                                      <span 
+                                        className="status-badge cursor-pointer text-decoration-underline"
+                                        style={{ cursor: 'pointer' }}
+                                        onClick={() => handleVerDetallesBono(asig.bono, asig, ficha)}
+                                        title={`Ver detalles de ${asig.bono.nombreBono}`}
+                                      >
+                                        {asig.bono.nombreBono}
+                                      </span>
+                                      {index < ficha.asignacionesBonos.filter(asig => asig.activo && asig.bono && asig.bono.nombreBono).length - 1 && ', '}
+                                    </span>
+                                  ))
                                 }
-                              </span>
+                              </div>
                             ) : (
                               <span className="text-muted">No hay bonos asignados</span>
                             )}
@@ -1241,6 +1263,15 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
         }}
         ficha={selectedFicha!}
         onSuccess={handleUpdateSuccess}
+      />
+
+      {/* Modal de detalles del bono */}
+      <ModalDetallesBono
+        show={showDetallesBonoModal}
+        onHide={() => setShowDetallesBonoModal(false)}
+        bono={selectedBono}
+        ficha={selectedFicha}
+        asignacion={selectedAsignacion}
       />
 
       {/* Sistema de notificaciones */}
