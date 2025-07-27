@@ -11,22 +11,27 @@ import {
 
 const router = Router();
 
-// Solo RecursosHumanos, Administrador y SuperAdministrador pueden acceder a estas rutas
-router.use(authenticateJWT, verifyRole(["RecursosHumanos", "Administrador", "SuperAdministrador"]));
+// Aplicar autenticación a todas las rutas
+router.use(authenticateJWT);
 
 // Buscar y listar trabajadores (con o sin filtros)
-router.get("/", getTrabajadores);
+// Acceso amplio para lectura: RecursosHumanos, Administrador, SuperAdministrador y Mantenciones de Maquinaria
+router.get("/", verifyRole(["RecursosHumanos", "Administrador", "SuperAdministrador", "Mantenciones de Maquinaria"]), getTrabajadores);
 
 // Crear trabajador
-router.post("/", createTrabajador);
+// Solo RecursosHumanos, Administrador y SuperAdministrador pueden crear trabajadores
+router.post("/", verifyRole(["RecursosHumanos", "Administrador", "SuperAdministrador"]), createTrabajador);
 
 // Actualizar trabajador
-router.put("/:id", updateTrabajador);
+// Solo RecursosHumanos, Administrador y SuperAdministrador pueden actualizar trabajadores
+router.put("/:id", verifyRole(["RecursosHumanos", "Administrador", "SuperAdministrador"]), updateTrabajador);
 
 // Reactivar trabajador desvinculado (revinculación)
-router.patch("/:id/reactivar", reactivarTrabajador);
+// Solo RecursosHumanos, Administrador y SuperAdministrador pueden reactivar trabajadores
+router.patch("/:id/reactivar", verifyRole(["RecursosHumanos", "Administrador", "SuperAdministrador"]), reactivarTrabajador);
 
 // Desvincular trabajador (soft delete)
-router.delete("/:id", desvincularTrabajador);
+// Solo RecursosHumanos, Administrador y SuperAdministrador pueden desvincular trabajadores
+router.delete("/:id", verifyRole(["RecursosHumanos", "Administrador", "SuperAdministrador"]), desvincularTrabajador);
 
-export default router; 
+export default router;
