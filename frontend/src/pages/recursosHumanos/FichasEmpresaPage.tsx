@@ -1042,11 +1042,29 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                         <th>Jornada Laboral</th>
                         <th>Fecha Inicio</th>
                         <th>Fecha Fin</th>
-                        <th>Sueldo Base</th>
+                        <th>
+                          <span 
+                            className="text-primary fw-semibold" 
+                            style={{ cursor: 'pointer', textDecoration: 'underline' }}
+                            onClick={() => navigate('/gestion-sueldos')}
+                            title="Ver gestión de sueldos"
+                          >
+                            Sueldo Base
+                          </span>
+                        </th>
                         <th>AFP</th>
                         <th>Previsión Salud</th>
                         <th>Seguro Cesantía</th>
-                        <th>Bonos Asignados</th>
+                        <th>
+                          <span 
+                            className="text-primary fw-semibold" 
+                            style={{ cursor: 'pointer', textDecoration: 'underline' }}
+                            onClick={() => navigate('/bonos')}
+                            title="Ver gestión de bonos"
+                          >
+                            Bonos Asignados
+                          </span>
+                        </th>
                         <th>Acciones</th>
                       </tr>
                     </thead>
