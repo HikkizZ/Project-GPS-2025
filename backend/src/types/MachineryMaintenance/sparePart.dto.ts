@@ -5,6 +5,7 @@ export type CreateSparePartDTO = {
   marca: string;
   modelo: string;
   anio: number;
+  modo?: 'editar' | 'agregarStock';
 };
 
 export type UpdateSparePartDTO = Partial<CreateSparePartDTO>;
