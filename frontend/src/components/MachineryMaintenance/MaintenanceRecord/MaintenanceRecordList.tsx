@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import { Table, Button, Card, Modal } from 'react-bootstrap';
 import { EstadoMantencion, MaintenanceRecord } from '@/types/machinaryMaintenance/maintenanceRecord.types';
 import { useUpdateMaintenanceRecord } from '@/hooks/MachinaryMaintenance/MaintenanceRecord/useUpdateMaintenanceRecord';
+import { useAuth } from "@/context/useAuth";
+import ConfirmModal from "@/components/common/ConfirmModal";
+
 
 interface Props {
   records: MaintenanceRecord[];
@@ -27,6 +30,39 @@ const MaintenanceRecordList: React.FC<Props> = ({
 
   const [detalle, setDetalle] = useState<MaintenanceRecord | null>(null);
   const [showDetalle, setShowDetalle] = useState(false);
+  const { user } = useAuth();
+  const { update, loading: updating } = useUpdateMaintenanceRecord();
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [recordToDelete, setRecordToDelete] = useState<MaintenanceRecord | null>(null);
+
+  const handleShowConfirmDelete = (record: MaintenanceRecord) => {
+    setRecordToDelete(record);
+    setShowConfirmModal(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (recordToDelete) {
+      onDelete(recordToDelete.id);
+      setShowConfirmModal(false);
+      setRecordToDelete(null);
+    }
+  };
+
+
+
+  
+
+  const handleAcceptMaintenance = async (record: MaintenanceRecord) => {
+    if (!user?.id) return;
+
+      await update(record.id, {
+        mecanicoId: user.id,
+      });
+
+      onReload();
+  };
+
+  
 
   const handleVerDetalle = (record: MaintenanceRecord) => {
     setDetalle(record);
@@ -137,26 +173,57 @@ const MaintenanceRecordList: React.FC<Props> = ({
                       <td><span className={`badge rounded-pill ${getEstadoBadgeClass(m.estado)}`}>
                         {formatEnumValue(m.estado)}
                       </span></td>
-                      <td>
+                     <td>
                         <div className="d-flex justify-content-center gap-2 flex-wrap">
-                          <Button variant="warning" size="sm" onClick={() => onEdit(m)}>
-                            Editar
-                          </Button>
-                          <Button variant="danger" size="sm" onClick={() => onDelete(m.id)}>
-                            Eliminar
-                          </Button>
-                          <Button variant="info" size="sm" onClick={() => onSpareParts(m)}>
-                            Repuestos
-                          </Button>
-                          <Button variant="success" size="sm" onClick={() => onFinish(m)}>
-                            Finalizar
-                          </Button>
-                          <Button variant="info" size="sm" onClick={() => onAssignMecanico(m)}>
-                             {m.mecanicoAsignado?.id ? "Reasignar" : "Asignar"}
-                          </Button>
+                          {user?.role === "SuperAdministrador" && (
+                            <>
+                              <Button variant="warning" size="sm" onClick={() => onEdit(m)}>
+                               <i className="bi bi-pencil"></i>
+                              </Button>
+                              <Button variant="danger" size="sm" onClick={() => handleShowConfirmDelete(m)}>
+                                <i className="bi bi-trash"></i>
+                              </Button>
+                            </>
+                          )}
 
+                          {user?.role === "Mecánico" && (
+                            <Button variant="info" size="sm" onClick={() => onSpareParts(m)}>
+                              <i className="bi bi-tools me-1"></i>
+                            </Button>
+                          )}
+
+                          {(user?.role === "Mecánico" || user?.role === "Mantenciones de Maquinaria") &&
+                            m.estado !== "completada" &&
+                            m.estado !== "irrecuperable" &&
+                            m.mecanicoAsignado?.id &&
+                            m.repuestosUtilizados?.length > 0 && (
+                              <Button variant="success" size="sm" onClick={() => onFinish(m)}>
+                                 <i className="bi bi-check-circle me-1"></i>
+                              </Button>
+                          )}
+
+                          {user?.role === "Mecánico" &&
+                            (!m.mecanicoAsignado || m.mecanicoAsignado.id !== user.id) && (
+                              <Button
+                                variant="primary"
+                                size="sm"
+                                onClick={() => handleAcceptMaintenance(m)}
+                                disabled={updating}
+                              >
+                                 <i className="bi bi-box-arrow-in-right me-1"></i>
+                                {updating ? "Asignando..." : "Aceptar Mantención"}
+                              </Button>
+                          )}
+
+
+                          {user?.role === "Mantenciones de Maquinaria" && (
+                            <Button variant="info" size="sm" onClick={() => onAssignMecanico(m)}>
+                               <i className="bi bi-box-arrow-in-right me-1"></i>
+                              {m.mecanicoAsignado?.id ? "Reasignar" : "Asignar"}
+                            </Button>
+                          )}
                         </div>
-                      </td>
+                      </td>   
                     </tr>
                   ))}
                 </tbody>
@@ -178,6 +245,22 @@ const MaintenanceRecordList: React.FC<Props> = ({
             </Modal.Body>
           </Modal>
         )}
+
+      <ConfirmModal
+        show={showConfirmModal}
+        onClose={() => setShowConfirmModal(false)}
+        onConfirm={handleConfirmDelete}
+        title="¿Eliminar mantención?"
+        message={`¿Estás seguro de que deseas eliminar la mantención de la máquina "${recordToDelete?.maquinaria.grupo}"?`}
+        confirmText="Eliminar"
+        cancelText="Cancelar"
+        headerVariant="danger"
+        warningContent={
+          <p>
+            Esta acción eliminará la mantención <strong>permanentemente</strong> del sistema. No podrás recuperarla.
+          </p>
+        }
+/>
 
 
     </Card>
