@@ -6,7 +6,9 @@ import {
   UpdateDateColumn,
   ManyToOne,
   JoinColumn,
+  Index,
 } from "typeorm"
+import { Supplier } from "../stakeholders/supplier.entity.js"
 
 export enum GrupoMaquinaria {
   CAMION_TOLVA = "camion_tolva",
@@ -19,6 +21,7 @@ export enum GrupoMaquinaria {
 }
 
 @Entity("compra_maquinaria")
+@Index("IDX_compra_maquinaria_active", ["isActive"])
 export class CompraMaquinaria {
   @PrimaryGeneratedColumn()
   id!: number
@@ -57,27 +60,22 @@ export class CompraMaquinaria {
   @Column({ type: "int", default: 0 })
   kilometrajeInicial!: number
 
+  // Relación con Supplier
+  @Column({ type: "int", nullable: true })
+  supplierId?: number
+
+  @Column({ type: "varchar", length: 12, nullable: true })
+  supplierRut?: string
+
   @Column({ type: "varchar", length: 255, nullable: true })
-  proveedor?: string
+  proveedor?: string // Desnormalizado del supplier
 
   @Column({ type: "text", nullable: true })
   observaciones?: string
 
-  // Campos para el padrón
+  // Campo simplificado para el padrón - solo un archivo
   @Column({ type: "varchar", length: 500, nullable: true })
   padronUrl?: string
-
-  @Column({ type: "varchar", length: 255, nullable: true })
-  padronFilename?: string
-
-  @Column({ type: "enum", enum: ["image", "pdf"], nullable: true })
-  padronFileType?: "image" | "pdf"
-
-  @Column({ type: "varchar", length: 255, nullable: true })
-  padronOriginalName?: string
-
-  @Column({ type: "int", nullable: true })
-  padronFileSize?: number
 
   @CreateDateColumn()
   fechaCreacion!: Date
@@ -86,17 +84,21 @@ export class CompraMaquinaria {
   fechaActualizacion!: Date
 
   // Relación con Maquinaria
-  @ManyToOne(
-    "maquinarias",
-    (maquinarias: any) => maquinarias.compras,
-    {
-      nullable: true,
-      onDelete: "CASCADE",
-    },
-  )
+  @ManyToOne("maquinarias", (maquinarias: any) => maquinarias.compras, {
+    nullable: true,
+    onDelete: "CASCADE",
+  })
   @JoinColumn({ name: "maquinaria_id" })
-  maquinaria?: any;
+  maquinaria?: any
 
   @Column({ type: "int", nullable: true })
   maquinaria_id?: number
+
+  @Column({ type: "boolean", default: true })
+  isActive!: boolean
+
+  // Relaciones
+  @ManyToOne(() => Supplier, { nullable: true })
+  @JoinColumn({ name: "supplierId" })
+  supplier?: Supplier
 }

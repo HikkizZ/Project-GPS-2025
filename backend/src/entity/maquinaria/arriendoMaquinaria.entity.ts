@@ -7,6 +7,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
 } from "typeorm"
+import { Customer } from "../stakeholders/customer.entity.js"
 
 @Entity("arriendos_maquinaria")
 export class ArriendoMaquinaria {
@@ -19,7 +20,7 @@ export class ArriendoMaquinaria {
   // Relación con Maquinaria
   @ManyToOne("maquinarias", { nullable: false })
   @JoinColumn({ name: "maquinaria_id" })
-  maquinaria!: any;
+  maquinaria!: any
 
   @Column({ type: "int", name: "maquinaria_id" })
   maquinariaId!: number
@@ -34,12 +35,15 @@ export class ArriendoMaquinaria {
   @Column({ type: "varchar", length: 100, nullable: false })
   modelo!: string
 
-  // Datos del cliente (del reporte físico)
+  // Relación con Customer
+  @Column({ type: "int", nullable: false })
+  customerId!: number
+
   @Column({ type: "varchar", length: 12, nullable: false })
   rutCliente!: string
 
   @Column({ type: "varchar", length: 255, nullable: false })
-  nombreCliente!: string
+  nombreCliente!: string 
 
   // Datos del trabajo realizado
   @Column({ type: "varchar", length: 500, nullable: false })
@@ -48,7 +52,10 @@ export class ArriendoMaquinaria {
   @Column({ type: "text", nullable: true })
   detalle!: string
 
-  // Kilometraje final del día (actualiza kilometrajeActual en maquinaria)
+  // Kilometraje al inicio del trabajo
+  @Column({ type: "int", nullable: false })
+  kmInicial!: number 
+  // Kilometraje al final del trabajo
   @Column({ type: "int", nullable: false })
   kmFinal!: number
 
@@ -56,13 +63,21 @@ export class ArriendoMaquinaria {
   @Column({ type: "decimal", precision: 12, scale: 2, nullable: false })
   valorServicio!: number
 
-  // Fecha del trabajo (se puede inferir de la fecha de creación o ingresar manualmente)
+  // Fecha del trabajo 
   @Column({ type: "date", nullable: false })
   fechaTrabajo!: Date
+
+  @Column({ type: "boolean", default: true })
+  isActive!: boolean
 
   @CreateDateColumn()
   createdAt!: Date
 
   @UpdateDateColumn()
   updatedAt!: Date
+
+  // Relaciones
+  @ManyToOne(() => Customer, { nullable: false })
+  @JoinColumn({ name: "customerId" })
+  customer!: Customer
 }

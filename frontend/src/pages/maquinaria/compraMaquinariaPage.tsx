@@ -1,19 +1,25 @@
 import type React from "react"
 import { useState } from "react"
-import { Modal, Container, Row, Col, Card, Button, Table, Alert, Spinner } from "react-bootstrap"
+import { Modal, Container, Row, Col, Card, Button, Table, Alert, Spinner, Badge } from "react-bootstrap"
 import { CompraMaquinariaForm } from "../../components/maquinaria/compraMaquinariaForm"
 import { CompraDetalleModal } from "../../components/maquinaria/compraDetalleModal"
 import MaquinariaSidebar from "../../components/maquinaria/maquinariaSideBar"
 import { useCompraMaquinaria } from "../../hooks/maquinaria/useCompraMaquinaria"
 import { useExcelExport } from "../../hooks/useExcelExport"
+import { useAuth } from "../../context"
 import type { CreateCompraMaquinaria, CompraMaquinaria } from "../../types/maquinaria.types"
 
 export const CompraMaquinariaPage: React.FC = () => {
-  const { compras, loading, error, crearCompra, eliminarPadron, refetch } = useCompraMaquinaria()
+  const { compras, loading, error, crearCompra, eliminarPadron, eliminarCompra, restaurarCompra, refetch } =
+    useCompraMaquinaria()
   const { exportToExcel, isExporting } = useExcelExport()
+  const { user } = useAuth()
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [selectedCompra, setSelectedCompra] = useState<CompraMaquinaria | null>(null)
   const [showDetalleModal, setShowDetalleModal] = useState(false)
+
+  // Verificar si el usuario es SuperAdministrador
+  const isSuperAdmin = user?.role === "SuperAdministrador"
 
   const handleSubmit = async (data: CreateCompraMaquinaria, file?: File) => {
     try {
@@ -47,6 +53,40 @@ export const CompraMaquinariaPage: React.FC = () => {
     }
   }
 
+  const handleEliminarCompra = async (compra: CompraMaquinaria) => {
+    if (
+      !window.confirm(
+        `¿Está seguro de eliminar la compra de la maquinaria ${compra.patente}? Esta acción se puede revertir.`,
+      )
+    ) {
+      return
+    }
+
+    try {
+      await eliminarCompra(compra.id)
+      // Refrescar la lista para mostrar el cambio de estado
+      refetch()
+    } catch (error) {
+      console.error("Error al eliminar compra:", error)
+      alert("Error al eliminar la compra")
+    }
+  }
+
+  const handleRestaurarCompra = async (compra: CompraMaquinaria) => {
+    if (!window.confirm(`¿Está seguro de restaurar la compra de la maquinaria ${compra.patente}?`)) {
+      return
+    }
+
+    try {
+      await restaurarCompra(compra.id)
+      // Refrescar la lista para mostrar el cambio de estado
+      refetch()
+    } catch (error) {
+      console.error("Error al restaurar compra:", error)
+      alert("Error al restaurar la compra")
+    }
+  }
+
   const formatCurrency = (value: number | undefined | null) => {
     if (!value || value === 0) return "$0"
     return new Intl.NumberFormat("es-CL", {
@@ -65,6 +105,11 @@ export const CompraMaquinariaPage: React.FC = () => {
     }
   }
 
+  // Función helper para determinar si una compra está activa
+  const isCompraActiva = (compra: CompraMaquinaria) => {
+    return compra.isActive !== false
+  }
+
   const handleExportarExcel = async () => {
     try {
       const datosParaExcel = compras.map((compra) => ({
@@ -74,6 +119,8 @@ export const CompraMaquinariaPage: React.FC = () => {
         Año: compra.anio,
         "Fecha Compra": formatDate(compra.fechaCompra),
         "Valor Compra": compra.valorCompra || 0,
+        Proveedor: compra.supplier?.name || compra.proveedor || "Sin proveedor",
+        Estado: isCompraActiva(compra) ? "Activa" : "Inactiva",
       }))
 
       await exportToExcel(datosParaExcel, "compras_maquinaria", "Compras")
@@ -82,6 +129,10 @@ export const CompraMaquinariaPage: React.FC = () => {
       alert("Error al generar el archivo Excel")
     }
   }
+
+  // Separar compras activas e inactivas para mostrar estadísticas
+  const comprasActivas = compras.filter((c) => isCompraActiva(c))
+  const comprasInactivas = compras.filter((c) => !isCompraActiva(c))
 
   return (
     <div className="d-flex">
@@ -163,8 +214,12 @@ export const CompraMaquinariaPage: React.FC = () => {
                         <i className="bi bi-list-ul me-2"></i>
                         Historial de Compras
                       </h5>
-                      <div>
-                        <span className="badge bg-primary">Total: {compras.length} compras</span>
+                      <div className="d-flex gap-2">
+                        <Badge bg="success">Activas: {comprasActivas.length}</Badge>
+                        {comprasInactivas.length > 0 && (
+                          <Badge bg="secondary">Inactivas: {comprasInactivas.length}</Badge>
+                        )}
+                        <Badge bg="primary">Total: {compras.length}</Badge>
                       </div>
                     </div>
                   </Card.Header>
@@ -180,25 +235,47 @@ export const CompraMaquinariaPage: React.FC = () => {
                         <Table hover className="mb-0">
                           <thead className="table-light">
                             <tr>
+                              <th>Estado</th>
                               <th>Patente</th>
                               <th>Marca</th>
                               <th>Modelo</th>
                               <th>Año</th>
                               <th>Fecha Compra</th>
                               <th className="text-end">Valor</th>
+                              <th>Proveedor</th>
                               <th>Acciones</th>
                             </tr>
                           </thead>
                           <tbody>
                             {compras.map((compra, index) => (
-                              <tr key={compra.id || `compra-${index}`}>
+                              <tr
+                                key={compra.id || `compra-${index}`}
+                                className={!isCompraActiva(compra) ? "table-secondary" : ""}
+                              >
+                                <td>
+                                  {!isCompraActiva(compra) ? (
+                                    <Badge bg="secondary">
+                                      <i className="bi bi-x-circle me-1"></i>
+                                      Inactiva
+                                    </Badge>
+                                  ) : (
+                                    <Badge bg="success">
+                                      <i className="bi bi-check-circle me-1"></i>
+                                      Activa
+                                    </Badge>
+                                  )}
+                                </td>
                                 <td className="font-monospace fw-bold">{compra.patente}</td>
                                 <td>{compra.marca}</td>
                                 <td>{compra.modelo}</td>
                                 <td>{compra.anio}</td>
                                 <td>{formatDate(compra.fechaCompra)}</td>
                                 <td className="text-end font-monospace">{formatCurrency(compra.valorCompra)}</td>
-                                <td>
+                                <td className="text-start">
+                                  {compra.supplier?.name || compra.proveedor || "Sin proveedor"}
+                                </td>
+                                <td className="text-start">
+
                                   <div className="btn-group btn-group-sm">
                                     <Button
                                       variant="outline-primary"
@@ -207,6 +284,29 @@ export const CompraMaquinariaPage: React.FC = () => {
                                     >
                                       <i className="bi bi-eye"></i>
                                     </Button>
+
+                                    {/* Botones de soft delete solo para SuperAdministrador */}
+                                    {isSuperAdmin && (
+                                      <>
+                                        {isCompraActiva(compra) ? (
+                                          <Button
+                                            variant="outline-danger"
+                                            onClick={() => handleEliminarCompra(compra)}
+                                            title="Eliminar compra (soft delete)"
+                                          >
+                                            <i className="bi bi-trash"></i>
+                                          </Button>
+                                        ) : (
+                                          <Button
+                                            variant="outline-success"
+                                            onClick={() => handleRestaurarCompra(compra)}
+                                            title="Restaurar compra"
+                                          >
+                                            <i className="bi bi-arrow-clockwise"></i>
+                                          </Button>
+                                        )}
+                                      </>
+                                    )}
                                   </div>
                                 </td>
                               </tr>

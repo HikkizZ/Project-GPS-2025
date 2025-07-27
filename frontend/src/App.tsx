@@ -39,7 +39,6 @@ import { CompraMaquinariaPage } from "./pages/maquinaria/compraMaquinariaPage"
 import { VentaMaquinariaPage } from "./pages/maquinaria/ventaMaquinariaPage"
 import { MaquinariaPage } from "./pages/maquinaria/maquinariaPage"
 import { ArriendoMaquinariaPage } from "./pages/maquinaria/arriendoMaquinariaPage"
-import { ClienteMaquinariaPage } from "./pages/maquinaria/clienteMaquinariaPage"
 
 const RegistrarTrabajadorPage: React.FC<{
   onSuccess: (trabajador: Trabajador) => void
@@ -885,6 +884,14 @@ function App() {
                     } 
                   />
                   <Route 
+                    path="maquinaria/proveedores" 
+                    element={
+                      <ProtectedRoute allowedRoles={["Administrador", "SuperAdministrador", "Ventas", "Gerencia", "Finanzas", "Arriendo"]}>
+                        <SupplierPage />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  <Route 
                     path="inventario/clientes" 
                     element={
                       <ProtectedRoute allowedRoles={["Administrador", "SuperAdministrador", "Ventas", "Gerencia", "Finanzas"]}>
@@ -948,14 +955,6 @@ function App() {
                   element={
                     <ProtectedRoute allowedRoles={["SuperAdministrador", "Arriendo", "Mecánico", "Mantenciones de Maquinaria"]}>
                       <ArriendoMaquinariaPage />
-                    </ProtectedRoute>
-                  } 
-                />
-                <Route 
-                  path="maquinaria/clientes" 
-                  element={
-                    <ProtectedRoute allowedRoles={["SuperAdministrador", "Arriendo", "Mecánico", "Mantenciones de Maquinaria"]}>
-                      <ClienteMaquinariaPage />
                     </ProtectedRoute>
                   } 
                 />

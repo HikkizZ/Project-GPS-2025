@@ -3,6 +3,7 @@ import { useState } from "react"
 import type { CreateVentaMaquinaria } from "../../types/maquinaria.types"
 import { useMaquinaria } from "../../hooks/maquinaria/useMaquinaria"
 import { usePatente } from "../../hooks/maquinaria/usePatente"
+import { useCustomers } from "../../hooks/stakeholders/useCustomers"
 
 interface VentaMaquinariaFormProps {
   onSubmit: (data: CreateVentaMaquinaria) => Promise<void>
@@ -15,11 +16,10 @@ export const VentaMaquinariaForm: React.FC<VentaMaquinariaFormProps> = ({
   loading = false,
   initialData = {},
 }) => {
-  // Agregar hook para obtener maquinarias disponibles
   const { maquinarias } = useMaquinaria()
   const { formatPatente } = usePatente()
+  const { customers, isLoading: loadingCustomers } = useCustomers()
 
-  // Filtrar solo maquinarias disponibles para venta
   const maquinariasDisponibles = maquinarias.filter((m) => m.estado === "disponible")
 
   const [formData, setFormData] = useState<CreateVentaMaquinaria & { maquinariaId?: number }>({
@@ -27,47 +27,50 @@ export const VentaMaquinariaForm: React.FC<VentaMaquinariaFormProps> = ({
     fechaVenta: initialData.fechaVenta || new Date().toISOString().split("T")[0],
     valorCompra: initialData.valorCompra || 0,
     valorVenta: initialData.valorVenta || 0,
-    comprador: initialData.comprador || "",
+    customerId: initialData.customerId || 0,
     observaciones: initialData.observaciones || "",
     maquinariaId: undefined,
   })
 
   const [errors, setErrors] = useState<Record<string, string>>({})
 
-  // Función para formatear números con separadores de miles
   const formatNumber = (value: number): string => {
     if (value === 0) return ""
     return value.toLocaleString("es-CL")
   }
 
-  // Función para parsear números desde string formateado
   const parseNumber = (value: string): number => {
     if (!value || value.trim() === "") return 0
-    // Remover puntos y espacios, mantener solo números
     const cleanValue = value.replace(/[.\s]/g, "")
     const parsed = Number.parseInt(cleanValue, 10)
     return isNaN(parsed) ? 0 : parsed
   }
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleGoToClientes = () => {
+    window.open("/inventario/clientes", "_blank")
+  }
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
 
     if (name === "valorVenta") {
-      // Para campos monetarios, parsear el valor
       const numericValue = parseNumber(value)
       setFormData((prev) => ({
         ...prev,
         [name]: numericValue,
       }))
+    } else if (name === "customerId") {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value ? Number(value) : 0,
+      }))
     } else {
-      // Para campos de texto
       setFormData((prev) => ({
         ...prev,
         [name]: value,
       }))
     }
 
-    // Limpiar error del campo
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: "" }))
     }
@@ -81,7 +84,6 @@ export const VentaMaquinariaForm: React.FC<VentaMaquinariaFormProps> = ({
         ...prev,
         patente,
         maquinariaId: maquinariaSeleccionada.id,
-        // Buscar el valor de compra desde las compras de esta maquinaria
         valorCompra: maquinariaSeleccionada.compras?.[0]?.valorCompra || 0,
       }))
     } else {
@@ -93,7 +95,6 @@ export const VentaMaquinariaForm: React.FC<VentaMaquinariaFormProps> = ({
       }))
     }
 
-    // Limpiar error del campo
     if (errors.patente) {
       setErrors((prev) => ({ ...prev, patente: "" }))
     }
@@ -114,6 +115,9 @@ export const VentaMaquinariaForm: React.FC<VentaMaquinariaFormProps> = ({
     }
     if (formData.valorVenta > 2000000000) {
       newErrors.valorVenta = "El valor de venta no puede exceder $2.000.000.000"
+    }
+    if (!formData.customerId || formData.customerId === 0) {
+      newErrors.customerId = "Debe seleccionar un cliente"
     }
 
     setErrors(newErrors)
@@ -232,7 +236,6 @@ export const VentaMaquinariaForm: React.FC<VentaMaquinariaFormProps> = ({
           </div>
         </div>
 
-        {/* Resumen de ganancia */}
         {(formData.valorCompra > 0 || formData.valorVenta > 0) && (
           <div className="ganancia-summary mt-3">
             <div className="card bg-light">
@@ -272,16 +275,49 @@ export const VentaMaquinariaForm: React.FC<VentaMaquinariaFormProps> = ({
         </h5>
         <div className="row g-3">
           <div className="col-md-12">
-            <label className="form-label">Comprador</label>
-            <input
-              type="text"
-              name="comprador"
-              className="form-control"
-              value={formData.comprador}
-              onChange={handleChange}
-              placeholder="Nombre del comprador o empresa"
-              maxLength={255}
-            />
+            <label className="form-label">
+              Cliente <span className="text-danger">*</span>
+            </label>
+            <div className="input-group">
+              <select
+                name="customerId"
+                className={`form-select ${errors.customerId ? "is-invalid" : ""}`}
+                value={formData.customerId || ""}
+                onChange={handleChange}
+                disabled={loadingCustomers}
+              >
+                <option value="">Seleccionar cliente</option>
+                {customers.map((customer) => (
+                  <option key={customer.id} value={customer.id}>
+                    {customer.name} - {customer.rut}
+                  </option>
+                ))}
+              </select>
+              <button
+                type="button"
+                className="btn btn-outline-primary"
+                onClick={handleGoToClientes}
+                title="Ir a gestión de clientes"
+                disabled={loadingCustomers}
+              >
+                <i className="bi bi-people me-1"></i>
+                Agregar Clientes
+              </button>
+            </div>
+            {errors.customerId && <div className="invalid-feedback">{errors.customerId}</div>}
+            {loadingCustomers && <div className="form-text">Cargando clientes...</div>}
+            {!loadingCustomers && customers.length === 0 && (
+              <div className="form-text text-warning">
+                No hay clientes disponibles.{" "}
+                <button
+                  type="button"
+                  className="btn btn-link p-0 text-decoration-underline"
+                  onClick={handleGoToClientes}
+                >
+                  Crear nuevo cliente
+                </button>
+              </div>
+            )}
           </div>
 
           <div className="col-md-12">

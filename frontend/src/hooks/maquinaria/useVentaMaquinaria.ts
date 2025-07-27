@@ -7,18 +7,27 @@ export const useVentaMaquinaria = () => {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  // MANTENER LA FUNCIÓN ORIGINAL CON FALLBACK
   const fetchVentas = useCallback(async () => {
     setLoading(true)
     setError(null)
     try {
-      const response = await ventaMaquinariaService.obtenerTodasLasVentas()
+      // Intentar obtener con inactivas primero, si falla usar la función original
+      let response
+      try {
+        response = await ventaMaquinariaService.obtenerTodasLasVentasConInactivas()
+      } catch {
+        // Fallback a la función original si el backend no soporta incluirInactivas
+        response = await ventaMaquinariaService.obtenerTodasLasVentas()
+      }
+
       if (response.success && response.data) {
         setVentas(response.data)
       } else {
-        setError(response.message)
+        setError(response.message || "Error al obtener ventas")
       }
     } catch (err: any) {
-      setError(err.message)
+      setError(err.message || "Error al obtener ventas")
     } finally {
       setLoading(false)
     }
@@ -33,11 +42,11 @@ export const useVentaMaquinaria = () => {
         setVentas((prev) => [response.data!, ...prev])
         return response.data
       } else {
-        setError(response.message)
-        throw new Error(response.message)
+        setError(response.message || "Error al registrar venta")
+        throw new Error(response.message || "Error al registrar venta")
       }
     } catch (err: any) {
-      setError(err.message)
+      setError(err.message || "Error al registrar venta")
       throw err
     } finally {
       setLoading(false)
@@ -53,30 +62,53 @@ export const useVentaMaquinaria = () => {
         setVentas((prev) => prev.map((venta) => (venta.id === id ? response.data! : venta)))
         return response.data
       } else {
-        setError(response.message)
-        throw new Error(response.message)
+        setError(response.message || "Error al actualizar venta")
+        throw new Error(response.message || "Error al actualizar venta")
       }
     } catch (err: any) {
-      setError(err.message)
+      setError(err.message || "Error al actualizar venta")
       throw err
     } finally {
       setLoading(false)
     }
   }, [])
 
+  // NUEVAS FUNCIONES PARA SOFT DELETE
   const eliminarVenta = useCallback(async (id: number) => {
     setLoading(true)
     setError(null)
     try {
       const response = await ventaMaquinariaService.eliminarVenta(id)
       if (response.success) {
-        setVentas((prev) => prev.filter((venta) => venta.id !== id))
+        // Actualizar el estado local marcando como inactiva
+        setVentas((prev) => prev.map((venta) => (venta.id === id ? { ...venta, isActive: false } : venta)))
+        return true
       } else {
-        setError(response.message)
-        throw new Error(response.message)
+        setError(response.message || "Error al eliminar venta")
+        throw new Error(response.message || "Error al eliminar venta")
       }
     } catch (err: any) {
-      setError(err.message)
+      setError(err.message || "Error al eliminar venta")
+      throw err
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  const restaurarVenta = useCallback(async (id: number) => {
+    setLoading(true)
+    setError(null)
+    try {
+      const response = await ventaMaquinariaService.restaurarVenta(id)
+      if (response.success && response.data) {
+        setVentas((prev) => prev.map((venta) => (venta.id === id ? response.data! : venta)))
+        return response.data
+      } else {
+        setError(response.message || "Error al restaurar venta")
+        throw new Error(response.message || "Error al restaurar venta")
+      }
+    } catch (err: any) {
+      setError(err.message || "Error al restaurar venta")
       throw err
     } finally {
       setLoading(false)
@@ -94,6 +126,7 @@ export const useVentaMaquinaria = () => {
     registrarVenta,
     actualizarVenta,
     eliminarVenta,
+    restaurarVenta,
     refetch: fetchVentas,
   }
 }
@@ -114,10 +147,10 @@ export const useVentaById = (id: number) => {
         if (response.success && response.data) {
           setVenta(response.data)
         } else {
-          setError(response.message)
+          setError(response.message || "Error al obtener venta")
         }
       } catch (err: any) {
-        setError(err.message)
+        setError(err.message || "Error al obtener venta")
       } finally {
         setLoading(false)
       }

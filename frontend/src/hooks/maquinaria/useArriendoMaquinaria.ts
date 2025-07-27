@@ -1,11 +1,6 @@
 import { useState, useEffect, useCallback } from "react"
 import { arriendoMaquinariaService } from "../../services/maquinaria/arriendoMaquinaria.service"
-import type {
-  ArriendoMaquinaria,
-  CreateArriendoMaquinaria,
-  Maquinaria,
-  ClienteMaquinaria,
-} from "../../types/arriendoMaquinaria.types"
+import type { ArriendoMaquinaria, CreateArriendoMaquinaria } from "../../types/arriendoMaquinaria.types"
 
 export const useArriendoMaquinaria = () => {
   const [reportes, setReportes] = useState<ArriendoMaquinaria[]>([])
@@ -16,7 +11,14 @@ export const useArriendoMaquinaria = () => {
     setLoading(true)
     setError(null)
     try {
-      const response = await arriendoMaquinariaService.obtenerTodosLosReportes()
+      // Intentar obtener con inactivas primero, si falla usar la función original
+      let response
+      try {
+        response = await arriendoMaquinariaService.obtenerTodosLosReportesConInactivas()
+      } catch {
+        response = await arriendoMaquinariaService.obtenerTodosLosReportesSinPaginacion()
+      }
+
       if (response.success && response.data) {
         setReportes(response.data)
       } else {
@@ -75,13 +77,35 @@ export const useArriendoMaquinaria = () => {
     try {
       const response = await arriendoMaquinariaService.eliminarReporte(id)
       if (response.success) {
-        setReportes((prev) => prev.filter((reporte) => reporte.id !== id))
+        // Actualizar el estado local marcando como inactivo
+        setReportes((prev) => prev.map((reporte) => (reporte.id === id ? { ...reporte, isActive: false } : reporte)))
+        return true
       } else {
         setError(response.message || "Error al eliminar reporte")
         throw new Error(response.message || "Error al eliminar reporte")
       }
     } catch (err: any) {
       setError(err.message || "Error al eliminar reporte")
+      throw err
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  const restaurarReporte = useCallback(async (id: number) => {
+    setLoading(true)
+    setError(null)
+    try {
+      const response = await arriendoMaquinariaService.restaurarReporte(id)
+      if (response.success && response.data) {
+        setReportes((prev) => prev.map((reporte) => (reporte.id === id ? response.data! : reporte)))
+        return response.data
+      } else {
+        setError(response.message || "Error al restaurar reporte")
+        throw new Error(response.message || "Error al restaurar reporte")
+      }
+    } catch (err: any) {
+      setError(err.message || "Error al restaurar reporte")
       throw err
     } finally {
       setLoading(false)
@@ -99,7 +123,9 @@ export const useArriendoMaquinaria = () => {
     crearReporte,
     actualizarReporte,
     eliminarReporte,
+    restaurarReporte,
     refetch: fetchReportes,
+    fetchAllReportes: fetchReportes,
   }
 }
 
@@ -132,47 +158,6 @@ export const useReporteById = (id: number) => {
   }, [id])
 
   return { reporte, loading, error }
-}
-
-export const useReporteData = () => {
-  const [maquinarias, setMaquinarias] = useState<Maquinaria[]>([])
-  const [clientes, setClientes] = useState<ClienteMaquinaria[]>([])
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-
-  const fetchData = useCallback(async () => {
-    setLoading(true)
-    setError(null)
-    try {
-      const [maquinariasRes, clientesRes] = await Promise.all([
-        arriendoMaquinariaService.obtenerMaquinariasDisponibles(),
-        arriendoMaquinariaService.obtenerClientesMaquinaria(),
-      ])
-
-      if (maquinariasRes.success && maquinariasRes.data) {
-        setMaquinarias(maquinariasRes.data)
-      }
-      if (clientesRes.success && clientesRes.data) {
-        setClientes(clientesRes.data)
-      }
-    } catch (err: any) {
-      setError(err.message || "Error al cargar datos")
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
-  useEffect(() => {
-    fetchData()
-  }, [fetchData])
-
-  return {
-    maquinarias,
-    clientes,
-    loading,
-    error,
-    refetch: fetchData,
-  }
 }
 
 export default useArriendoMaquinaria

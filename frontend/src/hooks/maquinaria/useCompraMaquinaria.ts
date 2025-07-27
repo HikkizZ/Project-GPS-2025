@@ -11,7 +11,13 @@ export const useCompraMaquinaria = () => {
     setLoading(true)
     setError(null)
     try {
-      const response = await compraMaquinariaService.obtenerTodasLasCompras()
+      let response
+      try {
+        response = await compraMaquinariaService.obtenerTodasLasComprasConInactivas()
+      } catch {
+        response = await compraMaquinariaService.obtenerTodasLasCompras()
+      }
+
       if (response.success && response.data) {
         setCompras(response.data)
       } else {
@@ -84,6 +90,46 @@ export const useCompraMaquinaria = () => {
     }
   }, [])
 
+  const eliminarCompra = useCallback(async (id: number) => {
+    setLoading(true)
+    setError(null)
+    try {
+      const response = await compraMaquinariaService.eliminarCompra(id)
+      if (response.success) {
+        setCompras((prev) => prev.map((compra) => (compra.id === id ? { ...compra, isActive: false } : compra)))
+        return true
+      } else {
+        setError(response.message || "Error al eliminar compra")
+        throw new Error(response.message || "Error al eliminar compra")
+      }
+    } catch (err: any) {
+      setError(err.message || "Error al eliminar compra")
+      throw err
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  const restaurarCompra = useCallback(async (id: number) => {
+    setLoading(true)
+    setError(null)
+    try {
+      const response = await compraMaquinariaService.restaurarCompra(id)
+      if (response.success && response.data) {
+        setCompras((prev) => prev.map((compra) => (compra.id === id ? response.data! : compra)))
+        return response.data
+      } else {
+        setError(response.message || "Error al restaurar compra")
+        throw new Error(response.message || "Error al restaurar compra")
+      }
+    } catch (err: any) {
+      setError(err.message || "Error al restaurar compra")
+      throw err
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
   useEffect(() => {
     fetchCompras()
   }, [fetchCompras])
@@ -95,6 +141,8 @@ export const useCompraMaquinaria = () => {
     crearCompra,
     actualizarCompra,
     eliminarPadron,
+    eliminarCompra,
+    restaurarCompra,
     refetch: fetchCompras,
   }
 }

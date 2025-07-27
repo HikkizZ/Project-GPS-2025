@@ -1,10 +1,13 @@
+"use client"
+
 import type React from "react"
 import { useState, useEffect } from "react"
 import { Modal, Button, Row, Col, Card, Form } from "react-bootstrap"
 import { useArriendoMaquinaria } from "../../hooks/maquinaria/useArriendoMaquinaria"
-import { useClienteMaquinaria } from "../../hooks/maquinaria/useClienteMaquinaria"
+import { useCustomers } from "../../hooks/stakeholders/useCustomers"
 import { usePdfExport } from "../../hooks/usePdfExport"
-import type { ArriendoMaquinaria, ClienteMaquinaria } from "../../types/arriendoMaquinaria.types"
+import type { ArriendoMaquinaria } from "../../types/arriendoMaquinaria.types"
+import type { Customer } from "../../types/stakeholders/customer.types"
 
 interface EstadoPagoModalProps {
   show: boolean
@@ -12,15 +15,18 @@ interface EstadoPagoModalProps {
 }
 
 export const EstadoPagoModal: React.FC<EstadoPagoModalProps> = ({ show, onHide }) => {
-  const { reportes } = useArriendoMaquinaria()
-  const { clientes } = useClienteMaquinaria()
+  // CORREGIDO: Usar refetch en lugar de fetchAllReportes
+  const { reportes, refetch } = useArriendoMaquinaria()
+  const { customers, isLoading: customersLoading } = useCustomers()
   const { exportToPdf, isExporting } = usePdfExport()
 
   const [selectedClienteRut, setSelectedClienteRut] = useState("")
   const [selectedMes, setSelectedMes] = useState("")
   const [selectedAno, setSelectedAno] = useState(new Date().getFullYear().toString())
   const [filteredReportes, setFilteredReportes] = useState<ArriendoMaquinaria[]>([])
-  const [selectedCliente, setSelectedCliente] = useState<ClienteMaquinaria | null>(null)
+  const [selectedCliente, setSelectedCliente] = useState<Customer | null>(null)
+  const [allReportes, setAllReportes] = useState<ArriendoMaquinaria[]>([])
+  const [loading, setLoading] = useState(false)
 
   // Generar opciones de meses
   const meses = [
@@ -38,9 +44,16 @@ export const EstadoPagoModal: React.FC<EstadoPagoModalProps> = ({ show, onHide }
     { value: "12", label: "Diciembre" },
   ]
 
-  // Generar opciones de años (últimos 3 años)
+  // Generar opciones de años (últimos 20 años)
   const currentYear = new Date().getFullYear()
   const anos = Array.from({ length: 20 }, (_, i) => currentYear - i)
+
+  // CORREGIDO: Usar los reportes directamente del hook
+  useEffect(() => {
+    if (show) {
+      setAllReportes(reportes)
+    }
+  }, [show, reportes])
 
   // Filtrar reportes cuando cambian los filtros
   useEffect(() => {
@@ -49,7 +62,10 @@ export const EstadoPagoModal: React.FC<EstadoPagoModalProps> = ({ show, onHide }
       return
     }
 
-    const reportesFiltrados = reportes.filter((reporte) => {
+    const reportesFiltrados = allReportes.filter((reporte) => {
+      // Solo considerar reportes activos para el estado de pago
+      if (reporte.isActive === false) return false
+
       const fechaReporte = new Date(reporte.fechaTrabajo)
       const mesReporte = (fechaReporte.getMonth() + 1).toString().padStart(2, "0")
       const anoReporte = fechaReporte.getFullYear().toString()
@@ -58,17 +74,17 @@ export const EstadoPagoModal: React.FC<EstadoPagoModalProps> = ({ show, onHide }
     })
 
     setFilteredReportes(reportesFiltrados)
-  }, [reportes, selectedClienteRut, selectedMes, selectedAno])
+  }, [allReportes, selectedClienteRut, selectedMes, selectedAno])
 
   // Actualizar cliente seleccionado
   useEffect(() => {
     if (selectedClienteRut) {
-      const cliente = clientes.find((c) => c.rut === selectedClienteRut)
+      const cliente = customers.find((c) => c.rut === selectedClienteRut)
       setSelectedCliente(cliente || null)
     } else {
       setSelectedCliente(null)
     }
-  }, [selectedClienteRut, clientes])
+  }, [selectedClienteRut, customers])
 
   // Inicializar mes actual
   useEffect(() => {
@@ -91,41 +107,41 @@ export const EstadoPagoModal: React.FC<EstadoPagoModalProps> = ({ show, onHide }
   }
 
   const calcularTotal = () => {
-  return filteredReportes.reduce((total, reporte) => {
-    const valor = reporte.valorServicio
-    // Verificar que sea un número válido
-    if (typeof valor === "number" && !isNaN(valor)) {
-      return total + valor
-    }
-    // Si es string, intentar convertir
-    if (typeof valor === "string") {
-      const numeroConvertido = Number.parseFloat(valor)
-      if (!isNaN(numeroConvertido)) {
-        return total + numeroConvertido
+    return filteredReportes.reduce((total, reporte) => {
+      const valor = reporte.valorServicio
+      // Verificar que sea un número válido
+      if (typeof valor === "number" && !isNaN(valor)) {
+        return total + valor
       }
-    }
-    // Si no es válido, no sumar nada
-    return total
-  }, 0)
-}
+      // Si es string, intentar convertir
+      if (typeof valor === "string") {
+        const numeroConvertido = Number.parseFloat(valor)
+        if (!isNaN(numeroConvertido)) {
+          return total + numeroConvertido
+        }
+      }
+      // Si no es válido, no sumar nada
+      return total
+    }, 0)
+  }
 
-// Valor neto: simplemente el total calculado
-const calcularValorNeto = () => {
-  return calcularTotal()
-}
+  // Valor neto: simplemente el total calculado
+  const calcularValorNeto = () => {
+    return calcularTotal()
+  }
 
-// IVA: 19% del neto
-const calcularIVA = () => {
-  const valorNeto = calcularValorNeto()
-  return valorNeto * 0.19
-}
+  // IVA: 19% del neto
+  const calcularIVA = () => {
+    const valorNeto = calcularValorNeto()
+    return valorNeto * 0.19
+  }
 
-// Total bruto: neto + IVA
-const calcularTotalBruto = () => {
-  const valorNeto = calcularValorNeto()
-  const iva = calcularIVA()
-  return valorNeto + iva
-}
+  // Total bruto: neto + IVA
+  const calcularTotalBruto = () => {
+    const valorNeto = calcularValorNeto()
+    const iva = calcularIVA()
+    return valorNeto + iva
+  }
 
   const handleDownloadPdf = async () => {
     if (!selectedCliente || filteredReportes.length === 0) {
@@ -135,7 +151,7 @@ const calcularTotalBruto = () => {
 
     try {
       const mesNombre = meses.find((m) => m.value === selectedMes)?.label || selectedMes
-      const filename = `estado_pago_${selectedCliente.nombre.replace(/\s+/g, "_")}_${mesNombre}_${selectedAno}`
+      const filename = `estado_pago_${selectedCliente.name.replace(/\s+/g, "_")}_${mesNombre}_${selectedAno}`
 
       await exportToPdf("estado-pago-content", filename)
     } catch (error) {
@@ -168,14 +184,22 @@ const calcularTotalBruto = () => {
               <Row className="g-3">
                 <Col md={4}>
                   <Form.Label>Cliente</Form.Label>
-                  <Form.Select value={selectedClienteRut} onChange={(e) => setSelectedClienteRut(e.target.value)}>
+                  <Form.Select
+                    value={selectedClienteRut}
+                    onChange={(e) => setSelectedClienteRut(e.target.value)}
+                    disabled={customersLoading}
+                  >
                     <option value="">Seleccione un cliente</option>
-                    {clientes.map((cliente) => (
-                      <option key={cliente.id} value={cliente.rut}>
-                        {cliente.nombre} - {cliente.rut}
+                    {customers.map((customer) => (
+                      <option key={customer.id} value={customer.rut}>
+                        {customer.name} - {customer.rut}
                       </option>
                     ))}
                   </Form.Select>
+                  {customersLoading && <div className="form-text">Cargando clientes...</div>}
+                  {!customersLoading && customers.length === 0 && (
+                    <div className="form-text text-warning">No hay clientes disponibles</div>
+                  )}
                 </Col>
                 <Col md={4}>
                   <Form.Label>Mes</Form.Label>
@@ -245,7 +269,7 @@ const calcularTotalBruto = () => {
                         </tr>
                         <tr>
                           <td style={{ fontWeight: "bold", padding: "4px 0" }}>CLIENTE:</td>
-                          <td style={{ padding: "4px 0" }}>{selectedCliente.nombre}</td>
+                          <td style={{ padding: "4px 0" }}>{selectedCliente.name}</td>
                         </tr>
                         <tr>
                           <td style={{ fontWeight: "bold", padding: "4px 0" }}>RUT:</td>
@@ -253,11 +277,15 @@ const calcularTotalBruto = () => {
                         </tr>
                         <tr>
                           <td style={{ fontWeight: "bold", padding: "4px 0" }}>TELÉFONO:</td>
-                          <td style={{ padding: "4px 0" }}>{selectedCliente.telefono || "No registrado"}</td>
+                          <td style={{ padding: "4px 0" }}>{selectedCliente.phone || "No registrado"}</td>
                         </tr>
                         <tr>
                           <td style={{ fontWeight: "bold", padding: "4px 0" }}>CORREO:</td>
                           <td style={{ padding: "4px 0" }}>{selectedCliente.email || "No registrado"}</td>
+                        </tr>
+                        <tr>
+                          <td style={{ fontWeight: "bold", padding: "4px 0" }}>DIRECCIÓN:</td>
+                          <td style={{ padding: "4px 0" }}>{selectedCliente.address || "No registrada"}</td>
                         </tr>
                       </tbody>
                     </table>
@@ -468,7 +496,7 @@ const calcularTotalBruto = () => {
                             border: "1px solid #dee2e6",
                           }}
                         >
-                          {formatCurrency(calcularTotal())}
+                          {formatCurrency(calcularTotalBruto())}
                         </td>
                       </tr>
                     </tfoot>

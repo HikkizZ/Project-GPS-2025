@@ -1,5 +1,5 @@
 import type React from "react"
-import { Modal, Button, Row, Col } from "react-bootstrap"
+import { Modal, Button, Row, Col, Badge, Alert } from "react-bootstrap"
 import type { ArriendoMaquinaria } from "../../types/arriendoMaquinaria.types"
 
 interface ArriendoDetalleModalProps {
@@ -9,6 +9,11 @@ interface ArriendoDetalleModalProps {
 }
 
 export const ArriendoDetalleModal: React.FC<ArriendoDetalleModalProps> = ({ show, onHide, reporte }) => {
+  // Función helper para determinar si un reporte está activo
+  const isReporteActivo = (reporte: ArriendoMaquinaria) => {
+    return reporte.isActive !== false
+  }
+
   const formatCurrency = (value: number | undefined | null) => {
     if (!value || value === 0) return "$0"
     return new Intl.NumberFormat("es-CL", {
@@ -35,9 +40,32 @@ export const ArriendoDetalleModal: React.FC<ArriendoDetalleModalProps> = ({ show
         <Modal.Title>
           <i className="bi bi-eye me-2"></i>
           Detalles del Reporte - {reporte.numeroReporte}
+          {/* Mostrar estado en el título */}
+          <div className="mt-1">
+            {!isReporteActivo(reporte) ? (
+              <Badge bg="secondary">
+                <i className="bi bi-x-circle me-1"></i>
+                Reporte Inactivo
+              </Badge>
+            ) : (
+              <Badge bg="success">
+                <i className="bi bi-check-circle me-1"></i>
+                Reporte Activo
+              </Badge>
+            )}
+          </div>
         </Modal.Title>
       </Modal.Header>
       <Modal.Body>
+        {/* Alerta para reportes inactivos */}
+        {!isReporteActivo(reporte) && (
+          <Alert variant="warning" className="mb-4">
+            <i className="bi bi-exclamation-triangle me-2"></i>
+            <strong>Reporte Inactivo:</strong> Este reporte ha sido eliminado (soft delete) y no está activo en el
+            sistema.
+          </Alert>
+        )}
+
         {/* Información del Reporte */}
         <div className="mb-4">
           <h5>
@@ -97,16 +125,18 @@ export const ArriendoDetalleModal: React.FC<ArriendoDetalleModalProps> = ({ show
             Información del Cliente
           </h5>
           <Row className="g-3">
-            <Col md={6}>
+            <Col md={12}>
               <div>
-                <label className="fw-bold">Nombre:</label>
-                <div>{reporte.nombreCliente}</div>
-              </div>
-            </Col>
-            <Col md={6}>
-              <div>
-                <label className="fw-bold">RUT:</label>
-                <div className="font-monospace">{reporte.rutCliente}</div>
+                <label className="fw-bold">Cliente:</label>
+                <div className="mt-2">
+                  <div className="d-flex align-items-center gap-2">
+                    <Badge bg="info">
+                      <i className="bi bi-person me-1"></i>
+                      {reporte.nombreCliente}
+                    </Badge>
+                    <small className="text-muted">RUT: {reporte.rutCliente}</small>
+                  </div>
+                </div>
               </div>
             </Col>
           </Row>
@@ -129,7 +159,7 @@ export const ArriendoDetalleModal: React.FC<ArriendoDetalleModalProps> = ({ show
               <Col md={12}>
                 <div>
                   <label className="fw-bold">Observaciones/Detalle:</label>
-                  <div className="bg-light p-2 rounded">{reporte.detalle}</div>
+                  <div className="bg-light p-3 rounded">{reporte.detalle}</div>
                 </div>
               </Col>
             )}

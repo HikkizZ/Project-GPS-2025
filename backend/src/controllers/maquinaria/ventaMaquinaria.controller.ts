@@ -34,7 +34,8 @@ export class VentaMaquinariaController {
 
   obtenerTodasLasVentas = async (req: Request, res: Response): Promise<void> => {
     try {
-      const ventas = await this.ventaMaquinariaService.obtenerTodasLasVentas()
+      const incluirInactivas = req.query.incluirInactivas === "true"
+      const ventas = await this.ventaMaquinariaService.obtenerTodasLasVentas(incluirInactivas)
       res.status(200).json({
         success: true,
         data: ventas,
@@ -51,7 +52,8 @@ export class VentaMaquinariaController {
   obtenerVentaPorId = async (req: Request, res: Response): Promise<void> => {
     try {
       const { id } = req.params
-      const venta = await this.ventaMaquinariaService.obtenerVentaPorId(Number(id))
+      const incluirInactivas = req.query.incluirInactivas === "true"
+      const venta = await this.ventaMaquinariaService.obtenerVentaPorId(Number(id), incluirInactivas)
       res.status(200).json({
         success: true,
         data: venta,
@@ -68,7 +70,8 @@ export class VentaMaquinariaController {
   obtenerVentasPorPatente = async (req: Request, res: Response): Promise<void> => {
     try {
       const { patente } = req.params
-      const ventas = await this.ventaMaquinariaService.obtenerVentasPorPatente(patente)
+      const incluirInactivas = req.query.incluirInactivas === "true"
+      const ventas = await this.ventaMaquinariaService.obtenerVentasPorPatente(patente, incluirInactivas)
       res.status(200).json({
         success: true,
         data: ventas,
@@ -85,9 +88,11 @@ export class VentaMaquinariaController {
   obtenerVentasPorFecha = async (req: Request, res: Response): Promise<void> => {
     try {
       const { fechaInicio, fechaFin } = req.query
+      const incluirInactivas = req.query.incluirInactivas === "true"
       const ventas = await this.ventaMaquinariaService.obtenerVentasPorFecha(
         new Date(fechaInicio as string),
         new Date(fechaFin as string),
+        incluirInactivas,
       )
       res.status(200).json({
         success: true,
@@ -105,7 +110,8 @@ export class VentaMaquinariaController {
   obtenerVentasPorComprador = async (req: Request, res: Response): Promise<void> => {
     try {
       const { comprador } = req.params
-      const ventas = await this.ventaMaquinariaService.obtenerVentasPorComprador(comprador)
+      const incluirInactivas = req.query.incluirInactivas === "true"
+      const ventas = await this.ventaMaquinariaService.obtenerVentasPorCustomer(comprador, incluirInactivas)
       res.status(200).json({
         success: true,
         data: ventas,
@@ -119,9 +125,42 @@ export class VentaMaquinariaController {
     }
   }
 
-  // MÉTODOS ELIMINADOS como solicitaste:
-  // - actualizarVenta()
-  // - eliminarVenta()
-  // - obtenerTotalVentas() (simplificación adicional)
-  // - obtenerVentasPorMaquinaria() (simplificación adicional)
+  // Nuevo método para soft delete
+  eliminarVenta = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { id } = req.params
+      await this.ventaMaquinariaService.eliminarVenta(Number(id))
+
+      res.status(200).json({
+        success: true,
+        message: "Venta eliminada exitosamente (soft delete)",
+      })
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        message: "Error al eliminar venta",
+        error: error.message,
+      })
+    }
+  }
+
+  // Nuevo método para restaurar venta
+  restaurarVenta = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { id } = req.params
+      const ventaRestaurada = await this.ventaMaquinariaService.restaurarVenta(Number(id))
+
+      res.status(200).json({
+        success: true,
+        message: "Venta restaurada exitosamente",
+        data: ventaRestaurada,
+      })
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        message: "Error al restaurar venta",
+        error: error.message,
+      })
+    }
+  }
 }
