@@ -16,7 +16,7 @@ router.use(authenticateJWT);
 
 // Buscar y listar trabajadores (con o sin filtros)
 // Acceso amplio para lectura: RecursosHumanos, Administrador, SuperAdministrador y Mantenciones de Maquinaria
-router.get("/", verifyRole(["RecursosHumanos", "Administrador", "SuperAdministrador", "Mantenciones de Maquinaria"]), getTrabajadores);
+router.get("/", verifyRole(["RecursosHumanos", "Administrador", "SuperAdministrador", "Mantenciones de Maquinaria", "Mecánico"]), getTrabajadores);
 
 // Crear trabajador
 // Solo RecursosHumanos, Administrador y SuperAdministrador pueden crear trabajadores
