@@ -67,8 +67,6 @@ const MantencionPage: React.FC = () => {
 
   const paginatedRecords = sortedRecords.slice(startIndex, endIndex);
 
-  
-
 
   const handleOpenAssignModal = (record: MaintenanceRecord) => {
     setRecordToAssign(record);
@@ -147,6 +145,7 @@ const handleAcceptMaintenance = async (record: MaintenanceRecord) => {
 
 
 /* ---------------------------------------------------------------------------------------------------------- */
+
   const handleAssignMecanico = async (mecanicoId: number) => {
     if (!recordToAssign) return;
 
@@ -169,55 +168,61 @@ const handleAcceptMaintenance = async (record: MaintenanceRecord) => {
 
     useEffect(() => {
       const cargarDatosAuxiliares = async () => {
-        const [maqRes, mecRes] = await Promise.all([
-          maquinariaService.obtenerTodasLasMaquinarias(),
-          trabajadorService.getTrabajadores({ todos: true }),
-        ])
+        if (!user) return;
 
-        if (maqRes.success && maqRes.data) setMaquinarias(maqRes.data)
+        const maqRes = await maquinariaService.obtenerTodasLasMaquinarias();
+        if (maqRes.success && maqRes.data) setMaquinarias(maqRes.data);
 
-        if (mecRes.success && mecRes.data) {
-          const mecanicosFiltrados = mecRes.data.filter(
-          (trab) => trab.usuario?.role === "Mecánico"
-          )
-          setMecanicos(mecanicosFiltrados)
+        if (["SuperAdministrador", "Administrador", "Mantenciones de Maquinaria"].includes(user.role)) {
+
+          const mecRes = await trabajadorService.getTrabajadores({ todos: true });
+
+          if (mecRes.success && mecRes.data) {
+            const mecanicosFiltrados = mecRes.data.filter(
+              (trab) => trab.usuario?.role?.toLowerCase() === "mecánico"
+            );
+            setMecanicos(mecanicosFiltrados);
+          } else {
+            setMecanicos([]);
+          }
+        } else {
+          setMecanicos([]);
         }
+      };
 
-      }
+      cargarDatosAuxiliares();
+    }, [user]);
 
-      cargarDatosAuxiliares()
-    }, [])
+
+
 
   useEffect(() => {
-  let filtrados = records.filter(
-    (r) => r.estado !== "completada" && r.estado !== "irrecuperable"
-  );
-
-  if (filterValues.estado) {
-    filtrados = filtrados.filter((r) => r.estado === filterValues.estado);
-  }
-  
-  if (filterValues.estado) {
-    filtrados = filtrados.filter((r) => r.estado === filterValues.estado);
-  }
-
-  if (filterValues.grupo) {
-    filtrados = filtrados.filter((r) => r.maquinaria.grupo === filterValues.grupo);
-  }
-
-  if (filterValues.patente) {
-    filtrados = filtrados.filter((r) => r.maquinaria.patente === filterValues.patente);
-  }
-
-  if (filterValues.mecanicoId) {
-    filtrados = filtrados.filter(
-      (r) => r.mecanicoAsignado?.id?.toString() === filterValues.mecanicoId
+    let filtrados = records.filter(
+      (r) => r.estado !== "completada" && r.estado !== "irrecuperable"
     );
-  }
 
-  setFilteredRecords(filtrados);
-   setCurrentPage(1);
-}, [records, filterValues]);
+    if (filterValues.estado) {
+      filtrados = filtrados.filter((r) => r.estado === filterValues.estado);
+    }
+
+    if (filterValues.grupo) {
+      filtrados = filtrados.filter((r) => r.maquinaria.grupo === filterValues.grupo);
+    }
+
+    if (filterValues.patente) {
+      filtrados = filtrados.filter((r) => r.maquinaria.patente === filterValues.patente);
+    }
+
+    if (filterValues.mecanicoId) {
+      filtrados = filtrados.filter(
+        (r) => r.mecanicoAsignado?.id?.toString() === filterValues.mecanicoId
+      );
+    }
+
+    setFilteredRecords(filtrados);
+    setCurrentPage(1);
+  }, [records, filterValues]);
+
 
 
   const handleFilterChange = (
@@ -256,10 +261,6 @@ const handleAcceptMaintenance = async (record: MaintenanceRecord) => {
   }
 
   
-
-
-
-
   
 
   const handleOpenFinishModal = async (record: MaintenanceRecord) => {
