@@ -10,9 +10,6 @@ import { FiltrosBusquedaHeader } from '@/components/common/FiltrosBusquedaHeader
 import { Toast, useToast } from '@/components/common/Toast';
 import { bonoService } from '../../services/recursosHumanos/bono.service';
 import "../../styles/pages/bonos.css";
-import trabajadorIcon from '../../../assets/iconSVG_2/trabajadorIcon.svg';
-import updateIcon from '../../../assets/iconSVG_2/updateIcon.svg';
-import configIcon from '../../../assets/iconSVG_2/configIcon.svg';
 
 enum TipoBono {
     estatal = "estatal",
@@ -117,15 +114,6 @@ export const BonosPage: React.FC = () => {
         setShowCreateModal(true);
         cargarBonos();
     };
-        
-
-    const handleClickUpdate = (updateData) => {
-        setSelectedBono(updateData);
-        setShowEditModal(true);
-
-        // Recargar los bonos
-        cargarBonos();
-    };
 
     const handleCreateSuccess = () => {
         // Cerrar el modal
@@ -135,13 +123,6 @@ export const BonosPage: React.FC = () => {
         // Mostrar toast de éxito
         showSuccess('¡Bono creado!', 'El bono se ha creado exitosamente', 4000);
     }
-
-    const handleUpdateSuccess = () => {
-        // Recargar los bonos
-        cargarBonos();
-        // Mostrar toast de éxito
-        showSuccess('¡Usuario actualizado!', 'El bono se ha actualizado exitosamente', 4000);
-    };
 
     const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSearchNombre(e.target.value);

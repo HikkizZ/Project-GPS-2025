@@ -21,6 +21,7 @@ import { calcularFechaFin } from "../fichaEmpresa.service.js";
 export async function getAllBonosService(incluirInactivos: boolean = false): Promise<ServiceResponse<{ bonos: Bono[]; total: number }>> {
     try {
         const bonosRep = AppDataSource.getRepository(Bono);
+
         // Crear el query builder para usar búsquedas más flexibles
         const queryBuilder = bonosRep.createQueryBuilder('bono')
             .leftJoinAndSelect('bono.asignaciones', 'asignaciones');
@@ -34,6 +35,7 @@ export async function getAllBonosService(incluirInactivos: boolean = false): Pro
         queryBuilder.orderBy('bono.fechaCreacion', 'DESC');
 
         const [bonos, total] = await queryBuilder.getManyAndCount();
+
         return [{ bonos, total }, null];
     } catch (error) {
         console.error("Error al obtener bonos:", error);
@@ -195,6 +197,8 @@ try {
     return [null, "Error interno del servidor"];
   }
 }
+
+
 
 // Desactivar Bono: Soft delete, asignacion cambia a inactiva
 export async function desactivarBonoService(id: number, motivo: string): Promise<ServiceResponse<Bono>> {

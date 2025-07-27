@@ -23,6 +23,7 @@ router.get("/:id", getBonoById); // Obtener bono por ID
 // Rutas para actualizar bonos
 router.put("/:id", updateBono); // Actualizar bono (propietario o RRHH)
 
+// Rutas para desactivar bonos (soft delete)
 router.patch("/:id/desactivar", desactivarBono); // Desactivar bono (soft delete)
 
 export default router; 

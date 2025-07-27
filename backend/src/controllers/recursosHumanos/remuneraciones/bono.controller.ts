@@ -195,6 +195,9 @@ export async function updateBono(req: Request, res: Response): Promise<void> {
     }
 }
 
+
+
+
 /**
  * Desactivar bono
  */
