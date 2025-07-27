@@ -73,6 +73,113 @@ const MainLayout: React.FC<MainLayoutProps> = ({ user, onLogout, children }) => 
     };
   }, []);
 
+  // Renderizar botones de navegación
+  const renderNavButtons = () => {
+    return (
+      <>
+        <button 
+          className="btn btn-outline-light me-3 px-3 py-2 fw-semibold"
+          onClick={() => navigate('/dashboard')}
+          style={{ borderRadius: '25px', transition: 'all 0.3s ease' }}
+          data-title="Ir al inicio"
+        >
+          <i className="bi bi-house me-2"></i>
+          <span className="btn-text">Inicio</span>
+        </button>
+        
+        {/* Botones adicionales para la página de trabajadores */}
+        {location.pathname === '/trabajadores' && (
+          <>
+            <button 
+              className="btn btn-outline-light me-3 px-3 py-2 fw-semibold"
+              onClick={() => navigate('/fichas-empresa')}
+              style={{ borderRadius: '25px', transition: 'all 0.3s ease' }}
+              data-title="Ver fichas de empresa"
+            >
+              <i className="bi bi-file-earmark-text me-2"></i>
+              <span className="btn-text">Ficha de Empresa</span>
+            </button>
+            <button 
+              className="btn btn-outline-light me-3 px-3 py-2 fw-semibold"
+              onClick={() => navigate('/usuarios')}
+              style={{ borderRadius: '25px', transition: 'all 0.3s ease' }}
+              data-title="Gestionar usuarios"
+            >
+              <i className="bi bi-people me-2"></i>
+              <span className="btn-text">Usuarios</span>
+            </button>
+          </>
+        )}
+
+        {/* Botones adicionales para la página de fichas de empresa */}
+        {location.pathname === '/fichas-empresa' && (
+          <>
+            <button 
+              className="btn btn-outline-light me-3 px-3 py-2 fw-semibold"
+              onClick={() => navigate('/trabajadores')}
+              style={{ borderRadius: '25px', transition: 'all 0.3s ease' }}
+              data-title="Ver trabajadores"
+            >
+              <i className="bi bi-people-fill me-2"></i>
+              <span className="btn-text">Trabajadores</span>
+            </button>
+            <button 
+              className="btn btn-outline-light me-3 px-3 py-2 fw-semibold"
+              onClick={() => navigate('/usuarios')}
+              style={{ borderRadius: '25px', transition: 'all 0.3s ease' }}
+              data-title="Gestionar usuarios"
+            >
+              <i className="bi bi-people me-2"></i>
+              <span className="btn-text">Usuarios</span>
+            </button>
+          </>
+        )}
+
+        {/* Botones adicionales para la página de usuarios */}
+        {location.pathname === '/usuarios' && (
+          <>
+            <button 
+              className="btn btn-outline-light me-3 px-3 py-2 fw-semibold"
+              onClick={() => navigate('/trabajadores')}
+              style={{ borderRadius: '25px', transition: 'all 0.3s ease' }}
+              data-title="Ver trabajadores"
+            >
+              <i className="bi bi-people-fill me-2"></i>
+              <span className="btn-text">Trabajadores</span>
+            </button>
+            <button 
+              className="btn btn-outline-light me-3 px-3 py-2 fw-semibold"
+              onClick={() => navigate('/fichas-empresa')}
+              style={{ borderRadius: '25px', transition: 'all 0.3s ease' }}
+              data-title="Ver fichas de empresa"
+            >
+              <i className="bi bi-file-earmark-text me-2"></i>
+              <span className="btn-text">Ficha de Empresa</span>
+            </button>
+          </>
+        )}
+        
+        {!isInDashboard && !hideVolver && (
+          <button 
+            className="btn btn-outline-light me-3 px-3 py-2 fw-semibold"
+            onClick={handleNavbarVolver}
+            style={{ borderRadius: '25px', transition: 'all 0.3s ease' }}
+            data-title="Volver a la página anterior"
+          >
+            <i className="bi bi-arrow-left me-2"></i>
+            <span className="btn-text">
+              {location.pathname === '/gestion-personal'
+                ? 'Volver a Recursos Humanos'
+                : (location.pathname === '/trabajadores' || location.pathname === '/fichas-empresa' || location.pathname === '/usuarios')
+                  ? 'Volver a Gestión del Personal'
+                  : 'Volver'}
+            </span>
+          </button>
+        )}
+      </>
+    );
+  };
+
   return (
     <div className="min-vh-100 d-flex flex-column">
       {/* Navbar */}
@@ -80,99 +187,13 @@ const MainLayout: React.FC<MainLayoutProps> = ({ user, onLogout, children }) => 
         <div className="container-fluid">
           <span className="navbar-brand mb-0 h1 fw-bold" onClick={() => navigate('/dashboard')}>
             <i className="bi bi-truck me-2"></i>
-            S.G. Lamas
+            <span className="brand-text">S.G. Lamas</span>
           </span>
+          
+          {/* Navegación principal */}
           <div className="navbar-nav ms-auto d-flex flex-row align-items-center">
-            <button 
-              className="btn btn-outline-light me-3 px-3 py-2 fw-semibold"
-              onClick={() => navigate('/dashboard')}
-              style={{ borderRadius: '25px', transition: 'all 0.3s ease' }}
-            >
-              <i className="bi bi-house me-2"></i>
-              Inicio
-            </button>
+            {renderNavButtons()}
             
-            {/* Botones adicionales para la página de trabajadores */}
-            {location.pathname === '/trabajadores' && (
-              <>
-                <button 
-                  className="btn btn-outline-light me-3 px-3 py-2 fw-semibold"
-                  onClick={() => navigate('/fichas-empresa')}
-                  style={{ borderRadius: '25px', transition: 'all 0.3s ease' }}
-                >
-                  <i className="bi bi-file-earmark-text me-2"></i>
-                  Ficha de Empresa
-                </button>
-                <button 
-                  className="btn btn-outline-light me-3 px-3 py-2 fw-semibold"
-                  onClick={() => navigate('/usuarios')}
-                  style={{ borderRadius: '25px', transition: 'all 0.3s ease' }}
-                >
-                  <i className="bi bi-people me-2"></i>
-                  Usuarios
-                </button>
-              </>
-            )}
-
-            {/* Botones adicionales para la página de fichas de empresa */}
-            {location.pathname === '/fichas-empresa' && (
-              <>
-                <button 
-                  className="btn btn-outline-light me-3 px-3 py-2 fw-semibold"
-                  onClick={() => navigate('/trabajadores')}
-                  style={{ borderRadius: '25px', transition: 'all 0.3s ease' }}
-                >
-                  <i className="bi bi-people-fill me-2"></i>
-                  Trabajadores
-                </button>
-                <button 
-                  className="btn btn-outline-light me-3 px-3 py-2 fw-semibold"
-                  onClick={() => navigate('/usuarios')}
-                  style={{ borderRadius: '25px', transition: 'all 0.3s ease' }}
-                >
-                  <i className="bi bi-people me-2"></i>
-                  Usuarios
-                </button>
-              </>
-            )}
-
-            {/* Botones adicionales para la página de usuarios */}
-            {location.pathname === '/usuarios' && (
-              <>
-                <button 
-                  className="btn btn-outline-light me-3 px-3 py-2 fw-semibold"
-                  onClick={() => navigate('/trabajadores')}
-                  style={{ borderRadius: '25px', transition: 'all 0.3s ease' }}
-                >
-                  <i className="bi bi-people-fill me-2"></i>
-                  Trabajadores
-                </button>
-                <button 
-                  className="btn btn-outline-light me-3 px-3 py-2 fw-semibold"
-                  onClick={() => navigate('/fichas-empresa')}
-                  style={{ borderRadius: '25px', transition: 'all 0.3s ease' }}
-                >
-                  <i className="bi bi-file-earmark-text me-2"></i>
-                  Ficha de Empresa
-                </button>
-              </>
-            )}
-            
-            {!isInDashboard && !hideVolver && (
-              <button 
-                className="btn btn-outline-light me-3 px-3 py-2 fw-semibold"
-                onClick={handleNavbarVolver}
-                style={{ borderRadius: '25px', transition: 'all 0.3s ease' }}
-              >
-                <i className="bi bi-arrow-left me-2"></i>
-                {location.pathname === '/gestion-personal'
-                  ? 'Volver a Recursos Humanos'
-                  : (location.pathname === '/trabajadores' || location.pathname === '/fichas-empresa' || location.pathname === '/usuarios')
-                    ? 'Volver a Gestión del Personal'
-                    : 'Volver'}
-              </button>
-            )}
-
             <div className="navbar-user-dropdown" style={{ position: 'relative' }}>
               <button
                 ref={buttonRef}
@@ -183,7 +204,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ user, onLogout, children }) => 
                 style={{ borderRadius: '25px', transition: 'all 0.3s ease' }}
               >
                 <i className="bi bi-person-circle me-2"></i>
-                {user.name}
+                <span className="btn-text">{user.name}</span>
               </button>
               <ul
                 ref={menuRef}

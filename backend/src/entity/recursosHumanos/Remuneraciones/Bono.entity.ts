@@ -49,4 +49,7 @@ export class Bono {
 
     @OneToMany(() => AsignarBono, asignacion => asignacion.bono)
     asignaciones!: AsignarBono[];
+
+    @Column({ type: "boolean", default: true })
+    enSistema!: boolean;    
 }

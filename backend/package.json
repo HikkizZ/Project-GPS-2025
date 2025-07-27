@@ -28,6 +28,7 @@
   "license": "MIT",
   "description": "",
   "dependencies": {
+    "@types/ssh2": "^1.15.5",
     "bcrypt": "^6.0.0",
     "bcryptjs": "^2.4.3",
     "cookie-parser": "^1.4.6",
@@ -47,7 +48,7 @@
     "passport-jwt": "^4.0.1",
     "pg": "^8.16.2",
     "reflect-metadata": "^0.2.1",
-    "ssh2-sftp-client": "^12.0.1",
+    "ssh2": "^1.16.0",
     "typeorm": "^0.3.17"
   },
   "devDependencies": {
@@ -68,7 +69,6 @@
     "@types/passport": "^1.0.16",
     "@types/passport-jwt": "^3.0.13",
     "@types/pg": "^8.10.9",
-    "@types/ssh2-sftp-client": "^9.0.5",
     "@types/supertest": "^2.0.16",
     "chai": "^4.3.10",
     "cross-env": "^7.0.3",

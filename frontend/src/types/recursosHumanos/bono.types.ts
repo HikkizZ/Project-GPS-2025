@@ -8,6 +8,7 @@ export interface Bono {
     imponible: boolean;
     fechaCreacion: string; // Formato YYYY-MM-DD
     duracionMes?: string;
+    enSistema: boolean; // Indica si el bono está activo o no
 }
 
 export interface CreateBonoData {
@@ -37,6 +38,7 @@ export interface BonoSearchQueryData {
     temporalidad?: "permanente" | "recurrente" | "puntual";
     imponible?: boolean;
     duracionMes?: string;
+    incluirInactivos?: string; // 'true' o 'false'
 }
 
 export interface BonoSearchParamsData {
@@ -58,50 +60,3 @@ export interface BonoOperationResult {
   error?: string;
   errors?: Record<string, string>;
 }
-/*
- export interface AsignarBonoDTO {
-    trabajadorId: number;
-    bonoId: number;
-    fechaEntrega?: string | Date;
-    activo?: boolean;
-    observaciones?: string;
-}
-
-export interface UpdateAsignarBonoDTO {
-    fechaEntrega?: string | Date;
-    activo?: boolean;
-    observaciones?: string;
-}
-
-export interface AsignarBonoQueryDTO {
-    id?: number;
-    trabajadorId?: number;
-    bonoId?: number;
-    activo?: boolean;
-    fechaEntregaDesde?: string | Date;
-    fechaEntregaHasta?: string | Date;
-    limit?: number;
-    offset?: number;
-}
-
-export interface AsignarBonoResponseDTO {
-    id: number;
-    trabajador: {
-        id: number;
-        nombres: string;
-        apellidoPaterno: string;
-        apellidoMaterno: string;
-        rut: string;
-    };
-    bono: {
-        id: number;
-        nombreBono: string;
-        monto: string;
-        tipoBono: "estatal" | "empresarial";
-        temporalidad: "permanente" | "recurrente" | "puntual";
-    };
-    fechaEntrega: Date;
-    activo: boolean;
-    observaciones?: string;
-}
-*/

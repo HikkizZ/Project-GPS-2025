@@ -4,13 +4,13 @@ import {
     getAllBonosService,
     getBonoByIdService,
     updateBonoService,
-    deleteBonoService
+    desactivarBonoService
 } from "../../../services/recursosHumanos/remuneraciones/bono.service.js";
 import { handleSuccess, handleErrorClient, handleErrorServer } from "../../../handlers/responseHandlers.js";
 import { 
     CreateBonoValidation, 
     UpdateBonoValidation, 
-    BonoQueryValidation 
+    BonoQueryValidation,
 } from "../../../validations/recursosHumanos/remuneraciones/bono.validation.js";
 import { AppDataSource } from "../../../config/configDB.js";
 import { Trabajador } from "../../../entity/recursosHumanos/trabajador.entity.js";
@@ -82,7 +82,10 @@ export async function getAllBonos(req: Request, res: Response): Promise<void> {
                 return;
         }
 
-        const [resultado, error] = await getAllBonosService();
+        // Verificar si se solicitan bonos inactivos
+        const incluirInactivos = req.query.incluirInactivos === 'true';
+
+        const [resultado, error] = await getAllBonosService(incluirInactivos);
 
         if (error) {
             handleErrorClient(res, 404, error as string);
@@ -192,10 +195,13 @@ export async function updateBono(req: Request, res: Response): Promise<void> {
     }
 }
 
+
+
+
 /**
- * Eliminar bono
+ * Desactivar bono
  */
-export async function deleteBono(req: Request, res: Response): Promise<void> {
+export async function desactivarBono(req: Request, res: Response): Promise<void> {
     try {
         if (!req.user?.id) {
             handleErrorClient(res, 401, "Usuario no autenticado");
@@ -208,30 +214,35 @@ export async function deleteBono(req: Request, res: Response): Promise<void> {
             return;
         }
 
-        // Verificar permisos antes de eliminar
-        const [bonoExistente, errorBusqueda] = await getBonoByIdService(bonoId);
-        if (errorBusqueda) {
-            const errorMessage = typeof errorBusqueda === 'string' ? errorBusqueda : errorBusqueda.message;
-            handleErrorClient(res, 404, errorMessage);
+        let motivo = req.body.motivo;
+        if (!motivo || typeof motivo !== 'string' || motivo.trim() === '') {
+            handleErrorClient(res, 400, "Motivo de desactivación inválido");
             return;
         }
 
-        if (req.user.role !== 'RecursosHumanos' && req.user.role !== 'SuperAdministrador') {
-            handleErrorClient(res, 403, "No tiene permisos para eliminar este bono");
+        const [bono, errorDesactivar] = await desactivarBonoService(bonoId, motivo.trim());
+
+        if (errorDesactivar) {
+            const errorMessage = typeof errorDesactivar === 'string' ? errorDesactivar : errorDesactivar.message;
+            if (errorMessage.includes("No tiene permiso")){
+                handleErrorClient(res, 403, errorMessage);
+                return;
+            }
+            if (errorMessage.includes("no encontrado")) {
+                handleErrorClient(res, 404, errorMessage);
+                return;
+            }
+            handleErrorClient(res, 400, errorMessage);
             return;
         }
 
-        const [bonoEliminado, error] = await deleteBonoService(bonoExistente?.id || bonoId);
-
-        if (error) {
-            const errorMessage = typeof error === 'string' ? error : error.message;
-            handleErrorClient(res, 404, errorMessage);
-            return;
+        if (!bono) {
+            handleErrorClient(res, 404, "Bono no se pudo desactivar");
         }
 
-        handleSuccess(res, 200, "Bono eliminado exitosamente", bonoEliminado || {});
+        handleSuccess(res, 200, "Bono desactivado exitosamente", bono || {});
     } catch (error) {
-        console.error("Error al eliminar bono:", error);
+        console.error("Error al desactivar bono:", error);
         handleErrorServer(res, 500, "Error interno del servidor");
     }
 }

@@ -505,7 +505,7 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
                     }
                     min={
                       formData.fechaInicioContrato && /^\d{4}-\d{2}-\d{2}$/.test(formData.fechaInicioContrato)
-                        ? formData.fechaInicioContrato
+                        ? new Date(new Date(formData.fechaInicioContrato).getTime() + 24 * 60 * 60 * 1000).toISOString().split('T')[0]
                         : undefined
                     }
                   />
@@ -513,7 +513,7 @@ export const EditarFichaEmpresaModal: React.FC<EditarFichaEmpresaModalProps> = (
                     <i className="bi bi-info-circle me-1"></i>
                     {!tipoContratoActual ? 'Seleccione primero un tipo de contrato' :
                       tipoContratoActual === 'Indefinido' ? 'No debe ingresar fecha fin para contratos indefinidos' :
-                      'Obligatorio para contratos no indefinidos'}
+                      'Obligatorio para contratos no indefinidos. Debe ser al menos un día posterior a la fecha de inicio'}
                     {((tipoContratoActual === 'Plazo Fijo' || tipoContratoActual === 'Por Obra' || tipoContratoActual === 'Part-Time') && (!formData.fechaInicioContrato || !/^\d{4}-\d{2}-\d{2}$/.test(formData.fechaInicioContrato))) && (
                       <>
                         <br/>( La Fecha Fin se habilita después de ingresar una Fecha de Inicio ).
