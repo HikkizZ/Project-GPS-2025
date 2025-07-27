@@ -174,8 +174,6 @@ export async function updateMaintenanceRecord(id: number, data: UpdateMaintenanc
       ]
     });
 
-    console.log("Maquinaria actualizada a:", record.maquinaria);
-
     const sanitized = sanitizeMaintenanceRecord(result!);
     return [sanitized, null];
     
