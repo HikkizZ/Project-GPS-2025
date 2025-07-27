@@ -93,7 +93,8 @@ export async function updateMaintenanceRecord(id: number, data: UpdateMaintenanc
       record.maquinaria = maquinaria;
     }
 
-    if (data.mecanicoId) {
+    if (typeof data.mecanicoId === "number") {
+
       const mecanico = await AppDataSource.getRepository(User).findOneBy({ id: data.mecanicoId });
       if (!mecanico) return [null, `Mecánico con ID ${data.mecanicoId} no encontrado`];
       
