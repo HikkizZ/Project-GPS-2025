@@ -570,12 +570,21 @@ export async function updateFichaEmpresaService(
             const cambios = camposRealmenteModificados.map(campo => {
                 const valorAnterior = valoresOriginales[campo];
                 const valorNuevo = (fichaData as any)[campo];
+                
                 // Formatear fechas
                 if (campo.toLowerCase().includes('fecha')) {
                     const va = valorAnterior ? new Date(valorAnterior).toISOString().split('T')[0] : '';
                     const vn = valorNuevo ? new Date(valorNuevo).toISOString().split('T')[0] : '';
                     return `${campo} (de '${va}' a '${vn}')`;
                 }
+                
+                // Formatear sueldo base con símbolo de peso y separadores de miles
+                if (campo === 'sueldoBase') {
+                    const va = valorAnterior ? `$${valorAnterior.toLocaleString('es-CL')}` : '$0';
+                    const vn = valorNuevo ? `$${valorNuevo.toLocaleString('es-CL')}` : '$0';
+                    return `${campo} (de '${va}' a '${vn}')`;
+                }
+                
                 return `${campo} (de '${valorAnterior ?? ''}' a '${valorNuevo ?? ''}')`;
             });
             observaciones = `Actualización de información laboral: ${cambios.join(', ')}`;

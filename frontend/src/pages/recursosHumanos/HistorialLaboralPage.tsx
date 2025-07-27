@@ -361,6 +361,10 @@ export default function HistorialLaboralPage() {
         if (campo === 'afp') {
           valorAnteriorFormateado = formatAFP(valorAnterior);
           valorNuevoFormateado = formatAFP(valorNuevo);
+        } else if (campo === 'sueldoBase') {
+          // El valor ya viene formateado del backend con $ y separadores de miles
+          valorAnteriorFormateado = valorAnterior;
+          valorNuevoFormateado = valorNuevo;
         }
         
         return `${campoFormal} (de '${valorAnteriorFormateado}' a '${valorNuevoFormateado}')`;
@@ -461,6 +465,9 @@ export default function HistorialLaboralPage() {
             campos.push(`${campoFormal}: ${formatFecha(valorNuevo)}`);
           } else if (campo === 'afp') {
             campos.push(`${campoFormal}: ${formatAFP(valorNuevo)}`);
+          } else if (campo === 'sueldoBase') {
+            // El valor ya viene formateado del backend con $ y separadores de miles
+            campos.push(`${campoFormal}: ${valorNuevo}`);
           } else {
             campos.push(`${campoFormal}: ${valorNuevo}`);
           }
