@@ -14,6 +14,7 @@ interface Props {
   onSpareParts: (record: MaintenanceRecord) => void;
   onReload: () => void;
   onAssignMecanico: (record: MaintenanceRecord) => void;
+  onAccept: (record: MaintenanceRecord) => void;
 }
 
 
@@ -25,6 +26,7 @@ const MaintenanceRecordList: React.FC<Props> = ({
   onFinish,
   onReload,
   onAssignMecanico,
+  onAccept,
 }) => {
   
 
@@ -54,13 +56,18 @@ const MaintenanceRecordList: React.FC<Props> = ({
 
   const handleAcceptMaintenance = async (record: MaintenanceRecord) => {
     if (!user?.id) return;
+      console.log("Usuario logueado:", user);
 
+    try {
       await update(record.id, {
         mecanicoId: user.id,
       });
-
       onReload();
+    } catch (error) {
+      console.error("Error al asignar mecánico:", error);
+    }
   };
+
 
   
 
@@ -202,18 +209,17 @@ const MaintenanceRecordList: React.FC<Props> = ({
                               </Button>
                           )}
 
-                          {user?.role === "Mecánico" &&
-                            (!m.mecanicoAsignado || m.mecanicoAsignado.id !== user.id) && (
+                         {(user?.role === "Mecánico" || user?.role === "Mantenciones de Maquinaria") &&
+                            !m.mecanicoAsignado && m.estado === "pendiente" && (
                               <Button
                                 variant="primary"
                                 size="sm"
-                                onClick={() => handleAcceptMaintenance(m)}
-                                disabled={updating}
+                                onClick={() => onAssignMecanico(m)}
                               >
-                                 <i className="bi bi-box-arrow-in-right me-1"></i>
-                                {updating ? "Asignando..." : "Aceptar Mantención"}
+                                <i className="bi bi-person-check"></i> Aceptar Mantención
                               </Button>
                           )}
+
 
 
                           {user?.role === "Mantenciones de Maquinaria" && (
@@ -251,16 +257,17 @@ const MaintenanceRecordList: React.FC<Props> = ({
         onClose={() => setShowConfirmModal(false)}
         onConfirm={handleConfirmDelete}
         title="¿Eliminar mantención?"
-        message={`¿Estás seguro de que deseas eliminar la mantención de la máquina "${recordToDelete?.maquinaria.grupo}"?`}
         confirmText="Eliminar"
         cancelText="Cancelar"
         headerVariant="danger"
         warningContent={
-          <p>
-            Esta acción eliminará la mantención <strong>permanentemente</strong> del sistema. No podrás recuperarla.
-          </p>
+          <div>
+            <p>¿Estás seguro de que deseas eliminar la mantención de la máquina <strong>"{recordToDelete?.maquinaria.grupo}"</strong>?</p>
+            <p>Esta acción eliminará la mantención <strong>permanentemente</strong> del sistema. No podrás recuperarla.</p>
+          </div>
         }
-/>
+      />
+
 
 
     </Card>
