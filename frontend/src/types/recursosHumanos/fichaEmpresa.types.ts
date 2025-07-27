@@ -47,9 +47,10 @@ export interface FichaEmpresa {
     activo: boolean;
     bono: {
       id: number;
-      nombre: string;
-      monto: number;
-      tipo: string; // Puede ser 'empresarial' o 'estatal'
+      nombreBono: string;
+      monto: string;
+      tipoBono: "estatal" | "empresarial";
+      temporalidad: "permanente" | "recurrente" | "puntual";
       imponible: boolean;
     };
   }[];
@@ -141,7 +142,6 @@ export interface FichaEmpresaSearchParams {
 } 
 
  export interface AsignarBonoDTO {
-    fichaEmpresaId: number;
     bonoId: number;
     observaciones?: string;
 }
