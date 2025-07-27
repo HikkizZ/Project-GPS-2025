@@ -4,8 +4,6 @@ import {
     getAllBonosService,
     getBonoByIdService,
     updateBonoService,
-    deleteBonoService,
-    reactivarBonoService,
     desactivarBonoService
 } from "../../../services/recursosHumanos/remuneraciones/bono.service.js";
 import { handleSuccess, handleErrorClient, handleErrorServer } from "../../../handlers/responseHandlers.js";
@@ -13,7 +11,6 @@ import {
     CreateBonoValidation, 
     UpdateBonoValidation, 
     BonoQueryValidation,
-    BonoReactivacionValidation
 } from "../../../validations/recursosHumanos/remuneraciones/bono.validation.js";
 import { AppDataSource } from "../../../config/configDB.js";
 import { Trabajador } from "../../../entity/recursosHumanos/trabajador.entity.js";
@@ -85,7 +82,10 @@ export async function getAllBonos(req: Request, res: Response): Promise<void> {
                 return;
         }
 
-        const [resultado, error] = await getAllBonosService();
+        // Verificar si se solicitan bonos inactivos
+        const incluirInactivos = req.query.incluirInactivos === 'true';
+
+        const [resultado, error] = await getAllBonosService(incluirInactivos);
 
         if (error) {
             handleErrorClient(res, 404, error as string);
@@ -195,99 +195,6 @@ export async function updateBono(req: Request, res: Response): Promise<void> {
     }
 }
 
-/**
- * Eliminar bono
- */
-export async function deleteBono(req: Request, res: Response): Promise<void> {
-    try {
-        if (!req.user?.id) {
-            handleErrorClient(res, 401, "Usuario no autenticado");
-            return;
-        }
-
-        const bonoId = parseInt(req.params.id);
-        if (isNaN(bonoId)) {
-            handleErrorClient(res, 400, "ID de bono inválido");
-            return;
-        }
-
-        // Verificar permisos antes de eliminar
-        const [bonoExistente, errorBusqueda] = await getBonoByIdService(bonoId);
-        if (errorBusqueda) {
-            const errorMessage = typeof errorBusqueda === 'string' ? errorBusqueda : errorBusqueda.message;
-            handleErrorClient(res, 404, errorMessage);
-            return;
-        }
-
-        if (req.user.role !== 'RecursosHumanos' && req.user.role !== 'SuperAdministrador') {
-            handleErrorClient(res, 403, "No tiene permisos para eliminar este bono");
-            return;
-        }
-
-        const [bonoEliminado, error] = await deleteBonoService(bonoExistente?.id || bonoId);
-
-        if (error) {
-            const errorMessage = typeof error === 'string' ? error : error.message;
-            handleErrorClient(res, 404, errorMessage);
-            return;
-        }
-
-        handleSuccess(res, 200, "Bono eliminado exitosamente", bonoEliminado || {});
-    } catch (error) {
-        console.error("Error al eliminar bono:", error);
-        handleErrorServer(res, 500, "Error interno del servidor");
-    }
-}
-
-/**
- * Reactivar bono
- */
-export async function reactivarBono(req: Request, res: Response): Promise<void> {
-    try {
-        const { id } = req.params;
-        const userId = req.user?.id;
-
-        if (!id) {
-            handleErrorClient(res, 400, "ID es requerido");
-            return;
-        }
-
-        const idNumber = parseInt(id);
-        if (isNaN(idNumber)) {
-            handleErrorClient(res, 400, "ID inválido");
-            return;
-        }
-
-        if (!userId) {
-            handleErrorClient(res, 401, "Usuario no autenticado");
-            return;
-        }
-
-        // Validar datos del body
-        const validationResult = BonoReactivacionValidation.validate(req.body);
-        if (validationResult.error) {
-            handleErrorClient(res, 400, validationResult.error.message);
-            return;
-        }
-
-        const [bonoReactivado, error] = await reactivarBonoService(idNumber, req.body);
-
-        if (error) {
-            const errorMessage = typeof error === 'string' ? error : error.message || "No se pudo reactivar el bono";
-            handleErrorClient(res, 400, errorMessage);
-            return;
-        }
-
-        if (!bonoReactivado) {
-            handleErrorClient(res, 404, "Bono no encontrado o no se pudo reactivar");
-            return;
-        }
-        handleSuccess(res, 200, "Bono reactivado exitosamente", bonoReactivado || {});
-    } catch (error) {
-        console.error("Error al reactivar bono:", error);
-        handleErrorServer(res, 500, "Error interno del servidor");
-    }
-}
 /**
  * Desactivar bono
  */
