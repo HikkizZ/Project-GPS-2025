@@ -41,6 +41,7 @@ export interface FichaEmpresa {
   seguroCesantia?: string; // Seguro de Cesantía
   asignacionesBonos: {
     id: number;
+    observaciones?: string;
     fechaAsignacion: Date | string;
     fechaFinAsignacion?: Date | string | null;
     activo: boolean;
@@ -140,9 +141,8 @@ export interface FichaEmpresaSearchParams {
 } 
 
  export interface AsignarBonoDTO {
-    bono: string; // ID del bono
-    fechaAsignacion?: string;
-    fechaFinAsignacion?: string;
+    fichaEmpresaId: number;
+    bonoId: number;
     observaciones?: string;
 }
 export interface AsignarFichaEmpresaData {
