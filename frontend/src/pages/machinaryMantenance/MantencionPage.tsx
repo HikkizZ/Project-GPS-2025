@@ -24,6 +24,10 @@ import type { Trabajador } from "@/types/recursosHumanos/trabajador.types"
 import AssignMecanicoModal from "@/components/MachineryMaintenance/MaintenanceRecord/AssignMecanicoModal"
 import EstadoFinalizacionModal from "@/components/MachineryMaintenance/MaintenanceRecord/EstadoFinalizacionModal";
 import Pagination from "@/components/MachineryMaintenance/Pagination";
+import { useAuth } from "@/context/useAuth";
+
+
+
 
 const MantencionPage: React.FC = () => {
   const { records, loading, error, reload } = useMaintenanceRecords()
@@ -49,6 +53,7 @@ const MantencionPage: React.FC = () => {
   const [showEstadoModal, setShowEstadoModal] = useState(false);
   const [estadoSeleccionado, setEstadoSeleccionado] = useState<EstadoMantencion.COMPLETADA | EstadoMantencion.IRRECUPERABLE | null>(null);
 
+
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   
@@ -60,7 +65,9 @@ const MantencionPage: React.FC = () => {
     a.maquinaria.patente.localeCompare(b.maquinaria.patente)
   );
 
-const paginatedRecords = sortedRecords.slice(startIndex, endIndex);
+  const paginatedRecords = sortedRecords.slice(startIndex, endIndex);
+
+  
 
 
   const handleOpenAssignModal = (record: MaintenanceRecord) => {
@@ -73,6 +80,79 @@ const paginatedRecords = sortedRecords.slice(startIndex, endIndex);
     setRecordToAssign(null);
   };
 
+
+   const { user } = useAuth();
+   
+   const resolveUserIdFromRut = async (rut: string): Promise<number | null> => {
+      try {
+        const result = await trabajadorService.getTrabajadores({ rut, todos: true });
+
+        if (!result.success || !result.data || result.data.length === 0) return null;
+
+        const trabajador = result.data[0];
+
+        // Retornar el ID del usuario (no del trabajador)
+        return trabajador.usuario?.id || null;
+      } catch (error) {
+        console.error("Error al buscar trabajador por RUT:", error);
+        return null;
+      }
+    };
+
+const handleAcceptMaintenance = async (record: MaintenanceRecord) => {
+  console.log("1");
+  console.log("USER CONTEXT:", user);
+
+  let mecanicoId = user?.id || 0;
+
+  if (mecanicoId <= 0 && user?.rut) {
+    try {
+      const result = await trabajadorService.getTrabajadores({ rut: user.rut, todos: true });
+
+      if (!result.success || !result.data || result.data.length === 0) {
+        showError("Error", "No se encontró un trabajador con tu RUT.");
+        return;
+      }
+
+      const trabajador = result.data[0];
+
+      if (!trabajador.usuario?.id || trabajador.usuario.id <= 0) {
+        showError("Error", "El trabajador no tiene un ID de usuario válido.");
+        return;
+      }
+
+      mecanicoId = trabajador.usuario.id;
+      console.log("ID obtenido desde trabajador:", mecanicoId);
+    } catch (error) {
+      console.error("Error al buscar trabajador por RUT:", error);
+      showError("Error", "Ocurrió un error al buscar tu ID como mecánico.");
+      return;
+    }
+  }
+
+  if (mecanicoId <= 0) {
+    showError("Error", "El usuario actual no tiene un ID válido.");
+    return;
+  }
+
+  console.log("2");
+  try {
+    console.log("3");
+    await update(record.id, {
+      mecanicoId,
+      estado: "en_proceso",
+    });
+    console.log("5");
+    showSuccess("Mantención aceptada", "Has sido asignado como mecánico responsable.");
+    reload();
+  } catch (error) {
+    console.error("Error al aceptar mantención:", error);
+    showError("Error", "No se pudo aceptar la mantención");
+  }
+};
+
+
+/* ---------------------------------------------------------------------------------------------------------- */
   const handleAssignMecanico = async (mecanicoId: number) => {
     if (!recordToAssign) return;
 
@@ -164,10 +244,6 @@ const paginatedRecords = sortedRecords.slice(startIndex, endIndex);
 
   const hasActiveFilters = Object.values(filterValues).some((v) => v.trim() !== "")
 
-  
-
-  
-
 
   const handleOpenSpareParts = (mantencion: MaintenanceRecord) => {
     setSelectedMantencionId(mantencion.id)
@@ -184,6 +260,11 @@ const paginatedRecords = sortedRecords.slice(startIndex, endIndex);
     setShowModal(false)
     setEditingRecord(null)
   }
+
+  
+
+
+
 
   
 
@@ -376,6 +457,7 @@ const paginatedRecords = sortedRecords.slice(startIndex, endIndex);
                   onSpareParts={handleOpenSpareParts}
                   onAssignMecanico={handleOpenAssignModal}
                   onReload={reload}
+                  onAccept={handleAcceptMaintenance}
                 />
               )}{!loading && !error && filteredRecords.length > itemsPerPage && (
                 <Pagination
