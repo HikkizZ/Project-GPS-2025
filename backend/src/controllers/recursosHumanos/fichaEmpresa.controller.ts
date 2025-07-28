@@ -73,34 +73,27 @@ export async function getMiFicha(req: Request, res: Response) {
 
 export async function updateFichaEmpresa(req: Request, res: Response) {
     try {
-        console.log('Archivo recibido en req.file:', req.file);
         const id = parseInt(req.params.id);
-        console.log('Intentando actualizar ficha con ID:', id);
         
         if (isNaN(id)) {
-            console.log('ID inválido:', req.params.id);
             handleErrorClient(res, 400, "ID inválido");
             return;
         }
 
         const validationResult = FichaEmpresaUpdateValidation.validate(req.body);
         if (validationResult.error) {
-            console.log('Error de validación:', validationResult.error.message);
             handleErrorClient(res, 400, validationResult.error.message);
             return;
         }
 
-        console.log('Datos a actualizar:', validationResult.value);
         const [ficha, error] = await updateFichaEmpresaService(id, validationResult.value, req.user, req.file);
 
         if (error) {
-            console.log('Error al actualizar:', error);
             const errorMessage = typeof error === 'string' ? error : error.message;
             handleErrorClient(res, 404, errorMessage);
             return;
         }
 
-        console.log('Ficha actualizada exitosamente:', ficha);
         handleSuccess(res, 200, "Ficha actualizada exitosamente", ficha!);
     } catch (error) {
         console.error("Error en updateFichaEmpresa:", error);
