@@ -22,6 +22,7 @@ import historialLaboralService from '@/services/recursosHumanos/historialLaboral
 import { TrabajadorDetalleModal } from '@/components/recursosHumanos/TrabajadorDetalleModal';
 import { AsignarBonosFichaEmpresaModal } from '@/components/recursosHumanos/ModalAsignarBonos';
 import { ModalDetallesBono } from '@/components/recursosHumanos/ModalDetallesBono';
+import { ModalRemuneraciones } from '@/components/recursosHumanos/ModalRemuneraciones';
 
 interface FichasEmpresaPageProps {
   trabajadorRecienRegistrado?: Trabajador | null;
@@ -81,6 +82,7 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
   const [showDetallesBonoModal, setShowDetallesBonoModal] = useState(false);
   const [selectedBono, setSelectedBono] = useState<any>(null);
   const [selectedAsignacion, setSelectedAsignacion] = useState<any>(null);
+  const [showRemuneracionesModal, setShowRemuneracionesModal] = useState(false);
 
   // Función para filtrar las fichas según los estados seleccionados
   // Ya no necesitamos filtrar aquí porque todo se maneja en el backend
@@ -404,10 +406,24 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
     setShowDetallesBonoModal(true);
   };
 
+  const handleVerRemuneraciones = () => {
+    setShowRemuneracionesModal(true);
+  };
+
+  // Modal de remuneraciones - FUERA de los returns condicionales
+  const modalRemuneraciones = showRemuneracionesModal && miFicha ? (
+    <ModalRemuneraciones
+      show={showRemuneracionesModal}
+      onHide={() => setShowRemuneracionesModal(false)}
+      ficha={miFicha}
+    />
+  ) : null;
+
   // Si es usuario sin permisos administrativos o está en la ruta de ficha personal
   if ((user && !puedeGestionarFichas) || (puedeAccederModulosPersonales && window.location.pathname === '/fichas-empresa/mi-ficha')) {
     return (
-      <Container fluid className="py-2">
+      <>
+        <Container fluid className="py-2">
         <Row>
           <Col>
             <Card className="shadow-sm main-card-spacing">
@@ -503,7 +519,14 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                           <div className="info-field">
                             <i className="bi bi-cash"></i>
                             <label>Sueldo Base</label>
-                            <div className="value text-success">{formatSueldo(miFicha.sueldoBase)}</div>
+                            <button 
+                              className="btn btn-link p-0 text-success text-decoration-underline border-0 bg-transparent"
+                              onClick={handleVerRemuneraciones}
+                              title="Ver detalle de remuneraciones"
+                              style={{ textAlign: 'left', width: '100%' }}
+                            >
+                              {formatSueldo(miFicha.sueldoBase)}
+                            </button>
                           </div>
 
                           <div className="info-field">
@@ -668,7 +691,9 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
           </Col>
         </Row>
       </Container>
-    );
+      {modalRemuneraciones}
+    </>
+  );
   }
 
   // Vista para RRHH/Admin
@@ -1276,6 +1301,7 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
 
       {/* Sistema de notificaciones */}
       <Toast toasts={toasts} removeToast={removeToast} />
+      {modalRemuneraciones}
     </Container>
   );
 }; 
