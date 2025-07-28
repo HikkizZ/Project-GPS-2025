@@ -1,6 +1,7 @@
 import React from 'react';
 import { Modal, Card, Badge } from 'react-bootstrap';
 import { FichaEmpresa } from '@/types/recursosHumanos/fichaEmpresa.types';
+import { calculoSueldoBruto, calcularSueldoLiquido } from '@/pages/recursosHumanos/GestionRemuneracionesPage';
 
 interface ModalRemuneracionesProps {
   show: boolean;
@@ -12,7 +13,7 @@ interface ModalRemuneracionesProps {
 const formatMiles = (numero: number): string => {
   return numero.toLocaleString('es-CL');
 };
-
+/*
 // Función para calcular sueldo bruto simplificado
 function calculoSueldoBruto(ficha: FichaEmpresa): number {
   const { sueldoBase } = ficha;
@@ -26,13 +27,15 @@ function calcularSueldoLiquido(ficha: FichaEmpresa): number {
   const sueldoBruto = calculoSueldoBruto(ficha);
   
   // Descuentos legales (simplificados)
-  const afp = Math.round(sueldoBruto * 0.10); // 10% AFP
+  const afp = Math.round(sueldoBruto * 0.10); // 10% AFP, dependiente del tipo de afp
   const salud = Math.round(sueldoBruto * 0.07); // 7% Salud
-  const seguroCesantia = Math.round(sueldoBruto * 0.03); // 3% Seguro Cesantía
+  const seguroCesantia = Math.round(sueldoBruto * 0.03); // 3% Seguro Cesantía va al seguro cesantía Es dependiente del tipo de contrato
   
   const totalDescuentos = afp + salud + seguroCesantia;
   return sueldoBruto - totalDescuentos;
 }
+*/
+
 
 export const ModalRemuneraciones: React.FC<ModalRemuneracionesProps> = ({
   show, onHide, ficha
@@ -40,7 +43,7 @@ export const ModalRemuneraciones: React.FC<ModalRemuneracionesProps> = ({
   if (!ficha || !show) return null;
 
   const sueldoBruto = calculoSueldoBruto(ficha);
-  const sueldoLiquido = calcularSueldoLiquido(ficha);
+  const [sueldoLiquido] = calcularSueldoLiquido(ficha, null);
   const bonosActivos = ficha.asignacionesBonos?.filter(bono => bono.activo) || [];
   const totalBonos = bonosActivos.reduce((total, bono) => total + parseInt(bono.bono?.monto || '0'), 0);
   

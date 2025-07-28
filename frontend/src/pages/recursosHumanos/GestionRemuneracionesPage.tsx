@@ -22,7 +22,7 @@ import { useRut } from "@/hooks/useRut";
 
 import "../../styles/pages/remuneraciones.css";
 
-function calculoSueldoBruto(ficha: FichaEmpresa): number {
+export function calculoSueldoBruto(ficha: FichaEmpresa): number {
   const { sueldoBase, tipoContrato } = ficha;
   const bonos = ficha.asignacionesBonos.filter((bono) => bono.activo) || [];
   const SumaBonos = bonos.reduce(
@@ -57,7 +57,7 @@ function calculoSueldoBruto(ficha: FichaEmpresa): number {
   return sueldoBase + sumaBonos;
 }
 
-function calcularSueldoLiquido(
+export function calcularSueldoLiquido(
   ficha: FichaEmpresa,
   historialLaboral: any
 ): [number, number, number, number, number] {
