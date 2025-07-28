@@ -6,9 +6,15 @@ interface MaquinariaDetalleModalProps {
   show: boolean
   onHide: () => void
   maquinaria: Maquinaria | null
+  onEliminarPadron?: (id: number) => Promise<void>
 }
 
-export const MaquinariaDetalleModal: React.FC<MaquinariaDetalleModalProps> = ({ show, onHide, maquinaria }) => {
+export const MaquinariaDetalleModal: React.FC<MaquinariaDetalleModalProps> = ({
+  show,
+  onHide,
+  maquinaria,
+  onEliminarPadron,
+}) => {
   const formatCurrency = (value: number | undefined | null) => {
     if (!value || value === 0) return "$0"
     return new Intl.NumberFormat("es-CL", {
@@ -61,7 +67,41 @@ export const MaquinariaDetalleModal: React.FC<MaquinariaDetalleModalProps> = ({ 
     return grupo?.replace(/_/g, " ").toUpperCase() || "Sin grupo"
   }
 
+  const getImageUrl = (filename?: string) => {
+    if (!filename) return "/placeholder.svg"
+
+    // Si ya es una URL completa, usarla tal como está
+    if (filename.startsWith("http://") || filename.startsWith("https://")) {
+      return filename
+    }
+
+    // Si empieza con /uploads/, construir URL completa
+    if (filename.startsWith("/uploads/")) {
+      const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:3000"
+      return `${baseUrl}${filename}`
+    }
+
+    // Si es solo el nombre del archivo, construir la URL completa
+    const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:3000"
+    return `${baseUrl}/uploads/maquinaria/images/${filename}`
+  }
+
+  const handleEliminarPadron = async () => {
+    if (!maquinaria || !onEliminarPadron) return
+
+    if (window.confirm("¿Está seguro de eliminar el padrón? Esta acción no se puede deshacer.")) {
+      try {
+        await onEliminarPadron(maquinaria.id)
+      } catch (error) {
+        console.error("Error al eliminar padrón:", error)
+        alert("Error al eliminar el padrón")
+      }
+    }
+  }
+
   if (!maquinaria) return null
+
+  const imageUrl = getImageUrl(maquinaria.padronUrl)
 
   return (
     <Modal show={show} onHide={onHide} size="lg" centered>
@@ -72,6 +112,55 @@ export const MaquinariaDetalleModal: React.FC<MaquinariaDetalleModalProps> = ({ 
         </Modal.Title>
       </Modal.Header>
       <Modal.Body>
+        {/* Padrón - Sección Principal */}
+        <div className="mb-4">
+          <h5>
+            <i className="bi bi-file-earmark me-2"></i>
+            Padrón
+          </h5>
+          {maquinaria.padronUrl ? (
+            <div className="padron-preview">
+              <div>
+                <img
+                  src={imageUrl || "/placeholder.svg"}
+                  alt="Padrón"
+                  className="padron-image"
+                  style={{ maxWidth: "100%", height: "auto", borderRadius: "8px" }}
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement
+                    target.style.display = "none"
+                    const errorDiv = target.nextElementSibling as HTMLElement
+                    if (errorDiv) errorDiv.classList.remove("d-none")
+
+                    console.error("❌ Error cargando imagen:")
+                    console.error("   Filename original:", maquinaria.padronUrl)
+                    console.error("   URL construida:", imageUrl)
+                  }}
+                />
+                <Alert variant="danger" className="d-none">
+                  <i className="bi bi-exclamation-triangle me-2"></i>
+                  Error al cargar la imagen. URL: {maquinaria.padronUrl}
+                </Alert>
+              </div>
+              {onEliminarPadron && (
+                <div className="mt-3">
+                  <Button variant="outline-danger" size="sm" onClick={handleEliminarPadron}>
+                    <i className="bi bi-trash me-2"></i>
+                    Eliminar Padrón
+                  </Button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="no-padron-alert">
+              <div className="no-padron-icon">
+                <i className="bi bi-info-circle"></i>
+              </div>
+              <p className="mb-0">No hay padrón asociado a esta maquinaria</p>
+            </div>
+          )}
+        </div>
+
         {/* Información Básica */}
         <div className="mb-4">
           <h5>
@@ -156,9 +245,7 @@ export const MaquinariaDetalleModal: React.FC<MaquinariaDetalleModalProps> = ({ 
             <Col md={6}>
               <div>
                 <label className="fw-bold">Kilometraje Actual:</label>
-                <div className="fs-5 fw-bold text-dark">
-                  {maquinaria.kilometrajeActual?.toLocaleString() || 0} km
-                </div>
+                <div className="fs-5 fw-bold text-dark">{maquinaria.kilometrajeActual?.toLocaleString() || 0} km</div>
               </div>
             </Col>
           </Row>

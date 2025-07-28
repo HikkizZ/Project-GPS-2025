@@ -238,6 +238,15 @@ export async function createTrabajadorService(trabajadorData: Partial<Trabajador
             return [null, "Ya existe un usuario con ese RUT"];
         }
 
+        // Verificar si ya existe un trabajador con el mismo correo personal (activos y desvinculados)
+        const existingTrabajadorWithEmail = await trabajadorRepo.findOne({
+            where: { correoPersonal: trabajadorData.correoPersonal }
+        });
+
+        if (existingTrabajadorWithEmail) {
+            return [null, "Ya existe un trabajador con ese correo personal"];
+        }
+
         // Crear el trabajador
         const trabajador = trabajadorRepo.create({
             ...trabajadorData,
@@ -391,7 +400,12 @@ export async function getTrabajadoresService(incluirInactivos: boolean = false, 
             queryBuilder.andWhere('trabajador.telefono ILIKE :telefono', { telefono: `%${filtros.telefono}%` });
         }
         if (filtros.correoPersonal) {
-            queryBuilder.andWhere('trabajador.correoPersonal ILIKE :correoPersonal', { correoPersonal: `%${filtros.correoPersonal}%` });
+            // Si se busca para validar unicidad, usar búsqueda exacta
+            if (filtros.exactMatch) {
+                queryBuilder.andWhere('trabajador.correoPersonal = :correoPersonal', { correoPersonal: filtros.correoPersonal });
+            } else {
+                queryBuilder.andWhere('trabajador.correoPersonal ILIKE :correoPersonal', { correoPersonal: `%${filtros.correoPersonal}%` });
+            }
         }
         if (filtros.numeroEmergencia) {
             queryBuilder.andWhere('trabajador.numeroEmergencia ILIKE :numeroEmergencia', { numeroEmergencia: `%${filtros.numeroEmergencia}%` });
@@ -570,6 +584,22 @@ export async function updateTrabajadorService(id: number, data: any): Promise<Se
             "numeroEmergencia", "direccion", "correoPersonal"
         ];
         
+        // Validar unicidad del correo personal si se está actualizando
+        if (data.correoPersonal && data.correoPersonal !== trabajador.correoPersonal) {
+            const existingTrabajadorWithEmail = await trabajadorRepo.findOne({
+                where: { 
+                    correoPersonal: data.correoPersonal,
+                    id: Not(id) // Excluir el trabajador actual
+                }
+            });
+
+            if (existingTrabajadorWithEmail) {
+                await queryRunner.rollbackTransaction();
+                await queryRunner.release();
+                return [null, "Ya existe un trabajador con ese correo personal"];
+            }
+        }
+        
         for (const campo of camposPermitidos) {
             if (data[campo] && data[campo] !== (trabajador as any)[campo]) {
                 (trabajador as any)[campo] = data[campo];
@@ -745,6 +775,20 @@ export async function reactivarTrabajadorService(
             await queryRunner.rollbackTransaction();
             await queryRunner.release();
             return [null, "Formato de correo personal inválido"];
+        }
+
+        // Validar unicidad del correo personal
+        const existingTrabajadorWithEmail = await trabajadorRepo.findOne({
+            where: { 
+                correoPersonal: datosLimpios.correoPersonal,
+                id: Not(trabajadorId) // Excluir el trabajador que se está reactivando
+            }
+        });
+
+        if (existingTrabajadorWithEmail) {
+            await queryRunner.rollbackTransaction();
+            await queryRunner.release();
+            return [null, "Ya existe un trabajador con ese correo personal"];
         }
 
         // 4. Generar nuevo correo corporativo (NUNCA reutilizar anteriores)

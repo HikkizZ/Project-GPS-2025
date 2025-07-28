@@ -76,6 +76,7 @@ export class Trabajador {
   @Column({ type: "varchar", length: 12, nullable: false })
   telefono!: string;
 
+  @Index("IDX_TRABAJADORES_CORREO_PERSONAL", { unique: true })
   @Column({ type: "varchar", length: 255, nullable: false })
   correoPersonal!: string;
 

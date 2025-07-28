@@ -57,6 +57,60 @@ export class TrabajadorService {
     };
   }
 
+  // Verificar unicidad del correo personal
+  async verificarCorreoPersonal(correoPersonal: string, excludeId?: number): Promise<ApiResponse<{ 
+    disponible: boolean; 
+    mensaje: string;
+  }>> {
+    try {
+      // Buscar trabajador por correo personal con búsqueda exacta
+      const response = await this.getTrabajadores({ correoPersonal, exactMatch: true, todos: true });
+      
+      if (!response.success || !response.data || response.data.length === 0) {
+        return {
+          success: true,
+          data: {
+            disponible: true,
+            mensaje: 'Correo personal disponible'
+          },
+          message: 'Correo personal disponible'
+        };
+      }
+
+      const trabajador = response.data[0];
+      
+      // Si se está editando un trabajador, verificar que no sea el mismo
+      if (excludeId && trabajador.id === excludeId) {
+        return {
+          success: true,
+          data: {
+            disponible: true,
+            mensaje: 'Correo personal disponible'
+          },
+          message: 'Correo personal disponible'
+        };
+      }
+
+      return {
+        success: true,
+        data: {
+          disponible: false,
+          mensaje: 'Ya existe un trabajador con ese correo personal'
+        },
+        message: 'Ya existe un trabajador con ese correo personal'
+      };
+    } catch (error) {
+      return {
+        success: false,
+        data: {
+          disponible: false,
+          mensaje: 'Error al verificar correo personal'
+        },
+        message: 'Error al verificar correo personal'
+      };
+    }
+  }
+
   // Verificar estado del RUT (para modal inteligente)
   async verificarEstadoRUT(rut: string): Promise<ApiResponse<{ 
     existe: boolean; 

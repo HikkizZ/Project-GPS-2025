@@ -88,6 +88,7 @@ export interface TrabajadorSearchQuery {
   fechaIngreso?: string;
   todos?: boolean;
   enSistema?: boolean;
+  exactMatch?: boolean; // Para búsquedas exactas (especialmente para validar unicidad)
 }
 
 export interface TrabajadorResponse {
