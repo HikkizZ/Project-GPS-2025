@@ -44,7 +44,6 @@ export class CompraMaquinariaService {
     }
   }
 
-  // MANTENER LA FUNCIÓN ORIGINAL SIN CAMBIOS
   async obtenerTodasLasCompras(): Promise<ApiResponse<CompraMaquinaria[]>> {
     try {
       const response = await apiClient.get(`${this.baseURL}/`)
@@ -62,7 +61,6 @@ export class CompraMaquinariaService {
     }
   }
 
-  // NUEVA FUNCIÓN PARA OBTENER CON INACTIVAS
   async obtenerTodasLasComprasConInactivas(): Promise<ApiResponse<CompraMaquinaria[]>> {
     try {
       const response = await apiClient.get(`${this.baseURL}/`, {
@@ -185,7 +183,6 @@ export class CompraMaquinariaService {
       }
     }
   }
-
   async eliminarPadron(id: number): Promise<ApiResponse<CompraMaquinaria>> {
     try {
       const response = await apiClient.delete(`${this.baseURL}/${id}/padron`)
@@ -234,9 +231,7 @@ export class CompraMaquinariaService {
     }
   }
 }
-
 export const compraMaquinariaService = new CompraMaquinariaService()
-
 export const crearCompra = (data: CreateCompraMaquinaria, file?: File) =>
   compraMaquinariaService.crearCompra(data, file)
 export const obtenerTodasLasCompras = () => compraMaquinariaService.obtenerTodasLasCompras()

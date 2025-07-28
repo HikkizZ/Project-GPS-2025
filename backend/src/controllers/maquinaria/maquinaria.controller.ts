@@ -4,11 +4,9 @@ import { validationResult } from "express-validator"
 
 export class MaquinariaController {
   private maquinariaService: MaquinariaService
-
   constructor() {
     this.maquinariaService = new MaquinariaService()
   }
-
   findAll = async (req: Request, res: Response): Promise<void> => {
     try {
       const incluirInactivas = req.query.incluirInactivas === "true"
@@ -25,7 +23,6 @@ export class MaquinariaController {
       })
     }
   }
-
   findOne = async (req: Request, res: Response): Promise<void> => {
     try {
       const { id } = req.params
@@ -43,7 +40,6 @@ export class MaquinariaController {
       })
     }
   }
-
   findByPatente = async (req: Request, res: Response): Promise<void> => {
     try {
       const { patente } = req.params
@@ -61,7 +57,6 @@ export class MaquinariaController {
       })
     }
   }
-
   update = async (req: Request, res: Response): Promise<void> => {
     try {
       const errors = validationResult(req)
@@ -69,7 +64,6 @@ export class MaquinariaController {
         res.status(400).json({ errors: errors.array() })
         return
       }
-
       const { id } = req.params
       const file = req.file
       const maquinaria = await this.maquinariaService.update(Number(id), req.body, file)
@@ -86,7 +80,6 @@ export class MaquinariaController {
       })
     }
   }
-
   remove = async (req: Request, res: Response): Promise<void> => {
     try {
       const { id } = req.params
@@ -103,7 +96,6 @@ export class MaquinariaController {
       })
     }
   }
-
   obtenerDisponible = async (req: Request, res: Response): Promise<void> => {
     try {
       const maquinarias = await this.maquinariaService.obtenerMaquinariaDisponible()
@@ -119,7 +111,6 @@ export class MaquinariaController {
       })
     }
   }
-
   actualizarKilometraje = async (req: Request, res: Response): Promise<void> => {
     try {
       const errors = validationResult(req)
@@ -127,7 +118,6 @@ export class MaquinariaController {
         res.status(400).json({ errors: errors.array() })
         return
       }
-
       const { id } = req.params
       const { kilometraje } = req.body
       const maquinaria = await this.maquinariaService.actualizarKilometraje(Number(id), kilometraje)
@@ -144,7 +134,6 @@ export class MaquinariaController {
       })
     }
   }
-
   cambiarEstado = async (req: Request, res: Response): Promise<void> => {
     try {
       const errors = validationResult(req)
@@ -152,7 +141,6 @@ export class MaquinariaController {
         res.status(400).json({ errors: errors.array() })
         return
       }
-
       const { id } = req.params
       const { estado } = req.body
       const maquinaria = await this.maquinariaService.cambiarEstado(Number(id), estado)
@@ -169,8 +157,7 @@ export class MaquinariaController {
       })
     }
   }
-
-  // Nuevos métodos para soft delete
+  // SolftDelete
   softRemove = async (req: Request, res: Response): Promise<void> => {
     try {
       const { id } = req.params
@@ -187,7 +174,6 @@ export class MaquinariaController {
       })
     }
   }
-
   restore = async (req: Request, res: Response): Promise<void> => {
     try {
       const { id } = req.params
@@ -205,8 +191,7 @@ export class MaquinariaController {
       })
     }
   }
-
-  // Nuevos métodos para manejo de archivos del padrón
+  // Manejo de archivos del padron
   actualizarPadron = async (req: Request, res: Response): Promise<void> => {
     try {
       const { id } = req.params
@@ -219,7 +204,6 @@ export class MaquinariaController {
         })
         return
       }
-
       const maquinaria = await this.maquinariaService.actualizarPadron(Number(id), file)
       res.status(200).json({
         success: true,
@@ -234,7 +218,6 @@ export class MaquinariaController {
       })
     }
   }
-
   eliminarPadron = async (req: Request, res: Response): Promise<void> => {
     try {
       const { id } = req.params
