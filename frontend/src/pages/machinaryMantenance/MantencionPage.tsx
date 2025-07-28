@@ -101,7 +101,7 @@ const handleAcceptMaintenance = async (record: MaintenanceRecord) => {
     return;
   }
 
-  console.log("Obteniendo ID del usuario con RUT:", user.rut);
+  //console.log("Obteniendo ID del usuario con RUT:", user.rut);
 
   let mecanicoId: number | null = null;
 
