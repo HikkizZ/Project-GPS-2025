@@ -9,6 +9,14 @@ import { ServiceResponse } from "../../../types.js";
 import { EstadoMaquinaria } from "../../entity/maquinaria/maquinaria.entity.js";
 import { In } from "typeorm";
 
+
+function truncateToMinutesUTC(date: Date): Date {
+  const utcDate = new Date(date.getTime() + date.getTimezoneOffset() * 60000);
+  return new Date(utcDate.getFullYear(), utcDate.getMonth(), utcDate.getDate(), utcDate.getHours(), utcDate.getMinutes(), 0, 0);
+}
+
+
+
 export async function createMaintenanceRecord(data: CreateMaintenanceRecordDTO): Promise<ServiceResponse<MaintenanceRecord>> {
   try {
     const recordRepo = AppDataSource.getRepository(MaintenanceRecord);
@@ -125,19 +133,22 @@ export async function updateMaintenanceRecord(id: number, data: UpdateMaintenanc
     if (data.razonMantencion) record.razonMantencion = data.razonMantencion;
 
     if (data.fechaSalida) {
-      const salida = new Date(data.fechaSalida);
+       const salida = truncateToMinutesUTC(new Date(data.fechaSalida));
       if (isNaN(salida.getTime())) {
         return [null, "La fecha de salida debe ser una fecha válida"];
       }
 
-      const entrada = new Date(record.fechaEntrada);
+      const entrada = truncateToMinutesUTC(new Date(record.fechaEntrada));
+      console.log("Entrada:", entrada.toISOString());
+      console.log("Salida:", salida.toISOString());
 
-      if (salida < entrada) {
-        return [null, "La fecha de salida no puede ser anterior a la fecha de entrada"];
+      if (salida.getTime() < entrada.getTime()) {
+        return [null, "La fecha de salida debe ser posterior a la fecha de entrada (al menos por minuto)"];
       }
 
+
       record.fechaSalida = salida;
-}
+    }
 
 
     if (data.descripcionSalida) record.descripcionSalida = data.descripcionSalida;
