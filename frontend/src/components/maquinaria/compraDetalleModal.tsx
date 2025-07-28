@@ -1,8 +1,7 @@
-"use client"
-
 import type React from "react"
 import { Modal, Button, Row, Col, Badge, Alert } from "react-bootstrap"
 import type { CompraMaquinaria } from "../../types/maquinaria.types"
+import { compraMaquinariaService } from "../../services/maquinaria/compraMaquinaria.service"
 import "../../styles/components/CompraDetalleModal.css"
 
 interface CompraDetalleModalProps {
@@ -12,7 +11,7 @@ interface CompraDetalleModalProps {
   onEliminarPadron?: (id: number) => Promise<void>
 }
 
-export const CompraDetalleModal: React.FC<CompraDetalleModalProps> = ({ show, onHide, compra, onEliminarPadron }) => {
+const CompraDetalleModal: React.FC<CompraDetalleModalProps> = ({ show, onHide, compra, onEliminarPadron }) => {
   const isCompraActiva = (compra: CompraMaquinaria) => {
     return compra.isActive !== false
   }
@@ -49,34 +48,30 @@ export const CompraDetalleModal: React.FC<CompraDetalleModalProps> = ({ show, on
       try {
         await onEliminarPadron(compra.id)
       } catch (error) {
-        console.error("Error al eliminar padrón:", error)
         alert("Error al eliminar el padrón")
       }
     }
   }
 
-  const getImageUrl = (filename?: string) => {
-    if (!filename) return "/placeholder.svg"
-
-    // Si ya es una URL completa, usarla tal como está
-    if (filename.startsWith("http://") || filename.startsWith("https://")) {
-      return filename
+  const handleDescargarPadron = async () => {
+    if (!compra) {
+      alert("Error: No hay compra seleccionada")
+      return
     }
 
-    // Si empieza con /uploads/, construir URL completa
-    if (filename.startsWith("/uploads/")) {
-      const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:3000"
-      return `${baseUrl}${filename}`
+    if (!compra.padronUrl) {
+      alert("Esta compra no tiene padrón disponible para descargar")
+      return
     }
 
-    // Si es solo el nombre del archivo, construir la URL completa
-    const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:3000"
-    return `${baseUrl}/uploads/maquinaria/images/${filename}`
+    try {
+      await compraMaquinariaService.descargarPadron(compra.id)
+    } catch (error: any) {
+      alert(`Error al descargar el padrón: ${error.message || "Error desconocido"}`)
+    }
   }
 
   if (!compra) return null
-
-  const imageUrl = getImageUrl(compra.padronUrl)
 
   return (
     <Modal show={show} onHide={onHide} size="lg" centered className="compra-detalle-modal">
@@ -115,38 +110,21 @@ export const CompraDetalleModal: React.FC<CompraDetalleModalProps> = ({ show, on
           </h5>
           {compra.padronUrl ? (
             <div className="padron-preview">
-              {/* ✅ CAMBIO CRÍTICO: Usar directamente compra.padronUrl sin concatenar */}
-              <div>
-                <img
-                  src={imageUrl || "/placeholder.svg"}
-                  alt="Padrón"
-                  className="padron-image"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement
-                    target.style.display = "none"
-                    const errorDiv = target.nextElementSibling as HTMLElement
-                    if (errorDiv) errorDiv.classList.remove("d-none")
-
-                    console.error("❌ Error cargando imagen:")
-                    console.error("   Filename original:", compra.padronUrl)
-                    console.error("   URL construida:", imageUrl)
-                    console.error("   Base URL:", import.meta.env.VITE_API_URL || "http://localhost:3000")
-                  }}
-                />
-                <Alert variant="danger" className="d-none">
-                  <i className="bi bi-exclamation-triangle me-2"></i>
-                  Error al cargar la imagen.
-                  <br />
-                  <small>
-                    Archivo: {compra.padronUrl}
-                    <br />
-                    URL: {imageUrl}
-                  </small>
-                </Alert>
+              <div className="pdf-preview">
+                <div className="pdf-icon">
+                  <i className="bi bi-file-earmark-pdf"></i>
+                </div>
+                <h6>Documento PDF</h6>
                 <div className="mt-2">
                   <small className="text-muted">
-                    {compra.padronOriginalName || "Archivo"} • {formatFileSize(compra.padronFileSize)}
+                    {compra.padronOriginalName || "padron.pdf"} • {formatFileSize(compra.padronFileSize)}
                   </small>
+                </div>
+                <div className="mt-3 d-flex gap-2">
+                  <Button variant="primary" onClick={handleDescargarPadron}>
+                    <i className="bi bi-download me-2"></i>
+                    Descargar PDF
+                  </Button>
                 </div>
               </div>
               {onEliminarPadron && isCompraActiva(compra) && (
@@ -323,3 +301,5 @@ export const CompraDetalleModal: React.FC<CompraDetalleModalProps> = ({ show, on
     </Modal>
   )
 }
+
+export default CompraDetalleModal

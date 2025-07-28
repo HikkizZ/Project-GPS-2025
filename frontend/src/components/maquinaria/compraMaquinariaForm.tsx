@@ -1,3 +1,5 @@
+"use client"
+
 import type React from "react"
 import { useState } from "react"
 import { GrupoMaquinaria, type CreateCompraMaquinaria } from "../../types/maquinaria.types"
@@ -85,14 +87,13 @@ export const CompraMaquinariaForm: React.FC<CompraMaquinariaFormProps> = ({
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
-      const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp", "application/pdf"]
-      if (!allowedTypes.includes(file.type)) {
-        setErrors((prev) => ({ ...prev, padron: "Solo se permiten imágenes (JPEG, PNG, GIF, WebP) o PDF" }))
+      if (file.type !== "application/pdf") {
+        setErrors((prev) => ({ ...prev, padron: "Solo se permiten archivos PDF" }))
         return
       }
 
-      if (file.size > 25 * 1024 * 1024) {
-        setErrors((prev) => ({ ...prev, padron: "El archivo no puede ser mayor a 25MB" }))
+      if (file.size > 10 * 1024 * 1024) {
+        setErrors((prev) => ({ ...prev, padron: "El archivo no puede ser mayor a 10MB" }))
         return
       }
 
@@ -330,16 +331,16 @@ export const CompraMaquinariaForm: React.FC<CompraMaquinariaFormProps> = ({
           </div>
 
           <div className="col-md-6">
-            <label className="form-label">Padrón (Imagen o PDF)</label>
+            <label className="form-label">Padrón (PDF)</label>
             <input
               type="file"
               name="padron"
               className={`form-control ${errors.padron ? "is-invalid" : ""}`}
               onChange={handleFileChange}
-              accept="image/*,.pdf"
+              accept=".pdf"
             />
             {errors.padron && <div className="invalid-feedback">{errors.padron}</div>}
-            <div className="form-text">Formatos permitidos: JPEG, PNG, GIF, WebP, PDF. Tamaño máximo: 25MB</div>
+            <div className="form-text">Solo archivos PDF. Tamaño máximo: 10MB</div>
             {selectedFile && (
               <div className="mt-2">
                 <small className="text-success">

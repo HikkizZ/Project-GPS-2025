@@ -1,12 +1,15 @@
 import type { Request, Response } from "express"
 import { MaquinariaService } from "../../services/maquinaria/maquinaria.service.js"
 import { validationResult } from "express-validator"
+import fs from "fs"
 
 export class MaquinariaController {
   private maquinariaService: MaquinariaService
+
   constructor() {
     this.maquinariaService = new MaquinariaService()
   }
+
   findAll = async (req: Request, res: Response): Promise<void> => {
     try {
       const incluirInactivas = req.query.incluirInactivas === "true"
@@ -23,6 +26,7 @@ export class MaquinariaController {
       })
     }
   }
+
   findOne = async (req: Request, res: Response): Promise<void> => {
     try {
       const { id } = req.params
@@ -40,6 +44,7 @@ export class MaquinariaController {
       })
     }
   }
+
   findByPatente = async (req: Request, res: Response): Promise<void> => {
     try {
       const { patente } = req.params
@@ -57,6 +62,7 @@ export class MaquinariaController {
       })
     }
   }
+
   update = async (req: Request, res: Response): Promise<void> => {
     try {
       const errors = validationResult(req)
@@ -80,6 +86,7 @@ export class MaquinariaController {
       })
     }
   }
+
   remove = async (req: Request, res: Response): Promise<void> => {
     try {
       const { id } = req.params
@@ -96,6 +103,7 @@ export class MaquinariaController {
       })
     }
   }
+
   obtenerDisponible = async (req: Request, res: Response): Promise<void> => {
     try {
       const maquinarias = await this.maquinariaService.obtenerMaquinariaDisponible()
@@ -111,6 +119,7 @@ export class MaquinariaController {
       })
     }
   }
+
   actualizarKilometraje = async (req: Request, res: Response): Promise<void> => {
     try {
       const errors = validationResult(req)
@@ -134,6 +143,7 @@ export class MaquinariaController {
       })
     }
   }
+
   cambiarEstado = async (req: Request, res: Response): Promise<void> => {
     try {
       const errors = validationResult(req)
@@ -157,7 +167,7 @@ export class MaquinariaController {
       })
     }
   }
-  // SolftDelete
+
   softRemove = async (req: Request, res: Response): Promise<void> => {
     try {
       const { id } = req.params
@@ -174,6 +184,7 @@ export class MaquinariaController {
       })
     }
   }
+
   restore = async (req: Request, res: Response): Promise<void> => {
     try {
       const { id } = req.params
@@ -191,7 +202,7 @@ export class MaquinariaController {
       })
     }
   }
-  // Manejo de archivos del padron
+
   actualizarPadron = async (req: Request, res: Response): Promise<void> => {
     try {
       const { id } = req.params
@@ -200,24 +211,25 @@ export class MaquinariaController {
       if (!file) {
         res.status(400).json({
           success: false,
-          message: "No se proporcionó ningún archivo",
+          message: "No se proporcionó ningún archivo PDF",
         })
         return
       }
       const maquinaria = await this.maquinariaService.actualizarPadron(Number(id), file)
       res.status(200).json({
         success: true,
-        message: "Padrón actualizado exitosamente",
+        message: "Padrón PDF actualizado exitosamente",
         data: maquinaria,
       })
     } catch (error) {
       res.status(500).json({
         success: false,
-        message: "Error al actualizar el padrón",
+        message: "Error al actualizar el padrón PDF",
         error: error instanceof Error ? error.message : "Error desconocido",
       })
     }
   }
+
   eliminarPadron = async (req: Request, res: Response): Promise<void> => {
     try {
       const { id } = req.params
@@ -231,6 +243,47 @@ export class MaquinariaController {
       res.status(500).json({
         success: false,
         message: "Error al eliminar el padrón",
+        error: error instanceof Error ? error.message : "Error desconocido",
+      })
+    }
+  }
+
+  // Nueva función para descargar padrón PDF
+  descargarPadron = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { id } = req.params
+      const { filePath, customFilename } = await this.maquinariaService.descargarPadron(Number(id))
+
+      // Verificar que el archivo existe
+      if (!fs.existsSync(filePath)) {
+        res.status(404).json({
+          success: false,
+          message: "El archivo del padrón no se encuentra en el servidor",
+        })
+        return
+      }
+
+      // Headers de seguridad para descarga
+      res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate")
+      res.setHeader("Pragma", "no-cache")
+      res.setHeader("Expires", "0")
+      res.setHeader("Content-Type", "application/pdf")
+      res.setHeader("Content-Disposition", `attachment; filename="${customFilename}"`)
+      res.setHeader("Access-Control-Expose-Headers", "Content-Disposition")
+
+      // Descargar archivo
+      res.download(filePath, customFilename, (err) => {
+        if (err && !res.headersSent) {
+          res.status(500).json({
+            success: false,
+            message: "No se pudo descargar el archivo del padrón",
+          })
+        }
+      })
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: "Error al descargar el padrón",
         error: error instanceof Error ? error.message : "Error desconocido",
       })
     }

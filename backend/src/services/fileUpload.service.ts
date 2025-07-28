@@ -32,13 +32,14 @@ export class FileUploadService {
       // Determinar la carpeta según el tipo de archivo
       let uploadDir = FileUploadService.UPLOADS_DIR
 
-
       if (req.baseUrl.includes("licencia-permiso")) {
         uploadDir = path.join(uploadDir, "licencias")
       } else if (req.baseUrl.includes("fichas-empresa")) {
         uploadDir = path.join(uploadDir, "contratos")
       } else if (req.baseUrl.includes("historial-laboral")) {
         uploadDir = path.join(uploadDir, "historial")
+      } else if (req.baseUrl.includes("maquinaria") || req.baseUrl.includes("compra-maquinaria")) {
+        uploadDir = path.join(uploadDir, "padrones")
       } else {
         uploadDir = path.join(uploadDir, "general")
       }
@@ -137,10 +138,26 @@ export class FileUploadService {
   }
 
   /**
+   * Obtiene la ruta completa de un archivo de padrón de maquinaria
+   */
+  static getPadronPath(filenameOrPath: string): string {
+    const baseFilename = path.basename(filenameOrPath)
+    return path.join(FileUploadService.UPLOADS_DIR, "padrones", baseFilename)
+  }
+
+  /**
    * Elimina un archivo de contrato específico
    */
   static deleteContratoFile(filename: string): boolean {
     const filePath = FileUploadService.getContratoPath(filename)
+    return FileUploadService.deleteFile(filePath)
+  }
+
+  /**
+   * Elimina un archivo de padrón específico
+   */
+  static deletePadronFile(filename: string): boolean {
+    const filePath = FileUploadService.getPadronPath(filename)
     return FileUploadService.deleteFile(filePath)
   }
 
@@ -169,6 +186,7 @@ export class FileUploadService {
       path.join(FileUploadService.UPLOADS_DIR, "contratos"),
       path.join(FileUploadService.UPLOADS_DIR, "licencias"),
       path.join(FileUploadService.UPLOADS_DIR, "historial"),
+      path.join(FileUploadService.UPLOADS_DIR, "padrones"),
       path.join(FileUploadService.UPLOADS_DIR, "general"),
     ]
 
@@ -188,6 +206,7 @@ export class FileUploadService {
       CONTRATOS_DIR: path.join(FileUploadService.UPLOADS_DIR, "contratos"),
       LICENCIAS_DIR: path.join(FileUploadService.UPLOADS_DIR, "licencias"),
       HISTORIAL_DIR: path.join(FileUploadService.UPLOADS_DIR, "historial"),
+      PADRONES_DIR: path.join(FileUploadService.UPLOADS_DIR, "padrones"),
       GENERAL_DIR: path.join(FileUploadService.UPLOADS_DIR, "general"),
     }
   }
@@ -200,150 +219,31 @@ export class FileUploadService {
   }
 }
 
-
-/**
- * Servicio específico para maquinaria (agregado para compatibilidad)
- */
+// Mantener compatibilidad con MaquinariaFileUploadService existente
 export class MaquinariaFileUploadService {
-  private static readonly UPLOADS_DIR = process.env.UPLOADS_DIR || path.join(BACKEND_ROOT, "uploads")
-  private static readonly PADRON_DIR = path.join(MaquinariaFileUploadService.UPLOADS_DIR, "padrones")
-
-  /**
-   * Inicializa los directorios necesarios
-   */
-  static initialize(): void {
-    if (!fs.existsSync(MaquinariaFileUploadService.UPLOADS_DIR)) {
-      fs.mkdirSync(MaquinariaFileUploadService.UPLOADS_DIR, { recursive: true })
-    }
-    if (!fs.existsSync(MaquinariaFileUploadService.PADRON_DIR)) {
-      fs.mkdirSync(MaquinariaFileUploadService.PADRON_DIR, { recursive: true })
-    }
-  }
-
-  /**
-   * Función helper para determinar el tipo de archivo
-   */
-  static getFileType(mimetype: string): "image" | "pdf" {
-    if (mimetype.startsWith("image/")) {
-      return "image"
-    } else if (mimetype === "application/pdf") {
-      return "pdf"
-    }
-    throw new Error("Tipo de archivo no soportado")
-  }
-
-  /**
-   * Función helper para generar nombre de archivo seguro
-   */
-  static generateSafeFilename(originalName: string, folder = "padron"): string {
-    const timestamp = Date.now()
-    const randomSuffix = Math.round(Math.random() * 1e6)
-    const extension = path.extname(originalName).toLowerCase()
-    const baseName = path
-      .basename(originalName, extension)
-      .replace(/[^a-zA-Z0-9]/g, "_")
-      .substring(0, 20)
-
-    return `${folder}_${baseName}_${timestamp}_${randomSuffix}${extension}`
-  }
-
-  /**
-   * Sube un archivo desde el directorio temporal al directorio final
-   */
+  // Redirigir a FileUploadService para mantener compatibilidad
   static async uploadFile(file: Express.Multer.File): Promise<FileUploadResult> {
-    try {
-      // Inicializar directorios
-      MaquinariaFileUploadService.initialize()
-
-      // Generar nombre seguro para el archivo
-      const safeFilename = MaquinariaFileUploadService.generateSafeFilename(file.originalname, "padron")
-      const finalPath = path.join(MaquinariaFileUploadService.PADRON_DIR, safeFilename)
-
-      // Mover archivo del directorio temporal al final
-      await fs.promises.copyFile(file.path, finalPath)
-
-      // Eliminar archivo temporal
-      try {
-        await fs.promises.unlink(file.path)
-      } catch (error) {
-        console.warn("No se pudo eliminar archivo temporal:", error)
-      }
-
-      // Generar URL relativa
-      const relativeUrl = path.join("uploads", "padrones", safeFilename).replace(/\\/g, "/")
-
-      return {
-        url: `/${relativeUrl}`,
-        filename: safeFilename,
-        fileType: MaquinariaFileUploadService.getFileType(file.mimetype),
-        originalName: file.originalname,
-        size: file.size,
-      }
-    } catch (error) {
-      console.error("Error al subir archivo:", error)
-      throw new Error("Error al procesar el archivo")
+    // El archivo ya fue procesado por Multer, solo necesitamos retornar la info
+    return {
+      url: `/${path.join("uploads", "padrones", file.filename).replace(/\\/g, "/")}`,
+      filename: file.filename,
+      fileType: "pdf",
+      originalName: file.originalname,
+      size: file.size,
     }
   }
 
-  /**
-   * Elimina un archivo del servidor
-   */
   static async deleteFile(filename: string): Promise<boolean> {
-    try {
-      const filePath = path.join(MaquinariaFileUploadService.PADRON_DIR, filename)
-
-      if (fs.existsSync(filePath)) {
-        await fs.promises.unlink(filePath)
-        return true
-      }
-
-      return false
-    } catch (error) {
-      console.error("Error al eliminar archivo:", error)
-      return false
-    }
+    return FileUploadService.deletePadronFile(filename)
   }
 
-  /**
-   * Verifica si un archivo existe
-   */
   static fileExists(filename: string): boolean {
-    try {
-      const filePath = path.join(MaquinariaFileUploadService.PADRON_DIR, filename)
-      return fs.existsSync(filePath)
-    } catch (error) {
-      console.error("Error al verificar archivo:", error)
-      return false
-    }
+    const filePath = FileUploadService.getPadronPath(filename)
+    return FileUploadService.fileExists(filePath)
   }
 
-  /**
-   * Obtiene la ruta completa de un archivo
-   */
   static getFilePath(filename: string): string {
-    return path.join(MaquinariaFileUploadService.PADRON_DIR, filename)
-  }
-
-  /**
-   * Obtiene información de un archivo
-   */
-  static async getFileInfo(filename: string): Promise<{ size: number; exists: boolean } | null> {
-    try {
-      const filePath = path.join(MaquinariaFileUploadService.PADRON_DIR, filename)
-
-      if (!fs.existsSync(filePath)) {
-        return { size: 0, exists: false }
-      }
-
-      const stats = await fs.promises.stat(filePath)
-      return {
-        size: stats.size,
-        exists: true,
-      }
-    } catch (error) {
-      console.error("Error al obtener información del archivo:", error)
-      return null
-    }
+    return FileUploadService.getPadronPath(filename)
   }
 }
 

@@ -1,3 +1,5 @@
+"use client"
+
 import { useState, useEffect, useCallback } from "react"
 import { compraMaquinariaService } from "../../services/maquinaria/compraMaquinaria.service.js"
 import type { CompraMaquinaria, CreateCompraMaquinaria } from "../../types/maquinaria.types"
@@ -130,6 +132,15 @@ export const useCompraMaquinaria = () => {
     }
   }, [])
 
+  const descargarPadron = useCallback(async (id: number) => {
+    try {
+      await compraMaquinariaService.descargarPadron(id)
+    } catch (err: any) {
+      setError(err.message || "Error al descargar padrón")
+      throw err
+    }
+  }, [])
+
   useEffect(() => {
     fetchCompras()
   }, [fetchCompras])
@@ -143,6 +154,7 @@ export const useCompraMaquinaria = () => {
     eliminarPadron,
     eliminarCompra,
     restaurarCompra,
+    descargarPadron,
     refetch: fetchCompras,
   }
 }

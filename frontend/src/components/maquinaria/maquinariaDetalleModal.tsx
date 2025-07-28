@@ -1,20 +1,17 @@
+"use client"
+
 import type React from "react"
 import { Modal, Button, Row, Col, Badge, Alert } from "react-bootstrap"
 import type { Maquinaria } from "../../types/maquinaria.types"
+import { maquinariaService } from "../../services/maquinaria/maquinaria.service"
 
 interface MaquinariaDetalleModalProps {
   show: boolean
   onHide: () => void
   maquinaria: Maquinaria | null
-  onEliminarPadron?: (id: number) => Promise<void>
 }
 
-export const MaquinariaDetalleModal: React.FC<MaquinariaDetalleModalProps> = ({
-  show,
-  onHide,
-  maquinaria,
-  onEliminarPadron,
-}) => {
+export const MaquinariaDetalleModal: React.FC<MaquinariaDetalleModalProps> = ({ show, onHide, maquinaria }) => {
   const formatCurrency = (value: number | undefined | null) => {
     if (!value || value === 0) return "$0"
     return new Intl.NumberFormat("es-CL", {
@@ -67,41 +64,25 @@ export const MaquinariaDetalleModal: React.FC<MaquinariaDetalleModalProps> = ({
     return grupo?.replace(/_/g, " ").toUpperCase() || "Sin grupo"
   }
 
-  const getImageUrl = (filename?: string) => {
-    if (!filename) return "/placeholder.svg"
+  const handleDescargarPadron = async () => {
+    if (!maquinaria) return
 
-    // Si ya es una URL completa, usarla tal como está
-    if (filename.startsWith("http://") || filename.startsWith("https://")) {
-      return filename
+    // Verificar que la maquinaria tenga padrón
+    if (!maquinaria.padronUrl) {
+      alert("Esta maquinaria no tiene padrón disponible para descargar")
+      return
     }
 
-    // Si empieza con /uploads/, construir URL completa
-    if (filename.startsWith("/uploads/")) {
-      const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:3000"
-      return `${baseUrl}${filename}`
-    }
-
-    // Si es solo el nombre del archivo, construir la URL completa
-    const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:3000"
-    return `${baseUrl}/uploads/maquinaria/images/${filename}`
-  }
-
-  const handleEliminarPadron = async () => {
-    if (!maquinaria || !onEliminarPadron) return
-
-    if (window.confirm("¿Está seguro de eliminar el padrón? Esta acción no se puede deshacer.")) {
-      try {
-        await onEliminarPadron(maquinaria.id)
-      } catch (error) {
-        console.error("Error al eliminar padrón:", error)
-        alert("Error al eliminar el padrón")
-      }
+    try {
+      console.log(`Intentando descargar padrón para maquinaria ID: ${maquinaria.id}`)
+      await maquinariaService.descargarPadron(maquinaria.id)
+    } catch (error) {
+      console.error("Error al descargar padrón:", error)
+      alert(`Error al descargar el padrón: ${error.message}`)
     }
   }
 
   if (!maquinaria) return null
-
-  const imageUrl = getImageUrl(maquinaria.padronUrl)
 
   return (
     <Modal show={show} onHide={onHide} size="lg" centered>
@@ -112,56 +93,28 @@ export const MaquinariaDetalleModal: React.FC<MaquinariaDetalleModalProps> = ({
         </Modal.Title>
       </Modal.Header>
       <Modal.Body>
-        {/* Padrón - Sección Principal */}
-        <div className="mb-4">
-          <h5>
-            <i className="bi bi-file-earmark me-2"></i>
-            Padrón
-          </h5>
-          {maquinaria.padronUrl ? (
-            <div className="padron-preview">
-              <div>
-                <img
-                  src={imageUrl || "/placeholder.svg"}
-                  alt="Padrón"
-                  className="padron-image"
-                  style={{ maxWidth: "100%", height: "auto", borderRadius: "8px" }}
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement
-                    target.style.display = "none"
-                    const errorDiv = target.nextElementSibling as HTMLElement
-                    if (errorDiv) errorDiv.classList.remove("d-none")
-
-                    console.error("❌ Error cargando imagen:")
-                    console.error("   Filename original:", maquinaria.padronUrl)
-                    console.error("   URL construida:", imageUrl)
-                  }}
-                />
-                <Alert variant="danger" className="d-none">
-                  <i className="bi bi-exclamation-triangle me-2"></i>
-                  Error al cargar la imagen. URL: {maquinaria.padronUrl}
-                </Alert>
+        {maquinaria.padronUrl && (
+          <div className="mb-4">
+            <h5>
+              <i className="bi bi-file-earmark me-2"></i>
+              Padrón
+            </h5>
+            <div className="d-flex align-items-center gap-3 p-3 bg-light rounded">
+              <div className="text-primary">
+                <i className="bi bi-file-earmark-pdf fs-2"></i>
               </div>
-              {onEliminarPadron && (
-                <div className="mt-3">
-                  <Button variant="outline-danger" size="sm" onClick={handleEliminarPadron}>
-                    <i className="bi bi-trash me-2"></i>
-                    Eliminar Padrón
-                  </Button>
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="no-padron-alert">
-              <div className="no-padron-icon">
-                <i className="bi bi-info-circle"></i>
+              <div className="flex-grow-1">
+                <h6 className="mb-1">Documento PDF</h6>
+                <small className="text-muted">Padrón de maquinaria</small>
               </div>
-              <p className="mb-0">No hay padrón asociado a esta maquinaria</p>
+              <Button variant="primary" onClick={handleDescargarPadron}>
+                <i className="bi bi-download me-2"></i>
+                Descargar
+              </Button>
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
-        {/* Información Básica */}
         <div className="mb-4">
           <h5>
             <i className="bi bi-info-circle me-2"></i>
@@ -213,7 +166,6 @@ export const MaquinariaDetalleModal: React.FC<MaquinariaDetalleModalProps> = ({
           </Row>
         </div>
 
-        {/* Información Financiera */}
         <div className="mb-4">
           <h5>
             <i className="bi bi-cash-coin me-2"></i>
@@ -229,7 +181,6 @@ export const MaquinariaDetalleModal: React.FC<MaquinariaDetalleModalProps> = ({
           </Row>
         </div>
 
-        {/* Información Técnica */}
         <div className="mb-4">
           <h5>
             <i className="bi bi-gear me-2"></i>
@@ -251,7 +202,6 @@ export const MaquinariaDetalleModal: React.FC<MaquinariaDetalleModalProps> = ({
           </Row>
         </div>
 
-        {/* Historial de Compras */}
         {maquinaria.compras && maquinaria.compras.filter((compra) => compra.isActive !== false).length > 0 && (
           <div className="mb-4">
             <h5>
@@ -297,7 +247,6 @@ export const MaquinariaDetalleModal: React.FC<MaquinariaDetalleModalProps> = ({
           </div>
         )}
 
-        {/* Historial de Ventas */}
         {maquinaria.ventas && maquinaria.ventas.filter((venta) => venta.isActive !== false).length > 0 && (
           <div className="mb-4">
             <h5>
@@ -343,7 +292,6 @@ export const MaquinariaDetalleModal: React.FC<MaquinariaDetalleModalProps> = ({
           </div>
         )}
 
-        {/* Estado Actual */}
         <div className="mb-4">
           <div
             className={`alert ${maquinaria.estado === "disponible" ? "alert-success" : maquinaria.estado === "vendida" ? "alert-secondary" : "alert-primary"}`}
@@ -359,7 +307,6 @@ export const MaquinariaDetalleModal: React.FC<MaquinariaDetalleModalProps> = ({
           </div>
         </div>
 
-        {/* Información adicional si no hay compras activas */}
         {(!maquinaria.compras || maquinaria.compras.filter((compra) => compra.isActive !== false).length === 0) && (
           <Alert variant="info">
             <i className="bi bi-info-circle me-2"></i>
