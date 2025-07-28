@@ -118,7 +118,7 @@ export const ModalRemuneraciones: React.FC<ModalRemuneracionesProps> = ({
                   <strong className="text-danger">{formatMiles(afp)}</strong>
                 </div>
                 <div className="d-flex justify-content-between mb-2">
-                  <span>Salud (7%):</span>
+                  <span>Salud {ficha.previsionSalud ? `(${ficha.previsionSalud})` : ''} (7%):</span>
                   <strong className="text-danger">{formatMiles(salud)}</strong>
                 </div>
                 <div className="d-flex justify-content-between mb-2">
