@@ -21,6 +21,12 @@ enum Temporalidad {
     recurrente = "recurrente",
     puntual = "puntual"
 }
+// Utilidad para formatear con puntos de miles
+function formatMiles(value: string | number): string {
+  const num = typeof value === 'number' ? value : value.replace(/\D/g, '');
+  if (!num) return '';
+  return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+}
 
 export const BonosPage: React.FC = () => {
     const { bonos, isLoading, error, cargarBonos, searchBonos, clearError, totalBonos, desactivarBono } = useBono();
@@ -128,11 +134,6 @@ export const BonosPage: React.FC = () => {
     const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSearchNombre(e.target.value);
     };
-
-    console.log('bonos: ', bonos);
-    console.log('bonos es array? ', Array.isArray(bonos));
-    console.log("typeof bonos:", typeof bonos);
-    console.log('bonos length:', bonos.length);
 
     return (
         <Container fluid className="py-2">
@@ -359,7 +360,7 @@ export const BonosPage: React.FC = () => {
                                                                         )}
                                                                     </div>
                                                                 </td>
-                                                                <td>{bono.monto}</td>
+                                                                <td>{formatMiles(bono.monto)}</td>
                                                                 <td>{bono.tipoBono}</td>
                                                                 <td>{bono.temporalidad}</td>
                                                                 <td>{bono.imponible ? 'Sí' : 'No'}</td>
