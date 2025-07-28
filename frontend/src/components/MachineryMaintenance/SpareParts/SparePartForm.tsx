@@ -119,9 +119,9 @@ interface Props {
         <Form.Group controlId="stock">
           <Form.Label>Stock</Form.Label>
           <Form.Control
-            type="text"
+            type="number"
             name="stock"
-            value={form.stock}
+            value={form.stock === 0 ? "" : form.stock}
             onChange={handleChange}
             required
           />
