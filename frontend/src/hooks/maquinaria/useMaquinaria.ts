@@ -1,3 +1,5 @@
+"use client"
+
 import { useState, useEffect, useCallback } from "react"
 import { maquinariaService } from "../../services/maquinaria/maquinaria.service.js"
 import type { Maquinaria } from "../../types/maquinaria.types"
@@ -64,6 +66,15 @@ export const useMaquinaria = () => {
     }
   }, [])
 
+  const descargarPadron = useCallback(async (id: number) => {
+    try {
+      await maquinariaService.descargarPadron(id)
+    } catch (err: any) {
+      setError(err.message || "Error al descargar padrón")
+      throw err
+    }
+  }, [])
+
   useEffect(() => {
     fetchMaquinarias()
   }, [fetchMaquinarias])
@@ -74,6 +85,7 @@ export const useMaquinaria = () => {
     error,
     actualizarKilometraje,
     cambiarEstado,
+    descargarPadron,
     refetch: fetchMaquinarias,
   }
 }
