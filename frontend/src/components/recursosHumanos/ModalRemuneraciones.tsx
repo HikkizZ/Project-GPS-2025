@@ -11,7 +11,11 @@ interface ModalRemuneracionesProps {
 
 // Función para formatear números con separadores de miles
 const formatMiles = (numero: number): string => {
-  return numero.toLocaleString('es-CL');
+  return new Intl.NumberFormat('es-CL', {
+    style: 'currency',
+    currency: 'CLP',
+    minimumFractionDigits: 0
+  }).format(numero);
 };
 /*
 // Función para calcular sueldo bruto simplificado
