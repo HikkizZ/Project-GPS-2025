@@ -16,28 +16,32 @@ const FinalizeMaintenanceModal: React.FC<Props> = ({ show, onHide, onSubmit, loa
   const [fechaSalida, setFechaSalida] = useState('');
   const [descripcionSalida, setDescripcionSalida] = useState('');
   const { showError, showSuccess } = useToast();
+  
 
     const handleSubmit = () => {
-
-      
       if (!fechaSalida || !descripcionSalida.trim()) {
-        showError('Error',`Por favor completa todos los campos.`);
+        showError('Error', 'Por favor completa todos los campos.');
         return;
       }
 
-      const entrada = new Date(fechaEntrada).toISOString().split('T')[0];
-      const salida = new Date(fechaSalida).toISOString().split('T')[0];
-      if ( salida < entrada) {
-        showError('Error Fecha',`La fecha de salida no puede ser anterior a la fecha de entrada.`);
+      const [entradaYear, entradaMonth, entradaDay] = fechaEntrada.split('-').map(Number);
+      const [salidaYear, salidaMonth, salidaDay] = fechaSalida.split('-').map(Number);
+
+      const fechaEntradaObj = new Date(entradaYear, entradaMonth - 1, entradaDay);
+      const fechaSalidaObj = new Date(salidaYear, salidaMonth - 1, salidaDay);
+
+      if (fechaSalidaObj < fechaEntradaObj) {
+        showError('Error Fecha', 'La fecha de salida no puede ser anterior a la fecha de entrada.');
         return;
       }
-    
-    onSubmit({
-      fechaSalida,
-      descripcionSalida: descripcionSalida.trim(),
-      estado: estadoSeleccionado as EstadoMantencion,
-    }); 
-  };
+
+      onSubmit({
+        fechaSalida,
+        descripcionSalida: descripcionSalida.trim(),
+        estado: estadoSeleccionado as EstadoMantencion,
+      });
+    };
+
 
   return (
     <Modal show={show} onHide={onHide}>
@@ -46,16 +50,14 @@ const FinalizeMaintenanceModal: React.FC<Props> = ({ show, onHide, onSubmit, loa
       </Modal.Header>
       <Modal.Body>
         <Form>
-          <Form.Group className="mb-3">
-            <Form.Label>Fecha de Salida</Form.Label>
-            <Form.Control
+          <Form.Control
               type="date"
+              min={fechaEntrada}
               value={fechaSalida}
               onChange={(e) => setFechaSalida(e.target.value)}
             />
-          </Form.Group>
           <Form.Group className="mb-3">
-            <Form.Label>Descripción Final</Form.Label>
+            <Form.Label>Descripción  Final</Form.Label>
             <Form.Control
               as="textarea"
               rows={3}
