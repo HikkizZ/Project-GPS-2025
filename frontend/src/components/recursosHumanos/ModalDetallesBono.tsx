@@ -172,7 +172,7 @@ export const ModalDetallesBono: React.FC<ModalDetallesBonoProps> = ({
               <Col md={12}>
                 <div>
                   <span className="label">Descripción:</span>
-                  <div className="bg-light p-3 rounded mt-1">{bono.descripcion}</div>
+                  <span className="value ms-2">{bono.descripcion}</span>
                 </div>
               </Col>
             )}
@@ -211,7 +211,7 @@ export const ModalDetallesBono: React.FC<ModalDetallesBonoProps> = ({
               <Col md={12}>
                 <div>
                   <span className="label">Observaciones:</span>
-                  <div className="bg-light p-3 rounded mt-1">{asignacion.observaciones}</div>
+                  <span className="value ms-2">{asignacion.observaciones}</span>
                 </div>
               </Col>
             )}
