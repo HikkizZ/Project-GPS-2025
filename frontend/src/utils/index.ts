@@ -32,4 +32,22 @@ export const formatTemporalidad = (temporalidad: string | null | undefined): str
   
   // Capitalizar la primera letra
   return temporalidad.charAt(0).toUpperCase() + temporalidad.slice(1);
+};
+
+/**
+ * Formatea el monto para mostrar con símbolo de peso y separadores de miles
+ * @param monto - Valor del monto (string o number)
+ * @returns Valor formateado con $ y separadores de miles
+ */
+export const formatMonto = (monto: string | number | null | undefined): string => {
+  if (!monto) return '-';
+  
+  // Convertir a string si es number
+  const montoStr = monto.toString();
+  
+  // Convertir a número y formatear
+  const numero = parseFloat(montoStr);
+  if (isNaN(numero)) return montoStr;
+  
+  return `$${numero.toLocaleString('es-CL')}`;
 }; 

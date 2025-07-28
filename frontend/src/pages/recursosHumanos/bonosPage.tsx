@@ -9,7 +9,7 @@ import { CrearBonoModal } from '@/components/recursosHumanos/CrearBono.js';
 import { FiltrosBusquedaHeader } from '@/components/common/FiltrosBusquedaHeader';
 import { Toast, useToast } from '@/components/common/Toast';
 import { bonoService } from '../../services/recursosHumanos/bono.service';
-import { formatTipoBono, formatTemporalidad } from '../../utils/index';
+import { formatTipoBono, formatTemporalidad, formatMonto } from '../../utils/index';
 import "../../styles/pages/bonos.css";
 
 enum TipoBono {
@@ -360,7 +360,7 @@ export const BonosPage: React.FC = () => {
                                                                         )}
                                                                     </div>
                                                                 </td>
-                                                                <td>{bono.monto}</td>
+                                                                <td>{formatMonto(bono.monto)}</td>
                                                                 <td>{formatTipoBono(bono.tipoBono)}</td>
                                                                 <td>{formatTemporalidad(bono.temporalidad)}</td>
                                                                 <td>{bono.imponible ? 'Sí' : 'No'}</td>
