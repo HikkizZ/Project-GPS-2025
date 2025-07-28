@@ -54,10 +54,8 @@ export class ArriendoMaquinariaController {
   // función para incluir soft deleted en get all
   obtenerTodosLosReportes = async (req: Request, res: Response): Promise<void> => {
     try {
-      // Validar el parámetro de query
       const incluirInactivas = req.query.incluirInactivas === "true"
-
-      // Paginación para evitar sobrecarga
+     // Paginación
       const page = Number.parseInt(req.query.page as string) || 1
       const limit = Number.parseInt(req.query.limit as string) || 50
       if (limit > 100) {
@@ -69,8 +67,7 @@ export class ArriendoMaquinariaController {
       }
 
       const reportes = await this.arriendoService.obtenerTodosLosReportes(incluirInactivas)
-
-      // Aplicar paginación manual
+     // Paginación manual (cuantos datos a la vez)
       const startIndex = (page - 1) * limit
       const endIndex = startIndex + limit
       const reportesPaginados = reportes.slice(startIndex, endIndex)
@@ -166,10 +163,8 @@ export class ArriendoMaquinariaController {
         })
         return
       }
-
       const incluirInactivas = req.query.incluirInactivas === "true"
       const reportes = await this.arriendoService.obtenerReportesPorCliente(rutCliente.trim(), incluirInactivas)
-
       res.status(200).json({
         success: true,
         data: reportes,
@@ -183,7 +178,6 @@ export class ArriendoMaquinariaController {
       })
     }
   }
-
   obtenerReportesPorFecha = async (req: Request, res: Response): Promise<void> => {
     try {
       const { fechaInicio, fechaFin } = req.query
@@ -194,7 +188,6 @@ export class ArriendoMaquinariaController {
         })
         return
       }
-
       const incluirInactivas = req.query.incluirInactivas === "true"
       const reportes = await this.arriendoService.obtenerReportesPorFecha(
         new Date(fechaInicio as string),
@@ -215,7 +208,6 @@ export class ArriendoMaquinariaController {
       })
     }
   }
-
   actualizarReporte = async (req: Request, res: Response): Promise<void> => {
     try {
       const { id } = req.params
@@ -227,9 +219,7 @@ export class ArriendoMaquinariaController {
         })
         return
       }
-
       const reporte = await this.arriendoService.actualizarReporte(idNumerico, req.body)
-
       res.status(200).json({
         success: true,
         message: "Reporte actualizado exitosamente",
@@ -244,7 +234,6 @@ export class ArriendoMaquinariaController {
       })
     }
   }
-
   eliminarReporte = async (req: Request, res: Response): Promise<void> => {
     try {
       const { id } = req.params
@@ -256,11 +245,8 @@ export class ArriendoMaquinariaController {
         })
         return
       }
-
       console.log(`🗑️ Controller: Eliminando reporte (soft delete) ID: ${id}`)
-
       await this.arriendoService.eliminarReporte(idNumerico)
-
       res.status(200).json({
         success: true,
         message: "Reporte eliminado exitosamente (soft delete)",
@@ -274,7 +260,6 @@ export class ArriendoMaquinariaController {
       })
     }
   }
-
   restaurarReporte = async (req: Request, res: Response): Promise<void> => {
     try {
       const { id } = req.params
@@ -286,11 +271,8 @@ export class ArriendoMaquinariaController {
         })
         return
       }
-
       console.log(`♻️ Controller: Restaurando reporte ID: ${id}`)
-
       const reporte = await this.arriendoService.restaurarReporte(idNumerico)
-
       res.status(200).json({
         success: true,
         message: "Reporte restaurado exitosamente",
@@ -305,7 +287,6 @@ export class ArriendoMaquinariaController {
       })
     }
   }
-
   verificarIntegridadKilometraje = async (req: Request, res: Response): Promise<void> => {
     try {
       const { maquinariaId } = req.params
@@ -317,9 +298,7 @@ export class ArriendoMaquinariaController {
         })
         return
       }
-
       const verificacion = await this.arriendoService.verificarIntegridadKilometraje(idNumerico)
-
       res.status(200).json({
         success: true,
         message: verificacion.esConsistente ? "Kilometraje consistente" : "Inconsistencia detectada",
@@ -334,7 +313,6 @@ export class ArriendoMaquinariaController {
       })
     }
   }
-
   corregirKilometraje = async (req: Request, res: Response): Promise<void> => {
     try {
       const { maquinariaId } = req.params
@@ -346,9 +324,7 @@ export class ArriendoMaquinariaController {
         })
         return
       }
-
       await this.arriendoService.corregirKilometraje(idNumerico)
-
       res.status(200).json({
         success: true,
         message: "Kilometraje corregido exitosamente",

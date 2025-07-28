@@ -7,6 +7,7 @@ import MaquinariaSidebar from "../../components/maquinaria/maquinariaSideBar"
 import { useCompraMaquinaria } from "../../hooks/maquinaria/useCompraMaquinaria"
 import { useExcelExport } from "../../hooks/useExcelExport"
 import { useAuth } from "../../context"
+import { useToast } from "../../components/common/Toast"
 import type { CreateCompraMaquinaria, CompraMaquinaria } from "../../types/maquinaria.types"
 
 export const CompraMaquinariaPage: React.FC = () => {
@@ -14,23 +15,23 @@ export const CompraMaquinariaPage: React.FC = () => {
     useCompraMaquinaria()
   const { exportToExcel, isExporting } = useExcelExport()
   const { user } = useAuth()
+  const { showSuccess, showError } = useToast()
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [selectedCompra, setSelectedCompra] = useState<CompraMaquinaria | null>(null)
   const [showDetalleModal, setShowDetalleModal] = useState(false)
 
-  // Verificar si el usuario es SuperAdministrador
   const isSuperAdmin = user?.role === "SuperAdministrador"
 
   const handleSubmit = async (data: CreateCompraMaquinaria, file?: File) => {
     try {
       await crearCompra(data, file)
       setShowCreateModal(false)
-      // Forzar actualización después de crear
+      showSuccess("Compra registrada", `Compra de la maquinaria ${data.patente} registrada exitosamente`)
       setTimeout(() => {
         refetch()
       }, 100)
     } catch (error) {
-      console.error("Error al crear compra:", error)
+      showError("Error al registrar compra", "No se pudo registrar la compra de maquinaria")
     }
   }
 
@@ -42,6 +43,7 @@ export const CompraMaquinariaPage: React.FC = () => {
   const handleEliminarPadron = async (id: number) => {
     try {
       await eliminarPadron(id)
+      showSuccess("Padrón eliminado", "El padrón se eliminó exitosamente")
       if (selectedCompra && selectedCompra.id === id) {
         const compraActualizada = compras.find((c) => c.id === id)
         if (compraActualizada) {
@@ -49,7 +51,7 @@ export const CompraMaquinariaPage: React.FC = () => {
         }
       }
     } catch (error) {
-      console.error("Error al eliminar padrón:", error)
+      showError("Error al eliminar padrón", "No se pudo eliminar el padrón")
     }
   }
 
@@ -64,11 +66,10 @@ export const CompraMaquinariaPage: React.FC = () => {
 
     try {
       await eliminarCompra(compra.id)
-      // Refrescar la lista para mostrar el cambio de estado
+      showSuccess("Compra eliminada", `Compra de la maquinaria ${compra.patente} eliminada exitosamente`)
       refetch()
     } catch (error) {
-      console.error("Error al eliminar compra:", error)
-      alert("Error al eliminar la compra")
+      showError("Error al eliminar", "No se pudo eliminar la compra")
     }
   }
 
@@ -79,11 +80,10 @@ export const CompraMaquinariaPage: React.FC = () => {
 
     try {
       await restaurarCompra(compra.id)
-      // Refrescar la lista para mostrar el cambio de estado
+      showSuccess("Compra restaurada", `Compra de la maquinaria ${compra.patente} restaurada exitosamente`)
       refetch()
     } catch (error) {
-      console.error("Error al restaurar compra:", error)
-      alert("Error al restaurar la compra")
+      showError("Error al restaurar", "No se pudo restaurar la compra")
     }
   }
 
@@ -105,13 +105,17 @@ export const CompraMaquinariaPage: React.FC = () => {
     }
   }
 
-  // Función helper para determinar si una compra está activa
   const isCompraActiva = (compra: CompraMaquinaria) => {
     return compra.isActive !== false
   }
 
   const handleExportarExcel = async () => {
     try {
+      if (compras.length === 0) {
+        showError("Sin datos", "No hay datos para exportar")
+        return
+      }
+
       const datosParaExcel = compras.map((compra) => ({
         Patente: compra.patente,
         Marca: compra.marca,
@@ -124,27 +128,23 @@ export const CompraMaquinariaPage: React.FC = () => {
       }))
 
       await exportToExcel(datosParaExcel, "compras_maquinaria", "Compras")
+      showSuccess("Exportación exitosa", "Archivo Excel exportado exitosamente")
     } catch (error) {
-      console.error("Error al exportar:", error)
-      alert("Error al generar el archivo Excel")
+      showError("Error al exportar", "No se pudo generar el archivo Excel")
     }
   }
 
-  // Separar compras activas e inactivas para mostrar estadísticas
   const comprasActivas = compras.filter((c) => isCompraActiva(c))
   const comprasInactivas = compras.filter((c) => !isCompraActiva(c))
 
   return (
     <div className="d-flex">
-      {/* Sidebar */}
       <MaquinariaSidebar />
 
-      {/* Contenido principal */}
       <div className="flex-grow-1">
         <Container fluid className="py-4">
           <Row>
             <Col>
-              {/* Encabezado de página */}
               <Card className="shadow-sm mb-3">
                 <Card.Header className="bg-gradient-primary text-white">
                   <div className="d-flex align-items-center justify-content-between">
@@ -189,7 +189,6 @@ export const CompraMaquinariaPage: React.FC = () => {
                 </Card.Header>
               </Card>
 
-              {/* Mensajes de error */}
               {error && (
                 <Alert variant="danger" className="mb-3">
                   <i className="bi bi-exclamation-triangle me-2"></i>
@@ -197,7 +196,6 @@ export const CompraMaquinariaPage: React.FC = () => {
                 </Alert>
               )}
 
-              {/* Loading spinner */}
               {loading && (
                 <div className="text-center py-5">
                   <Spinner animation="border" variant="primary" />
@@ -205,7 +203,6 @@ export const CompraMaquinariaPage: React.FC = () => {
                 </div>
               )}
 
-              {/* Tabla de compras */}
               {!loading && (
                 <Card className="shadow-sm">
                   <Card.Header className="bg-light">
@@ -275,7 +272,6 @@ export const CompraMaquinariaPage: React.FC = () => {
                                   {compra.supplier?.name || compra.proveedor || "Sin proveedor"}
                                 </td>
                                 <td className="text-start">
-
                                   <div className="btn-group btn-group-sm">
                                     <Button
                                       variant="outline-primary"
@@ -285,7 +281,6 @@ export const CompraMaquinariaPage: React.FC = () => {
                                       <i className="bi bi-eye"></i>
                                     </Button>
 
-                                    {/* Botones de soft delete solo para SuperAdministrador */}
                                     {isSuperAdmin && (
                                       <>
                                         {isCompraActiva(compra) ? (
@@ -323,7 +318,6 @@ export const CompraMaquinariaPage: React.FC = () => {
         </Container>
       </div>
 
-      {/* Modal de registro */}
       <Modal show={showCreateModal} onHide={() => setShowCreateModal(false)} size="lg" centered>
         <Modal.Header
           closeButton
@@ -343,7 +337,6 @@ export const CompraMaquinariaPage: React.FC = () => {
         </Modal.Body>
       </Modal>
 
-      {/* Modal de detalles */}
       <CompraDetalleModal
         show={showDetalleModal}
         onHide={() => setShowDetalleModal(false)}

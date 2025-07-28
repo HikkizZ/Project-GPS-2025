@@ -1,5 +1,3 @@
-"use client"
-
 import type React from "react"
 import { useState, useEffect } from "react"
 import {
@@ -15,8 +13,6 @@ import {
   Form,
   InputGroup,
   Badge,
-  Toast,
-  ToastContainer,
 } from "react-bootstrap"
 import { ArriendoMaquinariaForm } from "../../components/maquinaria/arriendoMaquinariaForm"
 import { ArriendoDetalleModal } from "../../components/maquinaria/arriendoDetalleModal"
@@ -25,59 +21,48 @@ import MaquinariaSidebar from "../../components/maquinaria/maquinariaSideBar"
 import { useArriendoMaquinaria } from "../../hooks/maquinaria/useArriendoMaquinaria"
 import { useExcelExport } from "../../hooks/useExcelExport"
 import { useAuth } from "../../context"
+import { useToast } from "../../components/common/Toast"
 import type { CreateArriendoMaquinaria, ArriendoMaquinaria } from "../../types/arriendoMaquinaria.types"
 
 export const ArriendoMaquinariaPage: React.FC = () => {
-  // SIMPLIFICADO: Hook sin paginación como el módulo de compras
   const { reportes, loading, error, crearReporte, eliminarReporte, restaurarReporte, refetch } = useArriendoMaquinaria()
-
   const { exportToExcel, isExporting } = useExcelExport()
   const { user } = useAuth()
+  const { showSuccess, showError } = useToast()
+
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [selectedReporte, setSelectedReporte] = useState<ArriendoMaquinaria | null>(null)
   const [showDetalleModal, setShowDetalleModal] = useState(false)
   const [showEstadoPagoModal, setShowEstadoPagoModal] = useState(false)
 
-  // Estados para notificaciones
-  const [showSuccessToast, setShowSuccessToast] = useState(false)
-  const [successMessage, setSuccessMessage] = useState("")
-
-  // Verificar si el usuario es SuperAdministrador
   const isSuperAdmin = user?.role === "SuperAdministrador"
 
-  // Estados para filtros y búsqueda LOCAL
   const [filteredReportes, setFilteredReportes] = useState<ArriendoMaquinaria[]>([])
   const [searchNumeroReporte, setSearchNumeroReporte] = useState("")
   const [selectedPatente, setSelectedPatente] = useState("")
   const [selectedCliente, setSelectedCliente] = useState("")
   const [includeInactive, setIncludeInactive] = useState(false)
 
-  // Obtener listas únicas para los filtros
   const patentesUnicas = [...new Set(reportes.map((r) => r.patente))].sort()
   const clientesUnicos = [...new Set(reportes.map((r) => r.nombreCliente || "Sin cliente"))].sort()
 
-  // Efecto para filtrar reportes
   useEffect(() => {
     let reportesFiltrados = [...reportes]
 
-    // Filtro por estado activo/inactivo
     if (!includeInactive) {
       reportesFiltrados = reportesFiltrados.filter((r) => r.isActive !== false)
     }
 
-    // Filtro por número de reporte
     if (searchNumeroReporte.trim()) {
       reportesFiltrados = reportesFiltrados.filter((reporte) =>
         reporte.numeroReporte.toLowerCase().includes(searchNumeroReporte.toLowerCase()),
       )
     }
 
-    // Filtro por patente
     if (selectedPatente) {
       reportesFiltrados = reportesFiltrados.filter((reporte) => reporte.patente === selectedPatente)
     }
 
-    // Filtro por cliente
     if (selectedCliente) {
       reportesFiltrados = reportesFiltrados.filter((reporte) => {
         const nombreCliente = reporte.nombreCliente || "Sin cliente"
@@ -92,17 +77,12 @@ export const ArriendoMaquinariaPage: React.FC = () => {
     try {
       await crearReporte(data)
       setShowCreateModal(false)
-
-      // Mostrar notificación de éxito
-      setSuccessMessage(`Reporte ${data.numeroReporte} creado exitosamente`)
-      setShowSuccessToast(true)
-
-      // Limpiar filtros para asegurar que se vea el nuevo reporte
+      showSuccess("Reporte creado", `Reporte ${data.numeroReporte} creado exitosamente`)
       setSearchNumeroReporte("")
       setSelectedPatente("")
       setSelectedCliente("")
     } catch (error) {
-      // Error ya manejado en el hook
+      showError("Error al crear reporte", "No se pudo crear el reporte de trabajo")
     }
   }
 
@@ -120,10 +100,9 @@ export const ArriendoMaquinariaPage: React.FC = () => {
 
     try {
       await eliminarReporte(reporte.id)
-      setSuccessMessage(`Reporte ${reporte.numeroReporte} eliminado exitosamente`)
-      setShowSuccessToast(true)
+      showSuccess("Reporte eliminado", `Reporte ${reporte.numeroReporte} eliminado exitosamente`)
     } catch (error) {
-      // Error ya manejado en el hook
+      showError("Error al eliminar", "No se pudo eliminar el reporte")
     }
   }
 
@@ -134,10 +113,9 @@ export const ArriendoMaquinariaPage: React.FC = () => {
 
     try {
       await restaurarReporte(reporte.id)
-      setSuccessMessage(`Reporte ${reporte.numeroReporte} restaurado exitosamente`)
-      setShowSuccessToast(true)
+      showSuccess("Reporte restaurado", `Reporte ${reporte.numeroReporte} restaurado exitosamente`)
     } catch (error) {
-      // Error ya manejado en el hook
+      showError("Error al restaurar", "No se pudo restaurar el reporte")
     }
   }
 
@@ -165,7 +143,6 @@ export const ArriendoMaquinariaPage: React.FC = () => {
     }
   }
 
-  // Función helper para determinar si un reporte está activo
   const isReporteActivo = (reporte: ArriendoMaquinaria) => {
     return reporte.isActive !== false
   }
@@ -175,7 +152,7 @@ export const ArriendoMaquinariaPage: React.FC = () => {
       setShowCreateModal(false)
 
       if (reportes.length === 0) {
-        alert("No hay datos para exportar")
+        showError("Sin datos", "No hay datos para exportar")
         return
       }
 
@@ -194,18 +171,13 @@ export const ArriendoMaquinariaPage: React.FC = () => {
       }))
 
       await exportToExcel(datosParaExcel, "reportes_trabajo_maquinaria", "Reportes")
-
-      setSuccessMessage("Archivo Excel exportado exitosamente")
-      setShowSuccessToast(true)
+      showSuccess("Exportación exitosa", "Archivo Excel exportado exitosamente")
     } catch (error) {
-      alert("Error al generar el archivo Excel")
+      showError("Error al exportar", "No se pudo generar el archivo Excel")
     }
   }
 
-  // Verifica si hay filtros activos
   const hasActiveFilters = searchNumeroReporte.trim() || selectedPatente || selectedCliente
-
-  // Separar reportes activos e inactivos para mostrar estadísticas
   const reportesActivos = filteredReportes.filter((r) => isReporteActivo(r))
   const reportesInactivos = filteredReportes.filter((r) => !isReporteActivo(r))
 
@@ -217,13 +189,12 @@ export const ArriendoMaquinariaPage: React.FC = () => {
         <Container fluid className="py-4">
           <Row>
             <Col>
-              {/* Encabezado de página */}
               <Card className="shadow-sm mb-3">
                 <Card.Header className="bg-gradient-primary text-white">
                   <div className="d-flex align-items-center justify-content-between">
                     <div className="d-flex align-items-center">
                       <div className="fs-4 me-3">
-                        <i className="bi bi-clipboard-data"></i>
+                        <i className="bi bi-truck fs-4 me-3"></i>
                       </div>
                       <div>
                         <h3 className="mb-1">Reportes de Trabajo Diario</h3>
@@ -275,7 +246,6 @@ export const ArriendoMaquinariaPage: React.FC = () => {
                 </Card.Header>
               </Card>
 
-              {/* Panel de configuración de vista */}
               <Card className="shadow-sm mb-3">
                 <Card.Header className="bg-light">
                   <div className="d-flex justify-content-between align-items-center">
@@ -303,16 +273,12 @@ export const ArriendoMaquinariaPage: React.FC = () => {
                     <Col md={9}>
                       <div className="d-flex gap-2 align-items-center">
                         <span className="text-muted small">📊 Total: {reportes.length} reportes</span>
-                        <Button variant="outline-secondary" size="sm" onClick={refetch} disabled={loading}>
-                          {loading ? <span className="spinner-border spinner-border-sm" role="status"></span> : "🔄"}
-                        </Button>
                       </div>
                     </Col>
                   </Row>
                 </Card.Body>
               </Card>
 
-              {/* Panel de filtros y búsqueda */}
               <Card className="shadow-sm mb-3">
                 <Card.Header className="bg-light">
                   <div className="d-flex justify-content-between align-items-center">
@@ -374,7 +340,6 @@ export const ArriendoMaquinariaPage: React.FC = () => {
                     </Col>
                   </Row>
 
-                  {/* Indicador de resultados */}
                   <Row className="mt-3">
                     <Col>
                       <div className="d-flex align-items-center gap-3">
@@ -389,14 +354,12 @@ export const ArriendoMaquinariaPage: React.FC = () => {
                 </Card.Body>
               </Card>
 
-              {/* Mensajes de error */}
               {error && (
                 <Alert variant="danger" className="mb-3">
                   ⚠️ {error}
                 </Alert>
               )}
 
-              {/* Loading spinner */}
               {loading && (
                 <div className="text-center py-5">
                   <Spinner animation="border" variant="primary" />
@@ -404,7 +367,6 @@ export const ArriendoMaquinariaPage: React.FC = () => {
                 </div>
               )}
 
-              {/* Tabla de reportes */}
               {!loading && (
                 <Card className="shadow-sm">
                   <Card.Header className="bg-light">
@@ -498,7 +460,6 @@ export const ArriendoMaquinariaPage: React.FC = () => {
                                       <i className="bi bi-eye"></i>
                                     </Button>
 
-                                    {/* Botones de soft delete solo para SuperAdministrador */}
                                     {isSuperAdmin && (
                                       <>
                                         {isReporteActivo(reporte) ? (
@@ -536,7 +497,6 @@ export const ArriendoMaquinariaPage: React.FC = () => {
         </Container>
       </div>
 
-      {/* Modal de registro */}
       <Modal show={showCreateModal} onHide={() => setShowCreateModal(false)} size="lg" centered>
         <Modal.Header
           closeButton
@@ -556,25 +516,13 @@ export const ArriendoMaquinariaPage: React.FC = () => {
         </Modal.Body>
       </Modal>
 
-      {/* Modal de detalles */}
       <ArriendoDetalleModal
         show={showDetalleModal}
         onHide={() => setShowDetalleModal(false)}
         reporte={selectedReporte}
       />
 
-      {/* Modal de Estado de Pago */}
       <EstadoPagoModal show={showEstadoPagoModal} onHide={() => setShowEstadoPagoModal(false)} />
-
-      {/* Toast de notificaciones */}
-      <ToastContainer position="top-end" className="p-3">
-        <Toast show={showSuccessToast} onClose={() => setShowSuccessToast(false)} delay={4000} autohide>
-          <Toast.Header>
-            <strong className="me-auto">✅ Éxito</strong>
-          </Toast.Header>
-          <Toast.Body>{successMessage}</Toast.Body>
-        </Toast>
-      </ToastContainer>
     </div>
   )
 }

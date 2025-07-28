@@ -9,7 +9,6 @@ import fichaEmpresaRoutes from './recursosHumanos/fichaEmpresa.routes.js';
 import licenciaPermisoRoutes from './recursosHumanos/licenciaPermiso.routes.js';
 import trabajadorRoutes from './recursosHumanos/trabajador.routes.js';
 import historialLaboralRoutes from './recursosHumanos/historialLaboral.routes.js';
-import filesRoutes from './files.routes.js';
 import { authenticateJWT } from '../middlewares/authentication.middleware.js';
 import inventoryExitRoutes from './inventory/inventoryExit.routes.js';
 import inventoryRoutes from './inventory/inventory.routes.js';
@@ -19,8 +18,7 @@ import maintenanceSparePartRoutes from "./MachineryMaintenance/maintenanceSpareP
 import maquinariaRoutes from "./maquinaria/maquinaria.routes.js"
 import compraMaquinariaRoutes from "./maquinaria/compraMaquinaria.routes.js"
 import ventaMaquinariaRoutes from "./maquinaria/ventaMaquinaria.routes.js"
-import arriendoMaquinariaRoutes from "./maquinaria/arriendoMaquinaria.routes.js"
-import updateImageRoutes from "./updateImage.routes.js" 
+import arriendoMaquinariaRoutes from "./maquinaria/arriendoMaquinaria.routes.js" 
 import inventoryEntryRoutes from './inventory/inventoryEntry.routes.js';
 import bonosRoutes from './recursosHumanos/remuneraciones/bonos.routes.js';
 
@@ -52,7 +50,6 @@ router.use('/licencia-permiso', licenciaPermisoRoutes);
 router.use('/trabajadores', trabajadorRoutes);
 router.use('/historial-laboral', historialLaboralRoutes);
 router.use('/trabajador', trabajadorRoutes);
-router.use('/files', filesRoutes);
 router.use('/inventory-entry', inventoryEntryRoutes);
 router.use('/inventory-exit', inventoryExitRoutes);
 router.use('/inventory', inventoryRoutes);
@@ -74,8 +71,5 @@ router.use("/maquinaria", maquinariaRoutes)
 router.use("/compra-maquinaria", compraMaquinariaRoutes)
 router.use("/ventas-maquinaria", ventaMaquinariaRoutes)
 router.use("/arriendos-maquinaria", arriendoMaquinariaRoutes)
-
-/* Nueva ruta para subir imágenes */
-router.use("/update-image", updateImageRoutes)
 
 export default router

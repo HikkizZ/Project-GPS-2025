@@ -23,10 +23,8 @@ export class MaquinariaService {
       estado: maquinariaData.estado || EstadoMaquinaria.DISPONIBLE,
       isActive: true, // Siempre activa al crear
     })
-
     return this.maquinariaRepository.save(nuevaMaquinaria)
   }
-
   async findAll(incluirInactivas = false): Promise<Maquinaria[]> {
     const whereCondition = incluirInactivas ? {} : { isActive: true }
 
@@ -35,7 +33,6 @@ export class MaquinariaService {
       relations: ["compras", "ventas"],
     })
   }
-
   async findOne(id: number, incluirInactivas = false): Promise<Maquinaria> {
     const whereCondition = incluirInactivas ? { id } : { id, isActive: true }
 
@@ -43,14 +40,11 @@ export class MaquinariaService {
       where: whereCondition,
       relations: ["compras", "ventas"],
     })
-
     if (!maquinaria) {
       throw new Error(`Maquinaria con ID ${id} no encontrada`)
     }
-
     return maquinaria
   }
-
   async findByPatente(patente: string, incluirInactivas = false): Promise<Maquinaria> {
     const whereCondition = incluirInactivas ? { patente } : { patente, isActive: true }
 
@@ -58,17 +52,13 @@ export class MaquinariaService {
       where: whereCondition,
       relations: ["compras", "ventas"],
     })
-
     if (!maquinaria) {
       throw new Error(`Maquinaria con patente ${patente} no encontrada`)
     }
-
     return maquinaria
   }
-
   async update(id: number, maquinariaData: Partial<Maquinaria>, file?: Express.Multer.File): Promise<Maquinaria> {
     const maquinaria = await this.findOne(id)
-
     // Procesar nuevo archivo si existe
     if (file) {
       // Eliminar archivo anterior si existe
@@ -82,7 +72,6 @@ export class MaquinariaService {
           }
         }
       }
-
       // Subir nuevo archivo
       const uploadResult = await MaquinariaFileUploadService.uploadFile(file)
       maquinariaData.padronUrl = uploadResult.url
@@ -91,12 +80,10 @@ export class MaquinariaService {
     this.maquinariaRepository.merge(maquinaria, maquinariaData)
     return this.maquinariaRepository.save(maquinaria)
   }
-
   async remove(id: number): Promise<void> {
     const maquinaria = await this.findOne(id)
     await this.maquinariaRepository.remove(maquinaria)
   }
-
   async obtenerMaquinariaDisponible(): Promise<Maquinaria[]> {
     return this.maquinariaRepository.find({
       where: {
@@ -106,7 +93,6 @@ export class MaquinariaService {
       relations: ["compras", "ventas"],
     })
   }
-
   async obtenerMaquinariaPorGrupo(grupo: string, incluirInactivas = false): Promise<Maquinaria[]> {
     const whereCondition = incluirInactivas ? { grupo: grupo as any } : { grupo: grupo as any, isActive: true }
 
@@ -115,7 +101,6 @@ export class MaquinariaService {
       relations: ["compras", "ventas"],
     })
   }
-
   async actualizarKilometraje(id: number, nuevoKilometraje: number): Promise<Maquinaria> {
     const maquinaria = await this.findOne(id)
 
@@ -212,15 +197,13 @@ export class MaquinariaService {
         }
       }
     }
-
     // Subir nuevo archivo
     const uploadResult = await MaquinariaFileUploadService.uploadFile(file)
     maquinaria.padronUrl = uploadResult.url
 
     return this.maquinariaRepository.save(maquinaria)
   }
-
-  // Método para eliminar archivo del padrón
+  // Eliminar archivo del padrón
   async eliminarPadron(id: number): Promise<Maquinaria> {
     const maquinaria = await this.findOne(id)
 
@@ -234,7 +217,6 @@ export class MaquinariaService {
         }
       }
     }
-
     maquinaria.padronUrl = undefined
     return this.maquinariaRepository.save(maquinaria)
   }

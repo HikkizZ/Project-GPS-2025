@@ -87,7 +87,7 @@ export const usePatente = () => {
     [validatePatente],
   )
 
-  // Función para limpiar patente (remover formato)
+  // Función para limpiar patente (remover formato), para que calce con el backend
   const cleanPatente = useCallback((patente: string): string => {
     return patente.replace(/[\s-]/g, "").toUpperCase()
   }, [])

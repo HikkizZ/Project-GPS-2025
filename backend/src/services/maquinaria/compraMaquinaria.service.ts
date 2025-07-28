@@ -386,17 +386,14 @@ export class CompraMaquinariaService {
 
       // Restaurar compra
       await queryRunner.manager.update(CompraMaquinaria, { id }, { isActive: true })
-
       // Restaurar maquinaria relacionada
       if (compra.maquinaria_id) {
         await queryRunner.manager.update(Maquinaria, { id: compra.maquinaria_id }, { isActive: true })
       }
-
       const compraRestaurada = await queryRunner.manager.findOne(CompraMaquinaria, {
         where: { id },
         relations: ["maquinaria", "supplier"],
       })
-
       await queryRunner.commitTransaction()
       return compraRestaurada as CompraMaquinaria
     } catch (error) {

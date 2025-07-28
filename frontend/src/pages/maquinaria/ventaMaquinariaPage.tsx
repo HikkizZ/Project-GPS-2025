@@ -7,29 +7,30 @@ import MaquinariaSidebar from "../../components/maquinaria/maquinariaSideBar"
 import { useVentaMaquinaria } from "../../hooks/maquinaria/useVentaMaquinaria"
 import { useExcelExport } from "../../hooks/useExcelExport"
 import { useAuth } from "../../context"
+import { useToast } from "../../components/common/Toast"
 import type { CreateVentaMaquinaria, VentaMaquinaria } from "../../types/maquinaria.types"
 
 export const VentaMaquinariaPage: React.FC = () => {
   const { ventas, loading, error, registrarVenta, eliminarVenta, restaurarVenta, refetch } = useVentaMaquinaria()
   const { exportToExcel, isExporting } = useExcelExport()
   const { user } = useAuth()
+  const { showSuccess, showError } = useToast()
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [selectedVenta, setSelectedVenta] = useState<VentaMaquinaria | null>(null)
   const [showDetalleModal, setShowDetalleModal] = useState(false)
 
-  // Verificar si el usuario es SuperAdministrador
   const isSuperAdmin = user?.role === "SuperAdministrador"
 
   const handleSubmit = async (data: CreateVentaMaquinaria) => {
     try {
       await registrarVenta(data)
       setShowCreateModal(false)
-      // Forzar actualización después de crear
+      showSuccess("Venta registrada", `Venta de la maquinaria ${data.patente} registrada exitosamente`)
       setTimeout(() => {
         refetch()
       }, 100)
     } catch (error) {
-      console.error("Error al registrar venta:", error)
+      showError("Error al registrar venta", "No se pudo registrar la venta de maquinaria")
     }
   }
 
@@ -49,11 +50,10 @@ export const VentaMaquinariaPage: React.FC = () => {
 
     try {
       await eliminarVenta(venta.id)
-      // Refrescar la lista para mostrar el cambio de estado
+      showSuccess("Venta eliminada", `Venta de la maquinaria ${venta.patente} eliminada exitosamente`)
       refetch()
     } catch (error) {
-      console.error("Error al eliminar venta:", error)
-      alert("Error al eliminar la venta")
+      showError("Error al eliminar", "No se pudo eliminar la venta")
     }
   }
 
@@ -64,11 +64,10 @@ export const VentaMaquinariaPage: React.FC = () => {
 
     try {
       await restaurarVenta(venta.id)
-      // Refrescar la lista para mostrar el cambio de estado
+      showSuccess("Venta restaurada", `Venta de la maquinaria ${venta.patente} restaurada exitosamente`)
       refetch()
     } catch (error) {
-      console.error("Error al restaurar venta:", error)
-      alert("Error al restaurar la venta")
+      showError("Error al restaurar", "No se pudo restaurar la venta")
     }
   }
 
@@ -101,13 +100,17 @@ export const VentaMaquinariaPage: React.FC = () => {
     return ((venta.valorVenta - venta.valorCompra) / venta.valorCompra) * 100
   }
 
-  // Función helper para determinar si una venta está activa
   const isVentaActiva = (venta: VentaMaquinaria) => {
     return venta.isActive !== false
   }
 
   const handleExportarExcel = async () => {
     try {
+      if (ventas.length === 0) {
+        showError("Sin datos", "No hay datos para exportar")
+        return
+      }
+
       const datosParaExcel = ventas.map((venta) => {
         const ganancia = calcularGanancia(venta)
         const porcentaje = calcularPorcentajeGanancia(venta)
@@ -126,35 +129,31 @@ export const VentaMaquinariaPage: React.FC = () => {
       })
 
       await exportToExcel(datosParaExcel, "ventas_maquinaria", "Ventas")
+      showSuccess("Exportación exitosa", "Archivo Excel exportado exitosamente")
     } catch (error) {
-      console.error("Error al exportar:", error)
-      alert("Error al generar el archivo Excel")
+      showError("Error al exportar", "No se pudo generar el archivo Excel")
     }
   }
 
-  // Separar ventas activas e inactivas para mostrar estadísticas
   const ventasActivas = ventas.filter((v) => isVentaActiva(v))
   const ventasInactivas = ventas.filter((v) => !isVentaActiva(v))
 
   return (
     <div className="d-flex">
-      {/* Sidebar */}
       <MaquinariaSidebar />
 
-      {/* Contenido principal */}
       <div className="flex-grow-1">
         <Container fluid className="py-4">
           <Row>
             <Col>
-              {/* Encabezado de página */}
               <Card className="shadow-sm mb-3">
-                <Card.Header className="bg-gradient-success text-white">
+                <Card.Header className="bg-gradient-primary text-white">
                   <div className="d-flex align-items-center justify-content-between">
                     <div className="d-flex align-items-center">
-                      <i className="bi bi-cash-coin fs-4 me-3"></i>
+                      <i className="bi bi-truck fs-4 me-3"></i>
                       <div>
-                        <h3 className="mb-1">Venta de Maquinaria</h3>
-                        <p className="mb-0 opacity-75">Registra las ventas de maquinaria y controla la rentabilidad</p>
+                        <h3 className="mb-1">Venta de Maquinarias</h3>
+                        <p className="mb-0 opacity-75">Gestion de la venta de maquinarias</p>
                       </div>
                     </div>
                     <div className="d-flex gap-2">
@@ -189,7 +188,6 @@ export const VentaMaquinariaPage: React.FC = () => {
                 </Card.Header>
               </Card>
 
-              {/* Mensajes de error */}
               {error && (
                 <Alert variant="danger" className="mb-3">
                   <i className="bi bi-exclamation-triangle me-2"></i>
@@ -197,7 +195,6 @@ export const VentaMaquinariaPage: React.FC = () => {
                 </Alert>
               )}
 
-              {/* Loading spinner */}
               {loading && (
                 <div className="text-center py-5">
                   <Spinner animation="border" variant="primary" />
@@ -205,7 +202,6 @@ export const VentaMaquinariaPage: React.FC = () => {
                 </div>
               )}
 
-              {/* Tabla de ventas */}
               {!loading && !error && (
                 <Card className="shadow-sm">
                   <Card.Header className="bg-light">
@@ -296,7 +292,6 @@ export const VentaMaquinariaPage: React.FC = () => {
                                         <i className="bi bi-eye"></i>
                                       </Button>
 
-                                      {/* Botones de soft delete solo para SuperAdministrador */}
                                       {isSuperAdmin && (
                                         <>
                                           {isVentaActiva(venta) ? (
@@ -335,7 +330,6 @@ export const VentaMaquinariaPage: React.FC = () => {
         </Container>
       </div>
 
-      {/* Modal de registro */}
       <Modal show={showCreateModal} onHide={() => setShowCreateModal(false)} size="lg" centered>
         <Modal.Header
           closeButton
@@ -355,7 +349,6 @@ export const VentaMaquinariaPage: React.FC = () => {
         </Modal.Body>
       </Modal>
 
-      {/* Modal de detalles */}
       <VentaDetalleModal show={showDetalleModal} onHide={() => setShowDetalleModal(false)} venta={selectedVenta} />
     </div>
   )

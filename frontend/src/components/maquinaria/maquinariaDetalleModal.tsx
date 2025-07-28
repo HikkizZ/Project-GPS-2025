@@ -134,7 +134,7 @@ export const MaquinariaDetalleModal: React.FC<MaquinariaDetalleModalProps> = ({ 
             <Col md={12}>
               <div>
                 <label className="fw-bold">Avalúo Fiscal:</label>
-                <div className="fs-5 fw-bold text-info">{formatCurrency(maquinaria.avaluoFiscal)}</div>
+                <div className="fs-5 fw-bold text-dark">{formatCurrency(maquinaria.avaluoFiscal)}</div>
               </div>
             </Col>
           </Row>
@@ -156,7 +156,7 @@ export const MaquinariaDetalleModal: React.FC<MaquinariaDetalleModalProps> = ({ 
             <Col md={6}>
               <div>
                 <label className="fw-bold">Kilometraje Actual:</label>
-                <div className="fs-5 fw-bold text-primary">
+                <div className="fs-5 fw-bold text-dark">
                   {maquinaria.kilometrajeActual?.toLocaleString() || 0} km
                 </div>
               </div>
@@ -185,7 +185,7 @@ export const MaquinariaDetalleModal: React.FC<MaquinariaDetalleModalProps> = ({ 
                     <Col md={6}>
                       <div>
                         <label className="fw-bold">Valor:</label>
-                        <div className="fw-bold text-danger">{formatCurrency(compra.valorCompra)}</div>
+                        <div className="fw-bold text-dark">{formatCurrency(compra.valorCompra)}</div>
                       </div>
                     </Col>
                     {compra.proveedor && (
@@ -267,7 +267,6 @@ export const MaquinariaDetalleModal: React.FC<MaquinariaDetalleModalProps> = ({ 
               ></i>
               <div>
                 <h6 className="mb-1">Estado: {getEstadoTexto(maquinaria.estado)}</h6>
-                <p className="mb-0">ID: {maquinaria.id}</p>
               </div>
             </div>
           </div>
