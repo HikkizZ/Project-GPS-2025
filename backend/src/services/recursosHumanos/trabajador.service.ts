@@ -657,10 +657,7 @@ export async function updateTrabajadorService(id: number, data: any): Promise<Se
             cambios.push(`Cambio de correo personal: de "${correoPersonalAnterior}" a "${data.correoPersonal}"`);
         }
         
-        // IMPORTANTE: Registrar cambio de correo corporativo para el historial
-        if (nuevoCorreoUsuario !== correoUsuarioAnterior) {
-            cambios.push(`Cambio de correo corporativo: de "${correoUsuarioAnterior}" a "${nuevoCorreoUsuario}"`);
-        }
+        // NOTA: No registrar cambios de correo corporativo en el historial
 
         if (cambios.length > 0) {
             const nuevoHistorial = new HistorialLaboral();
