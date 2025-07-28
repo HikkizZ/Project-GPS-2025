@@ -78,7 +78,9 @@ export const EditarTrabajadorModal: React.FC<EditarTrabajadorModalProps> = ({
       if (formData.telefono !== trabajador.telefono) {
         camposCambiados.telefono = formData.telefono;
       }
-      if (formData.numeroEmergencia !== (trabajador.numeroEmergencia || '')) {
+      // Manejo especial para numeroEmergencia que puede ser vacío
+      const numeroEmergenciaActual = trabajador.numeroEmergencia || '';
+      if (formData.numeroEmergencia !== numeroEmergenciaActual) {
         camposCambiados.numeroEmergencia = formData.numeroEmergencia;
       }
       if (formData.direccion !== trabajador.direccion) {
