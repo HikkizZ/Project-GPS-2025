@@ -326,13 +326,7 @@ export async function getMiFichaService(userId: number): Promise<ServiceResponse
             return [null, { message: "Ficha no encontrada" }];
         }
 
-        // Debug: Verificar si las asignaciones de bonos se cargaron correctamente
-        console.log('Ficha encontrada:', {
-            id: ficha.id,
-            trabajador: ficha.trabajador?.nombres,
-            asignacionesBonos: ficha.asignacionesBonos?.length || 0,
-            bonosActivos: ficha.asignacionesBonos?.filter(ab => ab.activo).length || 0
-        });
+
 
         return [ficha, null];
     } catch (error) {
