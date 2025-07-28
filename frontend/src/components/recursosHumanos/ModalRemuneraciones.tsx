@@ -2,6 +2,7 @@ import React from 'react';
 import { Modal, Card, Badge } from 'react-bootstrap';
 import { FichaEmpresa } from '@/types/recursosHumanos/fichaEmpresa.types';
 import { calculoSueldoBruto, calcularSueldoLiquido } from '@/pages/recursosHumanos/GestionRemuneracionesPage';
+import { formatAFP } from '@/utils/index';
 
 interface ModalRemuneracionesProps {
   show: boolean;
@@ -121,7 +122,7 @@ export const ModalRemuneraciones: React.FC<ModalRemuneracionesProps> = ({
               <div className="col-md-6">
                 <h6 className="text-danger mb-3">Descuentos Legales</h6>
                 <div className="d-flex justify-content-between mb-2">
-                  <span>AFP ({ficha.afp || 'Cuprum'}):</span>
+                  <span>AFP ({formatAFP(ficha.afp)}):</span>
                   <strong className="text-danger">{formatMiles(afp)}</strong>
                 </div>
                 <div className="d-flex justify-content-between mb-2">
