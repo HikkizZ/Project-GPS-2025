@@ -15,6 +15,7 @@ import {
     UpdateAsignarBonoDTO, 
 } from "../../types/recursosHumanos/bono.dto.js";
 import { HistorialLaboral } from "../../entity/recursosHumanos/historialLaboral.entity.js";
+import { formatToLocalDate } from "../../utils/formatDate.js";
 
 // Interfaz para los parámetros de búsqueda
 interface SearchFichaParams {
@@ -865,7 +866,7 @@ export async function assignBonoService (idFicha: number, data: AsignarBonoDTO, 
 
         // Registrar en historial laboral
         const montoFormateado = parseInt(bono.monto).toLocaleString('es-CL');
-        const observacionesHistorial = `Asignación de bono: ${bono.nombreBono}, Monto: $${montoFormateado}, Tipo: ${bono.tipoBono}, Temporalidad: ${bono.temporalidad}, Imponible: ${bono.imponible ? 'Sí' : 'No'}${bono.descripcion ? `, Descripción del bono: ${bono.descripcion}` : ''}${fechaFin ? `, Válido hasta: ${fechaFin.toISOString().split('T')[0]}` : ''}${data.observaciones ? `
+        const observacionesHistorial = `Asignación de bono: ${bono.nombreBono}, Monto: $${montoFormateado}, Tipo: ${bono.tipoBono}, Temporalidad: ${bono.temporalidad}, Imponible: ${bono.imponible ? 'Sí' : 'No'}${bono.descripcion ? `, Descripción del bono: ${bono.descripcion}` : ''}${fechaFin ? `, Válido hasta: ${formatToLocalDate(fechaFin)}` : ''}${data.observaciones ? `
 [OBSERVACIONES_BADGE]: ${data.observaciones}` : ''}`;
         
         const nuevoHistorial = new HistorialLaboral();
@@ -962,7 +963,7 @@ export async function updateAsignarBonoService( id: number, idFichaActual: numbe
             // Registrar cambio en historial laboral
             const montoFormateado = parseInt(bono.monto).toLocaleString('es-CL');
             const observacionesHistorial = `Actualización de asignación de bono: ${bono.nombreBono}
-Monto: $${montoFormateado}, Tipo: ${bono.tipoBono}, Temporalidad: ${bono.temporalidad}, Imponible: ${bono.imponible ? 'Sí' : 'No'}, Estado: ${asignacionBono.activo ? 'Activo' : 'Inactivo'}${bono.descripcion ? `, Descripción del bono: ${bono.descripcion}` : ''}${cambios.fechaFinAsignacion ? `, Válido hasta: ${cambios.fechaFinAsignacion.toISOString().split('T')[0]}` : ''}${data.observaciones ? `
+Monto: $${montoFormateado}, Tipo: ${bono.tipoBono}, Temporalidad: ${bono.temporalidad}, Imponible: ${bono.imponible ? 'Sí' : 'No'}, Estado: ${asignacionBono.activo ? 'Activo' : 'Inactivo'}${bono.descripcion ? `, Descripción del bono: ${bono.descripcion}` : ''}${cambios.fechaFinAsignacion ? `, Válido hasta: ${formatToLocalDate(cambios.fechaFinAsignacion)}` : ''}${data.observaciones ? `
 [OBSERVACIONES_BADGE]: ${data.observaciones}` : ''}`;
             
             const nuevoHistorial = new HistorialLaboral();
