@@ -123,11 +123,22 @@ export async function updateMaintenanceRecord(id: number, data: UpdateMaintenanc
 
     if (data.descripcionEntrada) record.descripcionEntrada = data.descripcionEntrada;
     if (data.razonMantencion) record.razonMantencion = data.razonMantencion;
+
     if (data.fechaSalida) {
-      const fecha = new Date(data.fechaSalida);
-      if (isNaN(fecha.getTime())) return [null, "La fecha de salida debe ser una fecha válida"];
-      record.fechaSalida = fecha;
-    }
+      const salida = new Date(data.fechaSalida);
+      if (isNaN(salida.getTime())) {
+        return [null, "La fecha de salida debe ser una fecha válida"];
+      }
+
+      const entrada = new Date(record.fechaEntrada);
+
+      if (salida < entrada) {
+        return [null, "La fecha de salida no puede ser anterior a la fecha de entrada"];
+      }
+
+      record.fechaSalida = salida;
+}
+
 
     if (data.descripcionSalida) record.descripcionSalida = data.descripcionSalida;
 
@@ -254,7 +265,7 @@ export async function getAllMaintenanceRecords(): Promise<ServiceResponse<any[]>
       relations: ["maquinaria", "mecanicoAsignado","mecanicoAsignado.trabajador","repuestosUtilizados","repuestosUtilizados.repuesto"]
     });
 
-    if (!records.length) return [null, "No hay mantenciones registradas"];
+    if (!records.length) return [[], null]; 
 
     const sanitizedRecords = records.map(sanitizeMaintenanceRecord);
     return [sanitizedRecords, null];
