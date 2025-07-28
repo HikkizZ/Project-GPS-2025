@@ -1,5 +1,3 @@
-"use client"
-
 import { useState, useEffect, useCallback } from "react"
 import { maquinariaService } from "../../services/maquinaria/maquinaria.service.js"
 import type { Maquinaria } from "../../types/maquinaria.types"
@@ -66,26 +64,6 @@ export const useMaquinaria = () => {
     }
   }, [])
 
-  const eliminarPadron = useCallback(async (id: number) => {
-    setLoading(true)
-    setError(null)
-    try {
-      const response = await maquinariaService.eliminarPadron(id)
-      if (response.success && response.data) {
-        setMaquinarias((prev) => prev.map((maq) => (maq.id === id ? response.data! : maq)))
-        return response.data
-      } else {
-        setError(response.message)
-        throw new Error(response.message)
-      }
-    } catch (err: any) {
-      setError(err.message)
-      throw err
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
   useEffect(() => {
     fetchMaquinarias()
   }, [fetchMaquinarias])
@@ -96,7 +74,6 @@ export const useMaquinaria = () => {
     error,
     actualizarKilometraje,
     cambiarEstado,
-    eliminarPadron,
     refetch: fetchMaquinarias,
   }
 }

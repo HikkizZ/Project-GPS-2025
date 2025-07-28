@@ -31,7 +31,6 @@ export interface Maquinaria {
   kilometrajeActual: number
   estado: EstadoMaquinaria
   avaluoFiscal: number
-  padronUrl?: string
   createdAt: string
   updatedAt: string
   // Relaciones opcionales

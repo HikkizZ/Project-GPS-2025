@@ -3,7 +3,7 @@ import { AppDataSource } from "../../config/configDB.js"
 import { CompraMaquinaria } from "../../entity/maquinaria/compraMaquinaria.entity.js"
 import { Maquinaria } from "../../entity/maquinaria/maquinaria.entity.js"
 import { Supplier } from "../../entity/stakeholders/supplier.entity.js"
-import { MaquinariaFileUploadService } from "../fileUpload.service.js"
+import { MaquinariaFileUploadService } from "./maquinariaFileUpload.service.js"
 import type {
   CreateCompraMaquinaria,
   UpdateCompraMaquinaria,
