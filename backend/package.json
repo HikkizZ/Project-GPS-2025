@@ -17,7 +17,8 @@
     "verificar-licencias:status": "pm2 status verificar-licencias",
     "eliminar-campo-empresa": "tsx src/scripts/eliminarCampoEmpresa.ts",
     "limpiar-espacios-trabajadores": "tsx src/scripts/limpiarEspaciosTrabajadores.ts",
-    "limpiar-espacios-usuarios": "tsx src/scripts/limpiarEspaciosUsuarios.ts"
+    "limpiar-espacios-usuarios": "tsx src/scripts/limpiarEspaciosUsuarios.ts",
+    "agregar-indice-correo": "tsx src/scripts/agregarIndiceCorreoPersonal.ts"
   },
   "keywords": [],
   "author": "HikkizZ",

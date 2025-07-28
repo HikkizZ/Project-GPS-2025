@@ -547,6 +547,8 @@ export const RegisterTrabajadorForm: React.FC<RegisterTrabajadorFormProps> = ({
   const [error, setError] = useState<string>('');
   const [advertencias, setAdvertencias] = useState<string[]>([]);
   const [validated, setValidated] = useState(false);
+  const [correoError, setCorreoError] = useState<string>('');
+  const [isValidatingCorreo, setIsValidatingCorreo] = useState(false);
   
   const [formData, setFormData] = useState<CreateTrabajadorData>({
     rut: rutPrellenado || '',
@@ -581,7 +583,8 @@ export const RegisterTrabajadorForm: React.FC<RegisterTrabajadorFormProps> = ({
                    formData.fechaNacimiento.trim() &&
                    formData.correoPersonal.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/) &&
                    formData.telefono.trim() &&
-                   formData.direccion.trim();
+                   formData.direccion.trim() &&
+                   correoError === ''; // No permitir enviar si hay error de correo duplicado
 
     if (!isValid) {
       return; // No mostrar mensaje de error general, dejar que los campos individuales muestren sus errores
@@ -605,6 +608,30 @@ export const RegisterTrabajadorForm: React.FC<RegisterTrabajadorFormProps> = ({
     }
   };
 
+  // Función para validar correo personal
+  const validateCorreoPersonal = async (correo: string) => {
+    if (!correo || !correo.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+      setCorreoError('');
+      return;
+    }
+
+    setIsValidatingCorreo(true);
+    setCorreoError('');
+
+    try {
+      const trabajadorService = new TrabajadorService();
+      const response = await trabajadorService.verificarCorreoPersonal(correo);
+      
+      if (!response.data.disponible) {
+        setCorreoError(response.data.mensaje);
+      }
+    } catch (error) {
+      console.error('Error al validar correo:', error);
+    } finally {
+      setIsValidatingCorreo(false);
+    }
+  };
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     // Limpiar errores solo del campo editado si el formulario ya fue validado
@@ -618,6 +645,13 @@ export const RegisterTrabajadorForm: React.FC<RegisterTrabajadorFormProps> = ({
       setFormData({ ...formData, [name]: formatPhone(value) });
     } else if (name === 'fechaNacimiento') {
       setFormData({ ...formData, [name]: value });
+    } else if (name === 'correoPersonal') {
+      setFormData({ ...formData, [name]: value });
+      // Validar correo personal con debounce
+      const timeoutId = setTimeout(() => {
+        validateCorreoPersonal(value);
+      }, 500);
+      return () => clearTimeout(timeoutId);
     } else {
       setFormData({ ...formData, [name]: value });
     }
@@ -772,19 +806,32 @@ export const RegisterTrabajadorForm: React.FC<RegisterTrabajadorFormProps> = ({
           <div className="col-md-4">
             <Form.Group>
               <Form.Label className="fw-semibold">Correo Personal: <span className="text-danger">*</span></Form.Label>
-              <Form.Control
-                type="email"
-                name="correoPersonal"
-                value={formData.correoPersonal}
-                onChange={handleInputChange}
-                placeholder="correo@gmail.com"
-                required
-                style={{ borderRadius: '8px' }}
-                isInvalid={validated && !formData.correoPersonal.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)}
-              />
-              <Form.Control.Feedback type="invalid">
-                {validated && !formData.correoPersonal.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/) && 'Correo personal inválido'}
-              </Form.Control.Feedback>
+              <div className="position-relative">
+                <Form.Control
+                  type="email"
+                  name="correoPersonal"
+                  value={formData.correoPersonal}
+                  onChange={handleInputChange}
+                  placeholder="correo@gmail.com"
+                  required
+                  style={{ borderRadius: '8px' }}
+                  isInvalid={
+                    (validated && !formData.correoPersonal.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) ||
+                    correoError !== ''
+                  }
+                />
+                {isValidatingCorreo && (
+                  <div className="position-absolute top-50 end-0 translate-middle-y pe-3">
+                    <div className="spinner-border spinner-border-sm text-primary" role="status">
+                      <span className="visually-hidden">Validando...</span>
+                    </div>
+                  </div>
+                )}
+                <Form.Control.Feedback type="invalid">
+                  {validated && !formData.correoPersonal.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/) && 'Correo personal inválido'}
+                  {correoError && correoError}
+                </Form.Control.Feedback>
+              </div>
             </Form.Group>
           </div>
           <div className="col-md-4">
