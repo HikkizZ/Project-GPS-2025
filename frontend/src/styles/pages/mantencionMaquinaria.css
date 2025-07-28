@@ -1,60 +1,169 @@
-/* mantencionMaquinaria.css */
-/* Estilos específicos para la página de Mantención de Maquinaria */
+/* ==============================
+   Mantención Maquinaria - Estilos Adaptados
+   ============================== */
 
-.mantencion-page {
-  padding: var(--spacing-xl);
-  background-color: var(--background-white);
+/* Gradientes de encabezado */
+.bg-gradient-primary {
+  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%) !important;
 }
 
-.mantencion-page h2 {
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-weight-semibold);
-  color: var(--text-dark);
-  margin-bottom: var(--spacing-lg);
-}
-
-.mantencion-page .mantencion-header {
+/* Modal mejorado */
+.modal-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 1.5rem 2rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: var(--spacing-md);
+  border-bottom: none;
 }
 
-.mantencion-page .mantencion-header .btn {
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
-  padding: 0.5rem 1.2rem;
-  background: var(--gradient-primary);
-  color: white;
-  border: none;
-  border-radius: var(--border-radius);
-  transition: background-color 0.2s ease;
+.modal-title {
+  display: flex;
+  align-items: center;
+  font-size: 1.4rem;
+  font-weight: 600;
 }
 
-.mantencion-page .mantencion-header .btn:hover {
-  background: var(--gradient-primary-hover);
+.modal-body {
+  padding: 1.5rem 2rem;
 }
 
-.mantencion-page .mantencion-table {
-  border-radius: var(--border-radius-lg);
-  overflow: hidden;
-  box-shadow: var(--box-shadow-lg);
+.modal-footer {
+  background: #f8f9fa;
+  padding: 1.25rem 2rem;
+  border-top: 1px solid #e9ecef;
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
 }
 
-.mantencion-page .mantencion-table thead th {
-  background: var(--background-light);
-  font-weight: var(--font-weight-semibold);
-  color: var(--text-dark);
-  padding: var(--spacing-md);
+/* Secciones de formulario */
+.form-section {
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #e9ecef;
 }
 
-.mantencion-page .mantencion-table tbody tr:hover {
-  background-color: #f1f5ff;
+.section-title {
+  color: #495057;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #e9ecef;
+  display: flex;
+  align-items: center;
+  font-size: 1.1rem;
 }
 
-.no-spinner::-webkit-outer-spin-button,
-.no-spinner::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
+/* Inputs y selects */
+.form-label {
+  font-weight: 500;
+  color: #495057;
+  margin-bottom: 0.5rem;
 }
 
+.form-control,
+.form-select {
+  border: 1px solid #ced4da;
+  border-radius: 8px;
+  padding: 0.75rem;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+}
+
+.input-group-text {
+  background: #f8f9fa;
+  border: 1px solid #ced4da;
+  color: #6c757d;
+  font-weight: 500;
+}
+
+/* Validaciones */
+.invalid-feedback {
+  display: block;
+  color: #dc3545;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+.is-invalid {
+  border-color: #dc3545;
+}
+
+.is-invalid:focus {
+  border-color: #dc3545;
+  box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+}
+
+/* Badges de estado y razón */
+.badge.bg-warning.text-dark {
+  background-color: #ffc107 !important;
+  color: #212529 !important;
+}
+
+.badge.bg-primary {
+  background-color: #0d6efd !important;
+}
+
+.badge.bg-success {
+  background-color: #198754 !important;
+}
+
+.badge.bg-danger {
+  background-color: #dc3545 !important;
+}
+
+/* Animación de tarjetas */
+.card.shadow-sm {
+  animation: fadeInUp 0.2s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Hover en botones */
+.btn-outline-primary:hover,
+.btn-outline-success:hover,
+.btn-outline-danger:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Tablas responsivas */
+.table-responsive {
+  overflow-x: auto;
+}
+
+/* Texto especial */
+.text-muted {
+  color: #6c757d !important;
+}
+
+.text-success {
+  color: #198754 !important;
+  font-weight: 600;
+}
+
+/* Scroll personalizado para modal largo */
+.modal-body::-webkit-scrollbar {
+  width: 8px;
+}
+.modal-body::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+.modal-body::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+.modal-body::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
