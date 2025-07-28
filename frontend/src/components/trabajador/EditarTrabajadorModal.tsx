@@ -63,7 +63,39 @@ export const EditarTrabajadorModal: React.FC<EditarTrabajadorModalProps> = ({
     setIsLoading(true);
 
     try {
-      const result = await updateTrabajador(trabajador.id, formData);
+      // Solo enviar campos que realmente cambiaron
+      const camposCambiados: any = {};
+      
+      if (formData.nombres !== trabajador.nombres) {
+        camposCambiados.nombres = formData.nombres;
+      }
+      if (formData.apellidoPaterno !== trabajador.apellidoPaterno) {
+        camposCambiados.apellidoPaterno = formData.apellidoPaterno;
+      }
+      if (formData.apellidoMaterno !== trabajador.apellidoMaterno) {
+        camposCambiados.apellidoMaterno = formData.apellidoMaterno;
+      }
+      if (formData.telefono !== trabajador.telefono) {
+        camposCambiados.telefono = formData.telefono;
+      }
+      if (formData.numeroEmergencia !== (trabajador.numeroEmergencia || '')) {
+        camposCambiados.numeroEmergencia = formData.numeroEmergencia;
+      }
+      if (formData.direccion !== trabajador.direccion) {
+        camposCambiados.direccion = formData.direccion;
+      }
+      if (formData.correoPersonal !== trabajador.correoPersonal) {
+        camposCambiados.correoPersonal = formData.correoPersonal;
+      }
+
+      // Solo enviar si hay cambios
+      if (Object.keys(camposCambiados).length === 0) {
+        setError('No se han realizado cambios');
+        setIsLoading(false);
+        return;
+      }
+
+      const result = await updateTrabajador(trabajador.id, camposCambiados);
       
       if (result.success) {
         onSuccess();
