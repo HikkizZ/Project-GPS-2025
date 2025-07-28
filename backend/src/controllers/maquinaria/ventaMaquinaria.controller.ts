@@ -4,11 +4,9 @@ import { validationResult } from "express-validator"
 
 export class VentaMaquinariaController {
   private ventaMaquinariaService: VentaMaquinariaService
-
   constructor() {
     this.ventaMaquinariaService = new VentaMaquinariaService()
   }
-
   registrarVenta = async (req: Request, res: Response): Promise<void> => {
     try {
       const errors = validationResult(req)
@@ -16,7 +14,6 @@ export class VentaMaquinariaController {
         res.status(400).json({ errors: errors.array() })
         return
       }
-
       const resultado = await this.ventaMaquinariaService.registrarVenta(req.body)
       res.status(201).json({
         success: true,
@@ -31,7 +28,6 @@ export class VentaMaquinariaController {
       })
     }
   }
-
   obtenerTodasLasVentas = async (req: Request, res: Response): Promise<void> => {
     try {
       const incluirInactivas = req.query.incluirInactivas === "true"
@@ -48,7 +44,6 @@ export class VentaMaquinariaController {
       })
     }
   }
-
   obtenerVentaPorId = async (req: Request, res: Response): Promise<void> => {
     try {
       const { id } = req.params
@@ -66,7 +61,6 @@ export class VentaMaquinariaController {
       })
     }
   }
-
   obtenerVentasPorPatente = async (req: Request, res: Response): Promise<void> => {
     try {
       const { patente } = req.params
@@ -84,7 +78,6 @@ export class VentaMaquinariaController {
       })
     }
   }
-
   obtenerVentasPorFecha = async (req: Request, res: Response): Promise<void> => {
     try {
       const { fechaInicio, fechaFin } = req.query
@@ -106,7 +99,6 @@ export class VentaMaquinariaController {
       })
     }
   }
-
   obtenerVentasPorComprador = async (req: Request, res: Response): Promise<void> => {
     try {
       const { comprador } = req.params
@@ -124,8 +116,7 @@ export class VentaMaquinariaController {
       })
     }
   }
-
-  // Nuevo método para soft delete
+  // SoftDelete
   eliminarVenta = async (req: Request, res: Response): Promise<void> => {
     try {
       const { id } = req.params
@@ -143,8 +134,7 @@ export class VentaMaquinariaController {
       })
     }
   }
-
-  // Nuevo método para restaurar venta
+  // Restaurar una venta con softdelete
   restaurarVenta = async (req: Request, res: Response): Promise<void> => {
     try {
       const { id } = req.params

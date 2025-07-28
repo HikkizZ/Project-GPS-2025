@@ -25,7 +25,6 @@ export class ArriendoMaquinaria {
   @Column({ type: "int", name: "maquinaria_id" })
   maquinariaId!: number
 
-  // Campos del reporte físico (copiados tal como vienen)
   @Column({ type: "varchar", length: 20, nullable: false })
   patente!: string
 
@@ -66,7 +65,7 @@ export class ArriendoMaquinaria {
   // Fecha del trabajo 
   @Column({ type: "date", nullable: false })
   fechaTrabajo!: Date
-
+  // SoftDelete
   @Column({ type: "boolean", default: true })
   isActive!: boolean
 

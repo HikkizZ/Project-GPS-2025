@@ -73,7 +73,7 @@ export class Maquinaria {
   @Column({ type: "varchar", length: 500, nullable: true })
   padronUrl?: string
 
-  // Campo agregado para soft delete
+  // SoftDelete
   @Column({ type: "boolean", default: true })
   isActive!: boolean
 

@@ -6,8 +6,6 @@ export const useVentaMaquinaria = () => {
   const [ventas, setVentas] = useState<VentaMaquinaria[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-
-  // MANTENER LA FUNCIÓN ORIGINAL CON FALLBACK
   const fetchVentas = useCallback(async () => {
     setLoading(true)
     setError(null)
@@ -17,7 +15,6 @@ export const useVentaMaquinaria = () => {
       try {
         response = await ventaMaquinariaService.obtenerTodasLasVentasConInactivas()
       } catch {
-        // Fallback a la función original si el backend no soporta incluirInactivas
         response = await ventaMaquinariaService.obtenerTodasLasVentas()
       }
 
@@ -73,14 +70,14 @@ export const useVentaMaquinaria = () => {
     }
   }, [])
 
-  // NUEVAS FUNCIONES PARA SOFT DELETE
+  // SoftDelete, ya probado y que funciona :D
   const eliminarVenta = useCallback(async (id: number) => {
     setLoading(true)
     setError(null)
     try {
       const response = await ventaMaquinariaService.eliminarVenta(id)
       if (response.success) {
-        // Actualizar el estado local marcando como inactiva
+        // Se acutaliza el estado local marcandolo como inactivo
         setVentas((prev) => prev.map((venta) => (venta.id === id ? { ...venta, isActive: false } : venta)))
         return true
       } else {

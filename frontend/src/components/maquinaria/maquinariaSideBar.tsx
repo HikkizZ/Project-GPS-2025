@@ -26,7 +26,7 @@ const MaquinariaSidebar: React.FC = () => {
           <i className="bi bi-cash-coin me-2" />
           Ventas Maquinaria
         </Nav.Link>
-        <Nav.Link as={NavLink} to="/inventario/clientes">
+        <Nav.Link as={NavLink} to="/maquinaria/clientes">
           <i className="bi bi-people me-2" />
           Clientes
         </Nav.Link>
