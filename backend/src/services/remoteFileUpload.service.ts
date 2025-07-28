@@ -4,10 +4,12 @@ import path from "path"
 import {
   REMOTE_SERVER_CONFIG,
   LOCAL_SERVER_CONFIG,
+  FALLBACK_LOCAL_CONFIG,
   ALLOWED_FILE_TYPES,
   FILE_LIMITS,
   MODULE_FOLDERS,
   isDevelopment,
+  isProduction,
   type ModuleFolder,
 } from "../config/remoteServer.config.js"
 import type { Express } from "express"
@@ -17,6 +19,7 @@ export interface RemoteFileUploadResult {
   filename: string
   originalName: string
   size: number
+  uploadMethod: "remote" | "local" | "fallback"
 }
 
 export interface UploadOptions {
@@ -27,8 +30,7 @@ export class RemoteFileUploadService {
   private static instance: RemoteFileUploadService
 
   private constructor() {
-    // Crear carpeta de uploads en desarrollo
-    if (isDevelopment) {
+    if (isDevelopment || isProduction) {
       this.ensureLocalUploadDirectory()
     }
   }
@@ -40,18 +42,13 @@ export class RemoteFileUploadService {
     return RemoteFileUploadService.instance
   }
 
-  /**
-   * Crea las carpetas necesarias para desarrollo local
-   */
   private ensureLocalUploadDirectory(): void {
-    const baseDir = LOCAL_SERVER_CONFIG.uploadPath
+    const baseDir = isDevelopment ? LOCAL_SERVER_CONFIG.uploadPath : FALLBACK_LOCAL_CONFIG.uploadPath
 
-    // Crear carpeta base
     if (!fs.existsSync(baseDir)) {
       fs.mkdirSync(baseDir, { recursive: true })
     }
 
-    // Crear carpetas por módulo
     Object.values(MODULE_FOLDERS).forEach((moduleFolder) => {
       const moduleDir = path.join(baseDir, moduleFolder, "images")
       if (!fs.existsSync(moduleDir)) {
@@ -59,12 +56,9 @@ export class RemoteFileUploadService {
       }
     })
 
-    console.log("📁 Carpetas de desarrollo creadas en:", baseDir)
+    console.log(" Carpetas de upload creadas en:", baseDir)
   }
 
-  /**
-   * Valida que el archivo sea una imagen
-   */
   private validateImageFile(file: Express.Multer.File): void {
     if (file.size > FILE_LIMITS.maxSize) {
       throw new Error(`El archivo excede el tamaño máximo permitido (${FILE_LIMITS.maxSize / (1024 * 1024)}MB)`)
@@ -75,9 +69,6 @@ export class RemoteFileUploadService {
     }
   }
 
-  /**
-   * Genera un nombre de archivo único y seguro
-   */
   private generateSafeFilename(originalName: string, module: string): string {
     const timestamp = Date.now()
     const randomSuffix = Math.round(Math.random() * 1e6)
@@ -90,43 +81,47 @@ export class RemoteFileUploadService {
     return `${module}_${baseName}_${timestamp}_${randomSuffix}${extension}`
   }
 
-  /**
-   * DESARROLLO: Mueve el archivo a la carpeta local
-   */
-  private async moveFileLocally(file: Express.Multer.File, options: UploadOptions): Promise<RemoteFileUploadResult> {
+  private async saveFileLocally(
+    file: Express.Multer.File,
+    options: UploadOptions,
+    isFallback = false,
+  ): Promise<RemoteFileUploadResult> {
+    const config = isFallback ? FALLBACK_LOCAL_CONFIG : LOCAL_SERVER_CONFIG
     const moduleFolder = MODULE_FOLDERS[options.module]
     const safeFilename = this.generateSafeFilename(file.originalname, moduleFolder)
 
-    const localDir = path.join(LOCAL_SERVER_CONFIG.uploadPath, moduleFolder, "images")
+    const localDir = path.join(config.uploadPath, moduleFolder, "images")
     const localPath = path.join(localDir, safeFilename)
 
-    // Mover archivo desde temp a carpeta final
+    if (!fs.existsSync(localDir)) {
+      fs.mkdirSync(localDir, { recursive: true })
+    }
+
     await fs.promises.rename(file.path, localPath)
 
-    const publicUrl = `${LOCAL_SERVER_CONFIG.baseUrl}/${moduleFolder}/images/${safeFilename}`
+    const publicUrl = `${config.baseUrl}/${moduleFolder}/images/${safeFilename}`
 
-    console.log(`📁 Archivo guardado localmente: ${localPath}`)
-    console.log(`🌐 URL pública: ${publicUrl}`)
+    console.log(` Archivo guardado ${isFallback ? "(FALLBACK)" : "(LOCAL)"}: ${localPath}`)
+    console.log(` URL pública: ${publicUrl}`)
 
     return {
       url: publicUrl,
       filename: safeFilename,
       originalName: file.originalname,
       size: file.size,
+      uploadMethod: isFallback ? "fallback" : "local",
     }
   }
 
-  /**
-   * PRODUCCIÓN: Sube el archivo al servidor remoto
-   */
-  private async uploadToRemoteServer(
+  private async uploadToRemoteServerWithFallback(
     file: Express.Multer.File,
     options: UploadOptions,
   ): Promise<RemoteFileUploadResult> {
     let sshClient: Client | null = null
 
     try {
-      // Establecer conexión SSH
+      console.log(" Intentando subir al servidor remoto...")
+
       sshClient = await this.connectSSH()
 
       const moduleFolder = MODULE_FOLDERS[options.module]
@@ -135,13 +130,10 @@ export class RemoteFileUploadService {
       const remoteDir = path.posix.join(REMOTE_SERVER_CONFIG.uploadPath, moduleFolder, "images")
       const remotePath = path.posix.join(remoteDir, safeFilename)
 
-      // Crear directorio remoto si no existe
       await this.ensureRemoteDirectory(sshClient, remoteDir)
 
-      // Transferir archivo
       await this.transferFile(sshClient, file.path, remotePath)
 
-      // Limpiar archivo temporal local
       try {
         await fs.promises.unlink(file.path)
       } catch (error) {
@@ -150,13 +142,24 @@ export class RemoteFileUploadService {
 
       const publicUrl = `${REMOTE_SERVER_CONFIG.baseUrl}/${moduleFolder}/images/${safeFilename}`
 
-      console.log(`🚀 Archivo subido al servidor remoto: ${publicUrl}`)
+      console.log(` Archivo subido al servidor remoto: ${publicUrl}`)
 
       return {
         url: publicUrl,
         filename: safeFilename,
         originalName: file.originalname,
         size: file.size,
+        uploadMethod: "remote",
+      }
+    } catch (error) {
+      console.error("❌ Error al subir al servidor remoto:", error)
+      console.log(" Activando fallback local...")
+
+      try {
+        return await this.saveFileLocally(file, options, true)
+      } catch (fallbackError) {
+        console.error(" Error en fallback local:", fallbackError)
+        throw new Error(`Error en servidor remoto Y fallback local: ${error}`)
       }
     } finally {
       if (sshClient) {
@@ -165,20 +168,17 @@ export class RemoteFileUploadService {
     }
   }
 
-  /**
-   * Establece conexión SSH con el servidor de archivos (solo producción)
-   */
   private async connectSSH(): Promise<Client> {
     return new Promise((resolve, reject) => {
       const conn = new Client()
 
       conn
         .on("ready", () => {
-          console.log("🔗 Conexión SSH establecida con servidor de archivos")
+          console.log(" Conexión SSH establecida con servidor de archivos")
           resolve(conn)
         })
         .on("error", (err) => {
-          console.error("❌ Error de conexión SSH:", err)
+          console.error(" Error de conexión SSH:", err)
           reject(err)
         })
         .connect({
@@ -191,9 +191,6 @@ export class RemoteFileUploadService {
     })
   }
 
-  /**
-   * Crea el directorio remoto si no existe (solo producción)
-   */
   private async ensureRemoteDirectory(sshClient: Client, remotePath: string): Promise<void> {
     return new Promise((resolve, reject) => {
       sshClient.exec(`mkdir -p "${remotePath}"`, (err, stream) => {
@@ -213,9 +210,6 @@ export class RemoteFileUploadService {
     })
   }
 
-  /**
-   * Transfiere el archivo al servidor remoto usando SFTP (solo producción)
-   */
   private async transferFile(sshClient: Client, localPath: string, remotePath: string): Promise<void> {
     return new Promise((resolve, reject) => {
       sshClient.sftp((err, sftp) => {
@@ -228,17 +222,17 @@ export class RemoteFileUploadService {
         const writeStream = sftp.createWriteStream(remotePath)
 
         writeStream.on("close", () => {
-          console.log(`📤 Archivo transferido exitosamente a: ${remotePath}`)
+          console.log(` Archivo transferido exitosamente a: ${remotePath}`)
           resolve()
         })
 
         writeStream.on("error", (error: Error) => {
-          console.error("❌ Error al escribir archivo remoto:", error)
+          console.error(" Error al escribir archivo remoto:", error)
           reject(error)
         })
 
         readStream.on("error", (error) => {
-          console.error("❌ Error al leer archivo local:", error)
+          console.error(" Error al leer archivo local:", error)
           reject(error)
         })
 
@@ -247,93 +241,93 @@ export class RemoteFileUploadService {
     })
   }
 
-  /**
-   * Sube una imagen (funciona en desarrollo y producción)
-   */
   public async uploadFile(file: Express.Multer.File, options: UploadOptions): Promise<RemoteFileUploadResult> {
     try {
-      // Validar que sea una imagen
       this.validateImageFile(file)
 
-      console.log(`📋 Subiendo archivo en modo: ${isDevelopment ? "DESARROLLO" : "PRODUCCIÓN"}`)
+      console.log(` Subiendo archivo en modo: ${isDevelopment ? "DESARROLLO" : "PRODUCCIÓN"}`)
 
       if (isDevelopment) {
-        // En desarrollo: guardar localmente
-        return await this.moveFileLocally(file, options)
+        return await this.saveFileLocally(file, options, false)
       } else {
-        // En producción: subir al servidor remoto
-        return await this.uploadToRemoteServer(file, options)
+        return await this.uploadToRemoteServerWithFallback(file, options)
       }
     } catch (error) {
-      // Limpiar archivo temporal en caso de error
       try {
         if (fs.existsSync(file.path)) {
           await fs.promises.unlink(file.path)
         }
       } catch (cleanupError) {
-        console.warn("⚠️ Error al limpiar archivo temporal:", cleanupError)
+        console.warn(" Error al limpiar archivo temporal:", cleanupError)
       }
 
       throw new Error(`Error al subir imagen: ${error}`)
     }
   }
 
-  /**
-   * Elimina una imagen (funciona en desarrollo y producción)
-   */
   public async deleteFile(filename: string, options: UploadOptions): Promise<boolean> {
     try {
       const moduleFolder = MODULE_FOLDERS[options.module]
 
       if (isDevelopment) {
-        // En desarrollo: eliminar archivo local
         const localPath = path.join(LOCAL_SERVER_CONFIG.uploadPath, moduleFolder, "images", filename)
-
-        if (fs.existsSync(localPath)) {
-          await fs.promises.unlink(localPath)
-          console.log(`🗑️ Archivo eliminado localmente: ${localPath}`)
-          return true
-        }
-        return false
+        return await this.deleteLocalFile(localPath)
       } else {
-        // En producción: eliminar del servidor remoto
-        let sshClient: Client | null = null
-
         try {
-          sshClient = await this.connectSSH()
-          const remotePath = path.posix.join(REMOTE_SERVER_CONFIG.uploadPath, moduleFolder, "images", filename)
-
-          return new Promise((resolve) => {
-            sshClient!.sftp((err, sftp) => {
-              if (err) {
-                console.error("❌ Error SFTP:", err)
-                resolve(false)
-                return
-              }
-
-              sftp.unlink(remotePath, (unlinkErr) => {
-                if (unlinkErr) {
-                  console.error("❌ Error al eliminar archivo:", unlinkErr)
-                  resolve(false)
-                } else {
-                  console.log(`🗑️ Archivo eliminado del servidor remoto: ${remotePath}`)
-                  resolve(true)
-                }
-              })
-            })
-          })
-        } finally {
-          if (sshClient) {
-            sshClient.end()
-          }
+          return await this.deleteRemoteFile(filename, moduleFolder)
+        } catch (error) {
+          console.warn(" Error al eliminar del servidor remoto, intentando local:", error)
+          const fallbackPath = path.join(FALLBACK_LOCAL_CONFIG.uploadPath, moduleFolder, "images", filename)
+          return await this.deleteLocalFile(fallbackPath)
         }
       }
     } catch (error) {
-      console.error("❌ Error al eliminar archivo:", error)
+      console.error(" Error al eliminar archivo:", error)
       return false
+    }
+  }
+
+  private async deleteLocalFile(filePath: string): Promise<boolean> {
+    if (fs.existsSync(filePath)) {
+      await fs.promises.unlink(filePath)
+      console.log(`🗑️ Archivo eliminado localmente: ${filePath}`)
+      return true
+    }
+    return false
+  }
+
+  private async deleteRemoteFile(filename: string, moduleFolder: string): Promise<boolean> {
+    let sshClient: Client | null = null
+
+    try {
+      sshClient = await this.connectSSH()
+      const remotePath = path.posix.join(REMOTE_SERVER_CONFIG.uploadPath, moduleFolder, "images", filename)
+
+      return new Promise((resolve) => {
+        sshClient!.sftp((err, sftp) => {
+          if (err) {
+            console.error(" Error SFTP:", err)
+            resolve(false)
+            return
+          }
+
+          sftp.unlink(remotePath, (unlinkErr) => {
+            if (unlinkErr) {
+              console.error(" Error al eliminar archivo remoto:", unlinkErr)
+              resolve(false)
+            } else {
+              console.log(` Archivo eliminado del servidor remoto: ${remotePath}`)
+              resolve(true)
+            }
+          })
+        })
+      })
+    } finally {
+      if (sshClient) {
+        sshClient.end()
+      }
     }
   }
 }
 
-// Exportar instancia singleton
 export const remoteFileUploadService = RemoteFileUploadService.getInstance()

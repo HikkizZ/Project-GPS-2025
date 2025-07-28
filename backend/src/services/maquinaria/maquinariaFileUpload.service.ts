@@ -1,12 +1,13 @@
 import { remoteFileUploadService, type RemoteFileUploadResult } from "../remoteFileUpload.service.js"
 import type { Express } from "express"
+
 export interface MaquinariaFileUploadResult {
   url: string
   filename: string
   originalName: string
   size: number
 }
-//Servicio específico para subida de imágenes de maquinaria (se agregan pdf por si se sube un padron escaneado)
+
 export class MaquinariaFileUploadService {
   static async uploadFile(file: Express.Multer.File): Promise<MaquinariaFileUploadResult> {
     try {
@@ -25,6 +26,7 @@ export class MaquinariaFileUploadService {
       throw new Error(`Error al subir imagen de maquinaria: ${error}`)
     }
   }
+
   static async deleteFile(filename: string): Promise<boolean> {
     try {
       return await remoteFileUploadService.deleteFile(filename, { module: "maquinaria" })

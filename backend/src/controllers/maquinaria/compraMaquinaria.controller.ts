@@ -162,4 +162,58 @@ export class CompraMaquinariaController {
       })
     }
   }
+  obtenerPadronCompra = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { id } = req.params
+      const compra = await this.compraMaquinariaService.obtenerCompraPorId(Number(id), false)
+
+      if (!compra) {
+        res.status(404).json({
+          success: false,
+          message: "Compra no encontrada",
+        })
+        return
+      }
+
+      if (!compra.padronUrl) {
+        res.status(404).json({
+          success: false,
+          message: "Esta compra no tiene padrón asociado",
+        })
+        return
+      }
+
+      res.status(200).json({
+        success: true,
+        data: {
+          padronUrl: compra.padronUrl,
+        },
+      })
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        message: "Error al obtener padrón de la compra",
+        error: error.message,
+      })
+    }
+  }
+
+  eliminarPadronCompra = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { id } = req.params
+      const resultado = await this.compraMaquinariaService.eliminarPadronCompra(Number(id))
+
+      res.status(200).json({
+        success: true,
+        message: "Padrón eliminado exitosamente",
+        data: resultado,
+      })
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        message: "Error al eliminar padrón de la compra",
+        error: error.message,
+      })
+    }
+  }
 }
