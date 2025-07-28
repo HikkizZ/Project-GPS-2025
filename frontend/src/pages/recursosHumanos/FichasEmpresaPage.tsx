@@ -406,6 +406,23 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
     setShowDetallesBonoModal(true);
   };
 
+  // Función para calcular sueldo líquido
+  const calcularSueldoLiquido = (ficha: FichaEmpresa): number => {
+    const sueldoBase = ficha.sueldoBase;
+    const bonos = ficha.asignacionesBonos?.filter(bono => bono.activo) || [];
+    const totalBonos = bonos.reduce((total, bono) => total + parseInt(bono.bono?.monto || '0'), 0);
+    
+    const sueldoBruto = sueldoBase + totalBonos;
+    
+    // Descuentos legales (simplificados)
+    const afp = Math.round(sueldoBruto * 0.10); // 10% AFP
+    const salud = Math.round(sueldoBruto * 0.07); // 7% Salud
+    const seguroCesantia = Math.round(sueldoBruto * 0.03); // 3% Seguro Cesantía
+    
+    const totalDescuentos = afp + salud + seguroCesantia;
+    return sueldoBruto - totalDescuentos;
+  };
+
   const handleVerRemuneraciones = async () => {
     // Recargar la ficha para obtener los datos más actualizados
     try {
@@ -526,7 +543,7 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
 
                           <div className="info-field">
                             <i className="bi bi-cash"></i>
-                            <label>Sueldo Base</label>
+                            <label>Sueldo Líquido</label>
                             <div className="value">
                               <span 
                                 className="text-success text-decoration-underline"
@@ -534,7 +551,7 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                                 title="Ver detalle de remuneraciones"
                                 style={{ cursor: 'pointer' }}
                               >
-                                {formatSueldo(miFicha.sueldoBase)}
+                                {formatSueldo(calcularSueldoLiquido(miFicha))}
                               </span>
                             </div>
                           </div>
