@@ -282,6 +282,8 @@ export default function HistorialLaboralPage() {
       return { tipo: 'Reactivación', color: 'success', icono: 'arrow-clockwise' };
     if (observaciones.includes('datos personales')) 
       return { tipo: 'Datos Personales', color: 'secondary', icono: 'person-gear' };
+    if (observaciones.includes('Asignación de bono') || observaciones.includes('Actualización de asignación de bono')) 
+      return { tipo: 'Asignación de Bono', color: 'pink', icono: 'gift' };
     return { tipo: 'Cambio', color: 'light', icono: 'file-text' };
   };
 
@@ -305,7 +307,7 @@ export default function HistorialLaboralPage() {
         const obs = itemTradicional.observaciones?.toLowerCase() || '';
         switch (tipo) {
           case 'inicial': return obs.includes('registro inicial');
-          case 'laboral': return obs.includes('actualización de ficha') || obs.includes('desvinculación') || obs.includes('reactivación') || obs.includes('subida de contrato pdf');
+          case 'laboral': return obs.includes('actualización de ficha') || obs.includes('desvinculación') || obs.includes('reactivación') || obs.includes('subida de contrato pdf') || obs.includes('asignación de bono');
           case 'licencias': return obs.includes('licencia') || obs.includes('permiso');
           case 'personales': return obs.includes('datos personales');
           case 'usuario': return obs.includes('correo corporativo') || obs.includes('rol');
@@ -359,6 +361,10 @@ export default function HistorialLaboralPage() {
         if (campo === 'afp') {
           valorAnteriorFormateado = formatAFP(valorAnterior);
           valorNuevoFormateado = formatAFP(valorNuevo);
+        } else if (campo === 'sueldoBase') {
+          // El valor ya viene formateado del backend con $ y separadores de miles
+          valorAnteriorFormateado = valorAnterior;
+          valorNuevoFormateado = valorNuevo;
         }
         
         return `${campoFormal} (de '${valorAnteriorFormateado}' a '${valorNuevoFormateado}')`;
@@ -381,10 +387,56 @@ export default function HistorialLaboralPage() {
     return descripcion.replace(/(\d{4})-(\d{2})-(\d{2})/g, (_m, y, m, d) => `${d}-${m}-${y}`);
   }
 
+  // Función para eliminar las líneas con formato especial de la descripción
+  function limpiarDescripcionBono(descripcion: string): string {
+    if (!descripcion) return descripcion;
+    const lines = descripcion.split('\n');
+    const linesFiltradas = lines.filter(line => !line.trim().startsWith('[OBSERVACIONES_BADGE]:'));
+    return linesFiltradas.join('\n');
+  }
+
   // Reemplazar la función renderCamposManuales por una versión que parsea los campos modificados desde observaciones si corresponde
   const renderCamposManuales = (item: any) => {
     const campos: string[] = [];
     const obs = modoVista === 'unificado' ? (item as HistorialUnificado).descripcion : (item as HistorialLaboral).observaciones;
+
+    // Detectar si es una asignación de bono
+    const esAsignacionBono = obs?.includes('Asignación de bono:');
+    const esActualizacionBono = obs?.includes('Actualización de asignación de bono:');
+    
+    if (esAsignacionBono || esActualizacionBono) {
+      // Extraer solo el nombre del bono y las observaciones para los badges
+      const lines = obs?.split('\n') || [];
+      let nombreBono = '';
+      let observaciones = '';
+      
+      lines.forEach(line => {
+        const trimmedLine = line.trim();
+        if (trimmedLine.startsWith('Asignación de bono:') || trimmedLine.startsWith('Actualización de asignación de bono:')) {
+          // Extraer el nombre del bono después de los dos puntos y antes de la primera coma
+          const nombre = trimmedLine.split(':')[1]?.split(',')[0]?.trim();
+          if (nombre) {
+            nombreBono = nombre;
+          }
+        } else if (trimmedLine.startsWith('[OBSERVACIONES_BADGE]:')) {
+          // Extraer las observaciones del formato especial
+          const obs = trimmedLine.split(':')[1]?.trim();
+          if (obs) {
+            observaciones = obs;
+          }
+        }
+      });
+      
+      // Agregar solo el nombre del bono y las observaciones como badges
+      if (nombreBono) {
+        campos.push(nombreBono);
+      }
+      if (observaciones) {
+        campos.push(`Observaciones: ${observaciones}`);
+      }
+      
+      return campos;
+    }
 
     // Si las observaciones contienen el patrón de actualización laboral, parsear los campos modificados
     if (obs && obs.startsWith('Actualización de información laboral:')) {
@@ -413,6 +465,9 @@ export default function HistorialLaboralPage() {
             campos.push(`${campoFormal}: ${formatFecha(valorNuevo)}`);
           } else if (campo === 'afp') {
             campos.push(`${campoFormal}: ${formatAFP(valorNuevo)}`);
+          } else if (campo === 'sueldoBase') {
+            // El valor ya viene formateado del backend con $ y separadores de miles
+            campos.push(`${campoFormal}: ${valorNuevo}`);
           } else {
             campos.push(`${campoFormal}: ${valorNuevo}`);
           }
@@ -580,6 +635,8 @@ export default function HistorialLaboralPage() {
         return { tipo: 'Desvinculación', color: 'danger', icono: 'person-dash' };
       if (item.descripcion.includes('Reactivación')) 
         return { tipo: 'Reactivación', color: 'success', icono: 'arrow-clockwise' };
+      if (item.descripcion.includes('Asignación de bono') || item.descripcion.includes('Actualización de asignación de bono')) 
+        return { tipo: 'Asignación de Bono', color: 'pink', icono: 'gift' };
     } else if (item.tipo === 'trabajador') {
       return { tipo: 'Datos Personales', color: 'secondary', icono: 'person-gear' };
     } else if (item.tipo === 'usuario') {
@@ -955,6 +1012,8 @@ export default function HistorialLaboralPage() {
                                   <i className="bi bi-info-circle me-1"></i>
                                   {(observacionesItem.includes('Licencia') || observacionesItem.includes('Permiso'))
                                     ? formatearDescripcionLicenciaPermiso(observacionesItem)
+                                    : (observacionesItem.includes('Asignación de bono:') || observacionesItem.includes('Actualización de asignación de bono:'))
+                                    ? limpiarDescripcionBono(observacionesItem)
                                     : formatearDescripcionObservaciones(observacionesItem, traduccionCampos)}
                                 </p>
                               </div>

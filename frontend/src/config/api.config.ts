@@ -81,12 +81,6 @@ class ApiClient {
           return Promise.reject(error);
         }
         
-        // Si es un error 400 pero tiene datos en el body, no lo rechaces
-        // para que el servicio pueda manejarlo
-        if (error.response?.status === 400 && error.response?.data) {
-          return Promise.resolve(error.response);
-        }
-        
         return Promise.reject(this.handleApiError(error));
       }
     );

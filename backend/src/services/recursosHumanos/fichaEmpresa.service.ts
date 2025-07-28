@@ -14,6 +14,7 @@ import {
     AsignarBonoDTO,
     UpdateAsignarBonoDTO, 
 } from "../../types/recursosHumanos/bono.dto.js";
+import { HistorialLaboral } from "../../entity/recursosHumanos/historialLaboral.entity.js";
 
 // Interfaz para los parámetros de búsqueda
 interface SearchFichaParams {
@@ -318,12 +319,16 @@ export async function getMiFichaService(userId: number): Promise<ServiceResponse
 
         const ficha = await fichaRepo.findOne({
             where: { trabajador: { id: user.trabajador.id } },
-            relations: ["trabajador", "trabajador.usuario"]
+            relations: ["trabajador", "trabajador.usuario", "asignacionesBonos", "asignacionesBonos.bono"]
         });
 
         if (!ficha) {
             return [null, { message: "Ficha no encontrada" }];
-        }return [ficha, null];
+        }
+
+
+
+        return [ficha, null];
     } catch (error) {
         console.error("Error en getMiFichaService:", error);
         return [null, { message: "Error interno del servidor" }];
@@ -408,7 +413,7 @@ export async function updateFichaEmpresaService(
                 const fechaFinDate = new Date(fechaFinNueva);
                 const fechaInicioDate = new Date(fechaInicio);
                 if (fechaFinDate <= fechaInicioDate) {
-                    return [null, { message: "La fecha de fin de contrato debe ser posterior a la fecha de inicio" }];
+                    return [null, { message: "La fecha de fin de contrato debe ser al menos un día posterior a la fecha de inicio" }];
                 }
             }
         }
@@ -447,7 +452,7 @@ export async function updateFichaEmpresaService(
             // Solo comparar si ya existe una fecha de inicio previa
             if (fichaActual.fechaInicioContrato) {
                 if (fechaFin <= fichaActual.fechaInicioContrato) {
-                    return [null, { message: "La fecha de fin de contrato debe ser posterior a la fecha de inicio" }];
+                    return [null, { message: "La fecha de fin de contrato debe ser al menos un día posterior a la fecha de inicio" }];
                 }
             }
             // Si no existe fecha de inicio previa, permitir el ingreso sin comparar
@@ -569,12 +574,21 @@ export async function updateFichaEmpresaService(
             const cambios = camposRealmenteModificados.map(campo => {
                 const valorAnterior = valoresOriginales[campo];
                 const valorNuevo = (fichaData as any)[campo];
+                
                 // Formatear fechas
                 if (campo.toLowerCase().includes('fecha')) {
                     const va = valorAnterior ? new Date(valorAnterior).toISOString().split('T')[0] : '';
                     const vn = valorNuevo ? new Date(valorNuevo).toISOString().split('T')[0] : '';
                     return `${campo} (de '${va}' a '${vn}')`;
                 }
+                
+                // Formatear sueldo base con símbolo de peso y separadores de miles
+                if (campo === 'sueldoBase') {
+                    const va = valorAnterior ? `$${valorAnterior.toLocaleString('es-CL')}` : '$0';
+                    const vn = valorNuevo ? `$${valorNuevo.toLocaleString('es-CL')}` : '$0';
+                    return `${campo} (de '${va}' a '${vn}')`;
+                }
+                
                 return `${campo} (de '${valorAnterior ?? ''}' a '${valorNuevo ?? ''}')`;
             });
             observaciones = `Actualización de información laboral: ${cambios.join(', ')}`;
@@ -745,7 +759,7 @@ export async function deleteContratoService( id: number ): Promise<ServiceRespon
 }
 
 // Asignar Bono
-export async function assignBonoService (idFicha: number, data: AsignarBonoDTO): Promise<ServiceResponse<AsignarBono>> {
+export async function assignBonoService (idFicha: number, data: AsignarBonoDTO, usuarioAutenticado?: User): Promise<ServiceResponse<AsignarBono>> {
     // Crear un query runner para manejar transacciones
     const queryRunner = AppDataSource.createQueryRunner();
     await queryRunner.connect();
@@ -755,6 +769,7 @@ export async function assignBonoService (idFicha: number, data: AsignarBonoDTO):
         const fichaRepo = queryRunner.manager.getRepository(FichaEmpresa);
         const bonoRepo = queryRunner.manager.getRepository(Bono);
         const asignarBonoRepo = queryRunner.manager.getRepository(AsignarBono);
+        const historialRepo = queryRunner.manager.getRepository(HistorialLaboral);
         // Obtener los repositorios necesarios
         const fichaActual = await fichaRepo.findOne({
             where: { id: idFicha },
@@ -831,7 +846,7 @@ export async function assignBonoService (idFicha: number, data: AsignarBonoDTO):
         if (fechaFin && fechaFin <= fechaInicio) {
             await queryRunner.rollbackTransaction();
             await queryRunner.release();
-            return [null, "La fecha de fin debe ser posterior a la fecha de inicio"];
+            return [null, "La fecha de fin debe ser al menos un día posterior a la fecha de inicio"];
         }
         
         //Obtener data de la asignación
@@ -847,6 +862,33 @@ export async function assignBonoService (idFicha: number, data: AsignarBonoDTO):
         // Crear la asignación de bono
         const asignacionBono = asignarBonoRepo.create(asignacionData);
         await queryRunner.manager.save(asignacionBono);
+
+        // Registrar en historial laboral
+        const montoFormateado = parseInt(bono.monto).toLocaleString('es-CL');
+        const observacionesHistorial = `Asignación de bono: ${bono.nombreBono}, Monto: $${montoFormateado}, Tipo: ${bono.tipoBono}, Temporalidad: ${bono.temporalidad}, Imponible: ${bono.imponible ? 'Sí' : 'No'}${bono.descripcion ? `, Descripción del bono: ${bono.descripcion}` : ''}${fechaFin ? `, Válido hasta: ${fechaFin.toISOString().split('T')[0]}` : ''}${data.observaciones ? `
+[OBSERVACIONES_BADGE]: ${data.observaciones}` : ''}`;
+        
+        const nuevoHistorial = new HistorialLaboral();
+        nuevoHistorial.trabajador = fichaActual.trabajador;
+        nuevoHistorial.cargo = 'Asignación de Bono';
+        nuevoHistorial.area = 'N/A';
+        nuevoHistorial.tipoContrato = 'N/A';
+        nuevoHistorial.jornadaLaboral = 'N/A';
+        nuevoHistorial.sueldoBase = 0;
+        nuevoHistorial.fechaInicio = new Date(fechaHoyString);
+        nuevoHistorial.observaciones = observacionesHistorial;
+        nuevoHistorial.estado = fichaActual.estado;
+        (nuevoHistorial as any).contratoURL = fichaActual.contratoURL || null;
+        (nuevoHistorial as any).afp = fichaActual.afp || null;
+        (nuevoHistorial as any).previsionSalud = fichaActual.previsionSalud || null;
+        (nuevoHistorial as any).seguroCesantia = fichaActual.seguroCesantia || null;
+        (nuevoHistorial as any).fechaInicioLicenciaPermiso = fichaActual.fechaInicioLicenciaPermiso || null;
+        (nuevoHistorial as any).fechaFinLicenciaPermiso = fichaActual.fechaFinLicenciaPermiso || null;
+        (nuevoHistorial as any).motivoLicenciaPermiso = fichaActual.motivoLicenciaPermiso || null;
+        nuevoHistorial.registradoPor = usuarioAutenticado || fichaActual.trabajador?.usuario || null;
+
+        await historialRepo.save(nuevoHistorial);
+
         await queryRunner.commitTransaction();
 
         return [asignacionBono, null];
@@ -860,7 +902,7 @@ export async function assignBonoService (idFicha: number, data: AsignarBonoDTO):
 }
 
 // Actualizar estado Asignación de Bono
-export async function updateAsignarBonoService( id: number, idFichaActual: number, data: UpdateAsignarBonoDTO ): Promise<ServiceResponse<AsignarBono>> {
+export async function updateAsignarBonoService( id: number, idFichaActual: number, data: UpdateAsignarBonoDTO, usuarioAutenticado?: User ): Promise<ServiceResponse<AsignarBono>> {
     const queryRunner = AppDataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -868,6 +910,7 @@ export async function updateAsignarBonoService( id: number, idFichaActual: numbe
         const asignarBonoRepo = queryRunner.manager.getRepository(AsignarBono);
         const fichaRepo = queryRunner.manager.getRepository(FichaEmpresa);
         const bonoRepo = queryRunner.manager.getRepository(Bono);
+        const historialRepo = queryRunner.manager.getRepository(HistorialLaboral);
         // Obtener la asignación de bono, bono y la ficha actual
         const asignacionBono = await asignarBonoRepo.findOne({ 
             where: { id },
@@ -915,6 +958,34 @@ export async function updateAsignarBonoService( id: number, idFichaActual: numbe
             asignacionBono.activo = data.activo ?? asignacionBono.activo;
             asignacionBono.observaciones = data.observaciones ?? asignacionBono.observaciones;
             await asignarBonoRepo.save(asignacionBono);
+
+            // Registrar cambio en historial laboral
+            const montoFormateado = parseInt(bono.monto).toLocaleString('es-CL');
+            const observacionesHistorial = `Actualización de asignación de bono: ${bono.nombreBono}
+Monto: $${montoFormateado}, Tipo: ${bono.tipoBono}, Temporalidad: ${bono.temporalidad}, Imponible: ${bono.imponible ? 'Sí' : 'No'}, Estado: ${asignacionBono.activo ? 'Activo' : 'Inactivo'}${bono.descripcion ? `, Descripción del bono: ${bono.descripcion}` : ''}${cambios.fechaFinAsignacion ? `, Válido hasta: ${cambios.fechaFinAsignacion.toISOString().split('T')[0]}` : ''}${data.observaciones ? `
+[OBSERVACIONES_BADGE]: ${data.observaciones}` : ''}`;
+            
+            const nuevoHistorial = new HistorialLaboral();
+            nuevoHistorial.trabajador = fichaActual.trabajador;
+            nuevoHistorial.cargo = 'Actualización de Bono';
+            nuevoHistorial.area = 'N/A';
+            nuevoHistorial.tipoContrato = 'N/A';
+            nuevoHistorial.jornadaLaboral = 'N/A';
+            nuevoHistorial.sueldoBase = 0;
+            nuevoHistorial.fechaInicio = new Date();
+            nuevoHistorial.observaciones = observacionesHistorial;
+            nuevoHistorial.estado = fichaActual.estado;
+            (nuevoHistorial as any).contratoURL = fichaActual.contratoURL || null;
+            (nuevoHistorial as any).afp = fichaActual.afp || null;
+            (nuevoHistorial as any).previsionSalud = fichaActual.previsionSalud || null;
+            (nuevoHistorial as any).seguroCesantia = fichaActual.seguroCesantia || null;
+            (nuevoHistorial as any).fechaInicioLicenciaPermiso = fichaActual.fechaInicioLicenciaPermiso || null;
+            (nuevoHistorial as any).fechaFinLicenciaPermiso = fichaActual.fechaFinLicenciaPermiso || null;
+            (nuevoHistorial as any).motivoLicenciaPermiso = fichaActual.motivoLicenciaPermiso || null;
+            nuevoHistorial.registradoPor = usuarioAutenticado || fichaActual.trabajador?.usuario || null;
+
+            await historialRepo.save(nuevoHistorial);
+
             await queryRunner.commitTransaction();
             // Devolver la asignación de bono actualizada
             return [asignacionBono, null];
@@ -927,6 +998,35 @@ export async function updateAsignarBonoService( id: number, idFichaActual: numbe
             asignacionBono.activo = data.activo ?? asignacionBono.activo;
             asignacionBono.observaciones = data.observaciones ?? asignacionBono.observaciones;
             await asignarBonoRepo.save(asignacionBono);
+
+            // Registrar cambio de estado u observaciones en historial laboral
+            if (data.activo !== undefined || data.observaciones !== undefined) {
+                const montoFormateado = parseInt(asignacionBono.bono.monto).toLocaleString('es-CL');
+                const observacionesHistorial = `Actualización de asignación de bono: ${asignacionBono.bono.nombreBono}, Monto: $${montoFormateado}, Tipo: ${asignacionBono.bono.tipoBono}, Temporalidad: ${asignacionBono.bono.temporalidad}, Imponible: ${asignacionBono.bono.imponible ? 'Sí' : 'No'}, Estado: ${asignacionBono.activo ? 'Activo' : 'Inactivo'}${asignacionBono.bono.descripcion ? `, Descripción del bono: ${asignacionBono.bono.descripcion}` : ''}${data.observaciones ? `
+[OBSERVACIONES_BADGE]: ${data.observaciones}` : ''}`;
+                
+                const nuevoHistorial = new HistorialLaboral();
+                nuevoHistorial.trabajador = fichaActual.trabajador;
+                nuevoHistorial.cargo = 'Actualización de Bono';
+                nuevoHistorial.area = 'N/A';
+                nuevoHistorial.tipoContrato = 'N/A';
+                nuevoHistorial.jornadaLaboral = 'N/A';
+                nuevoHistorial.sueldoBase = 0;
+                nuevoHistorial.fechaInicio = new Date();
+                nuevoHistorial.observaciones = observacionesHistorial;
+                nuevoHistorial.estado = fichaActual.estado;
+                (nuevoHistorial as any).contratoURL = fichaActual.contratoURL || null;
+                (nuevoHistorial as any).afp = fichaActual.afp || null;
+                (nuevoHistorial as any).previsionSalud = fichaActual.previsionSalud || null;
+                (nuevoHistorial as any).seguroCesantia = fichaActual.seguroCesantia || null;
+                (nuevoHistorial as any).fechaInicioLicenciaPermiso = fichaActual.fechaInicioLicenciaPermiso || null;
+                (nuevoHistorial as any).fechaFinLicenciaPermiso = fichaActual.fechaFinLicenciaPermiso || null;
+                (nuevoHistorial as any).motivoLicenciaPermiso = fichaActual.motivoLicenciaPermiso || null;
+                nuevoHistorial.registradoPor = usuarioAutenticado || fichaActual.trabajador?.usuario || null;
+
+                await historialRepo.save(nuevoHistorial);
+            }
+
             await queryRunner.commitTransaction();
             return [asignacionBono, null];
         }

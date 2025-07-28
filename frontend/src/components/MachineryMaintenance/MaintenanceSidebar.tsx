@@ -1,5 +1,3 @@
-"use client"
-
 import type React from "react"
 import { Nav } from "react-bootstrap"
 import { NavLink } from "react-router-dom"
@@ -18,11 +16,11 @@ const MaintenanceSidebar: React.FC = () => {
         </Nav.Link>
         <Nav.Link as={NavLink} to="/spare-parts">
           <i className="bi bi-calendar-check me-2" />
-          Registro de Repuestos
+          Repuestos
         </Nav.Link>
         <Nav.Link as={NavLink} to="/maintenance-completed">
           <i className="bi bi-truck me-2" />
-          Mantenciones Finalez
+          Mantenciones Finales
         </Nav.Link>
       </Nav>
     </div>

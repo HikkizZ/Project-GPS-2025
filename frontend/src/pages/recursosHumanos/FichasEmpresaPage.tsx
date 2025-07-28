@@ -7,7 +7,8 @@ import { formatAFP } from '@/utils/index';
 import { 
   FichaEmpresa, 
   FichaEmpresaSearchParams,
-  EstadoLaboral
+  EstadoLaboral,
+  AsignacionesBonos
 } from '@/types/recursosHumanos/fichaEmpresa.types';
 import { Trabajador } from '@/types/recursosHumanos/trabajador.types';
 import { EditarFichaEmpresaModal } from '@/components/recursosHumanos/EditarFichaEmpresaModal';
@@ -19,6 +20,9 @@ import { ModalHistorialLaboral } from '@/components/recursosHumanos/ModalHistori
 import { useHistorialLaboral } from '@/hooks/recursosHumanos/useHistorialLaboral';
 import historialLaboralService from '@/services/recursosHumanos/historialLaboral.service';
 import { TrabajadorDetalleModal } from '@/components/recursosHumanos/TrabajadorDetalleModal';
+import { AsignarBonosFichaEmpresaModal } from '@/components/recursosHumanos/ModalAsignarBonos';
+import { ModalDetallesBono } from '@/components/recursosHumanos/ModalDetallesBono';
+import { ModalRemuneraciones } from '@/components/recursosHumanos/ModalRemuneraciones';
 
 interface FichasEmpresaPageProps {
   trabajadorRecienRegistrado?: Trabajador | null;
@@ -74,6 +78,11 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
   const [incluirLicencias, setIncluirLicencias] = useState(false);
   const [incluirPermisos, setIncluirPermisos] = useState(false);
   const [incluirSinFechaFin, setIncluirSinFechaFin] = useState(false);
+  const [showAsignarBonoModal, setShowAsignarBonoModal] = useState(false);
+  const [showDetallesBonoModal, setShowDetallesBonoModal] = useState(false);
+  const [selectedBono, setSelectedBono] = useState<any>(null);
+  const [selectedAsignacion, setSelectedAsignacion] = useState<any>(null);
+  const [showRemuneracionesModal, setShowRemuneracionesModal] = useState(false);
 
   // Función para filtrar las fichas según los estados seleccionados
   // Ya no necesitamos filtrar aquí porque todo se maneja en el backend
@@ -385,10 +394,61 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
     setShowDetalleModal(true);
   };
 
+  const handleAsignarBono = (ficha: FichaEmpresa) => {
+    setSelectedFicha(ficha);
+    setShowAsignarBonoModal(true);
+  };
+
+  const handleVerDetallesBono = (bono: any, asignacion: any, ficha: FichaEmpresa) => {
+    setSelectedBono(bono);
+    setSelectedAsignacion(asignacion);
+    setSelectedFicha(ficha);
+    setShowDetallesBonoModal(true);
+  };
+
+  // Función para calcular sueldo líquido
+  const calcularSueldoLiquido = (ficha: FichaEmpresa): number => {
+    const sueldoBase = ficha.sueldoBase;
+    const bonos = ficha.asignacionesBonos?.filter(bono => bono.activo) || [];
+    const totalBonos = bonos.reduce((total, bono) => total + parseInt(bono.bono?.monto || '0'), 0);
+    
+    const sueldoBruto = sueldoBase + totalBonos;
+    
+    // Descuentos legales (simplificados)
+    const afp = Math.round(sueldoBruto * 0.10); // 10% AFP
+    const salud = Math.round(sueldoBruto * 0.07); // 7% Salud
+    const seguroCesantia = Math.round(sueldoBruto * 0.03); // 3% Seguro Cesantía
+    
+    const totalDescuentos = afp + salud + seguroCesantia;
+    return sueldoBruto - totalDescuentos;
+  };
+
+  const handleVerRemuneraciones = async () => {
+    // Recargar la ficha para obtener los datos más actualizados
+    try {
+      await loadMiFicha();
+      setShowRemuneracionesModal(true);
+    } catch (error) {
+      console.error('Error al recargar datos de remuneraciones:', error);
+      // Aún así abrir el modal con los datos disponibles
+      setShowRemuneracionesModal(true);
+    }
+  };
+
+  // Modal de remuneraciones - FUERA de los returns condicionales
+  const modalRemuneraciones = showRemuneracionesModal && miFicha ? (
+    <ModalRemuneraciones
+      show={showRemuneracionesModal}
+      onHide={() => setShowRemuneracionesModal(false)}
+      ficha={miFicha}
+    />
+  ) : null;
+
   // Si es usuario sin permisos administrativos o está en la ruta de ficha personal
   if ((user && !puedeGestionarFichas) || (puedeAccederModulosPersonales && window.location.pathname === '/fichas-empresa/mi-ficha')) {
     return (
-      <Container fluid className="py-2">
+      <>
+        <Container fluid className="py-2">
         <Row>
           <Col>
             <Card className="shadow-sm main-card-spacing">
@@ -483,8 +543,17 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
 
                           <div className="info-field">
                             <i className="bi bi-cash"></i>
-                            <label>Sueldo Base</label>
-                            <div className="value text-success">{formatSueldo(miFicha.sueldoBase)}</div>
+                            <label>Sueldo Líquido</label>
+                            <div className="value">
+                              <span 
+                                className="text-success text-decoration-underline"
+                                onClick={handleVerRemuneraciones}
+                                title="Ver detalle de remuneraciones"
+                                style={{ cursor: 'pointer' }}
+                              >
+                                {formatSueldo(calcularSueldoLiquido(miFicha))}
+                              </span>
+                            </div>
                           </div>
 
                           <div className="info-field">
@@ -510,7 +579,7 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                           </div>
 
                           <div className="info-field">
-                            <i className="bi bi-breadcase"></i>
+                            <i className="bi bi-shield-check"></i>
                             <label>Seguro Cesantía</label>
                             <div className="value">
                               {miFicha.seguroCesantia ? (
@@ -540,8 +609,8 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                               {miFicha.asignacionesBonos && miFicha.asignacionesBonos.length > 0 ? (
                               <span className="status-badge">
                                 {miFicha.asignacionesBonos
-                                  .filter(asig => asig.activo && asig.bono && asig.bono.nombre)
-                                  .map(asig => asig.bono.nombre)
+                                  .filter(asig => asig.activo && asig.bono && asig.bono.nombreBono)
+                                  .map(asig => asig.bono.nombreBono)
                                   .join(', ')
                                 }
                               </span>
@@ -649,7 +718,9 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
           </Col>
         </Row>
       </Container>
-    );
+      {modalRemuneraciones}
+    </>
+  );
   }
 
   // Vista para RRHH/Admin
@@ -1034,11 +1105,29 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                         <th>Jornada Laboral</th>
                         <th>Fecha Inicio</th>
                         <th>Fecha Fin</th>
-                        <th>Sueldo Base</th>
+                        <th>
+                          <span 
+                            className="text-primary fw-semibold" 
+                            style={{ cursor: 'pointer', textDecoration: 'underline' }}
+                            onClick={() => navigate('/gestion-sueldos')}
+                            title="Ver gestión de sueldos"
+                          >
+                            Sueldo Base
+                          </span>
+                        </th>
                         <th>AFP</th>
                         <th>Previsión Salud</th>
                         <th>Seguro Cesantía</th>
-                        <th>Bonos Asignados</th>
+                        <th>
+                          <span 
+                            className="text-primary fw-semibold" 
+                            style={{ cursor: 'pointer', textDecoration: 'underline' }}
+                            onClick={() => navigate('/bonos')}
+                            title="Ver gestión de bonos"
+                          >
+                            Bonos Asignados
+                          </span>
+                        </th>
                         <th>Acciones</th>
                       </tr>
                     </thead>
@@ -1101,13 +1190,24 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                           </td>
                           <td> 
                             {ficha.asignacionesBonos && ficha.asignacionesBonos.length > 0 ? (
-                              <span className="status-badge">
+                              <div>
                                 {ficha.asignacionesBonos
-                                  .filter(asig => asig.activo && asig.bono && asig.bono.nombre)
-                                  .map(asig => asig.bono.nombre)
-                                  .join(', ')
+                                  .filter(asig => asig.activo && asig.bono && asig.bono.nombreBono)
+                                  .map((asig, index) => (
+                                    <span key={asig.id}>
+                                      <span 
+                                        className="status-badge cursor-pointer text-decoration-underline"
+                                        style={{ cursor: 'pointer' }}
+                                        onClick={() => handleVerDetallesBono(asig.bono, asig, ficha)}
+                                        title={`Ver detalles de ${asig.bono.nombreBono}`}
+                                      >
+                                        {asig.bono.nombreBono}
+                                      </span>
+                                      {index < ficha.asignacionesBonos.filter(asig => asig.activo && asig.bono && asig.bono.nombreBono).length - 1 && ', '}
+                                    </span>
+                                  ))
                                 }
-                              </span>
+                              </div>
                             ) : (
                               <span className="text-muted">No hay bonos asignados</span>
                             )}
@@ -1144,6 +1244,13 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                                   <i className="bi bi-clock-history"></i>
                                 </Button>
                               )}
+                              <Button
+                                variant="outline-warning"
+                                onClick={() => handleAsignarBono(ficha)}
+                                title="Asignar Bono"
+                              >
+                                <i className="bi bi-plus"></i>
+                              </Button>
                               <Button
                                 variant="outline-secondary"
                                 onClick={() => handleVerDetalle(ficha)}
@@ -1194,8 +1301,34 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
         trabajador={trabajadorDetalle}
       />
 
+      {/* Modal para asignar bonos */}
+      <AsignarBonosFichaEmpresaModal
+        show={showAsignarBonoModal}
+        onHide={() => setShowAsignarBonoModal(false)}
+        asignaciones={{
+          fechaAsignacion: new Date(),
+          fechaFinAsignacion: null,
+          activo: true,
+          bono: '',
+          fichaEmpresa: selectedFicha!,
+          observaciones: ''
+        }}
+        ficha={selectedFicha!}
+        onSuccess={handleUpdateSuccess}
+      />
+
+      {/* Modal de detalles del bono */}
+      <ModalDetallesBono
+        show={showDetallesBonoModal}
+        onHide={() => setShowDetallesBonoModal(false)}
+        bono={selectedBono}
+        ficha={selectedFicha}
+        asignacion={selectedAsignacion}
+      />
+
       {/* Sistema de notificaciones */}
       <Toast toasts={toasts} removeToast={removeToast} />
+      {modalRemuneraciones}
     </Container>
   );
 }; 

@@ -7,6 +7,7 @@ import { MaintenanceSparePart } from "../../entity/MachineryMaintenance/maintena
 import { CreateMaintenanceRecordDTO, UpdateMaintenanceRecordDTO } from "../../types/MachineryMaintenance/maintenanceRecord.dto.js"
 import { ServiceResponse } from "../../../types.js";
 import { EstadoMaquinaria } from "../../entity/maquinaria/maquinaria.entity.js";
+import { In } from "typeorm";
 
 export async function createMaintenanceRecord(data: CreateMaintenanceRecordDTO): Promise<ServiceResponse<MaintenanceRecord>> {
   try {
@@ -21,17 +22,12 @@ export async function createMaintenanceRecord(data: CreateMaintenanceRecordDTO):
 
     //const patente = await maquinariaRepo.findOneBy({id: data.marcaId})
 
-    const mecanico = await userRepo.findOneBy({ id: data.mecanicoId });
-    if (!mecanico) return [null, "Usuario no encontrado"];
-
-    if (mecanico.role !== 'Mecánico') {
-        return [null, "El usuario seleccionado no tiene el rol de 'Mecánico'"];
-    }
 
     const existente = await recordRepo.findOne({
       where: {
         maquinaria: { id: data.maquinariaId },
-        estado: EstadoMantencion.PENDIENTE,
+        estado: In([EstadoMantencion.PENDIENTE, EstadoMantencion.EN_PROCESO]),
+        isActive: true
       }
     });
     if (existente) return [null, "Esta máquina ya tiene una mantención pendiente"];
@@ -45,7 +41,6 @@ export async function createMaintenanceRecord(data: CreateMaintenanceRecordDTO):
       descripcionEntrada: data.descripcionEntrada,
       estado: EstadoMantencion.PENDIENTE,
       fechaEntrada: new Date(),
-      mecanicoAsignado: mecanico,
     });
 
     const savedRecord = await recordRepo.save(record);
@@ -70,8 +65,8 @@ export async function createMaintenanceRecord(data: CreateMaintenanceRecordDTO):
 
     if (!completo) return [null, "No se pudo cargar el detalle completo de la mantención"];
 
-
-    return [completo, null];
+    const sanitized = sanitizeMaintenanceRecord(completo);
+    return [sanitized, null];
   } catch (error) {
     console.error("Error al registrar mantención:", error);
     return [null, "Error interno al registrar la mantención"];
@@ -98,13 +93,34 @@ export async function updateMaintenanceRecord(id: number, data: UpdateMaintenanc
       record.maquinaria = maquinaria;
     }
 
-    if (data.mecanicoId) {
+    if (typeof data.mecanicoId === "number") {
+
       const mecanico = await AppDataSource.getRepository(User).findOneBy({ id: data.mecanicoId });
       if (!mecanico) return [null, `Mecánico con ID ${data.mecanicoId} no encontrado`];
+      
+      if (mecanico.role !== 'Mecánico') {
+        return [null, "El usuario seleccionado no tiene el rol de 'Mecánico'"];
+      }
       record.mecanicoAsignado = mecanico;
-    }
+
+      if (record.estado === EstadoMantencion.PENDIENTE) {
+        record.estado = EstadoMantencion.EN_PROCESO;
+      }
+     }
     // Actualización de campos opcionales
-    if (data.estado) record.estado = data.estado;
+    if (data.estado) {
+    record.estado = data.estado;
+
+    // Cambiar el estado de la maquinaria según el nuevo estado de la mantención
+    if (data.estado === EstadoMantencion.COMPLETADA) {
+      record.maquinaria.estado = EstadoMaquinaria.DISPONIBLE;
+      await AppDataSource.getRepository(Maquinaria).save(record.maquinaria);
+    } else if (data.estado === EstadoMantencion.IRRECUPERABLE) {
+      record.maquinaria.estado = EstadoMaquinaria.FUERA_SERVICIO;
+      await AppDataSource.getRepository(Maquinaria).save(record.maquinaria);
+    }
+  }
+
     if (data.descripcionEntrada) record.descripcionEntrada = data.descripcionEntrada;
     if (data.razonMantencion) record.razonMantencion = data.razonMantencion;
     if (data.fechaSalida) {
@@ -158,9 +174,9 @@ export async function updateMaintenanceRecord(id: number, data: UpdateMaintenanc
       ]
     });
 
-    console.log("Maquinaria actualizada a:", record.maquinaria);
-
-    return [result!, null];
+    const sanitized = sanitizeMaintenanceRecord(result!);
+    return [sanitized, null];
+    
   } catch (error) {
     console.error("Error al actualizar mantención:", error);
     return [null, "Error interno al actualizar mantención"];
@@ -173,27 +189,75 @@ export async function getMaintenanceRecordById(id: number): Promise<ServiceRespo
   try {
     const repo = AppDataSource.getRepository(MaintenanceRecord);
     const record = await repo.findOne({
-      where: { id },
+      where: { id, isActive: true },
       relations: ["maquinaria", "mecanicoAsignado", "mecanicoAsignado.trabajador", "repuestosUtilizados", "repuestosUtilizados.repuesto"]
     });
 
     if (!record) return [null, "Mantención no encontrada"];
-    return [record, null];
+
+    const sanitized = sanitizeMaintenanceRecord(record);
+    return [sanitized, null];
+
   } catch (error) {
     console.error("Error al obtener mantención:", error);
     return [null, "Error interno al buscar la mantención"];
   }
 }
 
-export async function getAllMaintenanceRecords(): Promise<ServiceResponse<MaintenanceRecord[]>> {
+function sanitizeMaintenanceRecord(record: MaintenanceRecord): any {
+  return {
+    ...record,
+
+    mecanicoAsignado: record.mecanicoAsignado
+      ? {
+          id: record.mecanicoAsignado.id,
+          name: record.mecanicoAsignado.name ?? '',
+          corporateEmail: record.mecanicoAsignado.corporateEmail ?? '',
+          role: record.mecanicoAsignado.role ?? '',
+          rut: record.mecanicoAsignado.rut ?? '',
+          estadoCuenta: record.mecanicoAsignado.estadoCuenta ?? '',
+          trabajador: record.mecanicoAsignado.trabajador
+            ? {
+                id: record.mecanicoAsignado.trabajador.id,
+                nombres: record.mecanicoAsignado.trabajador.nombres ?? '',
+                apellidoPaterno: record.mecanicoAsignado.trabajador.apellidoPaterno ?? '',
+                apellidoMaterno: record.mecanicoAsignado.trabajador.apellidoMaterno ?? '',
+              }
+            : null,
+        }
+      : null,
+
+    repuestosUtilizados: Array.isArray(record.repuestosUtilizados)
+      ? record.repuestosUtilizados.map((r) => ({
+          id: r.id,
+          cantidadUtilizada: r.cantidadUtilizada,
+          repuesto: {
+            id: r.repuesto.id,
+            name: r.repuesto.name ?? '',
+            stock: r.repuesto.stock ?? 0,
+            marca: r.repuesto.marca ?? '',
+            modelo: r.repuesto.modelo ?? '',
+            anio: r.repuesto.anio ?? new Date().getFullYear(),
+          },
+        }))
+      : [],
+  };
+}
+
+
+
+export async function getAllMaintenanceRecords(): Promise<ServiceResponse<any[]>> {
   try {
     const repo = AppDataSource.getRepository(MaintenanceRecord);
     const records = await repo.find({
-      relations: ["maquinaria", "mecanicoAsignado", "mecanicoAsignado.trabajador", "repuestosUtilizados", "repuestosUtilizados.repuesto"]
+      where: { isActive: true },
+      relations: ["maquinaria", "mecanicoAsignado","mecanicoAsignado.trabajador","repuestosUtilizados","repuestosUtilizados.repuesto"]
     });
 
     if (!records.length) return [null, "No hay mantenciones registradas"];
-    return [records, null];
+
+    const sanitizedRecords = records.map(sanitizeMaintenanceRecord);
+    return [sanitizedRecords, null];
   } catch (error) {
     console.error("Error al obtener mantenciones:", error);
     return [null, "Error interno al listar mantenciones"];
@@ -205,24 +269,35 @@ export async function deleteMaintenanceRecord(id: number): Promise<ServiceRespon
   try {
     const repo = AppDataSource.getRepository(MaintenanceRecord);
     const maquinariaRepo = AppDataSource.getRepository(Maquinaria);
+    const repuestoRepo = AppDataSource.getRepository(SparePart);
 
     const record = await repo.findOne({
       where: { id },
-      relations: ["maquinaria"]
+      relations: ["maquinaria", "repuestosUtilizados", "repuestosUtilizados.repuesto"]
     });
 
     if (!record) return [null, "Mantención no encontrada"];
 
-    if (record.estado === EstadoMantencion.PENDIENTE) {
+    // Devolver stock si hay repuestos utilizados
+    for (const msp of record.repuestosUtilizados) {
+      msp.repuesto.stock += msp.cantidadUtilizada;
+      await repuestoRepo.save(msp.repuesto);
+    }
+
+    // Liberar la maquinaria si estaba pendiente
+    if (record.estado === EstadoMantencion.PENDIENTE || record.estado === EstadoMantencion.EN_PROCESO ) {
       record.maquinaria.estado = EstadoMaquinaria.DISPONIBLE;
       await maquinariaRepo.save(record.maquinaria);
     }
 
-    await repo.remove(record);
+    // Desactivar mantención
+    record.isActive = false;
+    const updated = await repo.save(record);
 
-    return [record, null];
+    return [updated, null];
   } catch (error) {
     console.error("Error al eliminar mantención:", error);
     return [null, "Error interno al eliminar la mantención"];
   }
 }
+

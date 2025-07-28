@@ -5,7 +5,7 @@ import {
     getAllBonos,
     getBonoById,
     updateBono,
-    deleteBono,
+    desactivarBono
 } from "../../../controllers/recursosHumanos/remuneraciones/bono.controller.js";
 
 const router: Router = Router();
@@ -23,7 +23,7 @@ router.get("/:id", getBonoById); // Obtener bono por ID
 // Rutas para actualizar bonos
 router.put("/:id", updateBono); // Actualizar bono (propietario o RRHH)
 
-// Rutas para eliminar bonos
-router.delete("/:id", deleteBono); // Eliminar bono (propietario o RRHH)
+// Rutas para desactivar bonos (soft delete)
+router.patch("/:id/desactivar", desactivarBono); // Desactivar bono (soft delete)
 
 export default router; 

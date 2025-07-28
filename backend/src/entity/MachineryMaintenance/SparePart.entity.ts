@@ -44,11 +44,7 @@ export class SparePart {
   })
   anio!: number;
 
-  // Tipo o categoría de maquinaria para la que se usa
-  @Column({
-    type: "enum",
-    enum: GrupoMaquinaria,
-    nullable: false
-  })
-  grupo!: GrupoMaquinaria;
+  //Activar o Desactivar la entidad
+  @Column({ type: 'boolean', default: true })
+  isActive!: boolean;
 }

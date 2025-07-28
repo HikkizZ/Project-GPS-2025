@@ -66,10 +66,5 @@ router.use("/compra-maquinaria", compraMaquinariaRoutes)
 router.use("/ventas-maquinaria", ventaMaquinariaRoutes)
 router.use("/arriendos-maquinaria", arriendoMaquinariaRoutes)
 
-//MAQUINARIA
-router.use("/maquinaria", maquinariaRoutes)
-router.use("/compra-maquinaria", compraMaquinariaRoutes)
-router.use("/ventas-maquinaria", ventaMaquinariaRoutes)
-router.use("/arriendos-maquinaria", arriendoMaquinariaRoutes)
 
 export default router

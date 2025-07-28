@@ -7,18 +7,18 @@ import { useDeleteMaintenanceSparePart } from '@/hooks/MachinaryMaintenance/Main
 import { useUpdateMaintenanceSparePart } from '@/hooks/MachinaryMaintenance/MaintenanceSparePart/useUpdateMaintenanceSparePart';
 import EditMaintenanceSparePartModal from '@/components/MachineryMaintenance/MaintenanceSpareParts/EditMaintenanceSparePartModal'; 
 import { MaintenanceSparePart } from '@/types/machinaryMaintenance/maintenanceSparePart.types';
-
+import { useAuth } from "@/context/useAuth";
 import { useToast } from '@/components/common/Toast';
+import { SparePart } from '@/types/machinaryMaintenance/sparePart.types';
 
 interface Props {
   mantencionId: number;
-  grupoMaquinaria: string;
   show: boolean;
   onReload: () => Promise<void>;
   onHide: () => void;
 }
 
-const MaintenanceSparePartPanel: React.FC<Props> = ({ mantencionId, grupoMaquinaria, show, onHide }) => {
+const MaintenanceSparePartPanel: React.FC<Props> = ({ mantencionId, show, onHide }) => {
     
     const { spareParts, loading: loadingSpareParts, reload: reloadSpareParts } = useSpareParts();
     const { maintenanceSpareParts, loading, reload } = useMaintenanceSpareParts();
@@ -26,7 +26,12 @@ const MaintenanceSparePartPanel: React.FC<Props> = ({ mantencionId, grupoMaquina
     const { showError, showSuccess } = useToast();
     const [showEditModal, setShowEditModal] = useState(false);
     const [selectedItem, setSelectedItem] = useState<MaintenanceSparePart | null>(null);
-    const { update } = useUpdateMaintenanceSparePart();
+    const { update, loading: updating  } = useUpdateMaintenanceSparePart();
+    const { user } = useAuth();
+      
+    
+    const isAutorizado = ["SuperAdministrador", "Mecánico"].includes(user?.role);
+    const isSuperAdmin = user?.role === "SuperAdministrador";
 
 
 
@@ -56,7 +61,6 @@ const MaintenanceSparePartPanel: React.FC<Props> = ({ mantencionId, grupoMaquina
 
             const handleDelete = async (id: number) => {
                 
-                if (!confirm('¿Estás seguro de que deseas eliminar este repuesto utilizado?')) return;
                 try {
                     await remove(id);
 
@@ -69,9 +73,6 @@ const MaintenanceSparePartPanel: React.FC<Props> = ({ mantencionId, grupoMaquina
                     }
                 }
                 
-
-                    
-
             const handleAgregar = async () => {
 
                 if (!selectedId || cantidad < 1) return;
@@ -112,7 +113,7 @@ const MaintenanceSparePartPanel: React.FC<Props> = ({ mantencionId, grupoMaquina
             };
 
 
-  const repuestosFiltrados = spareParts.filter((r) => r.grupo === grupoMaquinaria);
+  const repuestosFiltrados = spareParts;
   const repuestosUsados = maintenanceSpareParts.filter((r) => r.mantencion?.id === mantencionId);
 
   return (
@@ -121,36 +122,38 @@ const MaintenanceSparePartPanel: React.FC<Props> = ({ mantencionId, grupoMaquina
         <Modal.Title>Repuestos Utilizados</Modal.Title>
       </Modal.Header>
       <Modal.Body>
-        <Form className="mb-3">
-          <Form.Group>
-            <Form.Label>Repuesto</Form.Label>
-            <Form.Select
-              value={selectedId}
-              onChange={(e) => setSelectedId(Number(e.target.value))}
-            >
-              <option value={0}>Seleccione un repuesto</option>
-              {repuestosFiltrados.map((r) => (
-                <option key={r.id} value={r.id}>
+        {isAutorizado && (
+          <Form className="mb-3">
+            <Form.Group>
+              <Form.Label>Repuesto</Form.Label>
+              <Form.Select
+                value={selectedId}
+                onChange={(e) => setSelectedId(Number(e.target.value))}
+              >
+                <option value={0}>Seleccione un repuesto</option>
+                {repuestosFiltrados.map((r) => (
+                  <option key={r.id} value={r.id}>
                     {r.name}
-                </option>
+                  </option>
                 ))}
-            </Form.Select>
-          </Form.Group>
+              </Form.Select>
+            </Form.Group>
 
-          <Form.Group className="mt-2">
-            <Form.Label>Cantidad</Form.Label>
-            <Form.Control
-              type="number"
-              min={1}
-              value={cantidad}
-              onChange={(e) => setCantidad(Number(e.target.value))}
-            />
-          </Form.Group>
+            <Form.Group className="mt-2">
+              <Form.Label>Cantidad</Form.Label>
+              <Form.Control
+                type="number"
+                min={1}
+                value={cantidad}
+                onChange={(e) => setCantidad(Number(e.target.value))}
+              />
+            </Form.Group>
 
-          <Button className="mt-3" onClick={handleAgregar} disabled={creating}>
-            {creating ? 'Agregando...' : 'Agregar'}
-          </Button>
-        </Form>
+            <Button className="mt-3" onClick={handleAgregar} disabled={creating}>
+              {creating ? 'Agregando...' : 'Agregar'}
+            </Button>
+          </Form>
+        )}
 
         <h3 style={{ textAlign: 'center',minWidth: '250px', fontWeight: 700  }}>Repuestos ya registrados</h3>
         {loading ? (
@@ -159,23 +162,43 @@ const MaintenanceSparePartPanel: React.FC<Props> = ({ mantencionId, grupoMaquina
           <Table striped bordered hover>
             <thead>
               <tr>
-                <th  style={{ textAlign: 'center'  }}>Nombre</th>
-                <th style={{ textAlign: 'center'  }}>Cantidad</th>
-                <th style={{ textAlign: 'center',minWidth: '250px', fontWeight: 700  }}>Editar</th>
+                <th style={{ textAlign: 'center' }}>Nombre</th>
+                <th style={{ textAlign: 'center' }}>Cantidad</th>
+                {isSuperAdmin && (
+                  <th style={{ textAlign: 'center', minWidth: '250px', fontWeight: 700 }}>Editar</th>
+                )}
               </tr>
             </thead>
+
             <tbody>
               {repuestosUsados.map((r) => (
                 <tr key={r.id}>
-                    <td style={{ textAlign: 'center'  }}>{r.repuesto?.name ?? 'Desconocido'}</td>
-                    <td style={{ textAlign: 'center'  }}>{r.cantidadUtilizada}</td>
-                    <td style={{ textAlign: 'center', minWidth: '1px', fontWeight: 700,  width: '120px' }}><div style={{ display: 'flex', justifyContent: 'center', gap: '6px' }}>
-                        <Button size="sm" variant="warning" onClick={() => handleEditClick(r)}>Editar</Button>
-                        <Button size="sm" variant="danger" onClick={() => handleDelete(r.id)} disabled={deleting}>Eliminar</Button>
-                    </div></td>
+                  <td style={{ textAlign: 'center' }}>{r.repuesto?.name ?? 'Desconocido'}</td>
+                  <td style={{ textAlign: 'center' }}>{r.cantidadUtilizada}</td>
+
+                 {isSuperAdmin && (
+                    <td
+                      style={{
+                        textAlign: 'center',
+                        minWidth: '1px',
+                        fontWeight: 700,
+                        width: '120px',
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'center', gap: '6px' }}>
+                        <Button size="sm" variant="warning" onClick={() => handleEditClick(r)}>
+                         <i className="bi bi-pencil"></i>
+                        </Button>
+                        <Button size="sm" variant="danger" onClick={() => handleDelete(r.id)} disabled={deleting}>
+                          <i className="bi bi-trash"></i>
+                        </Button>
+                      </div>
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>
+
           </Table>
         )}
       </Modal.Body>

@@ -20,9 +20,6 @@ const EditMaintenanceSparePartModal: React.FC<Props> = ({ show, onHide, onSave, 
     const { showError, showSuccess } = useToast();
     const { spareParts, loading: loadingSpareParts, reload: reloadSpareParts } = useSpareParts();
     
-
-    
-
         useEffect(() => {
             if (initialData) {
             setCantidad(initialData.cantidadUtilizada);
@@ -58,7 +55,7 @@ const EditMaintenanceSparePartModal: React.FC<Props> = ({ show, onHide, onSave, 
             </Modal.Header>
             <Modal.Body>
                 <Form.Group>
-                <Form.Label>Cantidad</Form.Label>
+                    <Form.Label>Cantidad</Form.Label>
                 <Form.Control
                     type="number"
                     value={cantidad}

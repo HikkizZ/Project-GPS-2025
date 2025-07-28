@@ -59,10 +59,16 @@ export class MaintenanceRecord {
   @Column({ type: 'text', nullable: true })
   descripcionSalida!: string | null;
 
-  @ManyToOne(() => User, { nullable: false })
+  @Column({ type: 'boolean', default: true })
+  isActive!: boolean;
+
+  @ManyToOne(() => User, { nullable: true })
   @JoinColumn({ name: 'mecanicoId' })
   mecanicoAsignado!: User;
 
   @OneToMany(() => MaintenanceSparePart, repuesto => repuesto.mantencion, { cascade: true })
   repuestosUtilizados!: MaintenanceSparePart[];
+
+
+
 }

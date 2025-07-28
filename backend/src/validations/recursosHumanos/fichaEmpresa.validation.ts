@@ -134,12 +134,12 @@ export const FichaEmpresaBodyValidation = Joi.object({
 
     fechaFinContrato: Joi.date()
         .iso()
-        .min(Joi.ref('fechaInicioContrato'))
+        .greater(Joi.ref('fechaInicioContrato'))
         .allow(null, '')
         .messages({
             "date.base": "La fecha de fin de contrato debe ser una fecha válida",
             "date.format": "La fecha de fin de contrato debe estar en formato YYYY-MM-DD",
-            "date.min": "La fecha de fin de contrato no puede ser anterior a la fecha de inicio"
+            "date.greater": "La fecha de fin de contrato debe ser al menos un día posterior a la fecha de inicio"
         }),
 
     estado: Joi.string()
@@ -242,10 +242,12 @@ export const FichaEmpresaUpdateValidation = Joi.object({
 
     fechaFinContrato: Joi.date()
         .iso()
+        .greater(Joi.ref('fechaInicioContrato'))
         .allow(null, '')
         .messages({
             "date.base": "La fecha de fin de contrato debe ser una fecha válida",
-            "date.format": "La fecha de fin de contrato debe estar en formato YYYY-MM-DD"
+            "date.format": "La fecha de fin de contrato debe estar en formato YYYY-MM-DD",
+            "date.greater": "La fecha de fin de contrato debe ser al menos un día posterior a la fecha de inicio"
         }),
 
     contratoURL: Joi.string()
@@ -296,10 +298,10 @@ export const EstadoFichaValidation = Joi.object({
 
     fechaFin: Joi.date()
         .iso()
-        .min(Joi.ref('fechaInicio'))
+        .greater(Joi.ref('fechaInicio'))
         .messages({
             "date.base": "La fecha de fin debe ser una fecha válida",
             "date.format": "La fecha de fin debe estar en formato YYYY-MM-DD",
-            "date.min": "La fecha de fin no puede ser anterior a la fecha de inicio"
+            "date.greater": "La fecha de fin debe ser al menos un día posterior a la fecha de inicio"
         })
 }); 

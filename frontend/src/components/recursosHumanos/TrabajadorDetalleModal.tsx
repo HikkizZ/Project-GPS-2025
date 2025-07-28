@@ -77,7 +77,7 @@ export const TrabajadorDetalleModal: React.FC<TrabajadorDetalleModalProps> = ({ 
                     <div><strong>AFP:</strong> {formatAFP(trabajador.fichaEmpresa?.afp)}</div>
                     <div><strong>Salud:</strong> {trabajador.fichaEmpresa?.previsionSalud || '-'}</div>
                     <div><strong>Seguro Cesantía:</strong> {trabajador.fichaEmpresa?.seguroCesantia || '-'}</div>
-                    <div><strong>Bonos Asignados:</strong> {trabajador.fichaEmpresa?.asignacionesBonos?.map(asignacion => asignacion.bono.nombre).join(', ') || '-'}</div>
+                    <div><strong>Bonos Asignados:</strong> {trabajador.fichaEmpresa?.asignacionesBonos?.map(asignacion => asignacion.bono.nombreBono).join(', ') || '-'}</div>
                     <div><strong>Estado:</strong> {trabajador.fichaEmpresa?.estado || '-'}</div>
                     <div><strong>Contrato:</strong> 
                       {trabajador.fichaEmpresa?.contratoURL ? (
