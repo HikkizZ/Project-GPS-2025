@@ -52,6 +52,7 @@
    ESTILOS DE PÁGINAS
    (Solo afectan a páginas/módulos específicos)
    ===================== */
+@import './pages/login.css';
 @import './pages/licenciasPermisos.css';
 @import './pages/trabajadores.css';
 @import './pages/fichasEmpresa.css';
