@@ -860,7 +860,7 @@ function App() {
                   <Route 
                     path="maquinaria/proveedores" 
                     element={
-                      <ProtectedRoute allowedRoles={["Administrador", "SuperAdministrador", "Ventas", "Gerencia", "Finanzas", "Arriendo"]}>
+                      <ProtectedRoute allowedRoles={["Administrador", "SuperAdministrador", "Ventas", "Gerencia", "Arriendo"]}>
                         <SupplierPage />
                       </ProtectedRoute>
                     } 
@@ -868,7 +868,7 @@ function App() {
                   <Route 
                     path="inventario/clientes" 
                     element={
-                      <ProtectedRoute allowedRoles={["Administrador", "SuperAdministrador", "Ventas", "Gerencia", "Finanzas"]}>
+                      <ProtectedRoute allowedRoles={["Administrador", "SuperAdministrador", "Ventas", "Gerencia"]}>
                         <CustomerPage />
                       </ProtectedRoute>
                     } 
@@ -884,7 +884,7 @@ function App() {
                   <Route 
                     path="inventario/productos" 
                     element={
-                      <ProtectedRoute allowedRoles={["Administrador", "SuperAdministrador", "Ventas", "Gerencia", "Finanzas"]}>
+                      <ProtectedRoute allowedRoles={["Administrador", "SuperAdministrador", "Ventas", "Gerencia"]}>
                         <ProductPage />
                       </ProtectedRoute>
                     } 
