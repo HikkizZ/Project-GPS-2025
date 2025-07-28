@@ -127,7 +127,6 @@ const handleAcceptMaintenance = async (record: MaintenanceRecord) => {
     return;
   }
 
-  // Ejecutar la actualización si tenemos un ID válido
   try {
     await update(record.id, {
       mecanicoId,
@@ -397,12 +396,12 @@ const handleAcceptMaintenance = async (record: MaintenanceRecord) => {
                         {showFilters ? "Ocultar Filtros" : "Mostrar Filtros"}
                       </Button>
 
-                      {["Mecánico", "Mantenciones de Maquinaria"].includes(user?.role) && (
+                
                         <Button variant="light" onClick={() => handleOpenModal()}>
                           <i className="bi bi-plus-circle me-2"></i>
                           Registrar Mantención
                         </Button>
-                      )}
+                      
                     </div>
                   </div>
                 </Card.Header>

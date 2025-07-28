@@ -152,12 +152,12 @@ const SparePartsPage: React.FC = () => {
                         <i className={`bi bi-funnel${showFilters ? "-fill" : ""} me-2`} />
                         {showFilters ? "Ocultar Filtros" : "Mostrar Filtros"}
                       </Button>
-                      {puedeRegistrar && (
+                    
                         <Button variant="light" onClick={() => handleOpenModal()} className="d-flex align-items-center">
                           <i className="bi bi-plus-circle me-2"></i>
                           Registrar Repuesto
                         </Button>
-                      )}
+                      
 
                     </div>
                   </div>
