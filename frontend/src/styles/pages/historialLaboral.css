@@ -342,6 +342,22 @@
   color: white !important;
 }
 
+/* Custom Pink Colors */
+.bg-pink {
+  background-color: #E91E63 !important;
+  color: white !important;
+}
+
+.badge.bg-pink {
+  background-color: #E91E63 !important;
+  color: white !important;
+}
+
+.timeline-marker-circle.bg-pink {
+  background-color: #E91E63 !important;
+  color: white !important;
+}
+
 .timeline-container::before, .timeline-marker, .timeline-marker-circle, .timeline-number {
   z-index: 0 !important;
 }

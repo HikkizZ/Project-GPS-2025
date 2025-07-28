@@ -283,7 +283,7 @@ export default function HistorialLaboralPage() {
     if (observaciones.includes('datos personales')) 
       return { tipo: 'Datos Personales', color: 'secondary', icono: 'person-gear' };
     if (observaciones.includes('Asignación de bono') || observaciones.includes('Actualización de asignación de bono')) 
-      return { tipo: 'Asignación de Bono', color: 'info', icono: 'gift' };
+      return { tipo: 'Asignación de Bono', color: 'pink', icono: 'gift' };
     return { tipo: 'Cambio', color: 'light', icono: 'file-text' };
   };
 
@@ -636,7 +636,7 @@ export default function HistorialLaboralPage() {
       if (item.descripcion.includes('Reactivación')) 
         return { tipo: 'Reactivación', color: 'success', icono: 'arrow-clockwise' };
       if (item.descripcion.includes('Asignación de bono') || item.descripcion.includes('Actualización de asignación de bono')) 
-        return { tipo: 'Asignación de Bono', color: 'info', icono: 'gift' };
+        return { tipo: 'Asignación de Bono', color: 'pink', icono: 'gift' };
     } else if (item.tipo === 'trabajador') {
       return { tipo: 'Datos Personales', color: 'secondary', icono: 'person-gear' };
     } else if (item.tipo === 'usuario') {
