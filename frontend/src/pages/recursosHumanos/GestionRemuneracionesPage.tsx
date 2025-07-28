@@ -25,7 +25,7 @@ function calculoSueldoBruto(ficha: FichaEmpresa): number {
         return 0;
     }
 
-    const tiposValidos = ["Indefinido", "Plazo Fijo", "Por Obra", "Part-Time", "Honorarios", "Aprendizaje"];
+    const tiposValidos = ["Indefinido", "Plazo Fijo", "Por Obra", "Part-Time"];
     if (!tipoContrato || !tiposValidos.includes(tipoContrato)) {
         console.error("Tipo de contrato no válido.");
         return 0;
@@ -50,7 +50,6 @@ function calcularSueldoLiquido(ficha: FichaEmpresa, historialLaboral: any): [num
     let rentaImponible = 0;
     
 
-    
 
     const bonos = ficha.asignacionesBonos.filter(bono => bono.activo) || [];
     const bonosImponibles = bonos.filter(bono => bono.bono.imponible);
@@ -65,7 +64,7 @@ function calcularSueldoLiquido(ficha: FichaEmpresa, historialLaboral: any): [num
     } 
 
     // Comprobar que el tipo de contrato es válido
-    if (!tipoContrato || !["Indefinido", "Plazo Fijo", "Por Obra", "Part-Time", "Honorarios", "Aprendizaje"].includes(tipoContrato)) {
+    if (!tipoContrato || !["Indefinido", "Plazo Fijo", "Por Obra", "Part-Time"].includes(tipoContrato)) {
         validacionTipoContrato = false; // Marcar como inválido si el tipo de contrato no es válido
         console.error("Tipo de contrato no válido");
     }
@@ -151,13 +150,6 @@ export const GestionRemuneracionesPage: React.FC = () => {
       });
     const [localError, setLocalError] = useState<string | null>(null);
 
-    // Estados para los checkboxes de filtrado
-    const [incluirDesvinculados, setIncluirDesvinculados] = useState(false);
-    const [incluirLicencias, setIncluirLicencias] = useState(false);
-    const [incluirPermisos, setIncluirPermisos] = useState(false);
-    const [incluirSinFechaFin, setIncluirSinFechaFin] = useState(false);
-    const [incluirAsignaciones, setIncluirAsignaciones] = useState(false);
-
     const { formatRUT } = useRut();
 
     // Definir roles y permisos
@@ -172,13 +164,6 @@ export const GestionRemuneracionesPage: React.FC = () => {
         const isAdminOrRRHH = user.role === 'Administrador' || user.role === 'RecursosHumanos';
 
         if (isSuperAdmin || isAdminOrRRHH) {
-            // Solo actualizar estado si es necesario
-            setIncluirAsignaciones(false);
-            setIncluirDesvinculados(false);
-            setIncluirLicencias(false);
-            setIncluirPermisos(false);
-            setIncluirSinFechaFin(false);
-
             setSearchQuery(prev => {
             if (prev.estado === EstadoLaboral.ACTIVO) return prev;
             return { estado: EstadoLaboral.ACTIVO };
@@ -217,40 +202,12 @@ export const GestionRemuneracionesPage: React.FC = () => {
         // Crear un objeto de búsqueda que incluya todos los filtros
         const searchParams = { ...searchQuery };
         
-        // Armar el array de estados combinando select y checkboxes
-        const estadosIncluidos = [];
-        if (searchQuery.estado) estadosIncluidos.push(searchQuery.estado);
-        if (incluirDesvinculados) estadosIncluidos.push(EstadoLaboral.DESVINCULADO);
-        if (incluirLicencias) estadosIncluidos.push(EstadoLaboral.LICENCIA);
-        if (incluirPermisos) estadosIncluidos.push(EstadoLaboral.PERMISO);
-    
-        // Lógica: si solo hay un estado, usar 'estado'; si hay más de uno, usar 'estados' (array)
-        if (estadosIncluidos.length === 1) {
-          searchParams.estado = estadosIncluidos[0];
-          delete searchParams.estados;
-        } else if (estadosIncluidos.length > 1) {
-          searchParams.estados = Array.from(new Set(estadosIncluidos)); // Evitar duplicados
-          delete searchParams.estado;
-        } else {
-          delete searchParams.estados;
-          delete searchParams.estado;
-        }
-    
-        // Agregar flag para incluir fichas sin fecha fin
-        if (incluirSinFechaFin) {
-          searchParams.incluirSinFechaFin = true;
-        }
-    
         // Siempre usar searchFichas, sin importar si hay RUT o no
         await searchFichas(searchParams);
       };
 
     const handleReset = () => {
         setSearchQuery({ estado: EstadoLaboral.ACTIVO });
-        setIncluirDesvinculados(false);
-        setIncluirLicencias(false);
-        setIncluirPermisos(false);
-        setIncluirSinFechaFin(false);
         if (puedeGestionarFichas) {
           searchFichas({ estado: EstadoLaboral.ACTIVO });
         }
@@ -268,58 +225,17 @@ export const GestionRemuneracionesPage: React.FC = () => {
 
     return (
         <Container fluid className="py-2">
-            <div className="main-content-formBono">
-                <div 
-                    className="text-center mb-5"
-                >
-                    <h1 
-                        className="fw-bold display-4"
-                        style={{ color: "#283349" }}
-                    >
-                        Gestión de remuneraciones
-                    </h1>
-                </div>
-                
-            </div>
-            
-            
-            <div className="mt-6">
-                {/* Advertencia */}
-                <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4">
-                    <h3>
-                    Revise la información calculada de AFP, previsión salud, bonos, licencias, permisos, seguro de cesantía y más, antes de realizar el pago de las remuneraciones de los trabajadores.
-                    </h3>
-                </div>
-
-                {/* Descripción de la tabla */}
-                <div className="mt-6">
-                    <h3 className="text-lg font-semibold mb-2">La siguiente tabla muestra las siguientes características:</h3>
-                    <ul className="list-disc list-inside space-y-1">
-                    <li><strong>Trabajador:</strong> Nombre del trabajador al que se le está calculando la remuneración.</li>
-                    <li><strong>Tipo de Contrato:</strong> Tipo de contrato que afecta el cálculo de la remuneración. Ej.: "Indefinido", "Plazo Fijo", "Por Obra", "Part-Time", "Honorarios", "Aprendizaje".</li>
-                    <li><strong>Jornada:</strong> Indica si la jornada es completa, parcial u otro tipo, lo cual afecta el cálculo de horas trabajadas y cotizaciones.</li>
-                    <li><strong>Sueldo Base:</strong> Monto fijo mensual estipulado en el contrato como base de cálculo.</li>
-                    <li><strong>Sueldo Bruto:</strong> Sueldo base más bonificaciones, tanto imponibles como no imponibles.</li>
-                    <li><strong>Renta Imponible:</strong> Sueldo base más bonos imponibles, base sobre la cual se calculan las cotizaciones legales.</li>
-                    <li><strong>Descuento Legal:</strong> Descuentos porcentuales aplicados sobre la renta imponible por AFP, salud y seguro de cesantía.</li>
-                    <li><strong>Sueldo Líquido:</strong> Monto final que el trabajador recibe tras aplicar descuentos legales e internos, y sumar asignaciones no imponibles.</li>
-                    <li><strong>Descuentos Internos:</strong> Descuentos específicos como faltas injustificadas, aplicados después de calcular la renta imponible.</li>
-                    <li><strong>Total Bonos No Imponibles:</strong> Total de bonos no imponibles, sumados después del cálculo de la renta imponible.</li>
-                    </ul>
-                </div>
-            </div>
-            
             <Row>
                 <Col>
+                    {/* Encabezado de página */}
                     <Card className="shadow-sm mb-3">
-                        <Card.Header className="text-white" style={{ backgroundColor: "#283349", color: "white" }}>
-                            
-                            <div className="d-flex align-items-center justify-content-between" >
-                                <div className="d-flex align-items-center text-white">
-                                    <i className="bi bi-people-fill fs-4 me-3"></i>
+                        <Card.Header className="bg-gradient-primary text-white">
+                            <div className="d-flex align-items-center justify-content-between">
+                                <div className="d-flex align-items-center">
+                                    <i className="bi bi-calculator fs-4 me-3"></i>
                                     <div>
-                                        <h3 className="mb-1 text-white">Calculo de remuneraciones por trabajadores</h3>
-                                        <p className="mb-0 opacity-75 text-white">
+                                        <h3 className="mb-1">Calculo de remuneraciones por trabajadores</h3>
+                                        <p className="mb-0 opacity-75">
                                             Administrar información de remuneraciones del sistema
                                         </p>
                                     </div>
@@ -328,8 +244,7 @@ export const GestionRemuneracionesPage: React.FC = () => {
                                     <Button 
                                         variant={showFilters ? "outline-light" : "light"}
                                         className="me-2"
-                                        onClick={() => setShowFilters(!showFilters)}                                      
-                                        style={{ backgroundColor: "#EDB65B" }}
+                                        onClick={() => setShowFilters(!showFilters)}
                                     >
                                         <i className={`bi bi-funnel${showFilters ? '-fill' : ''} me-2`}></i>
                                         {showFilters ? 'Ocultar' : 'Mostrar'} Filtros
@@ -339,68 +254,72 @@ export const GestionRemuneracionesPage: React.FC = () => {
                         </Card.Header>
                     </Card>
 
+                    {/* Información explicativa */}
+                    <Card className="shadow-sm mb-3">
+                        <Card.Body>
+                            <Alert variant="warning" className="border-0 mb-3" style={{ borderRadius: '12px' }}>
+                                <div className="d-flex align-items-start">
+                                    <i className="bi bi-exclamation-triangle me-3 mt-1 text-warning"></i>
+                                    <div>
+                                        <strong>Importante:</strong>
+                                        <p className="mb-0 mt-1">
+                                            Revise la información calculada de AFP, previsión salud, bonos, licencias, permisos, seguro de cesantía y más, antes de realizar el pago de las remuneraciones de los trabajadores.
+                                        </p>
+                                    </div>
+                                </div>
+                            </Alert>
+
+                            <div className="mt-4">
+                                <h5 className="fw-semibold mb-3">La siguiente tabla muestra las siguientes características:</h5>
+                                <div className="row">
+                                    <div className="col-md-6">
+                                        <ul className="list-unstyled">
+                                            <li className="mb-2">
+                                                <strong>Trabajador:</strong> Nombre del trabajador al que se le está calculando la remuneración.
+                                            </li>
+                                            <li className="mb-2">
+                                                <strong>Tipo de Contrato:</strong> Tipo de contrato que afecta el cálculo de la remuneración. Ej.: "Indefinido", "Plazo Fijo", "Por Obra", "Part-Time".
+                                            </li>
+                                            <li className="mb-2">
+                                                <strong>Jornada:</strong> Indica si la jornada es completa, parcial u otro tipo, lo cual afecta el cálculo de horas trabajadas y cotizaciones.
+                                            </li>
+                                            <li className="mb-2">
+                                                <strong>Sueldo Base:</strong> Monto fijo mensual estipulado en el contrato como base de cálculo.
+                                            </li>
+                                            <li className="mb-2">
+                                                <strong>Sueldo Bruto:</strong> Sueldo base más bonificaciones, tanto imponibles como no imponibles.
+                                            </li>
+                                        </ul>
+                                    </div>
+                                    <div className="col-md-6">
+                                        <ul className="list-unstyled">
+                                            <li className="mb-2">
+                                                <strong>Renta Imponible:</strong> Sueldo base más bonos imponibles, base sobre la cual se calculan las cotizaciones legales.
+                                            </li>
+                                            <li className="mb-2">
+                                                <strong>Descuento Legal:</strong> Descuentos porcentuales aplicados sobre la renta imponible por AFP, salud y seguro de cesantía.
+                                            </li>
+                                            <li className="mb-2">
+                                                <strong>Sueldo Líquido:</strong> Monto final que el trabajador recibe tras aplicar descuentos legales e internos, y sumar asignaciones no imponibles.
+                                            </li>
+                                            <li className="mb-2">
+                                                <strong>Descuentos Internos:</strong> Descuentos específicos como faltas injustificadas, aplicados después de calcular la renta imponible.
+                                            </li>
+                                            <li className="mb-2">
+                                                <strong>Total Bonos No Imponibles:</strong> Total de bonos no imponibles, sumados después del cálculo de la renta imponible.
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </Card.Body>
+                    </Card>
+
                     {/* Panel de filtros */}
                     {showFilters && (
                     <Card className="shadow-sm mb-3">
                         <FiltrosBusquedaHeader />
                         <Card.Body>
-                        {/* Checkboxes de estado */}
-                        <div className="row mb-4">
-                            <div className="col-12">
-                            <h6 className="mb-3 fw-semibold">Estados a mostrar:</h6>
-                            <div className="d-flex gap-4">
-                                <div className="form-check">
-                                <input
-                                    className="form-check-input"
-                                    type="checkbox"
-                                    id="incluirDesvinculados"
-                                    checked={incluirDesvinculados}
-                                    onChange={(e) => setIncluirDesvinculados(e.target.checked)}
-                                />
-                                <label className="form-check-label fw-semibold" htmlFor="incluirDesvinculados">
-                                    Desvinculados
-                                </label>
-                                </div>
-                                <div className="form-check">
-                                <input
-                                    className="form-check-input"
-                                    type="checkbox"
-                                    id="incluirLicencias"
-                                    checked={incluirLicencias}
-                                    onChange={(e) => setIncluirLicencias(e.target.checked)}
-                                />
-                                <label className="form-check-label fw-semibold" htmlFor="incluirLicencias">
-                                    Licencia Médica
-                                </label>
-                                </div>
-                                <div className="form-check">
-                                <input
-                                    className="form-check-input"
-                                    type="checkbox"
-                                    id="incluirPermisos"
-                                    checked={incluirPermisos}
-                                    onChange={(e) => setIncluirPermisos(e.target.checked)}
-                                />
-                                <label className="form-check-label fw-semibold" htmlFor="incluirPermisos">
-                                    Permisos Administrativos
-                                </label>
-                                </div>
-                                <div className="form-check">
-                                <input
-                                    className="form-check-input"
-                                    type="checkbox"
-                                    id="incluirAsignaciones"
-                                    checked={incluirAsignaciones}
-                                    onChange={(e) => setIncluirAsignaciones(e.target.checked)}
-                                />
-                                <label className="form-check-label fw-semibold" htmlFor="incluirAsignaciones">
-                                    Asignaciones
-                                </label>
-                                </div>
-                            </div>
-                            </div>
-                        </div>
-        
                         <div className="row g-3">
                             <div className="col-md-3">
                             <Form.Group>
@@ -410,45 +329,6 @@ export const GestionRemuneracionesPage: React.FC = () => {
                                 placeholder="Ej: 12.345.678-9"
                                 value={searchQuery.rut || ''}
                                 onChange={handleRutChange}
-                                style={{ borderRadius: '8px' }}
-                                />
-                            </Form.Group>
-                            </div>
-                            <div className="col-md-3">
-                            <Form.Group>
-                                <Form.Label className="fw-semibold">Estado:</Form.Label>
-                                <Form.Select
-                                value={searchQuery.estado || ''}
-                                onChange={(e) => setSearchQuery({ ...searchQuery, estado: e.target.value as EstadoLaboral })}
-                                style={{ borderRadius: '8px' }}
-                                >
-                                <option value="">Todos los estados</option>
-                                {Object.values(EstadoLaboral).map(estado => (
-                                    <option key={estado} value={estado}>{estado}</option>
-                                ))}
-                                </Form.Select>
-                            </Form.Group>
-                            </div>
-                            <div className="col-md-3">
-                            <Form.Group>
-                                <Form.Label className="fw-semibold">Cargo:</Form.Label>
-                                <Form.Control
-                                type="text"
-                                placeholder="Cargo"
-                                value={searchQuery.cargo || ''}
-                                onChange={(e) => setSearchQuery({ ...searchQuery, cargo: e.target.value })}
-                                style={{ borderRadius: '8px' }}
-                                />
-                            </Form.Group>
-                            </div>
-                            <div className="col-md-3">
-                            <Form.Group>
-                                <Form.Label className="fw-semibold">Área:</Form.Label>
-                                <Form.Control
-                                type="text"
-                                placeholder="Departamento o área"
-                                value={searchQuery.area || ''}
-                                onChange={(e) => setSearchQuery({ ...searchQuery, area: e.target.value })}
                                 style={{ borderRadius: '8px' }}
                                 />
                             </Form.Group>
@@ -511,50 +391,6 @@ export const GestionRemuneracionesPage: React.FC = () => {
                                 />
                             </Form.Group>
                             </div>
-                            <div className="col-md-3">
-                            <Form.Group>
-                                <Form.Label className="fw-semibold">Fecha Inicio Desde:</Form.Label>
-                                <Form.Control
-                                type="date"
-                                value={searchQuery.fechaInicioDesde || ''}
-                                onChange={(e) => setSearchQuery({ ...searchQuery, fechaInicioDesde: e.target.value })}
-                                style={{ borderRadius: '8px' }}
-                                />
-                            </Form.Group>
-                            </div>
-                            <div className="col-md-3">
-                            <Form.Group>
-                                <Form.Label className="fw-semibold">Fecha Inicio Hasta:</Form.Label>
-                                <Form.Control
-                                type="date"
-                                value={searchQuery.fechaInicioHasta || ''}
-                                onChange={(e) => setSearchQuery({ ...searchQuery, fechaInicioHasta: e.target.value })}
-                                style={{ borderRadius: '8px' }}
-                                />
-                            </Form.Group>
-                            </div>
-                            <div className="col-md-3">
-                            <Form.Group>
-                                <Form.Label className="fw-semibold">Fecha Fin Desde:</Form.Label>
-                                <Form.Control
-                                type="date"
-                                value={searchQuery.fechaFinDesde || ''}
-                                onChange={(e) => setSearchQuery({ ...searchQuery, fechaFinDesde: e.target.value })}
-                                style={{ borderRadius: '8px' }}
-                                />
-                            </Form.Group>
-                            </div>
-                            <div className="col-md-3">
-                            <Form.Group>
-                                <Form.Label className="fw-semibold">Fecha Fin Hasta:</Form.Label>
-                                <Form.Control
-                                type="date"
-                                value={searchQuery.fechaFinHasta || ''}
-                                onChange={(e) => setSearchQuery({ ...searchQuery, fechaFinHasta: e.target.value })}
-                                style={{ borderRadius: '8px' }}
-                                />
-                            </Form.Group>
-                            </div>
                             <div className="col-md-6 d-flex align-items-end">
                             <div className="d-flex gap-2 mb-3">
                                 <Button variant="primary" onClick={handleSearch} style={{ borderRadius: '20px', fontWeight: '500' }}>
@@ -565,24 +401,6 @@ export const GestionRemuneracionesPage: React.FC = () => {
                                 <i className="bi bi-x-circle me-2"></i>
                                 Limpiar
                                 </Button>
-                            </div>
-                            </div>
-                        </div>
-        
-                        {/* Opción adicional */}
-                        <div className="row">
-                            <div className="col-12">
-                            <div className="form-check">
-                                <input
-                                className="form-check-input"
-                                type="checkbox"
-                                id="incluirSinFechaFin"
-                                checked={incluirSinFechaFin}
-                                onChange={(e) => setIncluirSinFechaFin(e.target.checked)}
-                                />
-                                <label className="form-check-label fw-semibold" htmlFor="incluirSinFechaFin">
-                                Incluir fichas sin fecha de fin
-                                </label>
                             </div>
                             </div>
                         </div>
@@ -709,13 +527,6 @@ export const GestionRemuneracionesPage: React.FC = () => {
                     
                 </Col>
             </Row>
-
-
-            <div className="footer-bonos">
-                <p className="text-center text-muted">
-                    © 2025 Project GPS. Todos los derechos reservados.
-                </p>
-            </div>
         </Container>
     );
 }

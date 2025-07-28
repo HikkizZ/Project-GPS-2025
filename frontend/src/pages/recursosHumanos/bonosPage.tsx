@@ -136,31 +136,17 @@ export const BonosPage: React.FC = () => {
 
     return (
         <Container fluid className="py-2">
-            <div className="main-content-formBono">
-                <div 
-                    className="text-center mb-5"
-                >
-                    <h1 
-                        className="fw-bold display-4"
-                        style={{ color: "#283349" }}
-                    >
-                        Bonos
-                    </h1>
-                </div>
-                
-            </div>
-            
             <Row>
                 <Col>
+                    {/* Encabezado de página */}
                     <Card className="shadow-sm mb-3">
-                        <Card.Header className="text-white" style={{ backgroundColor: "#283349", color: "white" }}>
-                            
-                            <div className="d-flex align-items-center justify-content-between" >
-                                <div className="d-flex align-items-center text-white">
-                                    <i className="bi bi-people-fill fs-4 me-3"></i>
+                        <Card.Header className="bg-gradient-primary text-white">
+                            <div className="d-flex align-items-center justify-content-between">
+                                <div className="d-flex align-items-center">
+                                    <i className="bi bi-gift fs-4 me-3"></i>
                                     <div>
-                                        <h3 className="mb-1 text-white">Gestión de Bonos</h3>
-                                        <p className="mb-0 opacity-75 text-white">
+                                        <h3 className="mb-1">Gestión de Bonos</h3>
+                                        <p className="mb-0 opacity-75">
                                             Administrar información de bonos del sistema
                                         </p>
                                     </div>
@@ -169,8 +155,7 @@ export const BonosPage: React.FC = () => {
                                     <Button 
                                         variant={showFilters ? "outline-light" : "light"}
                                         className="me-2"
-                                        onClick={() => setShowFilters(!showFilters)}                                      
-                                        style={{ backgroundColor: "#EDB65B" }}
+                                        onClick={() => setShowFilters(!showFilters)}
                                     >
                                         <i className={`bi bi-funnel${showFilters ? '-fill' : ''} me-2`}></i>
                                         {showFilters ? 'Ocultar' : 'Mostrar'} Filtros
@@ -178,9 +163,8 @@ export const BonosPage: React.FC = () => {
                                     <Button 
                                         variant="light"
                                         onClick={handleCreateClick}
-                                        style={{ backgroundColor: "#EDB65B" }}
                                     >
-                                        <i className="bi bi-person-plus-fill me-2"></i>
+                                        <i className="bi bi-gift me-2"></i>
                                         Crear Bono
                                     </Button>
                                 </div>
@@ -300,7 +284,7 @@ export const BonosPage: React.FC = () => {
                     {isLoading && (
                         <div className="text-center py-5">
                         <Spinner animation="border" variant="primary" />
-                        <p className="mt-3 text-muted">Cargando trabajadores...</p>
+                        <p className="mt-3 text-muted">Cargando bonos...</p>
                         </div>
                     )}
 
@@ -524,12 +508,6 @@ export const BonosPage: React.FC = () => {
                     </Button>
                 </Modal.Footer>
             </Modal>
-
-            <div className="footer-bonos">
-                <p className="text-center text-muted">
-                    © 2025 Project GPS. Todos los derechos reservados.
-                </p>
-            </div>
         </Container>
     );
 };
