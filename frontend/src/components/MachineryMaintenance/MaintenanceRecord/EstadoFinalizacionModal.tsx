@@ -11,10 +11,10 @@ const EstadoFinalizacionModal: React.FC<Props> = ({ show, onHide, onSelectEstado
   return (
     <Modal show={show} onHide={onHide} centered>
       <Modal.Header closeButton>
-        <Modal.Title>¿Cómo deseas finalizar la mantención?</Modal.Title>
+        <Modal.Title>¿Cómo deseas finalizar la Mantención?</Modal.Title>
       </Modal.Header>
       <Modal.Body className="text-center">
-        <p>Selecciona el estado final de la mantención</p>
+        <p>Selecciona en que estado quedó la Mantención</p>
         <div className="d-flex justify-content-center gap-3 mt-4">
           <Button variant="success" onClick={() => onSelectEstado('completada')}>
             Completada
