@@ -60,8 +60,8 @@
           <Form.Label>Cantidad utilizada</Form.Label>
           <Form.Control
             type="number"
-            min={0}
-            value={cantidad}
+            min={1}
+            value={cantidad === 0 ? "" : cantidad}
             onChange={(e) => setCantidad(Number(e.target.value))}
             required
           />

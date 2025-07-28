@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Modal, Button, Form } from 'react-bootstrap';
-import { UpdateMaintenanceRecordData, EstadoMantencion  } from '@/types/machinaryMaintenance/maintenanceRecord.types';
-import { Toast, useToast } from "@/components/common/Toast"
+import { UpdateMaintenanceRecordData, EstadoMantencion } from '@/types/machinaryMaintenance/maintenanceRecord.types';
+import { Toast, useToast } from "@/components/common/Toast";
+
 interface Props {
   show: boolean;
   onHide: () => void;
@@ -12,31 +13,41 @@ interface Props {
   estadoSeleccionado: EstadoMantencion | "";
 }
 
-const FinalizeMaintenanceModal: React.FC<Props> = ({ show, onHide, onSubmit, loading, estadoActual, fechaEntrada, estadoSeleccionado}) => {
+const FinalizeMaintenanceModal: React.FC<Props> = ({
+  show,
+  onHide,
+  onSubmit,
+  loading,
+  estadoActual,
+  fechaEntrada,
+  estadoSeleccionado
+}) => {
   const [fechaSalida, setFechaSalida] = useState('');
   const [descripcionSalida, setDescripcionSalida] = useState('');
   const { showError, showSuccess } = useToast();
 
-    const handleSubmit = () => {
+  const handleSubmit = () => {
+    if (!fechaSalida || !descripcionSalida.trim()) {
+      showError('Error', 'Por favor completa todos los campos.');
+      return;
+    }
 
-      
-      if (!fechaSalida || !descripcionSalida.trim()) {
-        showError('Error',`Por favor completa todos los campos.`);
-        return;
-      }
+    const [entradaYear, entradaMonth, entradaDay] = fechaEntrada.split('-').map(Number);
+    const [salidaYear, salidaMonth, salidaDay] = fechaSalida.split('-').map(Number);
 
-      const entrada = new Date(fechaEntrada).toISOString().split('T')[0];
-      const salida = new Date(fechaSalida).toISOString().split('T')[0];
-      if ( salida < entrada) {
-        showError('Error Fecha',`La fecha de salida no puede ser anterior a la fecha de entrada.`);
-        return;
-      }
-    
+    const fechaEntradaObj = new Date(entradaYear, entradaMonth - 1, entradaDay, 0, 0, 0);
+    const fechaSalidaFija = new Date(salidaYear, salidaMonth - 1, salidaDay, 12, 0, 0);
+
+    if (fechaSalidaFija <= fechaEntradaObj) {
+      showError('Error Fecha', 'La fecha de salida debe ser posterior a la fecha de entrada.');
+      return;
+    }
+
     onSubmit({
-      fechaSalida,
+      fechaSalida: fechaSalidaFija.toISOString(), // ← Enviamos fecha con hora incluida
       descripcionSalida: descripcionSalida.trim(),
       estado: estadoSeleccionado as EstadoMantencion,
-    }); 
+    });
   };
 
   return (
@@ -50,6 +61,7 @@ const FinalizeMaintenanceModal: React.FC<Props> = ({ show, onHide, onSubmit, loa
             <Form.Label>Fecha de Salida</Form.Label>
             <Form.Control
               type="date"
+              min={fechaEntrada}
               value={fechaSalida}
               onChange={(e) => setFechaSalida(e.target.value)}
             />

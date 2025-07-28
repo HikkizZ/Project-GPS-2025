@@ -101,7 +101,7 @@ const handleAcceptMaintenance = async (record: MaintenanceRecord) => {
     return;
   }
 
-  console.log("Obteniendo ID del usuario con RUT:", user.rut);
+  //console.log("Obteniendo ID del usuario con RUT:", user.rut);
 
   let mecanicoId: number | null = null;
 
@@ -500,14 +500,18 @@ const handleAcceptMaintenance = async (record: MaintenanceRecord) => {
                 loading={creating || updating}
               />
 
-              {selectedMantencionId !== null && (
+              {selectedMantencionId !== null && showSparePartPanel && (
                 <MaintenanceSparePartPanel
                   mantencionId={selectedMantencionId}
-                  show={showSparePartPanel}
-                  onHide={() => setShowSparePartPanel(false)}
+                  show={true}
+                  onHide={() => {
+                    setShowSparePartPanel(false);
+                    setSelectedMantencionId(null);
+                  }}
                   onReload={reload}
                 />
               )}
+
               
               <FinalizeMaintenanceModal
                 show={showFinishModal}
