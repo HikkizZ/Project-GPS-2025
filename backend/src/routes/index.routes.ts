@@ -18,7 +18,7 @@ import maintenanceSparePartRoutes from "./MachineryMaintenance/maintenanceSpareP
 import maquinariaRoutes from "./maquinaria/maquinaria.routes.js"
 import compraMaquinariaRoutes from "./maquinaria/compraMaquinaria.routes.js"
 import ventaMaquinariaRoutes from "./maquinaria/ventaMaquinaria.routes.js"
-import arriendoMaquinariaRoutes from "./maquinaria/arriendoMaquinaria.routes.js"
+import arriendoMaquinariaRoutes from "./maquinaria/arriendoMaquinaria.routes.js" 
 import inventoryEntryRoutes from './inventory/inventoryEntry.routes.js';
 import bonosRoutes from './recursosHumanos/remuneraciones/bonos.routes.js';
 
@@ -66,10 +66,5 @@ router.use("/compra-maquinaria", compraMaquinariaRoutes)
 router.use("/ventas-maquinaria", ventaMaquinariaRoutes)
 router.use("/arriendos-maquinaria", arriendoMaquinariaRoutes)
 
-//MAQUINARIA
-router.use("/maquinaria", maquinariaRoutes)
-router.use("/compra-maquinaria", compraMaquinariaRoutes)
-router.use("/ventas-maquinaria", ventaMaquinariaRoutes)
-router.use("/arriendos-maquinaria", arriendoMaquinariaRoutes)
 
 export default router

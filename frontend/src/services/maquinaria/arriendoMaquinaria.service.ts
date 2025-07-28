@@ -36,10 +36,10 @@ export class ArriendoMaquinariaService {
 
       if (error.response?.status === 409) {
         if (errorMessage.includes("SuperAdministrador")) {
-          errorMessage = "⚠️ " + errorMessage
+          errorMessage = " " + errorMessage
         } else {
           // Error genérico de duplicado
-          errorMessage = "❌ " + errorMessage
+          errorMessage = " " + errorMessage
         }
       }
 
@@ -67,7 +67,7 @@ export class ArriendoMaquinariaService {
     }
   }
 
-  // NUEVA FUNCIÓN PARA OBTENER CON INACTIVAS (como en compras)
+  // NUEVA FUNCIÓN PARA OBTENER CON INATCIVAS (como en compras)
   async obtenerTodosLosReportesConInactivas(): Promise<ApiResponse<ArriendoMaquinaria[]>> {
     try {
       const response = await apiClient.get(`${this.baseURL}/`, {

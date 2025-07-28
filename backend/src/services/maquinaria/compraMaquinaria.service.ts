@@ -386,19 +386,61 @@ export class CompraMaquinariaService {
 
       // Restaurar compra
       await queryRunner.manager.update(CompraMaquinaria, { id }, { isActive: true })
-
       // Restaurar maquinaria relacionada
       if (compra.maquinaria_id) {
         await queryRunner.manager.update(Maquinaria, { id: compra.maquinaria_id }, { isActive: true })
       }
-
       const compraRestaurada = await queryRunner.manager.findOne(CompraMaquinaria, {
+        where: { id },
+        relations: ["maquinaria", "supplier"],
+      })
+      await queryRunner.commitTransaction()
+      return compraRestaurada as CompraMaquinaria
+    } catch (error) {
+      await queryRunner.rollbackTransaction()
+      throw error
+    } finally {
+      await queryRunner.release()
+    }
+  }
+
+  async eliminarPadronCompra(id: number): Promise<CompraMaquinaria> {
+    const queryRunner = AppDataSource.createQueryRunner()
+    await queryRunner.connect()
+    await queryRunner.startTransaction()
+
+    try {
+      const compra = await queryRunner.manager.findOne(CompraMaquinaria, {
+        where: { id, isActive: true },
+        relations: ["maquinaria"],
+      })
+
+      if (!compra) {
+        throw new Error("Compra no encontrada o inactiva")
+      }
+
+      if (!compra.padronUrl) {
+        throw new Error("Esta compra no tiene padrón para eliminar")
+      }
+
+      const oldFilename = compra.padronUrl.split("/").pop()
+      if (oldFilename) {
+        await MaquinariaFileUploadService.deleteFile(oldFilename)
+      }
+
+      await queryRunner.manager.update(CompraMaquinaria, { id }, { padronUrl: undefined })
+
+      if (compra.maquinaria_id) {
+        await queryRunner.manager.update(Maquinaria, { id: compra.maquinaria_id }, { padronUrl: undefined })
+      }
+
+      const compraActualizada = await queryRunner.manager.findOne(CompraMaquinaria, {
         where: { id },
         relations: ["maquinaria", "supplier"],
       })
 
       await queryRunner.commitTransaction()
-      return compraRestaurada as CompraMaquinaria
+      return compraActualizada as CompraMaquinaria
     } catch (error) {
       await queryRunner.rollbackTransaction()
       throw error

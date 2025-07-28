@@ -68,12 +68,12 @@ export class CompraMaquinaria {
   supplierRut?: string
 
   @Column({ type: "varchar", length: 255, nullable: true })
-  proveedor?: string // Desnormalizado del supplier
+  proveedor?: string
 
   @Column({ type: "text", nullable: true })
   observaciones?: string
 
-  // Campo simplificado para el padrón - solo un archivo
+  // Padrón
   @Column({ type: "varchar", length: 500, nullable: true })
   padronUrl?: string
 

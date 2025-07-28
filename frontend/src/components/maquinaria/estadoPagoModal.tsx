@@ -48,7 +48,7 @@ export const EstadoPagoModal: React.FC<EstadoPagoModalProps> = ({ show, onHide }
   const currentYear = new Date().getFullYear()
   const anos = Array.from({ length: 20 }, (_, i) => currentYear - i)
 
-  // CORREGIDO: Usar los reportes directamente del hook
+  // Usar los reportes directamente del hook
   useEffect(() => {
     if (show) {
       setAllReportes(reportes)

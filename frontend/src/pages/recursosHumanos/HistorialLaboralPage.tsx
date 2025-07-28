@@ -7,7 +7,7 @@ import { trabajadorService } from '@/services/recursosHumanos/trabajador.service
 import '@/styles/pages/historialLaboral.css';
 import { useAuth } from '@/context';
 import { useRut } from '@/hooks/useRut';
-import { formatAFP } from '../../utils/index';
+import { formatAFP, formatTipoBono, formatTemporalidad } from '../../utils/index';
 
 type FiltroTipo = 'todos' | 'inicial' | 'laboral' | 'licencias' | 'personales' | 'usuario';
 type ModoVista = 'tradicional' | 'unificado';
@@ -24,7 +24,11 @@ export default function HistorialLaboralPage() {
   const [trabajadorNombre, setTrabajadorNombre] = useState<string>('');
   const [trabajadorRut, setTrabajadorRut] = useState<string>('');
   const [descargandoId, setDescargandoId] = useState<number | null>(null);
-  const [filtroActivo, setFiltroActivo] = useState<FiltroTipo>('laboral');
+  const [filtroDesvinculacionReactivacion, setFiltroDesvinculacionReactivacion] = useState(false);
+  const [filtroActualizacionLaboral, setFiltroActualizacionLaboral] = useState(false);
+  const [filtroAsignacionBono, setFiltroAsignacionBono] = useState(false);
+  const [filtroLicenciasPermisos, setFiltroLicenciasPermisos] = useState(false);
+  const [filtroActivo, setFiltroActivo] = useState<'todos' | 'actualizacion' | 'bono' | 'licencias' | 'desvinculacion'>('todos');
   const [busqueda, setBusqueda] = useState('');
   const [modoVista, setModoVista] = useState<ModoVista>('unificado');
   const [trabajadorId, setTrabajadorId] = useState<number | null>(null);
@@ -102,44 +106,84 @@ export default function HistorialLaboralPage() {
     const datosBase = modoVista === 'unificado' ? historialUnificado : historial;
     let resultado = [...datosBase];
 
-    // Filtro por tipo
-    if (filtroActivo !== 'todos') {
-      resultado = resultado.filter(item => {
-        if (modoVista === 'unificado') {
-          const itemUnificado = item as HistorialUnificado;
-          switch (filtroActivo) {
-            case 'inicial':
-              return itemUnificado.descripcion.includes('Registro inicial') || itemUnificado.descripcion.includes('Ingreso al sistema') || itemUnificado.descripcion.includes('Creación de cuenta de usuario');
-            case 'laboral':
-              return itemUnificado.tipo === 'laboral' && !itemUnificado.descripcion.includes('Registro inicial');
-            case 'licencias':
-              return itemUnificado.descripcion.includes('Licencia') || itemUnificado.descripcion.includes('Permiso');
-            case 'personales':
-              return itemUnificado.tipo === 'trabajador' && !itemUnificado.descripcion.includes('Ingreso al sistema');
-            case 'usuario':
-              return itemUnificado.tipo === 'usuario' && !itemUnificado.descripcion.includes('Creación de cuenta de usuario');
-            default:
-              return true;
+    // Filtrar registros que no queremos mostrar
+    resultado = resultado.filter(item => {
+      if (modoVista === 'unificado') {
+        const itemUnificado = item as HistorialUnificado;
+        // Excluir registros de "Registro inicial" y "Creación de cuenta de usuario"
+        return !itemUnificado.descripcion.includes('Registro inicial') && 
+               !itemUnificado.descripcion.includes('Ingreso al sistema') && 
+               !itemUnificado.descripcion.includes('Creación de cuenta de usuario');
+      } else {
+        const itemTradicional = item as HistorialLaboral;
+        const obs = itemTradicional.observaciones?.toLowerCase() || '';
+        // Excluir registros de "registro inicial" y "creación de cuenta de usuario"
+        return !obs.includes('registro inicial') && 
+               !obs.includes('creación de cuenta de usuario');
+      }
+    });
+
+    // Filtro por tipo seleccionado
+    switch (filtroActivo) {
+      case 'todos':
+        // No aplicar filtro adicional, mostrar todos los registros filtrados
+        break;
+      case 'actualizacion':
+        resultado = resultado.filter(item => {
+          if (modoVista === 'unificado') {
+            const itemUnificado = item as HistorialUnificado;
+            return itemUnificado.descripcion.includes('Actualización de información laboral') || 
+                   itemUnificado.descripcion.includes('Subida de contrato') ||
+                   itemUnificado.descripcion.includes('Actualización de información laboral y subida de contrato');
+          } else {
+            const itemTradicional = item as HistorialLaboral;
+            const obs = itemTradicional.observaciones?.toLowerCase() || '';
+            return obs.includes('actualización de ficha') || 
+                   obs.includes('subida de contrato pdf') ||
+                   obs.includes('actualización de información laboral');
           }
-        } else {
-          const itemTradicional = item as HistorialLaboral;
-          const obs = itemTradicional.observaciones?.toLowerCase() || '';
-          switch (filtroActivo) {
-            case 'inicial':
-              return obs.includes('registro inicial');
-            case 'laboral':
-              return obs.includes('actualización de ficha') || obs.includes('desvinculación') || obs.includes('reactivación') || obs.includes('subida de contrato pdf');
-            case 'licencias':
-              return obs.includes('licencia') || obs.includes('permiso');
-            case 'personales':
-              return obs.includes('datos personales');
-            case 'usuario':
-              return obs.includes('correo corporativo') || obs.includes('rol');
-            default:
-              return true;
+        });
+        break;
+      case 'bono':
+        resultado = resultado.filter(item => {
+          if (modoVista === 'unificado') {
+            const itemUnificado = item as HistorialUnificado;
+            return itemUnificado.descripcion.includes('Asignación de bono') || 
+                   itemUnificado.descripcion.includes('Actualización de asignación de bono');
+          } else {
+            const itemTradicional = item as HistorialLaboral;
+            const obs = itemTradicional.observaciones?.toLowerCase() || '';
+            return obs.includes('asignación de bono') || 
+                   obs.includes('actualización de asignación de bono');
           }
-        }
-      });
+        });
+        break;
+      case 'licencias':
+        resultado = resultado.filter(item => {
+          if (modoVista === 'unificado') {
+            const itemUnificado = item as HistorialUnificado;
+            return itemUnificado.descripcion.includes('Licencia') || 
+                   itemUnificado.descripcion.includes('Permiso');
+          } else {
+            const itemTradicional = item as HistorialLaboral;
+            const obs = itemTradicional.observaciones?.toLowerCase() || '';
+            return obs.includes('licencia') || 
+                   obs.includes('permiso');
+          }
+        });
+        break;
+      case 'desvinculacion':
+        resultado = resultado.filter(item => {
+          if (modoVista === 'unificado') {
+            const itemUnificado = item as HistorialUnificado;
+            return itemUnificado.descripcion.includes('Desvinculación') || itemUnificado.descripcion.includes('Reactivación');
+          } else {
+            const itemTradicional = item as HistorialLaboral;
+            const obs = itemTradicional.observaciones?.toLowerCase() || '';
+            return obs.includes('desvinculación') || obs.includes('reactivación');
+          }
+        });
+        break;
     }
 
     // Filtro por búsqueda
@@ -272,7 +316,7 @@ export default function HistorialLaboralPage() {
     if (!observaciones) return { tipo: 'General', color: 'secondary', icono: 'file-text' };
     if (observaciones.includes('Registro inicial')) 
       return { tipo: 'Registro Inicial', color: 'primary', icono: 'person-plus' };
-    if (observaciones.includes('Actualización de ficha') || observaciones.includes('Actualización de información laboral') || observaciones.includes('Subida de contrato')) 
+    if (observaciones.includes('Actualización de ficha') || observaciones.includes('Actualización de información laboral') || observaciones.includes('Subida de contrato pdf')) 
       return { tipo: 'Actualización Laboral', color: 'purple', icono: 'pencil-square' };
     if (observaciones.includes('Licencia médica') || observaciones.includes('Permiso administrativo')) 
       return { tipo: 'Licencia/Permiso', color: 'warning', icono: 'calendar-check' };
@@ -282,12 +326,29 @@ export default function HistorialLaboralPage() {
       return { tipo: 'Reactivación', color: 'success', icono: 'arrow-clockwise' };
     if (observaciones.includes('datos personales')) 
       return { tipo: 'Datos Personales', color: 'secondary', icono: 'person-gear' };
+    if (observaciones.includes('Asignación de bono') || observaciones.includes('Actualización de asignación de bono')) 
+      return { tipo: 'Asignación de Bono', color: 'pink', icono: 'gift' };
     return { tipo: 'Cambio', color: 'light', icono: 'file-text' };
   };
 
   const getContadorPorTipo = (tipo: FiltroTipo) => {
     const datosBase = (modoVista === 'unificado' ? historialUnificado : historial) as any[];
-    if (tipo === 'todos') return datosBase.length;
+    if (tipo === 'todos') {
+      // Para el contador "Todos", excluir los registros que no queremos mostrar
+      return datosBase.filter(item => {
+        if (modoVista === 'unificado') {
+          const itemUnificado = item as HistorialUnificado;
+          return !itemUnificado.descripcion.includes('Registro inicial') && 
+                 !itemUnificado.descripcion.includes('Ingreso al sistema') && 
+                 !itemUnificado.descripcion.includes('Creación de cuenta de usuario');
+        } else {
+          const itemTradicional = item as HistorialLaboral;
+          const obs = itemTradicional.observaciones?.toLowerCase() || '';
+          return !obs.includes('registro inicial') && 
+                 !obs.includes('creación de cuenta de usuario');
+        }
+      }).length;
+    }
     
     return datosBase.filter(item => {
       if (modoVista === 'unificado') {
@@ -305,12 +366,84 @@ export default function HistorialLaboralPage() {
         const obs = itemTradicional.observaciones?.toLowerCase() || '';
         switch (tipo) {
           case 'inicial': return obs.includes('registro inicial');
-          case 'laboral': return obs.includes('actualización de ficha') || obs.includes('desvinculación') || obs.includes('reactivación') || obs.includes('subida de contrato pdf');
+          case 'laboral': return obs.includes('actualización de ficha') || obs.includes('desvinculación') || obs.includes('reactivación') || obs.includes('subida de contrato pdf') || obs.includes('asignación de bono');
           case 'licencias': return obs.includes('licencia') || obs.includes('permiso');
           case 'personales': return obs.includes('datos personales');
           case 'usuario': return obs.includes('correo corporativo') || obs.includes('rol');
           default: return false;
         }
+      }
+    }).length;
+  };
+
+  // Función para obtener el contador de desvinculaciones y reactivaciones
+  const getContadorDesvinculacionReactivacion = () => {
+    const datosBase = (modoVista === 'unificado' ? historialUnificado : historial) as any[];
+    
+    return datosBase.filter(item => {
+      if (modoVista === 'unificado') {
+        const itemUnificado = item as HistorialUnificado;
+        return itemUnificado.descripcion.includes('Desvinculación') || itemUnificado.descripcion.includes('Reactivación');
+      } else {
+        const itemTradicional = item as HistorialLaboral;
+        const obs = itemTradicional.observaciones?.toLowerCase() || '';
+        return obs.includes('desvinculación') || obs.includes('reactivación');
+      }
+    }).length;
+  };
+
+  // Función para obtener el contador de actualizaciones laborales
+  const getContadorActualizacionLaboral = () => {
+    const datosBase = (modoVista === 'unificado' ? historialUnificado : historial) as any[];
+    
+    return datosBase.filter(item => {
+      if (modoVista === 'unificado') {
+        const itemUnificado = item as HistorialUnificado;
+        return itemUnificado.descripcion.includes('Actualización de información laboral') || 
+               itemUnificado.descripcion.includes('Subida de contrato') ||
+               itemUnificado.descripcion.includes('Actualización de información laboral y subida de contrato');
+      } else {
+        const itemTradicional = item as HistorialLaboral;
+        const obs = itemTradicional.observaciones?.toLowerCase() || '';
+        return obs.includes('actualización de ficha') || 
+               obs.includes('subida de contrato pdf') ||
+               obs.includes('actualización de información laboral');
+      }
+    }).length;
+  };
+
+  // Función para obtener el contador de asignaciones de bono
+  const getContadorAsignacionBono = () => {
+    const datosBase = (modoVista === 'unificado' ? historialUnificado : historial) as any[];
+    
+    return datosBase.filter(item => {
+      if (modoVista === 'unificado') {
+        const itemUnificado = item as HistorialUnificado;
+        return itemUnificado.descripcion.includes('Asignación de bono') || 
+               itemUnificado.descripcion.includes('Actualización de asignación de bono');
+      } else {
+        const itemTradicional = item as HistorialLaboral;
+        const obs = itemTradicional.observaciones?.toLowerCase() || '';
+        return obs.includes('asignación de bono') || 
+               obs.includes('actualización de asignación de bono');
+      }
+    }).length;
+  };
+
+  // Función para obtener el contador de licencias y permisos
+  const getContadorLicenciasPermisos = () => {
+    const datosBase = (modoVista === 'unificado' ? historialUnificado : historial) as any[];
+    
+    return datosBase.filter(item => {
+      if (modoVista === 'unificado') {
+        const itemUnificado = item as HistorialUnificado;
+        return itemUnificado.descripcion.includes('Licencia') || 
+               itemUnificado.descripcion.includes('Permiso');
+      } else {
+        const itemTradicional = item as HistorialLaboral;
+        const obs = itemTradicional.observaciones?.toLowerCase() || '';
+        return obs.includes('licencia') || 
+               obs.includes('permiso');
       }
     }).length;
   };
@@ -359,6 +492,10 @@ export default function HistorialLaboralPage() {
         if (campo === 'afp') {
           valorAnteriorFormateado = formatAFP(valorAnterior);
           valorNuevoFormateado = formatAFP(valorNuevo);
+        } else if (campo === 'sueldoBase') {
+          // El valor ya viene formateado del backend con $ y separadores de miles
+          valorAnteriorFormateado = valorAnterior;
+          valorNuevoFormateado = valorNuevo;
         }
         
         return `${campoFormal} (de '${valorAnteriorFormateado}' a '${valorNuevoFormateado}')`;
@@ -381,10 +518,62 @@ export default function HistorialLaboralPage() {
     return descripcion.replace(/(\d{4})-(\d{2})-(\d{2})/g, (_m, y, m, d) => `${d}-${m}-${y}`);
   }
 
+  // Función para eliminar las líneas con formato especial de la descripción
+  function limpiarDescripcionBono(descripcion: string): string {
+    if (!descripcion) return descripcion;
+    const lines = descripcion.split('\n');
+    const linesFiltradas = lines.filter(line => !line.trim().startsWith('[OBSERVACIONES_BADGE]:'));
+    
+    // Aplicar formato a los campos Tipo y Temporalidad
+    const descripcionFormateada = linesFiltradas.join('\n')
+      .replace(/Tipo: (\w+)/g, (match, tipo) => `Tipo: ${formatTipoBono(tipo)}`)
+      .replace(/Temporalidad: (\w+)/g, (match, temporalidad) => `Temporalidad: ${formatTemporalidad(temporalidad)}`);
+    
+    return descripcionFormateada;
+  }
+
   // Reemplazar la función renderCamposManuales por una versión que parsea los campos modificados desde observaciones si corresponde
   const renderCamposManuales = (item: any) => {
     const campos: string[] = [];
     const obs = modoVista === 'unificado' ? (item as HistorialUnificado).descripcion : (item as HistorialLaboral).observaciones;
+
+    // Detectar si es una asignación de bono
+    const esAsignacionBono = obs?.includes('Asignación de bono:');
+    const esActualizacionBono = obs?.includes('Actualización de asignación de bono:');
+    
+    if (esAsignacionBono || esActualizacionBono) {
+      // Extraer solo el nombre del bono y las observaciones para los badges
+      const lines = obs?.split('\n') || [];
+      let nombreBono = '';
+      let observaciones = '';
+      
+      lines.forEach(line => {
+        const trimmedLine = line.trim();
+        if (trimmedLine.startsWith('Asignación de bono:') || trimmedLine.startsWith('Actualización de asignación de bono:')) {
+          // Extraer el nombre del bono después de los dos puntos y antes de la primera coma
+          const nombre = trimmedLine.split(':')[1]?.split(',')[0]?.trim();
+          if (nombre) {
+            nombreBono = nombre;
+          }
+        } else if (trimmedLine.startsWith('[OBSERVACIONES_BADGE]:')) {
+          // Extraer las observaciones del formato especial
+          const obs = trimmedLine.split(':')[1]?.trim();
+          if (obs) {
+            observaciones = obs;
+          }
+        }
+      });
+      
+      // Agregar solo el nombre del bono y las observaciones como badges
+      if (nombreBono) {
+        campos.push(nombreBono);
+      }
+      if (observaciones) {
+        campos.push(`Observaciones: ${observaciones}`);
+      }
+      
+      return campos;
+    }
 
     // Si las observaciones contienen el patrón de actualización laboral, parsear los campos modificados
     if (obs && obs.startsWith('Actualización de información laboral:')) {
@@ -413,6 +602,9 @@ export default function HistorialLaboralPage() {
             campos.push(`${campoFormal}: ${formatFecha(valorNuevo)}`);
           } else if (campo === 'afp') {
             campos.push(`${campoFormal}: ${formatAFP(valorNuevo)}`);
+          } else if (campo === 'sueldoBase') {
+            // El valor ya viene formateado del backend con $ y separadores de miles
+            campos.push(`${campoFormal}: ${valorNuevo}`);
           } else {
             campos.push(`${campoFormal}: ${valorNuevo}`);
           }
@@ -580,6 +772,8 @@ export default function HistorialLaboralPage() {
         return { tipo: 'Desvinculación', color: 'danger', icono: 'person-dash' };
       if (item.descripcion.includes('Reactivación')) 
         return { tipo: 'Reactivación', color: 'success', icono: 'arrow-clockwise' };
+      if (item.descripcion.includes('Asignación de bono') || item.descripcion.includes('Actualización de asignación de bono')) 
+        return { tipo: 'Asignación de Bono', color: 'pink', icono: 'gift' };
     } else if (item.tipo === 'trabajador') {
       return { tipo: 'Datos Personales', color: 'secondary', icono: 'person-gear' };
     } else if (item.tipo === 'usuario') {
@@ -743,17 +937,61 @@ export default function HistorialLaboralPage() {
           <Card className="border-0 shadow-sm">
             <Card.Body>
               <Row className="align-items-center">
-                <Col lg={8}>
+                <Col lg={10}>
                   <Nav variant="pills" className="flex-nowrap">
-                    <Nav.Item>
+                    <Nav.Item className="flex-fill">
                       <Nav.Link 
-                        active={true} 
-                        // onClick eliminado para que no sea clickable
-                        className="d-flex align-items-center"
-                        style={{ pointerEvents: 'none', opacity: 1 }}
+                        active={filtroActivo === 'todos'}
+                        onClick={() => setFiltroActivo('todos')}
+                        className="d-flex align-items-center justify-content-center"
+                        style={{ cursor: 'pointer' }}
                       >
                         <i className="bi bi-briefcase me-1"></i>
-                        Laborales <Badge bg="primary" className="ms-1">{getContadorPorTipo('laboral')}</Badge>
+                        Todos <Badge bg="primary" className="ms-1">{getContadorPorTipo('laboral')}</Badge>
+                      </Nav.Link>
+                    </Nav.Item>
+                    <Nav.Item className="flex-fill ms-2">
+                      <Nav.Link 
+                        active={filtroActivo === 'actualizacion'}
+                        onClick={() => setFiltroActivo('actualizacion')}
+                        className="d-flex align-items-center justify-content-center"
+                        style={{ cursor: 'pointer' }}
+                      >
+                        <i className="bi bi-pencil-square me-1"></i>
+                        Actualización Laboral <Badge bg={filtroActivo === 'actualizacion' ? "info" : "secondary"} className="ms-1">{getContadorActualizacionLaboral()}</Badge>
+                      </Nav.Link>
+                    </Nav.Item>
+                    <Nav.Item className="flex-fill ms-2">
+                      <Nav.Link 
+                        active={filtroActivo === 'bono'}
+                        onClick={() => setFiltroActivo('bono')}
+                        className="d-flex align-items-center justify-content-center"
+                        style={{ cursor: 'pointer' }}
+                      >
+                        <i className="bi bi-gift me-1"></i>
+                        Asignación de Bono <Badge bg={filtroActivo === 'bono' ? "warning" : "secondary"} className="ms-1">{getContadorAsignacionBono()}</Badge>
+                      </Nav.Link>
+                    </Nav.Item>
+                    <Nav.Item className="flex-fill ms-2">
+                      <Nav.Link 
+                        active={filtroActivo === 'licencias'}
+                        onClick={() => setFiltroActivo('licencias')}
+                        className="d-flex align-items-center justify-content-center"
+                        style={{ cursor: 'pointer' }}
+                      >
+                        <i className="bi bi-calendar-check me-1"></i>
+                        Licencias/Permisos <Badge bg={filtroActivo === 'licencias' ? "danger" : "secondary"} className="ms-1">{getContadorLicenciasPermisos()}</Badge>
+                      </Nav.Link>
+                    </Nav.Item>
+                    <Nav.Item className="flex-fill ms-2">
+                      <Nav.Link 
+                        active={filtroActivo === 'desvinculacion'}
+                        onClick={() => setFiltroActivo('desvinculacion')}
+                        className="d-flex align-items-center justify-content-center"
+                        style={{ cursor: 'pointer' }}
+                      >
+                        <i className="bi bi-person-x me-1"></i>
+                        Desvinculaciones/Reactivaciones <Badge bg={filtroActivo === 'desvinculacion' ? "success" : "secondary"} className="ms-1">{getContadorDesvinculacionReactivacion()}</Badge>
                       </Nav.Link>
                     </Nav.Item>
                   </Nav>
@@ -955,6 +1193,8 @@ export default function HistorialLaboralPage() {
                                   <i className="bi bi-info-circle me-1"></i>
                                   {(observacionesItem.includes('Licencia') || observacionesItem.includes('Permiso'))
                                     ? formatearDescripcionLicenciaPermiso(observacionesItem)
+                                    : (observacionesItem.includes('Asignación de bono:') || observacionesItem.includes('Actualización de asignación de bono:'))
+                                    ? limpiarDescripcionBono(observacionesItem)
                                     : formatearDescripcionObservaciones(observacionesItem, traduccionCampos)}
                                 </p>
                               </div>

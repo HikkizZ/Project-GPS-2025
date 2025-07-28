@@ -1,5 +1,5 @@
 import { apiClient } from '@/config/api.config';
-import type {SparePart,CreateSparePartData, UpdateSparePartData} from '@/types/machinaryMaintenance/sparePart.types';
+import type { SparePart, CreateSparePartData, UpdateSparePartData } from '@/types/machinaryMaintenance/sparePart.types';
 
 export interface ApiResponse<T = any> {
   success: boolean;
@@ -16,13 +16,13 @@ class SparePartService {
       return {
         success: true,
         message: 'Repuestos obtenidos exitosamente',
-        data: response.data
+        data: response.data,
       };
     } catch (error: any) {
       console.error('Error al obtener repuestos:', error);
       return {
         success: false,
-        message: error.message || 'Error al obtener repuestos'
+        message: error.message || 'Error al obtener repuestos',
       };
     }
   }
@@ -33,30 +33,38 @@ class SparePartService {
       return {
         success: true,
         message: 'Repuesto obtenido exitosamente',
-        data: response.data
+        data: response.data,
       };
     } catch (error: any) {
       console.error('Error al obtener repuesto:', error);
       return {
         success: false,
-        message: error.message || 'Error al obtener repuesto'
+        message: error.message || 'Error al obtener repuesto',
       };
     }
   }
 
   async create(data: CreateSparePartData): Promise<ApiResponse<SparePart>> {
     try {
-      const response = await apiClient.post<{ data: SparePart }>(this.baseURL, data);
+      const payload = {
+        name: data.name,
+        stock: data.stock,
+        marca: data.marca,
+        modelo: data.modelo,
+        anio: data.anio,
+      };
+
+      const response = await apiClient.post<{ data: SparePart }>(this.baseURL, payload);
       return {
         success: true,
         message: 'Repuesto creado exitosamente',
-        data: response.data
+        data: response.data,
       };
     } catch (error: any) {
       console.error('Error al crear repuesto:', error);
       return {
         success: false,
-        message: error.message || 'Error al crear repuesto'
+        message: error.message || 'Error al crear repuesto',
       };
     }
   }
@@ -67,13 +75,13 @@ class SparePartService {
       return {
         success: true,
         message: 'Repuesto actualizado exitosamente',
-        data: response.data
+        data: response.data,
       };
     } catch (error: any) {
       console.error('Error al actualizar repuesto:', error);
       return {
         success: false,
-        message: error.message || 'Error al actualizar repuesto'
+        message: error.message || 'Error al actualizar repuesto',
       };
     }
   }
@@ -83,13 +91,13 @@ class SparePartService {
       await apiClient.delete(`${this.baseURL}/${id}`);
       return {
         success: true,
-        message: 'Repuesto eliminado exitosamente'
+        message: 'Repuesto eliminado exitosamente',
       };
     } catch (error: any) {
       console.error('Error al eliminar repuesto:', error);
       return {
         success: false,
-        message: error.message || 'Error al eliminar repuesto'
+        message: error.message || 'Error al eliminar repuesto',
       };
     }
   }
@@ -97,7 +105,6 @@ class SparePartService {
 
 const sparePartService = new SparePartService();
 export default sparePartService;
-
 
 export const getSpareParts = () => sparePartService.getAll();
 export const getSparePart = (id: number) => sparePartService.getById(id);

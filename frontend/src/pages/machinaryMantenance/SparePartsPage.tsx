@@ -112,16 +112,13 @@ const SparePartsPage: React.FC = () => {
   }
 
   const handleDelete = async (id: number) => {
-    if (confirm("¿Estás seguro de eliminar este repuesto?")) {
-      try {
+    try {
         await deleteSparePart(id)
         showSuccess("Repuesto eliminado", "Se eliminó correctamente")
         reload()
       } catch (error) {
-        console.error(error)
         showError("Error al eliminar", "No se pudo eliminar el repuesto")
       }
-    }
   }
 
   return (
@@ -152,12 +149,12 @@ const SparePartsPage: React.FC = () => {
                         <i className={`bi bi-funnel${showFilters ? "-fill" : ""} me-2`} />
                         {showFilters ? "Ocultar Filtros" : "Mostrar Filtros"}
                       </Button>
-                      {puedeRegistrar && (
+                    
                         <Button variant="light" onClick={() => handleOpenModal()} className="d-flex align-items-center">
                           <i className="bi bi-plus-circle me-2"></i>
                           Registrar Repuesto
                         </Button>
-                      )}
+                      
 
                     </div>
                   </div>

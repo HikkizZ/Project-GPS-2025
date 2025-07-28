@@ -85,7 +85,16 @@ export async function getAllBonos(req: Request, res: Response): Promise<void> {
         // Verificar si se solicitan bonos inactivos
         const incluirInactivos = req.query.incluirInactivos === 'true';
 
-        const [resultado, error] = await getAllBonosService(incluirInactivos);
+        // Extraer parámetros de búsqueda
+        const queryParams = {
+            nombreBono: req.query.nombreBono as string,
+            tipoBono: req.query.tipoBono as string,
+            temporalidad: req.query.temporalidad as string,
+            imponible: req.query.imponible === 'true' ? true : req.query.imponible === 'false' ? false : undefined,
+            duracionMes: req.query.duracionMes as string
+        };
+
+        const [resultado, error] = await getAllBonosService(incluirInactivos, queryParams);
 
         if (error) {
             handleErrorClient(res, 404, error as string);

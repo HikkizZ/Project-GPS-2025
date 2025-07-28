@@ -113,6 +113,12 @@ export async function getHistorialUnificadoByTrabajadorService(trabajadorId: num
             } else if (item.observaciones?.includes('correo corporativo')) {
                 descripcion = 'Cambio de correo corporativo';
                 tipoRegistro = 'usuario';
+            } else if (item.observaciones?.includes('Asignación de bono:')) {
+                // Mantener los detalles completos del bono en lugar de un texto genérico
+                descripcion = item.observaciones;
+            } else if (item.observaciones?.includes('Actualización de asignación de bono:')) {
+                // Mantener los detalles completos de la actualización del bono
+                descripcion = item.observaciones;
             } else {
                 descripcion = item.observaciones || 'Cambio en historial laboral';
             }

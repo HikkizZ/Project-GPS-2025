@@ -18,7 +18,16 @@ import { Between, Like, FindManyOptions, DeepPartial, Not } from "typeorm";
 import { date } from "joi";
 import { calcularFechaFin } from "../fichaEmpresa.service.js"; 
 
-export async function getAllBonosService(incluirInactivos: boolean = false): Promise<ServiceResponse<{ bonos: Bono[]; total: number }>> {
+export async function getAllBonosService(
+    incluirInactivos: boolean = false,
+    queryParams: {
+        nombreBono?: string;
+        tipoBono?: string;
+        temporalidad?: string;
+        imponible?: boolean;
+        duracionMes?: string;
+    } = {}
+): Promise<ServiceResponse<{ bonos: Bono[]; total: number }>> {
     try {
         const bonosRep = AppDataSource.getRepository(Bono);
 
@@ -29,6 +38,37 @@ export async function getAllBonosService(incluirInactivos: boolean = false): Pro
         // Si no se incluyen inactivos, filtrar por enSistema=true
         if (!incluirInactivos) {
             queryBuilder.andWhere('bono.enSistema = :enSistema', { enSistema: true });
+        }
+
+        // Aplicar filtros de búsqueda
+        if (queryParams.nombreBono) {
+            queryBuilder.andWhere('bono.nombreBono LIKE :nombreBono', { 
+                nombreBono: `%${queryParams.nombreBono}%` 
+            });
+        }
+
+        if (queryParams.tipoBono) {
+            queryBuilder.andWhere('bono.tipoBono = :tipoBono', { 
+                tipoBono: queryParams.tipoBono 
+            });
+        }
+
+        if (queryParams.temporalidad) {
+            queryBuilder.andWhere('bono.temporalidad = :temporalidad', { 
+                temporalidad: queryParams.temporalidad 
+            });
+        }
+
+        if (queryParams.imponible !== undefined) {
+            queryBuilder.andWhere('bono.imponible = :imponible', { 
+                imponible: queryParams.imponible 
+            });
+        }
+
+        if (queryParams.duracionMes) {
+            queryBuilder.andWhere('bono.duracionMes = :duracionMes', { 
+                duracionMes: queryParams.duracionMes 
+            });
         }
 
         // Ordenar por fecha de creación descendente
