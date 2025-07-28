@@ -362,3 +362,47 @@
   align-items: center;
   gap: 0.5rem;
 }
+
+/* Estilos mejorados para badges en el modal de detalles del bono */
+.modal .badge {
+  font-size: 0.75rem !important;
+  padding: 0.35rem 0.6rem !important;
+  border-radius: 0.4rem !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.02rem;
+}
+
+.modal .badge.bg-success {
+  background-color: #d4edda !important;
+  color: #155724 !important;
+  border: 1px solid #c3e6cb;
+}
+
+.modal .badge.bg-primary {
+  background-color: #d1ecf1 !important;
+  color: #0c5460 !important;
+  border: 1px solid #bee5eb;
+}
+
+.modal .badge.bg-info {
+  background-color: #d1ecf1 !important;
+  color: #0c5460 !important;
+  border: 1px solid #bee5eb;
+}
+
+.modal .badge.bg-warning {
+  background-color: #fff3cd !important;
+  color: #856404 !important;
+  border: 1px solid #ffeaa7;
+}
+
+.modal .badge.bg-secondary {
+  background-color: #e2e3e5 !important;
+  color: #383d41 !important;
+  border: 1px solid #d6d8db;
+}
+
+/* Espaciado mejorado para labels y badges */
+.modal .label + .badge {
+  margin-left: 0.4rem !important;
+}
