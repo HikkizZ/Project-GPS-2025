@@ -161,8 +161,9 @@ function limpiarCamposTexto(data: Partial<Trabajador>): Partial<Trabajador> {
     if (dataCopia.apellidoMaterno) dataCopia.apellidoMaterno = dataCopia.apellidoMaterno.trim().replace(/\s+/g, ' ');
     if (dataCopia.telefono) dataCopia.telefono = dataCopia.telefono.trim();
     if (dataCopia.correoPersonal) dataCopia.correoPersonal = dataCopia.correoPersonal.trim();
-    if (dataCopia.numeroEmergencia) {
-        const numeroLimpio = dataCopia.numeroEmergencia.trim();
+    // Manejo especial para numeroEmergencia que puede ser vacío
+    if (dataCopia.numeroEmergencia !== undefined) {
+        const numeroLimpio = dataCopia.numeroEmergencia?.trim() || '';
         dataCopia.numeroEmergencia = numeroLimpio === '' ? null : numeroLimpio;
     }
     if (dataCopia.direccion) dataCopia.direccion = dataCopia.direccion.trim().replace(/\s+/g, ' ');
@@ -604,7 +605,15 @@ export async function updateTrabajadorService(id: number, data: any): Promise<Se
         }
         
         for (const campo of camposPermitidos) {
-            if (data[campo] && data[campo] !== (trabajador as any)[campo]) {
+            // Manejo especial para campos que pueden ser vacíos (como numeroEmergencia)
+            if (campo === 'numeroEmergencia') {
+                const valorActual = (trabajador as any)[campo] || '';
+                const nuevoValor = data[campo] || '';
+                if (nuevoValor !== valorActual) {
+                    (trabajador as any)[campo] = nuevoValor === '' ? null : nuevoValor;
+                    updated = true;
+                }
+            } else if (data[campo] && data[campo] !== (trabajador as any)[campo]) {
                 (trabajador as any)[campo] = data[campo];
                 updated = true;
             }
