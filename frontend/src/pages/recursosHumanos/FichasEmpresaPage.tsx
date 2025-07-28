@@ -529,7 +529,7 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                           </div>
 
                           <div className="info-field">
-                            <i className="bi bi-breadcase"></i>
+                            <i className="bi bi-shield-check"></i>
                             <label>Seguro Cesantía</label>
                             <div className="value">
                               {miFicha.seguroCesantia ? (
