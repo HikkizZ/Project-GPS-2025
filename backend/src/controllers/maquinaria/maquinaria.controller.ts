@@ -157,6 +157,7 @@ export class MaquinariaController {
       })
     }
   }
+  // SolftDelete
   softRemove = async (req: Request, res: Response): Promise<void> => {
     try {
       const { id } = req.params
@@ -190,6 +191,7 @@ export class MaquinariaController {
       })
     }
   }
+  // Manejo de archivos del padron
   actualizarPadron = async (req: Request, res: Response): Promise<void> => {
     try {
       const { id } = req.params
@@ -229,34 +231,6 @@ export class MaquinariaController {
       res.status(500).json({
         success: false,
         message: "Error al eliminar el padrón",
-        error: error instanceof Error ? error.message : "Error desconocido",
-      })
-    }
-  }
-
-  obtenerPadron = async (req: Request, res: Response): Promise<void> => {
-    try {
-      const { id } = req.params
-      const maquinaria = await this.maquinariaService.findOne(Number(id), false)
-
-      if (!maquinaria.padronUrl) {
-        res.status(404).json({
-          success: false,
-          message: "Esta maquinaria no tiene padrón asociado",
-        })
-        return
-      }
-
-      res.status(200).json({
-        success: true,
-        data: {
-          padronUrl: maquinaria.padronUrl,
-        },
-      })
-    } catch (error) {
-      res.status(500).json({
-        success: false,
-        message: "Error al obtener padrón de la maquinaria",
         error: error instanceof Error ? error.message : "Error desconocido",
       })
     }

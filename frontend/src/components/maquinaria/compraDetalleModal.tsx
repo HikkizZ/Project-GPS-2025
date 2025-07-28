@@ -1,3 +1,5 @@
+"use client"
+
 import type React from "react"
 import { Modal, Button, Row, Col, Badge, Alert } from "react-bootstrap"
 import type { CompraMaquinaria } from "../../types/maquinaria.types"
@@ -113,6 +115,7 @@ export const CompraDetalleModal: React.FC<CompraDetalleModalProps> = ({ show, on
           </h5>
           {compra.padronUrl ? (
             <div className="padron-preview">
+              {/* ✅ CAMBIO CRÍTICO: Usar directamente compra.padronUrl sin concatenar */}
               <div>
                 <img
                   src={imageUrl || "/placeholder.svg"}
