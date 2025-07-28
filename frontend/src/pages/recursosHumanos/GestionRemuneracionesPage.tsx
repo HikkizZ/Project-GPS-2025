@@ -275,6 +275,19 @@ export const GestionRemuneracionesPage: React.FC = () => {
     return value === "Por Definir" ? "por-definir" : "";
   };
 
+  // Función para filtrar fichas con datos completos
+  const fichasConDatosCompletos = fichas.filter((ficha) => {
+    return (
+      ficha.tipoContrato !== "Por Definir" &&
+      ficha.cargo !== "Por Definir" &&
+      ficha.area !== "Por Definir" &&
+      ficha.jornadaLaboral !== "Por Definir" &&
+      ficha.afp !== "Por Definir" &&
+      ficha.previsionSalud !== "Por Definir" &&
+      ficha.sueldoBase > 0
+    );
+  });
+
   // Función para manejar la búsqueda
   const handleSearch = async () => {
     // Crear un objeto de búsqueda que incluya todos los filtros
@@ -638,55 +651,51 @@ export const GestionRemuneracionesPage: React.FC = () => {
                     </Button>
                   ) : null}
                 </div>
-              ) : fichas.some((f) => f.tipoContrato === "Por Definir") ? (
-                <div className="empty-state">
-                  <div className="empty-icon text-warning">
-                    <i className="bi bi-exclamation-triangle-fill"></i>
-                  </div>
-                  <h4 className="empty-title">
-                    Hay fichas con tipo de contrato "Por Definir"
-                  </h4>
-                  <p className="empty-text">
-                    Para calcular correctamente las remuneraciones, primero
-                    debes definir el tipo de contrato en cada ficha
-                    correspondiente.
-                  </p>
-                  <a
-                    href="/fichas-empresa"
-                    className="btn btn-outline-primary mt-3"
-                  >
-                    <i className="bi bi-pencil-square me-2"></i>
-                    Ir a gestión de fichas
-                  </a>
-                </div>
               ) : (
                 <>
+                  {/* Advertencia si hay fichas con datos incompletos */}
+                  {fichas.some((f) => f.tipoContrato === "Por Definir") && (
+                    <Alert variant="warning" className="mb-3">
+                      <div className="d-flex align-items-center">
+                        <i className="bi bi-exclamation-triangle-fill me-2"></i>
+                        <div>
+                          <strong>Nota:</strong> Hay {fichas.filter(f => f.tipoContrato === "Por Definir").length} trabajador(es) con datos incompletos que no se muestran en esta tabla. 
+                          Para incluirlos en el cálculo de remuneraciones, completa sus fichas de empresa.
+                          <a href="/fichas-empresa" className="btn btn-sm btn-outline-warning ms-2">
+                            <i className="bi bi-pencil-square me-1"></i>
+                            Ir a gestión de fichas
+                          </a>
+                        </div>
+                      </div>
+                    </Alert>
+                  )}
+
                   <div className="d-flex justify-content-between align-items-center mb-3">
                     <h6 className="mb-0">
                       <i className="bi bi-list-ul me-2"></i>
-                      Remuneraciones ({fichas.length})
+                      Remuneraciones ({fichasConDatosCompletos.length})
                       <small className="text-muted ms-2">
                         (Activos:{" "}
                         {
-                          fichas.filter(
+                          fichasConDatosCompletos.filter(
                             (f) => f.estado === EstadoLaboral.ACTIVO
                           ).length
                         }{" "}
                         • Licencias:{" "}
                         {
-                          fichas.filter(
+                          fichasConDatosCompletos.filter(
                             (f) => f.estado === EstadoLaboral.LICENCIA
                           ).length
                         }{" "}
                         • Permisos:{" "}
                         {
-                          fichas.filter(
+                          fichasConDatosCompletos.filter(
                             (f) => f.estado === EstadoLaboral.PERMISO
                           ).length
                         }{" "}
                         • Desvinculados:{" "}
                         {
-                          fichas.filter(
+                          fichasConDatosCompletos.filter(
                             (f) => f.estado === EstadoLaboral.DESVINCULADO
                           ).length
                         }
@@ -695,8 +704,29 @@ export const GestionRemuneracionesPage: React.FC = () => {
                     </h6>
                   </div>
 
-                  <div className="table-responsive">
-                    <Table hover className="mb-0">
+                  {fichasConDatosCompletos.length === 0 ? (
+                    <div className="empty-state">
+                      <div className="empty-icon text-warning">
+                        <i className="bi bi-exclamation-triangle-fill"></i>
+                      </div>
+                      <h4 className="empty-title">
+                        No hay fichas con datos completos para calcular remuneraciones
+                      </h4>
+                      <p className="empty-text">
+                        Para calcular correctamente las remuneraciones, primero
+                        debes completar los datos de las fichas de empresa.
+                      </p>
+                      <a
+                        href="/fichas-empresa"
+                        className="btn btn-outline-primary mt-3"
+                      >
+                        <i className="bi bi-pencil-square me-2"></i>
+                        Ir a gestión de fichas
+                      </a>
+                    </div>
+                  ) : (
+                    <div className="table-responsive">
+                      <Table hover className="mb-0">
                       <thead className="table-light">
                         <tr>
                           <th>Trabajador</th>
@@ -712,7 +742,7 @@ export const GestionRemuneracionesPage: React.FC = () => {
                         </tr>
                       </thead>
                       <tbody>
-                        {fichas.map((ficha) => {
+                        {fichasConDatosCompletos.map((ficha) => {
                           const [
                             rentaImponible,
                             descuentoLegal,
@@ -768,6 +798,7 @@ export const GestionRemuneracionesPage: React.FC = () => {
                       </tbody>
                     </Table>
                   </div>
+                  )}
                 </>
               )}
             </Card.Body>
