@@ -51,31 +51,39 @@
 .login-form-card {
   backdrop-filter: blur(10px);
   background: rgba(255, 255, 255, 0.95);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: none !important;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
   border-radius: 12px !important;
   overflow: hidden;
 }
 
-/* Eliminar bordes blancos del card */
+/* Eliminar TODOS los bordes blancos */
 .login-form-card .card {
-  border: none;
-  border-radius: 12px;
+  border: none !important;
+  border-radius: 12px !important;
+  box-shadow: none !important;
 }
 
 .login-form-card .card-body {
+  border: none !important;
   border-radius: 0 0 12px 12px;
   padding: 1.5rem;
 }
 
-/* Asegurar que no haya bordes blancos */
-.login-form-card * {
-  border-radius: inherit;
+.login-form-card .card-header {
+  border: none !important;
+  border-bottom: none !important;
+  border-radius: 12px 12px 0 0 !important;
 }
 
-.login-form-card .card-header {
-  border-bottom: none;
-  border-radius: 12px 12px 0 0 !important;
+/* Eliminar bordes de Bootstrap */
+.login-form-card .form-control {
+  border: 1px solid #dee2e6;
+}
+
+.login-form-card .form-control:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
 }
 
 .login-form-card .card-header {
