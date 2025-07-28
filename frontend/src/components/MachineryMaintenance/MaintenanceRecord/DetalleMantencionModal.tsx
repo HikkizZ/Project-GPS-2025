@@ -205,14 +205,14 @@ const DetalleMantencionModal: React.FC<Props> = ({ show, onHide, record }) => {
           return (
             <>
               <Button
-                variant="outline-success"
+                variant="danger"
                 onClick={() => exportToPdf("detalle-mantencion-content", fileName)}
                 disabled={isExporting}
               >
                 <i className="bi bi-file-earmark-pdf me-2" />
                 {isExporting ? "Generando..." : "Exportar PDF"}
               </Button>
-              <Button variant="secondary" onClick={onHide}>
+              <Button variant="danger" onClick={onHide}>
                 <i className="bi bi-x-circle me-2"></i>
                 Cerrar
               </Button>
