@@ -74,159 +74,149 @@ export const ModalDetallesBono: React.FC<ModalDetallesBonoProps> = ({
   };
 
   return (
-    <Modal show={show} onHide={onHide} size="lg" centered>
-      <Modal.Header closeButton>
+    <Modal show={show} onHide={onHide} size="lg" centered className="modal-enhanced">
+      <Modal.Header closeButton className="modal-header-custom">
         <Modal.Title className="d-flex align-items-center">
-          <i className="bi bi-cash-coin me-2 text-success"></i>
-          Detalles del Bono
+          <i className="bi bi-cash-coin me-2"></i>
+          <span>Detalles del Bono</span>
         </Modal.Title>
       </Modal.Header>
       <Modal.Body>
         {/* Información del Trabajador */}
-        <div className="mb-4">
-          <h6 className="fw-bold text-primary mb-3">
+        <section className="modal-section">
+          <div className="modal-section-title">
             <i className="bi bi-person me-2"></i>
             Información del Trabajador
-          </h6>
+          </div>
           <Row className="g-3">
             <Col md={6}>
               <div>
-                <label className="fw-bold">Nombre:</label>
-                <div className="fs-5 text-primary">
+                <span className="label">Nombre:</span>
+                <span className="value ms-2">
                   {ficha.trabajador.nombres} {ficha.trabajador.apellidoPaterno} {ficha.trabajador.apellidoMaterno}
-                </div>
+                </span>
               </div>
             </Col>
             <Col md={6}>
               <div>
-                <label className="fw-bold">RUT:</label>
-                <div className="font-monospace">{ficha.trabajador.rut}</div>
+                <span className="label">RUT:</span>
+                <span className="value ms-2 font-monospace">{ficha.trabajador.rut}</span>
               </div>
             </Col>
             <Col md={6}>
               <div>
-                <label className="fw-bold">Cargo:</label>
-                <div>{ficha.cargo}</div>
+                <span className="label">Cargo:</span>
+                <span className="value ms-2">{ficha.cargo}</span>
               </div>
             </Col>
             <Col md={6}>
               <div>
-                <label className="fw-bold">Área:</label>
-                <div>{ficha.area}</div>
+                <span className="label">Área:</span>
+                <span className="value ms-2">{ficha.area}</span>
               </div>
             </Col>
           </Row>
-        </div>
-
+        </section>
         {/* Información del Bono */}
-        <div className="mb-4">
-          <h6 className="fw-bold text-success mb-3">
-            <i className="bi bi-cash-coin me-2"></i>
+        <section className="modal-section">
+          <div className="modal-section-title">
+            <i className="bi bi-gift me-2"></i>
             Información del Bono
-          </h6>
-          <Row className="g-3">
+          </div>
+          <Row className="g-3 align-items-center">
             <Col md={6}>
               <div>
-                <label className="fw-bold">Nombre del Bono:</label>
-                <div className="fs-5 fw-bold text-success">{bono.nombreBono}</div>
+                <span className="label">Nombre del Bono:</span>
+                <span className="value highlight ms-2">{bono.nombreBono}</span>
               </div>
             </Col>
             <Col md={6}>
               <div>
-                <label className="fw-bold">Monto:</label>
-                <div className="fs-5 fw-bold text-success">{formatearMonto(bono.monto)}</div>
+                <span className="label">Monto:</span>
+                <span className="value money ms-2">{formatearMonto(bono.monto)}</span>
               </div>
             </Col>
             <Col md={6}>
               <div>
-                <label className="fw-bold">Tipo de Bono:</label>
-                <div>
-                  <Badge bg={getTipoBonoColor(bono.tipoBono)} className="fs-6">
-                    {bono.tipoBono === 'estatal' ? 'Estatal' : 'Empresarial'}
-                  </Badge>
-                </div>
+                <span className="label">Tipo de Bono:</span>
+                <Badge bg={getTipoBonoColor(bono.tipoBono)} className="ms-2 fs-6">
+                  {bono.tipoBono === 'estatal' ? 'Estatal' : 'Empresarial'}
+                </Badge>
               </div>
             </Col>
             <Col md={6}>
               <div>
-                <label className="fw-bold">Temporalidad:</label>
-                <div>
-                  <Badge bg={getTemporalidadColor(bono.temporalidad)} className="fs-6">
-                    {getTemporalidadTexto(bono.temporalidad)}
-                  </Badge>
-                </div>
+                <span className="label">Temporalidad:</span>
+                <Badge bg={getTemporalidadColor(bono.temporalidad)} className="ms-2 fs-6">
+                  {getTemporalidadTexto(bono.temporalidad)}
+                </Badge>
               </div>
             </Col>
             <Col md={6}>
               <div>
-                <label className="fw-bold">Imponible:</label>
-                <div>
-                  <Badge bg={bono.imponible ? 'success' : 'secondary'} className="fs-6">
-                    {bono.imponible ? 'Sí' : 'No'}
-                  </Badge>
-                </div>
+                <span className="label">Imponible:</span>
+                <Badge bg={bono.imponible ? 'success' : 'secondary'} className="ms-2 fs-6">
+                  {bono.imponible ? 'Sí' : 'No'}
+                </Badge>
               </div>
             </Col>
             {bono.duracionMes && (
               <Col md={6}>
                 <div>
-                  <label className="fw-bold">Duración (meses):</label>
-                  <div className="fs-5">{bono.duracionMes}</div>
+                  <span className="label">Duración:</span>
+                  <span className="value ms-2">{bono.duracionMes} meses</span>
                 </div>
               </Col>
             )}
             {bono.descripcion && (
               <Col md={12}>
                 <div>
-                  <label className="fw-bold">Descripción:</label>
-                  <div className="bg-light p-3 rounded">{bono.descripcion}</div>
+                  <span className="label">Descripción:</span>
+                  <div className="bg-light p-3 rounded mt-1">{bono.descripcion}</div>
                 </div>
               </Col>
             )}
           </Row>
-        </div>
-
+        </section>
         {/* Información de la Asignación */}
-        <div className="mb-4">
-          <h6 className="fw-bold text-info mb-3">
+        <section className="modal-section">
+          <div className="modal-section-title">
             <i className="bi bi-calendar-check me-2"></i>
             Información de la Asignación
-          </h6>
-          <Row className="g-3">
+          </div>
+          <Row className="g-3 align-items-center">
             <Col md={6}>
               <div>
-                <label className="fw-bold">Fecha de Asignación:</label>
-                <div className="fs-5">{formatearFecha(asignacion.fechaAsignacion)}</div>
+                <span className="label">Fecha de Asignación:</span>
+                <span className="value ms-2">{formatearFecha(asignacion.fechaAsignacion)}</span>
               </div>
             </Col>
             <Col md={6}>
               <div>
-                <label className="fw-bold">Estado:</label>
-                <div>
-                  <Badge bg={asignacion.activo ? 'success' : 'secondary'} className="fs-6">
-                    {asignacion.activo ? 'Activo' : 'Inactivo'}
-                  </Badge>
-                </div>
+                <span className="label">Estado:</span>
+                <Badge bg={asignacion.activo ? 'success' : 'secondary'} className="ms-2 fs-6">
+                  {asignacion.activo ? 'Activo' : 'Inactivo'}
+                </Badge>
               </div>
             </Col>
             {asignacion.fechaFinAsignacion && (
               <Col md={6}>
                 <div>
-                  <label className="fw-bold">Fecha de Fin:</label>
-                  <div className="fs-5">{formatearFecha(asignacion.fechaFinAsignacion)}</div>
+                  <span className="label">Fecha de Fin:</span>
+                  <span className="value ms-2">{formatearFecha(asignacion.fechaFinAsignacion)}</span>
                 </div>
               </Col>
             )}
             {asignacion.observaciones && (
               <Col md={12}>
                 <div>
-                  <label className="fw-bold">Observaciones:</label>
-                  <div className="bg-light p-3 rounded">{asignacion.observaciones}</div>
+                  <span className="label">Observaciones:</span>
+                  <div className="bg-light p-3 rounded mt-1">{asignacion.observaciones}</div>
                 </div>
               </Col>
             )}
           </Row>
-        </div>
+        </section>
       </Modal.Body>
     </Modal>
   );
