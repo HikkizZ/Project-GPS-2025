@@ -3,6 +3,7 @@ import { Modal, Form, Button, Alert } from 'react-bootstrap';
 import { Trabajador } from '@/types/recursosHumanos/trabajador.types';
 import { useTrabajadores } from '@/hooks/recursosHumanos/useTrabajadores';
 import { useRut, usePhone } from '@/hooks/useRut';
+import { TrabajadorService } from '@/services/recursosHumanos/trabajador.service';
 
 interface EditarTrabajadorModalProps {
   show: boolean;
@@ -22,6 +23,8 @@ export const EditarTrabajadorModal: React.FC<EditarTrabajadorModalProps> = ({
   const { formatPhone } = usePhone();
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [correoError, setCorreoError] = useState<string>('');
+  const [isValidatingCorreo, setIsValidatingCorreo] = useState(false);
 
   // Estado del formulario
   const [formData, setFormData] = useState({
@@ -50,6 +53,13 @@ export const EditarTrabajadorModal: React.FC<EditarTrabajadorModalProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+
+    // Validar que no haya error de correo duplicado
+    if (correoError !== '') {
+      setError('Por favor, corrige el error en el correo personal antes de continuar');
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -68,6 +78,36 @@ export const EditarTrabajadorModal: React.FC<EditarTrabajadorModalProps> = ({
     }
   };
 
+  // Función para validar correo personal
+  const validateCorreoPersonal = async (correo: string) => {
+    if (!correo || !correo.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+      setCorreoError('');
+      return;
+    }
+
+    // Si el correo no cambió, no validar
+    if (correo === trabajador.correoPersonal) {
+      setCorreoError('');
+      return;
+    }
+
+    setIsValidatingCorreo(true);
+    setCorreoError('');
+
+    try {
+      const trabajadorService = new TrabajadorService();
+      const response = await trabajadorService.verificarCorreoPersonal(correo, trabajador.id);
+      
+      if (!response.data.disponible) {
+        setCorreoError(response.data.mensaje);
+      }
+    } catch (error) {
+      console.error('Error al validar correo:', error);
+    } finally {
+      setIsValidatingCorreo(false);
+    }
+  };
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     if (name === 'telefono' || name === 'numeroEmergencia') {
@@ -75,6 +115,16 @@ export const EditarTrabajadorModal: React.FC<EditarTrabajadorModalProps> = ({
         ...prev,
         [name]: formatPhone(value)
       }));
+    } else if (name === 'correoPersonal') {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+      // Validar correo personal con debounce
+      const timeoutId = setTimeout(() => {
+        validateCorreoPersonal(value);
+      }, 500);
+      return () => clearTimeout(timeoutId);
     } else {
       setFormData(prev => ({
         ...prev,
@@ -186,18 +236,31 @@ export const EditarTrabajadorModal: React.FC<EditarTrabajadorModalProps> = ({
             <div className="col-md-4">
               <Form.Group>
                 <Form.Label className="fw-semibold">Correo Personal (editable)</Form.Label>
-                <Form.Control
-                  type="email"
-                  name="correoPersonal"
-                  value={formData.correoPersonal}
-                  onChange={handleInputChange}
-                  required
-                  style={{ borderRadius: '8px' }}
-                />
-                <Form.Text className="text-muted small">
-                  <i className="bi bi-envelope me-1"></i>
-                  Solo se actualiza para futuras comunicaciones
-                </Form.Text>
+                <div className="position-relative">
+                  <Form.Control
+                    type="email"
+                    name="correoPersonal"
+                    value={formData.correoPersonal}
+                    onChange={handleInputChange}
+                    required
+                    style={{ borderRadius: '8px' }}
+                    isInvalid={correoError !== ''}
+                  />
+                  {isValidatingCorreo && (
+                    <div className="position-absolute top-50 end-0 translate-middle-y pe-3">
+                      <div className="spinner-border spinner-border-sm text-primary" role="status">
+                        <span className="visually-hidden">Validando...</span>
+                      </div>
+                    </div>
+                  )}
+                  <Form.Control.Feedback type="invalid">
+                    {correoError}
+                  </Form.Control.Feedback>
+                  <Form.Text className="text-muted small">
+                    <i className="bi bi-envelope me-1"></i>
+                    Solo se actualiza para futuras comunicaciones
+                  </Form.Text>
+                </div>
               </Form.Group>
             </div>
             <div className="col-md-4">
