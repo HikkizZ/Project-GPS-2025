@@ -1,6 +1,8 @@
 import React from 'react';
 import { Modal, Card, Badge } from 'react-bootstrap';
 import { FichaEmpresa } from '@/types/recursosHumanos/fichaEmpresa.types';
+import { calculoSueldoBruto, calcularSueldoLiquido } from '@/pages/recursosHumanos/GestionRemuneracionesPage';
+import { formatAFP } from '@/utils/index';
 
 interface ModalRemuneracionesProps {
   show: boolean;
@@ -10,9 +12,13 @@ interface ModalRemuneracionesProps {
 
 // Función para formatear números con separadores de miles
 const formatMiles = (numero: number): string => {
-  return numero.toLocaleString('es-CL');
+  return new Intl.NumberFormat('es-CL', {
+    style: 'currency',
+    currency: 'CLP',
+    minimumFractionDigits: 0
+  }).format(numero);
 };
-
+/*
 // Función para calcular sueldo bruto simplificado
 function calculoSueldoBruto(ficha: FichaEmpresa): number {
   const { sueldoBase } = ficha;
@@ -26,13 +32,15 @@ function calcularSueldoLiquido(ficha: FichaEmpresa): number {
   const sueldoBruto = calculoSueldoBruto(ficha);
   
   // Descuentos legales (simplificados)
-  const afp = Math.round(sueldoBruto * 0.10); // 10% AFP
+  const afp = Math.round(sueldoBruto * 0.10); // 10% AFP, dependiente del tipo de afp
   const salud = Math.round(sueldoBruto * 0.07); // 7% Salud
-  const seguroCesantia = Math.round(sueldoBruto * 0.03); // 3% Seguro Cesantía
+  const seguroCesantia = Math.round(sueldoBruto * 0.03); // 3% Seguro Cesantía va al seguro cesantía Es dependiente del tipo de contrato
   
   const totalDescuentos = afp + salud + seguroCesantia;
   return sueldoBruto - totalDescuentos;
 }
+*/
+
 
 export const ModalRemuneraciones: React.FC<ModalRemuneracionesProps> = ({
   show, onHide, ficha
@@ -40,7 +48,7 @@ export const ModalRemuneraciones: React.FC<ModalRemuneracionesProps> = ({
   if (!ficha || !show) return null;
 
   const sueldoBruto = calculoSueldoBruto(ficha);
-  const sueldoLiquido = calcularSueldoLiquido(ficha);
+  const [sueldoLiquido] = calcularSueldoLiquido(ficha, null);
   const bonosActivos = ficha.asignacionesBonos?.filter(bono => bono.activo) || [];
   const totalBonos = bonosActivos.reduce((total, bono) => total + parseInt(bono.bono?.monto || '0'), 0);
   
@@ -114,7 +122,7 @@ export const ModalRemuneraciones: React.FC<ModalRemuneracionesProps> = ({
               <div className="col-md-6">
                 <h6 className="text-danger mb-3">Descuentos Legales</h6>
                 <div className="d-flex justify-content-between mb-2">
-                  <span>AFP ({ficha.afp || 'Cuprum'}):</span>
+                  <span>AFP ({formatAFP(ficha.afp)}):</span>
                   <strong className="text-danger">{formatMiles(afp)}</strong>
                 </div>
                 <div className="d-flex justify-content-between mb-2">

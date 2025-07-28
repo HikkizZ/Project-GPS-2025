@@ -321,3 +321,88 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* === Mejoras para ModalDetallesBono === */
+.modal-detalles-bono .label {
+  font-weight: 600;
+  color: #495057;
+  font-size: 0.98rem;
+}
+.modal-detalles-bono .value {
+  font-weight: 400;
+  color: #222;
+  font-size: 1rem;
+}
+.modal-detalles-bono .value.money {
+  color: #1ca97a;
+  font-weight: 600;
+  font-size: 1.05rem;
+}
+.modal-detalles-bono .value.highlight {
+  color: #1ca97a;
+  font-weight: 600;
+  font-size: 1.05rem;
+}
+.modal-detalles-bono .modal-section {
+  padding: 1.1rem 1.1rem 0.7rem 1.1rem;
+  margin-bottom: 1.1rem;
+  border: 1px solid #e9ecef;
+  border-radius: 0.7rem;
+  background: #f8f9fa;
+  box-shadow: 0 2px 8px rgba(60,60,60,0.04);
+}
+.modal-detalles-bono .modal-section-title {
+  font-weight: 700;
+  color: #4a4e69;
+  font-size: 1.08rem;
+  margin-bottom: 0.8rem;
+  padding-bottom: 0.3rem;
+  border-bottom: 2px solid #e9ecef;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Estilos mejorados para badges en el modal de detalles del bono */
+.modal-detalles-bono .badge {
+  font-size: 0.75rem !important;
+  padding: 0.35rem 0.6rem !important;
+  border-radius: 0.4rem !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.02rem;
+}
+
+.modal-detalles-bono .badge.bg-success {
+  background-color: #d4edda !important;
+  color: #155724 !important;
+  border: 1px solid #c3e6cb;
+}
+
+.modal-detalles-bono .badge.bg-primary {
+  background-color: #d1ecf1 !important;
+  color: #0c5460 !important;
+  border: 1px solid #bee5eb;
+}
+
+.modal-detalles-bono .badge.bg-info {
+  background-color: #d1ecf1 !important;
+  color: #0c5460 !important;
+  border: 1px solid #bee5eb;
+}
+
+.modal-detalles-bono .badge.bg-warning {
+  background-color: #fff3cd !important;
+  color: #856404 !important;
+  border: 1px solid #ffeaa7;
+}
+
+.modal-detalles-bono .badge.bg-secondary {
+  background-color: #e2e3e5 !important;
+  color: #383d41 !important;
+  border: 1px solid #d6d8db;
+}
+
+/* Espaciado mejorado para labels y badges */
+.modal-detalles-bono .label + .badge {
+  margin-left: 0.4rem !important;
+}

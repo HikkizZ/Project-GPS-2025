@@ -23,7 +23,7 @@ import { TrabajadorDetalleModal } from '@/components/recursosHumanos/TrabajadorD
 import { AsignarBonosFichaEmpresaModal } from '@/components/recursosHumanos/ModalAsignarBonos';
 import { ModalDetallesBono } from '@/components/recursosHumanos/ModalDetallesBono';
 import { ModalRemuneraciones } from '@/components/recursosHumanos/ModalRemuneraciones';
-
+import { calculoSueldoBruto, calcularSueldoLiquido } from '@/pages/recursosHumanos/GestionRemuneracionesPage';
 interface FichasEmpresaPageProps {
   trabajadorRecienRegistrado?: Trabajador | null;
   onTrabajadorModalClosed?: () => void;
@@ -405,8 +405,9 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
     setSelectedFicha(ficha);
     setShowDetallesBonoModal(true);
   };
-
-  // Función para calcular sueldo líquido
+/**
+ * 
+ * // Función para calcular sueldo líquido
   const calcularSueldoLiquido = (ficha: FichaEmpresa): number => {
     const sueldoBase = ficha.sueldoBase;
     const bonos = ficha.asignacionesBonos?.filter(bono => bono.activo) || [];
@@ -422,6 +423,8 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
     const totalDescuentos = afp + salud + seguroCesantia;
     return sueldoBruto - totalDescuentos;
   };
+ */
+  
 
   const handleVerRemuneraciones = async () => {
     // Recargar la ficha para obtener los datos más actualizados
@@ -551,7 +554,7 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                                 title="Ver detalle de remuneraciones"
                                 style={{ cursor: 'pointer' }}
                               >
-                                {formatSueldo(calcularSueldoLiquido(miFicha))}
+                                {formatSueldo(calcularSueldoLiquido(miFicha, null)[2])}
                               </span>
                             </div>
                           </div>
