@@ -34,11 +34,40 @@ export class MaintenanceRecord {
   @JoinColumn({ name: 'maquinariaId' })
   maquinaria!: Maquinaria;
 
-  @CreateDateColumn()
-  fechaEntrada!: Date;
+  @Column({
+  type: "timestamp",
+  default: () => "CURRENT_TIMESTAMP",
+  transformer: {
+    to: (value: Date | string | null): Date | null => {
+      if (!value) return null;
+      return new Date(value);
+    },
+    from: (value: Date | string | null): Date | null => {
+      if (!value) return null;
+      const date = typeof value === 'string' ? new Date(value) : value;
+      return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    }
+  }
+})
+fechaEntrada!: Date;
 
-  @Column({ type: 'timestamp', nullable: true })
-  fechaSalida!: Date | null;
+  @Column({
+  type: "timestamp",
+  nullable: true,
+  transformer: {
+    to: (value: Date | string | null): Date | null => {
+      if (!value) return null;
+      return new Date(value);
+    },
+    from: (value: Date | string | null): Date | null => {
+      if (!value) return null;
+      const date = typeof value === 'string' ? new Date(value) : value;
+      return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    }
+  }
+})
+fechaSalida!: Date | null;
+
 
   @Column({
     type: 'enum',
