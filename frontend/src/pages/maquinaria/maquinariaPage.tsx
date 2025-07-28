@@ -36,7 +36,11 @@ export const MaquinariaPage: React.FC = () => {
       case "vendida":
         return "Vendida"
       default:
+        
         return estado
+        .split("_")
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(" ");
     }
   }
 
@@ -49,7 +53,9 @@ export const MaquinariaPage: React.FC = () => {
       case "en_mantencion":
         return "warning"
       case "vendida":
-        return "secondary"
+        return "success"
+        case "fuera_servicio":
+      return "danger";
       default:
         return "secondary"
     }
