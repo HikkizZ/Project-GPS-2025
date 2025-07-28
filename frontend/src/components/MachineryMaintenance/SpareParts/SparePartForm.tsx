@@ -124,7 +124,6 @@ interface Props {
             value={form.stock}
             onChange={handleChange}
             required
-            className="no-spinner"
           />
         </Form.Group>
 

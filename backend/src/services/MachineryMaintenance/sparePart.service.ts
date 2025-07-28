@@ -73,9 +73,6 @@ export async function getAllSpareParts(): Promise<ServiceResponse<SparePart[]>> 
       where: { isActive: true }
     });
 
-    if (!repuestos.length) {
-      return [null, "No hay repuestos registrados"];
-    }
     return [repuestos, null];
 
   } catch (error) {
@@ -83,6 +80,7 @@ export async function getAllSpareParts(): Promise<ServiceResponse<SparePart[]>> 
     return [null, "Error al obtener repuestos"];
   }
 }
+
 
 // Obtener un repuesto por ID
 export async function getSparePart(id: number): Promise<ServiceResponse<SparePart>> {

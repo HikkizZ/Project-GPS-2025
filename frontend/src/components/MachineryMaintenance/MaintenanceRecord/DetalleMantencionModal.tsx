@@ -1,5 +1,5 @@
 import React from "react";
-import { Modal, Button, Row, Col, Badge, Alert } from "react-bootstrap";
+import { Modal, Button, Row, Col, Badge, Card } from "react-bootstrap";
 import { MaintenanceRecord } from "@/types/machinaryMaintenance/maintenanceRecord.types";
 
 interface Props {
@@ -61,104 +61,119 @@ const DetalleMantencionModal: React.FC<Props> = ({ show, onHide, record }) => {
   });
 
   return (
-    <Modal show={show} onHide={onHide} size="lg" centered>
-      <Modal.Header closeButton className="bg-warning text-dark">
+    <Modal show={show} onHide={onHide} size="xl" centered className="detalle-mantencion-modal">
+      <Modal.Header closeButton className="bg-primary text-white">
         <Modal.Title>
           <i className="bi bi-tools me-2" />
           Detalles de Mantención - {record.maquinaria.patente}
         </Modal.Title>
       </Modal.Header>
 
-      <Modal.Body>
-        {/* Sección: Información Básica */}
-        <div className="mb-4">
-          <h5>
-            <i className="bi bi-info-circle me-2"></i>
-            Información Básica
-          </h5>
-          <Row className="g-3">
-            <Col md={6}>
-              <label className="fw-bold">Maquinaria:</label>
-              <div>{record.maquinaria.grupo.replace(/_/g, " ")} - {record.maquinaria.modelo}</div>
-            </Col>
-            <Col md={6}>
-              <label className="fw-bold">Chasis:</label>
-              <div className="font-monospace">{record.maquinaria.numeroChasis}</div>
-            </Col>
-            <Col md={6}>
-              <label className="fw-bold">Tipo de Mantención:</label>
-              <div>{record.razonMantencion}</div>
-            </Col>
-            <Col md={6}>
-              <label className="fw-bold">Mecánico:</label>
-              <div>
-                {record.mecanicoAsignado?.trabajador
-                  ? `${record.mecanicoAsignado.trabajador.nombres} ${record.mecanicoAsignado.trabajador.apellidoPaterno} ${record.mecanicoAsignado.trabajador.apellidoMaterno}`
-                  : record.mecanicoAsignado?.rut ?? "No asignado"}
-              </div>
-            </Col>
-          </Row>
-        </div>
+      <Modal.Body className="p-4">
+        <Card className="mb-4 shadow-sm">
+          <Card.Header className="bg-light">
+            <h6 className="mb-0 text-uppercase fw-bold">
+              <i className="bi bi-info-circle me-2"></i>
+              Información General
+            </h6>
+          </Card.Header>
+          <Card.Body>
+            <Row className="g-3">
+              <Col md={6}>
+                <strong>Maquinaria:</strong>
+                <div>{record.maquinaria.grupo.replace(/_/g, " ")} - {record.maquinaria.modelo}</div>
+              </Col>
+              <Col md={6}>
+                <strong>Chasis:</strong>
+                <div className="font-monospace">{record.maquinaria.numeroChasis}</div>
+              </Col>
+              <Col md={6}>
+                <strong>Tipo de Mantención:</strong>
+                <div>{record.razonMantencion}</div>
+              </Col>
+              <Col md={6}>
+                <strong>Mecánico:</strong>
+                <div>
+                  {record.mecanicoAsignado?.trabajador
+                    ? `${record.mecanicoAsignado.trabajador.nombres} ${record.mecanicoAsignado.trabajador.apellidoPaterno} ${record.mecanicoAsignado.trabajador.apellidoMaterno}`
+                    : record.mecanicoAsignado?.rut ?? "No asignado"}
+                </div>
+              </Col>
+            </Row>
+          </Card.Body>
+        </Card>
 
-        {/* Sección: Fechas */}
-        <div className="mb-4">
-          <h5>
-            <i className="bi bi-calendar-event me-2"></i>
-            Fechas
-          </h5>
-          <Row className="g-3">
-            <Col md={6}>
-              <label className="fw-bold">Fecha Entrada:</label>
-              <div>{formatDate(record.fechaEntrada)}</div>
-            </Col>
-            <Col md={6}>
-              <label className="fw-bold">Fecha Salida:</label>
-              <div>{formatDate(record.fechaSalida)}</div>
-            </Col>
-          </Row>
-        </div>
+        <Card className="mb-4 shadow-sm">
+          <Card.Header className="bg-light">
+            <h6 className="mb-0 text-uppercase fw-bold">
+              <i className="bi bi-calendar-event me-2"></i>
+              Fechas
+            </h6>
+          </Card.Header>
+          <Card.Body>
+            <Row className="g-3">
+              <Col md={6}>
+                <strong>Fecha Entrada:</strong>
+                <div>{formatDate(record.fechaEntrada)}</div>
+              </Col>
+              <Col md={6}>
+                <strong>Fecha Salida:</strong>
+                <div>{formatDate(record.fechaSalida)}</div>
+              </Col>
+            </Row>
+          </Card.Body>
+        </Card>
 
-        {/* Sección: Descripciones */}
-        <div className="mb-4">
-          <h5>
-            <i className="bi bi-journal-text me-2"></i>
-            Descripciones
-          </h5>
-          <Row className="g-3">
-            <Col md={12}>
-              <label className="fw-bold">Descripción Entrada:</label>
-              <div className="bg-light p-2 rounded">{record.descripcionEntrada}</div>
-            </Col>
-            <Col md={12}>
-              <label className="fw-bold">Descripción Salida:</label>
-              <div className="bg-light p-2 rounded">{record.descripcionSalida || "No disponible"}</div>
-            </Col>
-          </Row>
-        </div>
+        <Card className="mb-4 shadow-sm">
+          <Card.Header className="bg-light">
+            <h6 className="mb-0 text-uppercase fw-bold">
+              <i className="bi bi-journal-text me-2"></i>
+              Descripciones
+            </h6>
+          </Card.Header>
+          <Card.Body>
+            <Row className="g-3">
+              <Col md={12}>
+                <strong>Descripción Entrada:</strong>
+                <div className="bg-light p-2 rounded border">{record.descripcionEntrada}</div>
+              </Col>
+              <Col md={12}>
+                <strong>Descripción Salida:</strong>
+                <div className="bg-light p-2 rounded border">{record.descripcionSalida || "No disponible"}</div>
+              </Col>
+            </Row>
+          </Card.Body>
+        </Card>
 
-        {/* Sección: Repuestos Usados */}
-        <div className="mb-4">
-          <h5>
-            <i className="bi bi-nut me-2"></i>
-            Repuestos Utilizados
-          </h5>
-          {repuestos.length > 0 ? (
-            <ul className="mb-0">{repuestos}</ul>
-          ) : (
-            <div className="text-muted">No se han registrado repuestos.</div>
-          )}
-        </div>
+        <Card className="mb-4 shadow-sm">
+          <Card.Header className="bg-light">
+            <h6 className="mb-0 text-uppercase fw-bold">
+              <i className="bi bi-nut me-2"></i>
+              Repuestos Utilizados
+            </h6>
+          </Card.Header>
+          <Card.Body>
+            {repuestos.length > 0 ? (
+              <ul className="mb-0">{repuestos}</ul>
+            ) : (
+              <div className="text-muted">No se han registrado repuestos.</div>
+            )}
+          </Card.Body>
+        </Card>
 
-        {/* Sección: Estado */}
-        <div className="mb-4">
-          <h5>
-            <i className="bi bi-clipboard-check me-2"></i>
-            Estado Actual
-          </h5>
-          <Badge bg={getEstadoBadgeColor(record.estado)} className="fs-6 text-uppercase">
-            {getEstadoTexto(record.estado)}
-          </Badge>
-        </div>
+        <Card className="mb-4 shadow-sm">
+          <Card.Header className="bg-light">
+            <h6 className="mb-0 text-uppercase fw-bold">
+              <i className="bi bi-clipboard-check me-2"></i>
+              Estado Actual
+            </h6>
+          </Card.Header>
+          <Card.Body>
+            <Badge bg={getEstadoBadgeColor(record.estado)} className="fs-6 text-uppercase">
+              {getEstadoTexto(record.estado)}
+            </Badge>
+          </Card.Body>
+        </Card>
       </Modal.Body>
 
       <Modal.Footer>
