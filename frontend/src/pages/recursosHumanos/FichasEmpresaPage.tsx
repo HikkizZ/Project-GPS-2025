@@ -762,7 +762,7 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                 {/* Checkboxes de estado */}
                 <div className="row mb-4">
                   <div className="col-12">
-                    <h6 className="mb-3 fw-semibold">Estados a mostrar:</h6>
+                    <h6 className="mb-3 fw-semibold">Incluir Estados:</h6>
                     <div className="d-flex gap-4">
                       <div className="form-check">
                         <input
