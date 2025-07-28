@@ -23,6 +23,15 @@ const ListSparePart: React.FC<Props> = ({ data, onEdit, onDelete, totalItems, on
     return 'danger';
   };
 
+  const toTitleCase = (text: string) => {
+  return text
+    .toLowerCase()
+    .split("_")
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+};
+
+
   const { user } = useAuth();
   const role = user?.role;
 
@@ -196,7 +205,7 @@ const ListSparePart: React.FC<Props> = ({ data, onEdit, onDelete, totalItems, on
                 <div className="d-flex flex-column gap-1">
                   <div>
                     <span className="fw-semibold text-muted">Nombre:</span>{" "}
-                    <span className="ms-2">{sparePartToDelete?.name ?? "N/A"}</span>
+                    <span className="ms-2">{sparePartToDelete?.name?? "N/A"}</span>
                   </div>
                   <div>
                     <span className="fw-semibold text-muted">Marca:</span>{" "}
