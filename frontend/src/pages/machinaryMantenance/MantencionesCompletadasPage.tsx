@@ -43,9 +43,16 @@ const MantencionesCompletadasPage: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
     
-  const sortedRecords = [...filteredRecords].sort((a, b) =>
-    a.maquinaria.patente.localeCompare(b.maquinaria.patente)
-  );
+  const sortedRecords = [...filteredRecords].sort((a, b) => {
+  const salidaA = a.fechaSalida ? new Date(a.fechaSalida).getTime() : 0;
+  const salidaB = b.fechaSalida ? new Date(b.fechaSalida).getTime() : 0;
+
+  if (salidaB !== salidaA) return salidaB - salidaA;
+
+  const entradaA = a.fechaEntrada ? new Date(a.fechaEntrada).getTime() : 0;
+  const entradaB = b.fechaEntrada ? new Date(b.fechaEntrada).getTime() : 0;
+  return entradaB - entradaA;
+});
 
   const totalPages = Math.ceil(sortedRecords.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
