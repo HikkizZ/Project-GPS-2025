@@ -129,22 +129,25 @@ const ListSparePart: React.FC<Props> = ({ data, onEdit, onDelete, totalItems, on
                               <Button
                                 variant="info"
                                 size="sm"
-                                className="px-1 me-1"
+                                className="px-1 me-2"
                                 onClick={() => handleShowAddStockModal(repuesto)}
                               >
                                 <i className="bi bi-plus-circle"></i>
                               </Button>
                             )}
-                            {role === "SuperAdministrador" && (
+                            {(role == "SuperAdministrador" || role=="Mantenciones de Maquinaria") && (
                               <>
-                                <Button
+                                 <Button
                                   variant="warning"
                                   size="sm"
-                                  className="px-1"
+                                  className="px-1 me-2"
                                   onClick={() => onEdit(repuesto)}
                                 >
                                   <i className="bi bi-pencil"></i>
                                 </Button>
+                                </>)}
+                              {( role == "SuperAdministrador") &&(
+                                <>
                                 <Button
                                   variant="danger"
                                   size="sm"
@@ -153,9 +156,11 @@ const ListSparePart: React.FC<Props> = ({ data, onEdit, onDelete, totalItems, on
                                 >
                                   <i className="bi bi-trash"></i>
                                 </Button>
+                                </>)}
+                              
 
-                              </>
-                            )}
+                                 
+                            
                           </div>
                         </td>
                       )}

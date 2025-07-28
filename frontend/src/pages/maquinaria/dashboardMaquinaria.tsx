@@ -87,7 +87,7 @@ const DashboardMaquinaria: React.FC = () => {
 
   return (
     <Container fluid className="py-2" style={{ paddingBottom: "2.3rem" }}>
-      <Row>
+      <Row className="g-4 justify-content-center">
         <Col>
           {/* Header */}
           <div
@@ -128,7 +128,7 @@ const DashboardMaquinaria: React.FC = () => {
                 {tienePermisosCompletos && (
                   <>
                     {/* Tarjeta de Gestión Trabajo Maquinaria */}
-                    <Col md={3}>
+                    <Col md={4}>
                       <Link to="/maquinaria/trabajo" style={{ textDecoration: "none" }}>
                         <Card
                           className="h-100 border-0 shadow-lg"
@@ -180,7 +180,7 @@ const DashboardMaquinaria: React.FC = () => {
                     </Col>
 
                     {/* Tarjeta de Gestión Mantenciones Maquinaria */}
-                    <Col md={3}>
+                    <Col md={4}>
                       <Link to="/maintenance-records" style={{ textDecoration: "none" }}>
                         <Card
                           className="h-100 border-0 shadow-lg"
@@ -233,7 +233,7 @@ const DashboardMaquinaria: React.FC = () => {
                     </Col>
 
                     {/* Tarjeta de Inventario de Repuestos */}
-                    <Col md={3}>
+                    <Col md={4}>
                       <Link to="/spare-parts" style={{ textDecoration: "none" }}>
                         <Card
                           className="h-100 border-0 shadow-lg"
