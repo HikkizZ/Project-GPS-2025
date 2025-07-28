@@ -74,7 +74,7 @@ export const ModalDetallesBono: React.FC<ModalDetallesBonoProps> = ({
   };
 
   return (
-    <Modal show={show} onHide={onHide} size="lg" centered className="modal-enhanced">
+    <Modal show={show} onHide={onHide} size="lg" centered className="modal-enhanced modal-detalles-bono">
       <Modal.Header closeButton className="modal-header-custom">
         <Modal.Title className="d-flex align-items-center">
           <i className="bi bi-cash-coin me-2"></i>
