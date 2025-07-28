@@ -12,7 +12,6 @@ export class MaquinariaService {
 
   async obtenerTodasLasMaquinarias(): Promise<ApiResponse<Maquinaria[]>> {
     try {
-      // Agregar parámetro para incluir relaciones
       const response = await apiClient.get(`${this.baseURL}/?includeRelations=true`)
       return {
         success: true,
@@ -119,8 +118,6 @@ export class MaquinariaService {
 }
 
 export const maquinariaService = new MaquinariaService()
-
-// Funciones de conveniencia para uso directo
 export const obtenerTodasLasMaquinarias = () => maquinariaService.obtenerTodasLasMaquinarias()
 export const obtenerMaquinariaPorId = (id: number) => maquinariaService.obtenerMaquinariaPorId(id)
 export const obtenerMaquinariaDisponible = () => maquinariaService.obtenerMaquinariaDisponible()

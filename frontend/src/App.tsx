@@ -874,6 +874,14 @@ function App() {
                     } 
                   />
                   <Route 
+                    path="maquinaria/clientes" 
+                    element={
+                      <ProtectedRoute allowedRoles={["Administrador", "SuperAdministrador", "Ventas", "Gerencia", "Finanzas"]}>
+                        <CustomerPage />
+                      </ProtectedRoute>
+                    } 
+                  />             
+                  <Route 
                     path="inventario/productos" 
                     element={
                       <ProtectedRoute allowedRoles={["Administrador", "SuperAdministrador", "Ventas", "Gerencia", "Finanzas"]}>

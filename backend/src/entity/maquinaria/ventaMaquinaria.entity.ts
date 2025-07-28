@@ -17,10 +17,10 @@ export class VentaMaquinaria {
   fechaVenta!: Date
 
   @Column({ type: "decimal", precision: 15, scale: 2, nullable: false })
-  valorCompra!: number // Valor original de compra
+  valorCompra!: number
 
   @Column({ type: "decimal", precision: 15, scale: 2, nullable: false })
-  valorVenta!: number // Valor de venta
+  valorVenta!: number
 
   // Relación con Customer
   @Column({ type: "int", nullable: false })
@@ -30,7 +30,7 @@ export class VentaMaquinaria {
   customerRut!: string
 
   @Column({ type: "varchar", length: 255, nullable: true })
-  comprador?: string // Nombre del customer (desnormalizado para consultas rápidas)
+  comprador?: string
 
   @Column({ type: "text", nullable: true })
   observaciones?: string

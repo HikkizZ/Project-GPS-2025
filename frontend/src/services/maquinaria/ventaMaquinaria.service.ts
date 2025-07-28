@@ -27,7 +27,6 @@ export class VentaMaquinariaService {
     }
   }
 
-  // MANTENER LA FUNCIÓN ORIGINAL SIN CAMBIOS
   async obtenerTodasLasVentas(): Promise<ApiResponse<VentaMaquinaria[]>> {
     try {
       const response = await apiClient.get(`${this.baseURL}/`)
@@ -45,7 +44,7 @@ export class VentaMaquinariaService {
     }
   }
 
-  // NUEVA FUNCIÓN PARA OBTENER CON INACTIVAS
+  // Canbios finales, ahora se pueden obtener inactivos
   async obtenerTodasLasVentasConInactivas(): Promise<ApiResponse<VentaMaquinaria[]>> {
     try {
       const response = await apiClient.get(`${this.baseURL}/`, {
@@ -154,7 +153,7 @@ export class VentaMaquinariaService {
     }
   }
 
-  // NUEVOS MÉTODOS PARA SOFT DELETE
+  // Primer intento, soft delete...
   async eliminarVenta(id: number): Promise<ApiResponse<void>> {
     try {
       const response = await apiClient.delete(`${this.baseURL}/${id}`)
@@ -188,8 +187,6 @@ export class VentaMaquinariaService {
 }
 
 export const ventaMaquinariaService = new VentaMaquinariaService()
-
-// Funciones de conveniencia para uso directo
 export const registrarVenta = (data: CreateVentaMaquinaria) => ventaMaquinariaService.registrarVenta(data)
 export const obtenerTodasLasVentas = () => ventaMaquinariaService.obtenerTodasLasVentas()
 export const obtenerVentaPorId = (id: number) => ventaMaquinariaService.obtenerVentaPorId(id)

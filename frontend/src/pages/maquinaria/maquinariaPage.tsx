@@ -5,11 +5,13 @@ import { MaquinariaDetalleModal } from "../../components/maquinaria/maquinariaDe
 import MaquinariaSidebar from "../../components/maquinaria/maquinariaSideBar"
 import { useMaquinaria } from "../../hooks/maquinaria/useMaquinaria"
 import { useExcelExport } from "../../hooks/useExcelExport"
+import { useToast } from "../../components/common/Toast"
 import type { Maquinaria } from "../../types/maquinaria.types"
 
 export const MaquinariaPage: React.FC = () => {
   const { maquinarias, loading, error } = useMaquinaria()
   const { exportToExcel, isExporting } = useExcelExport()
+  const { showSuccess, showError } = useToast()
   const [filtroEstado, setFiltroEstado] = useState<string>("todos")
   const [selectedMaquinaria, setSelectedMaquinaria] = useState<Maquinaria | null>(null)
   const [showDetalleModal, setShowDetalleModal] = useState(false)
@@ -58,13 +60,17 @@ export const MaquinariaPage: React.FC = () => {
     setShowDetalleModal(true)
   }
 
-  // Filtrar maquinarias
   const maquinariasFiltradas = maquinarias.filter((maquinaria) => {
     return filtroEstado === "todos" || maquinaria.estado === filtroEstado
   })
 
   const handleExportarExcel = async () => {
     try {
+      if (maquinariasFiltradas.length === 0) {
+        showError("Sin datos", "No hay datos para exportar")
+        return
+      }
+
       const datosParaExcel = maquinariasFiltradas.map((maquinaria) => ({
         Patente: maquinaria.patente,
         Marca: maquinaria.marca,
@@ -76,28 +82,25 @@ export const MaquinariaPage: React.FC = () => {
       }))
 
       await exportToExcel(datosParaExcel, "inventario_maquinaria", "Inventario Maquinaria")
+      showSuccess("Exportación exitosa", "Inventario exportado a Excel correctamente")
     } catch (error) {
-      console.error("Error al exportar:", error)
-      alert("Error al generar el archivo Excel")
+      showError("Error al exportar", "No se pudo generar el archivo Excel")
     }
   }
 
   return (
     <div className="d-flex">
-      {/* Sidebar */}
       <MaquinariaSidebar />
 
-      {/* Contenido principal */}
       <div className="flex-grow-1">
         <Container fluid className="py-4">
           <Row>
             <Col>
-              {/* Encabezado de página */}
               <Card className="shadow-sm mb-3">
                 <Card.Header className="bg-gradient-primary text-white">
                   <div className="d-flex align-items-center justify-content-between">
                     <div className="d-flex align-items-center">
-                      <i className="bi bi-gear-wide-connected fs-4 me-3"></i>
+                      <i className="bi bi-truck fs-4 me-3"></i>
                       <div>
                         <h3 className="mb-1">Inventario de Maquinaria</h3>
                         <p className="mb-0 opacity-75">Gestiona y controla tu inventario de maquinaria</p>
@@ -131,7 +134,6 @@ export const MaquinariaPage: React.FC = () => {
                 </Card.Header>
               </Card>
 
-              {/* Filtros */}
               <Card className="shadow-sm mb-3">
                 <Card.Body>
                   <Row className="align-items-end">
@@ -151,7 +153,6 @@ export const MaquinariaPage: React.FC = () => {
                 </Card.Body>
               </Card>
 
-              {/* Mensajes de error */}
               {error && (
                 <Alert variant="danger" className="mb-3">
                   <i className="bi bi-exclamation-triangle me-2"></i>
@@ -159,7 +160,6 @@ export const MaquinariaPage: React.FC = () => {
                 </Alert>
               )}
 
-              {/* Loading */}
               {loading && (
                 <div className="text-center py-5">
                   <Spinner animation="border" variant="primary" />
@@ -167,7 +167,6 @@ export const MaquinariaPage: React.FC = () => {
                 </div>
               )}
 
-              {/* Tabla */}
               {!loading && !error && (
                 <Card className="shadow-sm">
                   <Card.Header className="bg-light">
@@ -215,9 +214,7 @@ export const MaquinariaPage: React.FC = () => {
                                 <td className="font-monospace">
                                   {maquinaria.kilometrajeActual?.toLocaleString("es-CL") || "0"} km
                                 </td>
-                                <td className="font-monospace text-start">
-                                  {formatCurrency(maquinaria.avaluoFiscal)}
-                                </td>
+                                <td className="font-monospace text-start">{formatCurrency(maquinaria.avaluoFiscal)}</td>
                                 <td>
                                   <Button
                                     variant="outline-primary"
@@ -228,7 +225,6 @@ export const MaquinariaPage: React.FC = () => {
                                     <i className="bi bi-eye"></i>
                                   </Button>
                                 </td>
-
                               </tr>
                             ))}
                           </tbody>
@@ -243,7 +239,6 @@ export const MaquinariaPage: React.FC = () => {
         </Container>
       </div>
 
-      {/* Modal de detalles */}
       <MaquinariaDetalleModal
         show={showDetalleModal}
         onHide={() => setShowDetalleModal(false)}

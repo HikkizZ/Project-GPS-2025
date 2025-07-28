@@ -7,14 +7,11 @@ export class CompraMaquinariaController {
   constructor() {
     this.compraMaquinariaService = new CompraMaquinariaService()
   }
-
   registrarCompra = async (req: Request, res: Response): Promise<void> => {
     try {
       const file = req.file
       const data = req.body
-
       const resultado = await this.compraMaquinariaService.registrarCompra(data, file)
-
       res.status(201).json({
         success: true,
         message: "Compra registrada exitosamente",
@@ -28,7 +25,6 @@ export class CompraMaquinariaController {
       })
     }
   }
-
   obtenerTodasLasCompras = async (req: Request, res: Response): Promise<void> => {
     try {
       const incluirInactivas = req.query.incluirInactivas === "true"
@@ -46,7 +42,6 @@ export class CompraMaquinariaController {
       })
     }
   }
-
   obtenerCompraPorId = async (req: Request, res: Response): Promise<void> => {
     try {
       const { id } = req.params
@@ -60,7 +55,6 @@ export class CompraMaquinariaController {
         })
         return
       }
-
       res.status(200).json({
         success: true,
         data: compra,
@@ -73,7 +67,6 @@ export class CompraMaquinariaController {
       })
     }
   }
-
   obtenerComprasPorMaquinaria = async (req: Request, res: Response): Promise<void> => {
     try {
       const { maquinariaId } = req.params
@@ -82,7 +75,6 @@ export class CompraMaquinariaController {
         Number(maquinariaId),
         incluirInactivas,
       )
-
       res.status(200).json({
         success: true,
         data: compras,
@@ -95,7 +87,6 @@ export class CompraMaquinariaController {
       })
     }
   }
-
   obtenerComprasPorFecha = async (req: Request, res: Response): Promise<void> => {
     try {
       const { fechaInicio, fechaFin } = req.query
@@ -106,7 +97,6 @@ export class CompraMaquinariaController {
         fechaFin as string,
         incluirInactivas,
       )
-
       res.status(200).json({
         success: true,
         data: compras,
@@ -119,15 +109,12 @@ export class CompraMaquinariaController {
       })
     }
   }
-
   actualizarCompra = async (req: Request, res: Response): Promise<void> => {
     try {
       const { id } = req.params
       const file = req.file
       const data = req.body
-
       const compraActualizada = await this.compraMaquinariaService.actualizarCompra(Number(id), data, file)
-
       res.status(200).json({
         success: true,
         message: "Compra actualizada exitosamente",
@@ -141,12 +128,10 @@ export class CompraMaquinariaController {
       })
     }
   }
-
   eliminarCompra = async (req: Request, res: Response): Promise<void> => {
     try {
       const { id } = req.params
       await this.compraMaquinariaService.eliminarCompra(Number(id))
-
       res.status(200).json({
         success: true,
         message: "Compra eliminada exitosamente (soft delete)",
@@ -159,7 +144,6 @@ export class CompraMaquinariaController {
       })
     }
   }
-
   restaurarCompra = async (req: Request, res: Response): Promise<void> => {
     try {
       const { id } = req.params
@@ -174,6 +158,60 @@ export class CompraMaquinariaController {
       res.status(500).json({
         success: false,
         message: "Error al restaurar compra",
+        error: error.message,
+      })
+    }
+  }
+  obtenerPadronCompra = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { id } = req.params
+      const compra = await this.compraMaquinariaService.obtenerCompraPorId(Number(id), false)
+
+      if (!compra) {
+        res.status(404).json({
+          success: false,
+          message: "Compra no encontrada",
+        })
+        return
+      }
+
+      if (!compra.padronUrl) {
+        res.status(404).json({
+          success: false,
+          message: "Esta compra no tiene padrón asociado",
+        })
+        return
+      }
+
+      res.status(200).json({
+        success: true,
+        data: {
+          padronUrl: compra.padronUrl,
+        },
+      })
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        message: "Error al obtener padrón de la compra",
+        error: error.message,
+      })
+    }
+  }
+
+  eliminarPadronCompra = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { id } = req.params
+      const resultado = await this.compraMaquinariaService.eliminarPadronCompra(Number(id))
+
+      res.status(200).json({
+        success: true,
+        message: "Padrón eliminado exitosamente",
+        data: resultado,
+      })
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        message: "Error al eliminar padrón de la compra",
         error: error.message,
       })
     }
