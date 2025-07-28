@@ -112,16 +112,13 @@ const SparePartsPage: React.FC = () => {
   }
 
   const handleDelete = async (id: number) => {
-    if (confirm("¿Estás seguro de eliminar este repuesto?")) {
-      try {
+    try {
         await deleteSparePart(id)
         showSuccess("Repuesto eliminado", "Se eliminó correctamente")
         reload()
       } catch (error) {
-        console.error(error)
         showError("Error al eliminar", "No se pudo eliminar el repuesto")
       }
-    }
   }
 
   return (
