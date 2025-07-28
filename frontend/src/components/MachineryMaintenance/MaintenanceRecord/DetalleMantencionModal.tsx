@@ -24,13 +24,12 @@ const DetalleMantencionModal: React.FC<Props> = ({ show, onHide, record }) => {
   };
 
   const toTitleCase = (text: string) => {
-  return text
-    .toLowerCase()
-    .split("_")
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
-};
-
+    return text
+      .toLowerCase()
+      .split(/[\s_]+/)
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+  };
 
   const getEstadoTexto = (estado: string) => {
     switch (estado) {
@@ -43,7 +42,7 @@ const DetalleMantencionModal: React.FC<Props> = ({ show, onHide, record }) => {
       case "irrecuperable":
         return "Irrecuperable";
       default:
-        return estado;
+        return toTitleCase(estado);
     }
   };
 
@@ -67,7 +66,7 @@ const DetalleMantencionModal: React.FC<Props> = ({ show, onHide, record }) => {
     const cantidad = "cantidadUtilizada" in r ? r.cantidadUtilizada : r.cantidad;
     return (
       <li key={idx}>
-        {nombre} ({cantidad})
+        {toTitleCase(nombre)} ({cantidad})
       </li>
     );
   });
@@ -82,6 +81,7 @@ const DetalleMantencionModal: React.FC<Props> = ({ show, onHide, record }) => {
       </Modal.Header>
 
       <Modal.Body className="p-4">
+        <h1 className="text-center mb-4 fw-bold">Reporte de Mantención</h1>
         <div id="detalle-mantencion-content">
           <Card className="mb-4 shadow-sm">
             <Card.Header className="bg-light">
@@ -94,7 +94,9 @@ const DetalleMantencionModal: React.FC<Props> = ({ show, onHide, record }) => {
               <Row className="g-3">
                 <Col md={6}>
                   <strong>Maquinaria:</strong>
-                  <div>{record.maquinaria.grupo.replace(/_/g, " ")} - {record.maquinaria.modelo}</div>
+                  <div>
+                    {toTitleCase(record.maquinaria.grupo.replace(/_/g, " "))} - {toTitleCase(record.maquinaria.modelo)}
+                  </div>
                 </Col>
                 <Col md={6}>
                   <strong>Chasis:</strong>
@@ -102,13 +104,13 @@ const DetalleMantencionModal: React.FC<Props> = ({ show, onHide, record }) => {
                 </Col>
                 <Col md={6}>
                   <strong>Tipo de Mantención:</strong>
-                  <div>{record.razonMantencion}</div>
+                  <div>{toTitleCase(record.razonMantencion)}</div>
                 </Col>
                 <Col md={6}>
                   <strong>Mecánico:</strong>
                   <div>
                     {record.mecanicoAsignado?.trabajador
-                      ? `${record.mecanicoAsignado.trabajador.nombres} ${record.mecanicoAsignado.trabajador.apellidoPaterno} ${record.mecanicoAsignado.trabajador.apellidoMaterno}`
+                      ? `${toTitleCase(record.mecanicoAsignado.trabajador.nombres)} ${toTitleCase(record.mecanicoAsignado.trabajador.apellidoPaterno)} ${toTitleCase(record.mecanicoAsignado.trabajador.apellidoMaterno)}`
                       : record.mecanicoAsignado?.rut ?? "No asignado"}
                   </div>
                 </Col>
@@ -191,18 +193,32 @@ const DetalleMantencionModal: React.FC<Props> = ({ show, onHide, record }) => {
       </Modal.Body>
 
       <Modal.Footer>
-        <Button
-          variant="outline-success"
-          onClick={() => exportToPdf("detalle-mantencion-content", `mantencion-${record.id}.pdf`)}
-          disabled={isExporting}
-        >
-          <i className="bi bi-file-earmark-pdf me-2" />
-          {isExporting ? "Generando..." : "Exportar PDF"}
-        </Button>
-        <Button variant="secondary" onClick={onHide}>
-          <i className="bi bi-x-circle me-2"></i>
-          Cerrar
-        </Button>
+        {(() => {
+          const formatDateForFile = (dateString: string | Date | null | undefined) => {
+            if (!dateString) return "sin-fecha";
+            const date = new Date(dateString);
+            return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, "0")}-${date.getDate().toString().padStart(2, "0")}`;
+          };
+
+          const fileName = `Reporte de Mantención - ${toTitleCase(record.maquinaria.grupo)} - ${formatDateForFile(record.fechaSalida)}.pdf`;
+
+          return (
+            <>
+              <Button
+                variant="outline-success"
+                onClick={() => exportToPdf("detalle-mantencion-content", fileName)}
+                disabled={isExporting}
+              >
+                <i className="bi bi-file-earmark-pdf me-2" />
+                {isExporting ? "Generando..." : "Exportar PDF"}
+              </Button>
+              <Button variant="secondary" onClick={onHide}>
+                <i className="bi bi-x-circle me-2"></i>
+                Cerrar
+              </Button>
+            </>
+          );
+        })()}
       </Modal.Footer>
     </Modal>
   );
