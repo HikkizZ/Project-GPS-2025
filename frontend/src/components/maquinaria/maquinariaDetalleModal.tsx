@@ -67,6 +67,25 @@ export const MaquinariaDetalleModal: React.FC<MaquinariaDetalleModalProps> = ({
     return grupo?.replace(/_/g, " ").toUpperCase() || "Sin grupo"
   }
 
+  const getImageUrl = (filename?: string) => {
+    if (!filename) return "/placeholder.svg"
+
+    // Si ya es una URL completa, usarla tal como está
+    if (filename.startsWith("http://") || filename.startsWith("https://")) {
+      return filename
+    }
+
+    // Si empieza con /uploads/, construir URL completa
+    if (filename.startsWith("/uploads/")) {
+      const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:3000"
+      return `${baseUrl}${filename}`
+    }
+
+    // Si es solo el nombre del archivo, construir la URL completa
+    const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:3000"
+    return `${baseUrl}/uploads/maquinaria/images/${filename}`
+  }
+
   const handleEliminarPadron = async () => {
     if (!maquinaria || !onEliminarPadron) return
 
@@ -81,6 +100,8 @@ export const MaquinariaDetalleModal: React.FC<MaquinariaDetalleModalProps> = ({
   }
 
   if (!maquinaria) return null
+
+  const imageUrl = getImageUrl(maquinaria.padronUrl)
 
   return (
     <Modal show={show} onHide={onHide} size="lg" centered>
@@ -101,7 +122,7 @@ export const MaquinariaDetalleModal: React.FC<MaquinariaDetalleModalProps> = ({
             <div className="padron-preview">
               <div>
                 <img
-                  src={maquinaria.padronUrl || "/placeholder.svg"}
+                  src={imageUrl || "/placeholder.svg"}
                   alt="Padrón"
                   className="padron-image"
                   style={{ maxWidth: "100%", height: "auto", borderRadius: "8px" }}
@@ -110,6 +131,10 @@ export const MaquinariaDetalleModal: React.FC<MaquinariaDetalleModalProps> = ({
                     target.style.display = "none"
                     const errorDiv = target.nextElementSibling as HTMLElement
                     if (errorDiv) errorDiv.classList.remove("d-none")
+
+                    console.error("❌ Error cargando imagen:")
+                    console.error("   Filename original:", maquinaria.padronUrl)
+                    console.error("   URL construida:", imageUrl)
                   }}
                 />
                 <Alert variant="danger" className="d-none">
