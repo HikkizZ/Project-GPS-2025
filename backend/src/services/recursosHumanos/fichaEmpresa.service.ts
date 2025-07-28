@@ -319,12 +319,22 @@ export async function getMiFichaService(userId: number): Promise<ServiceResponse
 
         const ficha = await fichaRepo.findOne({
             where: { trabajador: { id: user.trabajador.id } },
-            relations: ["trabajador", "trabajador.usuario"]
+            relations: ["trabajador", "trabajador.usuario", "asignacionesBonos", "asignacionesBonos.bono"]
         });
 
         if (!ficha) {
             return [null, { message: "Ficha no encontrada" }];
-        }return [ficha, null];
+        }
+
+        // Debug: Verificar si las asignaciones de bonos se cargaron correctamente
+        console.log('Ficha encontrada:', {
+            id: ficha.id,
+            trabajador: ficha.trabajador?.nombres,
+            asignacionesBonos: ficha.asignacionesBonos?.length || 0,
+            bonosActivos: ficha.asignacionesBonos?.filter(ab => ab.activo).length || 0
+        });
+
+        return [ficha, null];
     } catch (error) {
         console.error("Error en getMiFichaService:", error);
         return [null, { message: "Error interno del servidor" }];

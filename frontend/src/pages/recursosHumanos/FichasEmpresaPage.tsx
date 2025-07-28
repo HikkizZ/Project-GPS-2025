@@ -406,8 +406,16 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
     setShowDetallesBonoModal(true);
   };
 
-  const handleVerRemuneraciones = () => {
-    setShowRemuneracionesModal(true);
+  const handleVerRemuneraciones = async () => {
+    // Recargar la ficha para obtener los datos más actualizados
+    try {
+      await loadMiFicha();
+      setShowRemuneracionesModal(true);
+    } catch (error) {
+      console.error('Error al recargar datos de remuneraciones:', error);
+      // Aún así abrir el modal con los datos disponibles
+      setShowRemuneracionesModal(true);
+    }
   };
 
   // Modal de remuneraciones - FUERA de los returns condicionales

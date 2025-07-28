@@ -136,9 +136,45 @@ export const ModalRemuneraciones: React.FC<ModalRemuneracionesProps> = ({
   const sueldoBruto = calculoSueldoBruto(ficha);
   const [rentaImponible, descuentoLegal, sueldoLiquido, descuentosInternos, totalBonosNoImponibles] = calcularSueldoLiquido(ficha);
 
+  // Debug: Verificar datos recibidos
+  console.log('ModalRemuneraciones - Datos de ficha:', {
+    id: ficha.id,
+    trabajador: ficha.trabajador?.nombres,
+    asignacionesBonos: ficha.asignacionesBonos?.length || 0,
+    bonosActivos: ficha.asignacionesBonos?.filter(bono => bono.activo).length || 0
+  });
+
   const bonosActivos = ficha.asignacionesBonos?.filter(bono => bono.activo) || [];
   const bonosImponibles = bonosActivos.filter(bono => bono.bono?.imponible);
   const bonosNoImponibles = bonosActivos.filter(bono => !bono.bono?.imponible);
+  
+  // Separar bonos permanentes y temporales
+  const bonosPermanentes = bonosActivos.filter(bono => bono.bono?.temporalidad === 'permanente');
+  const bonosTemporales = bonosActivos.filter(bono => bono.bono?.temporalidad !== 'permanente');
+  
+  // Función para formatear fecha
+  const formatFecha = (fecha: string | Date) => {
+    if (!fecha) return 'N/A';
+    const date = new Date(fecha);
+    return date.toLocaleDateString('es-CL');
+  };
+
+  // Función para verificar si un bono está próximo a vencer (30 días)
+  const isProximoAVencer = (fechaFin: string | Date) => {
+    if (!fechaFin) return false;
+    const fechaFinDate = new Date(fechaFin);
+    const hoy = new Date();
+    const diasRestantes = Math.ceil((fechaFinDate.getTime() - hoy.getTime()) / (1000 * 60 * 60 * 24));
+    return diasRestantes <= 30 && diasRestantes > 0;
+  };
+
+  // Función para verificar si un bono está vencido
+  const isVencido = (fechaFin: string | Date) => {
+    if (!fechaFin) return false;
+    const fechaFinDate = new Date(fechaFin);
+    const hoy = new Date();
+    return fechaFinDate < hoy;
+  };
 
   return (
     <Modal show={show} onHide={onHide} size="lg" centered>
@@ -158,6 +194,10 @@ export const ModalRemuneraciones: React.FC<ModalRemuneracionesProps> = ({
             <i className="bi bi-briefcase me-2"></i>
             {ficha.cargo} - {ficha.area}
           </p>
+          <small className="text-muted">
+            <i className="bi bi-clock me-1"></i>
+            Última actualización: {new Date().toLocaleString('es-CL')}
+          </small>
         </div>
 
         <Row>
@@ -174,6 +214,51 @@ export const ModalRemuneraciones: React.FC<ModalRemuneracionesProps> = ({
                   <span>Sueldo Base:</span>
                   <strong className="text-success">{formatMiles(ficha.sueldoBase)}</strong>
                 </div>
+                {bonosPermanentes.length > 0 && (
+                  <div className="d-flex justify-content-between mb-2">
+                    <span>Bonos Permanentes:</span>
+                    <strong className="text-success">
+                      {formatMiles(bonosPermanentes.reduce((total, bono) => total + parseInt(bono.bono?.monto || '0'), 0))}
+                    </strong>
+                  </div>
+                )}
+                {bonosActivos.length === 0 && (
+          <Card className="mb-3">
+            <Card.Header className="bg-light">
+              <h6 className="mb-0">
+                <i className="bi bi-info-circle me-2"></i>
+                Información de Bonos
+              </h6>
+            </Card.Header>
+            <Card.Body>
+              <div className="text-center text-muted">
+                <i className="bi bi-gift fs-1 mb-3"></i>
+                <p>No hay bonos asignados actualmente.</p>
+                <small>Los bonos aparecerán aquí cuando sean asignados por Recursos Humanos.</small>
+              </div>
+            </Card.Body>
+          </Card>
+        )}
+
+        {bonosTemporales.length > 0 && (
+                  <div className="d-flex justify-content-between mb-2">
+                    <span>Bonos Temporales:</span>
+                    <strong className="text-warning">
+                      {formatMiles(bonosTemporales.reduce((total, bono) => total + parseInt(bono.bono?.monto || '0'), 0))}
+                    </strong>
+                  </div>
+                )}
+                {(bonosPermanentes.length > 0 || bonosTemporales.length > 0) && (
+                  <div className="d-flex justify-content-between mb-2">
+                    <span>Total Bonos:</span>
+                    <strong className="text-info">
+                      {formatMiles(
+                        bonosPermanentes.reduce((total, bono) => total + parseInt(bono.bono?.monto || '0'), 0) +
+                        bonosTemporales.reduce((total, bono) => total + parseInt(bono.bono?.monto || '0'), 0)
+                      )}
+                    </strong>
+                  </div>
+                )}
                 <div className="d-flex justify-content-between mb-2">
                   <span>Bonos Imponibles:</span>
                   <strong className="text-success">
@@ -265,12 +350,12 @@ export const ModalRemuneraciones: React.FC<ModalRemuneracionesProps> = ({
           </Card.Body>
         </Card>
 
-        {bonosActivos.length > 0 && (
-          <Card>
-            <Card.Header className="bg-light">
+        {bonosPermanentes.length > 0 && (
+          <Card className="mb-3">
+            <Card.Header className="bg-success text-white">
               <h6 className="mb-0">
                 <i className="bi bi-gift me-2"></i>
-                Bonos Asignados
+                Bonos Permanentes
               </h6>
             </Card.Header>
             <Card.Body>
@@ -285,7 +370,7 @@ export const ModalRemuneraciones: React.FC<ModalRemuneracionesProps> = ({
                     </tr>
                   </thead>
                   <tbody>
-                    {bonosActivos.map((asignacion) => (
+                    {bonosPermanentes.map((asignacion) => (
                       <tr key={asignacion.id}>
                         <td>{asignacion.bono?.nombreBono || 'N/A'}</td>
                         <td className="text-success">{formatMiles(parseInt(asignacion.bono?.monto || '0'))}</td>
@@ -298,6 +383,68 @@ export const ModalRemuneraciones: React.FC<ModalRemuneracionesProps> = ({
                           <Badge bg={asignacion.bono?.imponible ? 'success' : 'secondary'}>
                             {asignacion.bono?.imponible ? 'Sí' : 'No'}
                           </Badge>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </Card.Body>
+          </Card>
+        )}
+
+        {bonosTemporales.length > 0 && (
+          <Card className="mb-3">
+            <Card.Header className="bg-warning text-dark">
+              <h6 className="mb-0">
+                <i className="bi bi-clock me-2"></i>
+                Bonos Temporales
+              </h6>
+            </Card.Header>
+            <Card.Body>
+              <div className="table-responsive">
+                <table className="table table-sm">
+                  <thead>
+                    <tr>
+                      <th>Bono</th>
+                      <th>Monto</th>
+                      <th>Tipo</th>
+                      <th>Imponible</th>
+                      <th>Vigencia</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {bonosTemporales.map((asignacion) => (
+                      <tr key={asignacion.id}>
+                        <td>{asignacion.bono?.nombreBono || 'N/A'}</td>
+                        <td className="text-success">{formatMiles(parseInt(asignacion.bono?.monto || '0'))}</td>
+                        <td>
+                          <Badge bg={asignacion.bono?.tipoBono === 'estatal' ? 'info' : 'warning'}>
+                            {asignacion.bono?.tipoBono || 'N/A'}
+                          </Badge>
+                        </td>
+                        <td>
+                          <Badge bg={asignacion.bono?.imponible ? 'success' : 'secondary'}>
+                            {asignacion.bono?.imponible ? 'Sí' : 'No'}
+                          </Badge>
+                        </td>
+                        <td>
+                          <small className={
+                            isVencido(asignacion.fechaFinAsignacion) ? 'text-danger' :
+                            isProximoAVencer(asignacion.fechaFinAsignacion) ? 'text-warning' :
+                            'text-muted'
+                          }>
+                            {asignacion.fechaFinAsignacion ? 
+                              `Hasta ${formatFecha(asignacion.fechaFinAsignacion)}` : 
+                              'Sin fecha fin'
+                            }
+                            {isProximoAVencer(asignacion.fechaFinAsignacion) && (
+                              <i className="bi bi-exclamation-triangle ms-1" title="Próximo a vencer"></i>
+                            )}
+                            {isVencido(asignacion.fechaFinAsignacion) && (
+                              <i className="bi bi-x-circle ms-1" title="Vencido"></i>
+                            )}
+                          </small>
                         </td>
                       </tr>
                     ))}
