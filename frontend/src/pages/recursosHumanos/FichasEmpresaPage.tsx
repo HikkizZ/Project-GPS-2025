@@ -527,14 +527,16 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                           <div className="info-field">
                             <i className="bi bi-cash"></i>
                             <label>Sueldo Base</label>
-                            <button 
-                              className="btn btn-link p-0 text-success text-decoration-underline border-0 bg-transparent"
-                              onClick={handleVerRemuneraciones}
-                              title="Ver detalle de remuneraciones"
-                              style={{ textAlign: 'left', width: '100%' }}
-                            >
-                              {formatSueldo(miFicha.sueldoBase)}
-                            </button>
+                            <div className="value">
+                              <span 
+                                className="text-success text-decoration-underline"
+                                onClick={handleVerRemuneraciones}
+                                title="Ver detalle de remuneraciones"
+                                style={{ cursor: 'pointer' }}
+                              >
+                                {formatSueldo(miFicha.sueldoBase)}
+                              </span>
+                            </div>
                           </div>
 
                           <div className="info-field">
