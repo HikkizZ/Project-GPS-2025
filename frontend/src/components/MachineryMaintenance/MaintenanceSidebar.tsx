@@ -4,7 +4,7 @@ import { NavLink } from "react-router-dom"
 
 const MaintenanceSidebar: React.FC = () => {
   return (
-    <div className="d-flex flex-column p-3 bg-light" style={{ minHeight: "100vh", width: "250px" }}>
+    <div className="d-flex flex-column p-3 bg-light" style={{ minHeight: "100vh", width: "260px" }}>
       <h5 className="mb-4">
         <i className="bi bi-gear-wide-connected me-2"></i>
         Mantención de Maquinaria
@@ -15,7 +15,7 @@ const MaintenanceSidebar: React.FC = () => {
           Registro de Mantención
         </Nav.Link>
         <Nav.Link as={NavLink} to="/spare-parts">
-          <i className="bi bi-calendar-check me-2" />
+          <i className="bi bi-wrench me-2" />
           Repuestos
         </Nav.Link>
         <Nav.Link as={NavLink} to="/maintenance-completed">
