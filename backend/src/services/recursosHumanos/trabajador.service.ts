@@ -9,6 +9,7 @@ import { ILike, Like } from "typeorm";
 import { FindOptionsWhere } from "typeorm";
 import { User } from "../../entity/user.entity.js";
 import { HistorialLaboral } from "../../entity/recursosHumanos/historialLaboral.entity.js";
+import { AsignarBono } from "../../entity/recursosHumanos/Remuneraciones/asignarBono.entity.js";
 import { encryptPassword, comparePassword } from '../../utils/encrypt.js';
 import { sendCredentialsEmail } from '../email.service.js';
 import { userRole } from "../../../types.d.js";
@@ -781,12 +782,26 @@ export async function reactivarTrabajadorService(
         trabajador.fichaEmpresa.tipoContrato = "Por Definir";
         trabajador.fichaEmpresa.jornadaLaboral = "Por Definir";
         trabajador.fichaEmpresa.sueldoBase = 0;
-        trabajador.fichaEmpresa.fechaInicioContrato = new Date();
+        trabajador.fichaEmpresa.fechaInicioContrato = null; // Resetear a null para que aparezca "-"
         trabajador.fichaEmpresa.fechaFinContrato = null;
         trabajador.fichaEmpresa.motivoDesvinculacion = null;
         trabajador.fichaEmpresa.fechaInicioLicenciaPermiso = null;
         trabajador.fichaEmpresa.fechaFinLicenciaPermiso = null;
         trabajador.fichaEmpresa.motivoLicenciaPermiso = null;
+        trabajador.fichaEmpresa.afp = null; // Resetear AFP a null
+        trabajador.fichaEmpresa.previsionSalud = null; // Resetear Previsión Salud a null
+        trabajador.fichaEmpresa.seguroCesantia = null; // Resetear Seguro Cesantía a null
+        trabajador.fichaEmpresa.contratoURL = null; // Eliminar contrato anterior
+
+        // 8.1. Eliminar asignaciones de bonos existentes
+        const asignarBonoRepo = queryRunner.manager.getRepository(AsignarBono);
+        const asignacionesExistentes = await asignarBonoRepo.find({
+            where: { fichaEmpresa: { id: trabajador.fichaEmpresa.id } }
+        });
+        
+        if (asignacionesExistentes.length > 0) {
+            await asignarBonoRepo.remove(asignacionesExistentes);
+        }
 
         // 9. Registrar reactivación en historial laboral
         const historialReactivacion = historialRepo.create({
