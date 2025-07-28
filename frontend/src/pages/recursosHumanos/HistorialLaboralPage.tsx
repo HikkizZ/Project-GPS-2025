@@ -7,7 +7,7 @@ import { trabajadorService } from '@/services/recursosHumanos/trabajador.service
 import '@/styles/pages/historialLaboral.css';
 import { useAuth } from '@/context';
 import { useRut } from '@/hooks/useRut';
-import { formatAFP } from '../../utils/index';
+import { formatAFP, formatTipoBono, formatTemporalidad } from '../../utils/index';
 
 type FiltroTipo = 'todos' | 'inicial' | 'laboral' | 'licencias' | 'personales' | 'usuario';
 type ModoVista = 'tradicional' | 'unificado';
@@ -392,7 +392,13 @@ export default function HistorialLaboralPage() {
     if (!descripcion) return descripcion;
     const lines = descripcion.split('\n');
     const linesFiltradas = lines.filter(line => !line.trim().startsWith('[OBSERVACIONES_BADGE]:'));
-    return linesFiltradas.join('\n');
+    
+    // Aplicar formato a los campos Tipo y Temporalidad
+    const descripcionFormateada = linesFiltradas.join('\n')
+      .replace(/Tipo: (\w+)/g, (match, tipo) => `Tipo: ${formatTipoBono(tipo)}`)
+      .replace(/Temporalidad: (\w+)/g, (match, temporalidad) => `Temporalidad: ${formatTemporalidad(temporalidad)}`);
+    
+    return descripcionFormateada;
   }
 
   // Reemplazar la función renderCamposManuales por una versión que parsea los campos modificados desde observaciones si corresponde

@@ -9,6 +9,7 @@ import { CrearBonoModal } from '@/components/recursosHumanos/CrearBono.js';
 import { FiltrosBusquedaHeader } from '@/components/common/FiltrosBusquedaHeader';
 import { Toast, useToast } from '@/components/common/Toast';
 import { bonoService } from '../../services/recursosHumanos/bono.service';
+import { formatTipoBono, formatTemporalidad, formatMonto } from '../../utils/index';
 import "../../styles/pages/bonos.css";
 
 enum TipoBono {
@@ -20,12 +21,6 @@ enum Temporalidad {
     permanente = "permanente",
     recurrente = "recurrente",
     puntual = "puntual"
-}
-// Utilidad para formatear con puntos de miles
-function formatMiles(value: string | number): string {
-  const num = typeof value === 'number' ? value : value.replace(/\D/g, '');
-  if (!num) return '';
-  return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 }
 
 export const BonosPage: React.FC = () => {
@@ -200,7 +195,7 @@ export const BonosPage: React.FC = () => {
                                     >
                                     <option value="">Seleccione una opción</option>
                                     {Object.values(TipoBono).map(tipoBono => (
-                                        <option key={tipoBono} value={tipoBono}>{tipoBono}</option>
+                                        <option key={tipoBono} value={tipoBono}>{tipoBono.charAt(0).toUpperCase() + tipoBono.slice(1)}</option>
                                     ))}
                                     </Form.Select>
                                 </Form.Group>
@@ -214,9 +209,9 @@ export const BonosPage: React.FC = () => {
                                     style={{ borderRadius: '8px' }}
                                     >
                                     <option value="">Seleccione una opción</option>
-                                    <option value={Temporalidad.permanente}>{Temporalidad.permanente}</option>
-                                    <option value={Temporalidad.recurrente}>{Temporalidad.recurrente}</option>
-                                    <option value={Temporalidad.puntual}>{Temporalidad.puntual}</option>
+                                    <option value={Temporalidad.permanente}>{Temporalidad.permanente.charAt(0).toUpperCase() + Temporalidad.permanente.slice(1)}</option>
+                                    <option value={Temporalidad.recurrente}>{Temporalidad.recurrente.charAt(0).toUpperCase() + Temporalidad.recurrente.slice(1)}</option>
+                                    <option value={Temporalidad.puntual}>{Temporalidad.puntual.charAt(0).toUpperCase() + Temporalidad.puntual.slice(1)}</option>
                                     </Form.Select>
                                 </Form.Group>
                                 </Col>
@@ -360,9 +355,9 @@ export const BonosPage: React.FC = () => {
                                                                         )}
                                                                     </div>
                                                                 </td>
-                                                                <td>{formatMiles(bono.monto)}</td>
-                                                                <td>{bono.tipoBono}</td>
-                                                                <td>{bono.temporalidad}</td>
+                                                                <td>{formatMonto(bono.monto)}</td>
+                                                                <td>{formatTipoBono(bono.tipoBono)}</td>
+                                                                <td>{formatTemporalidad(bono.temporalidad)}</td>
                                                                 <td>{bono.imponible ? 'Sí' : 'No'}</td>
                                                                 <td>{bono.duracionMes || '-'}</td>
                                                                 <td>{bono.descripcion || '-'}</td>
