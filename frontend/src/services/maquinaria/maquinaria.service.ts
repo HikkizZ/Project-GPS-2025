@@ -115,6 +115,40 @@ export class MaquinariaService {
       }
     }
   }
+
+  async obtenerPadron(id: number): Promise<ApiResponse<{ padronUrl: string }>> {
+    try {
+      const response = await apiClient.get(`${this.baseURL}/${id}/padron`)
+      return {
+        success: true,
+        message: "Padrón obtenido exitosamente",
+        data: response.data,
+      }
+    } catch (error: any) {
+      console.error("Error al obtener padrón:", error)
+      return {
+        success: false,
+        message: error.message || "Error al obtener padrón",
+      }
+    }
+  }
+
+  async eliminarPadron(id: number): Promise<ApiResponse<Maquinaria>> {
+    try {
+      const response = await apiClient.delete(`${this.baseURL}/${id}/padron`)
+      return {
+        success: true,
+        message: "Padrón eliminado exitosamente",
+        data: response.data,
+      }
+    } catch (error: any) {
+      console.error("Error al eliminar padrón:", error)
+      return {
+        success: false,
+        message: error.message || "Error al eliminar padrón",
+      }
+    }
+  }
 }
 
 export const maquinariaService = new MaquinariaService()
@@ -124,3 +158,5 @@ export const obtenerMaquinariaDisponible = () => maquinariaService.obtenerMaquin
 export const actualizarKilometraje = (id: number, kilometraje: number) =>
   maquinariaService.actualizarKilometraje(id, kilometraje)
 export const cambiarEstado = (id: number, estado: string) => maquinariaService.cambiarEstado(id, estado)
+export const obtenerPadron = (id: number) => maquinariaService.obtenerPadron(id)
+export const eliminarPadron = (id: number) => maquinariaService.eliminarPadron(id)
