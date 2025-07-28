@@ -46,7 +46,15 @@ class SparePartService {
 
   async create(data: CreateSparePartData): Promise<ApiResponse<SparePart>> {
     try {
-      const response = await apiClient.post<{ data: SparePart }>(this.baseURL, data);
+      const payload = {
+        name: data.name,
+        stock: data.stock,
+        marca: data.marca,
+        modelo: data.modelo,
+        anio: data.anio,
+      };
+
+      const response = await apiClient.post<{ data: SparePart }>(this.baseURL, payload);
       return {
         success: true,
         message: 'Repuesto creado exitosamente',
@@ -60,6 +68,7 @@ class SparePartService {
       };
     }
   }
+
 
   async update(id: number, data: UpdateSparePartData): Promise<ApiResponse<SparePart>> {
     try {
