@@ -1,3 +1,5 @@
+"use client"
+
 import type React from "react"
 import { useState } from "react"
 import { Container, Row, Col, Card, Button, Table, Alert, Spinner, Form } from "react-bootstrap"
@@ -9,7 +11,7 @@ import { useToast } from "../../components/common/Toast"
 import type { Maquinaria } from "../../types/maquinaria.types"
 
 export const MaquinariaPage: React.FC = () => {
-  const { maquinarias, loading, error } = useMaquinaria()
+  const { maquinarias, loading, error, eliminarPadron } = useMaquinaria()
   const { exportToExcel, isExporting } = useExcelExport()
   const { showSuccess, showError } = useToast()
   const [filtroEstado, setFiltroEstado] = useState<string>("todos")
@@ -58,6 +60,16 @@ export const MaquinariaPage: React.FC = () => {
   const handleVerDetalles = (maquinaria: Maquinaria) => {
     setSelectedMaquinaria(maquinaria)
     setShowDetalleModal(true)
+  }
+
+  const handleEliminarPadron = async (id: number) => {
+    try {
+      await eliminarPadron(id)
+      showSuccess("Padrón eliminado", "El padrón se eliminó correctamente")
+      setShowDetalleModal(false)
+    } catch (error) {
+      showError("Error", "No se pudo eliminar el padrón")
+    }
   }
 
   const maquinariasFiltradas = maquinarias.filter((maquinaria) => {
@@ -243,6 +255,7 @@ export const MaquinariaPage: React.FC = () => {
         show={showDetalleModal}
         onHide={() => setShowDetalleModal(false)}
         maquinaria={selectedMaquinaria}
+        onEliminarPadron={handleEliminarPadron}
       />
     </div>
   )
