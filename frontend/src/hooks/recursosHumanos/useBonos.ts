@@ -21,11 +21,20 @@ export const useBono = () => {
     setError('');
     try {
       const result = await bonoService.getAllBonos();
+      console.log("Cargando bonos...");
+      console.log('URL:', `${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}/bonos`);
+      console.log('Token:', localStorage.getItem('auth_token'));
+      console.log('Response data:', result.data);
+      console.log('Resultado success: ', result.success);
+      console.log('Data Result: ', result.data);
+      console.log('BONOS BONOS BONOS: ', result.data);
       if (result.success) {
           const newBonos = result.data?.bonos || [];
           const newTotal = result.data?.total || 0;
           setBonos(newBonos);
           setTotalBonos(newTotal);
+          console.log('BONOSSS: ', newBonos);
+          console.log('TOTALBONOS: ', newTotal);
         
       } else {
           setError(result.message || 'Error al cargar bonos');

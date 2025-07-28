@@ -125,22 +125,30 @@ export const CrearBonoModal: React.FC<CrearBonoModalProps> = ({
         setError('');
         setAdvertencias([]);
         
+        // Debug log para validación del monto
+        console.log('isValidMonto:', isValidMonto(formData.monto));
+        
         // Validar campos requeridos
         let isValid = true;
         if (!formData.nombreBono.trim() || formData.nombreBono.trim() === 'Por Definir') {
+            console.log('Nombre del bono inválido'); 
             isValid = false;
         }
 
         if (!formData.monto || isValidMonto(formData.monto) === false) {
+            console.log('Monto inválido');
             isValid = false;
         }
         if (!formData.tipoBono.trim() || formData.tipoBono.trim() === 'Seleccione una opción') {
+            console.log('Tipo de bono inválido');
             isValid = false;
         }
         if (!formData.temporalidad.trim() || formData.temporalidad.trim() === 'Seleccione una opción') {
+            console.log('Temporalidad inválida');
             isValid = false;
         }
         if ((formData.temporalidad === 'recurrente' || formData.temporalidad === 'puntual') && !formData.duracionMes) {
+            console.log('Duración requerida para temporalidad puntual o recurrente');
             isValid = false;
         }
 
@@ -149,6 +157,14 @@ export const CrearBonoModal: React.FC<CrearBonoModalProps> = ({
         
         // Solo mostrar errores de validación si el formulario no es válido
         if (!isValid) {
+            console.log('Formulario inválido:', {
+                nombreBono: formData.nombreBono,
+                monto: formData.monto,
+                tipoBono: formData.tipoBono,
+                temporalidad: formData.temporalidad,
+                duracionMes: formData.duracionMes,
+                imponible: formData.imponible
+            });
             setValidated(true);
             return; // No mostrar mensaje de error general, dejar que los campos individuales muestren sus errores
         }
@@ -166,6 +182,7 @@ export const CrearBonoModal: React.FC<CrearBonoModalProps> = ({
                 fechaCreacion: formData.fechaCreacion
             }
             const result = await createBono(dataCreate);
+            console.log('Resultado de crear bono:', result);
             if (result.success) {
                 if (result.advertencias && result.advertencias.length > 0) {
                     setAdvertencias(result.advertencias);

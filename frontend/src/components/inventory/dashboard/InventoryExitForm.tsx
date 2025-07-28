@@ -46,35 +46,9 @@ const InventoryExitForm: React.FC<InventoryExitFormProps> = ({
     ],
   });
 
-  const [useCustomTime, setUseCustomTime] = useState(false);
-
-  const getLocalToday = () => {
-    const d = new Date();
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, "0");
-    const day = String(d.getDate()).padStart(2, "0");
-    return `${year}-${month}-${day}`;
-  };
-
-  const getLocalCurrentTime = () => {
-    const now = new Date();
-    const hours = String(now.getHours()).padStart(2, "0");
-    const minutes = String(now.getMinutes()).padStart(2, "0");
-    return `${hours}:${minutes}`;
-  };
-
-  const minDate = useMemo(() => {
-    const today = new Date();
-    today.setDate(today.getDate() - 10); // retrocede 10 días
-    const year = today.getFullYear();
-    const month = String(today.getMonth() + 1).padStart(2, "0");
-    const day = String(today.getDate()).padStart(2, "0");
-    return `${year}-${month}-${day}`;
-  }, []);
-
-  const [exitDate, setExitDate] = useState<string>(getLocalToday());
-
-  const [isDateModified, setIsDateModified] = useState(false);
+  const [exitDate, setExitDate] = useState<string>(
+    new Date().toISOString().split("T")[0]
+  );
 
   const [errors, setErrors] = useState<Record<string, string | string[]>>({});
 
@@ -122,15 +96,6 @@ const InventoryExitForm: React.FC<InventoryExitFormProps> = ({
       setFormData((prev) => ({ ...prev, customerRut: value }));
     } else if (name === "exitDate") {
       setExitDate(value);
-      const today = getLocalToday();
-      const isDifferentFromToday = value !== today;
-
-      setIsDateModified(isDifferentFromToday);
-
-      if (isDifferentFromToday) {
-        setUseCustomTime(true);
-        setCustomTime(getLocalCurrentTime());
-      }
     }
     setErrors((prev) => ({ ...prev, [name]: "" }));
   };
@@ -200,11 +165,6 @@ const InventoryExitForm: React.FC<InventoryExitFormProps> = ({
     );
   }, [formData.details, activeProducts]);
 
-  const [customTime, setCustomTime] = useState<string>("");
-
-  const todayDate = new Date().toISOString().split("T")[0];
-  const isCustomDate = exitDate !== todayDate;
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
@@ -214,42 +174,23 @@ const InventoryExitForm: React.FC<InventoryExitFormProps> = ({
       details: formData.details,
     };
 
-    try {
-      let finalDateTime: string;
-
-      if (exitDate) {
-        if (useCustomTime && customTime) {
-          const combinedDateTime = new Date(`${exitDate}T${customTime}`);
-          if (!isNaN(combinedDateTime.getTime())) {
-            finalDateTime = combinedDateTime.toISOString();
-          } else {
-            console.warn(
-              "Fecha/hora personalizada no válida:",
-              exitDate,
-              customTime
-            );
-          }
+    if (exitDate) {
+      try {
+        const now = new Date();
+        const currentTime = now.toTimeString().split(" ")[0];
+        const combinedLocalDateTime = new Date(`${exitDate}T${currentTime}`);
+        if (!isNaN(combinedLocalDateTime.getTime())) {
+          (dataToSubmit as any).exitDate = combinedLocalDateTime.toISOString();
         } else {
-          const now = new Date();
-          const currentTime = now.toTimeString().split(" ")[0];
-          const combinedDateTime = new Date(`${exitDate}T${currentTime}`);
-          if (!isNaN(combinedDateTime.getTime())) {
-            finalDateTime = combinedDateTime.toISOString();
-          } else {
-            console.warn(
-              "Fecha con hora actual no válida:",
-              exitDate,
-              currentTime
-            );
-          }
+          console.warn(
+            "Fecha/hora combinada no válida:",
+            exitDate,
+            currentTime
+          );
         }
-
-        if (finalDateTime) {
-          (dataToSubmit as any).exitDate = finalDateTime;
-        }
+      } catch (error) {
+        console.error("Error combinando fecha con hora actual:", error);
       }
-    } catch (error) {
-      console.error("Error al construir fecha completa:", error);
     }
 
     onSubmit(dataToSubmit);
@@ -359,37 +300,8 @@ const InventoryExitForm: React.FC<InventoryExitFormProps> = ({
                 type="date"
                 name="exitDate"
                 value={exitDate}
-                min={minDate}
                 onChange={handleChange}
               />
-              <Form.Check
-                type="switch"
-                id="toggleCustomTime"
-                label="Usar hora personalizada"
-                checked={useCustomTime}
-                disabled={exitDate !== getLocalToday()}
-                onChange={(e) => { 
-                  setUseCustomTime(e.target.checked)
-                  if (e.target.checked && !customTime) {
-                    setCustomTime(getLocalCurrentTime());
-                  }
-                }}
-                className="mb-2"
-              />
-              {useCustomTime && (
-                <Form.Group className="mb-3" controlId="customTime">
-                  <Form.Label>Hora de la venta</Form.Label>
-                  <Form.Control
-                    type="time"
-                    name="customTime"
-                    value={customTime}
-                    onChange={(e) => setCustomTime(e.target.value)}
-                  />
-                  <Form.Text className="text-muted">
-                    Se usará esta hora para la fecha seleccionada.
-                  </Form.Text>
-                </Form.Group>
-              )}
             </Form.Group>
           </Col>
         </Row>

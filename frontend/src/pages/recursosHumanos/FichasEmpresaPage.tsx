@@ -1244,16 +1244,13 @@ export const FichasEmpresaPage: React.FC<FichasEmpresaPageProps> = ({
                                   <i className="bi bi-clock-history"></i>
                                 </Button>
                               )}
-                              {/* Ocultar botón de asignar bono si es la ficha del usuario actual */}
-                              {!esFichaActual(ficha) && (
-                                <Button
-                                  variant="outline-warning"
-                                  onClick={() => handleAsignarBono(ficha)}
-                                  title="Asignar Bono"
-                                >
-                                  <i className="bi bi-plus"></i>
-                                </Button>
-                              )}
+                              <Button
+                                variant="outline-warning"
+                                onClick={() => handleAsignarBono(ficha)}
+                                title="Asignar Bono"
+                              >
+                                <i className="bi bi-plus"></i>
+                              </Button>
                               <Button
                                 variant="outline-secondary"
                                 onClick={() => handleVerDetalle(ficha)}

@@ -35,6 +35,10 @@ export class BonoService {
             // Usar get directamente para obtener la respuesta completa
             const response = await apiClient.get<{ status: string; message: string; data: { bonos: Bono[]; total: number } }>(url);
 
+            console.log("Obteniendo bonos con query:", cleanQuery);
+            console.log('URL:', `${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}${url}`);
+            console.log('Token:', localStorage.getItem('auth_token'));
+            console.log('Response data:', response);
             return {
                 success: true,
                 data: response.data,
@@ -58,6 +62,15 @@ export class BonoService {
 
             // Si la respuesta es un error HTTP 400 pero tiene datos, manejarlo como respuesta válida
             const responseData = response.data || response;
+            
+            console.log("Creando bono con datos:", bonoData);
+            console.log('URL:', `${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}${this.baseURL}/`);
+            console.log('Token:', localStorage.getItem('auth_token'));
+            console.log('Response data:', responseData);
+            console.log('Response data type:', typeof responseData);
+            console.log('Response data keys:', Object.keys(responseData));
+            console.log('Response data.status:', responseData.status);
+
             // Verificar si la respuesta del backend indica éxito
             if (responseData.status === 'success') {
                 return {
@@ -93,6 +106,10 @@ export class BonoService {
         try {
 
             const response = await apiClient.put<{ data: Bono }>(`${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}${this.baseURL}/${bonoId}`, bonoData);
+            console.log("Actualizando bono con ID:", bonoId);
+            console.log('URL:', `${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}${this.baseURL}/${bonoId}`);
+            console.log('Token:', localStorage.getItem('auth_token'));
+            console.log('Response data:', response.data);
             return {
                 success: true,
                 message: 'Bono actualizado exitosamente',

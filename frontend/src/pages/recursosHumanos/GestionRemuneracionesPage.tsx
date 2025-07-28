@@ -12,7 +12,7 @@ import {
 } from '@/types/recursosHumanos/fichaEmpresa.types';
 import { useAuth, useUI } from '@/context';
 import { useRut } from '@/hooks/useRut';
-import { Link } from 'react-router-dom';
+
 
 
 function calculoSueldoBruto(ficha: FichaEmpresa): number {
@@ -439,9 +439,6 @@ export const GestionRemuneracionesPage: React.FC = () => {
                                           'Las fichas de empresa se crean automáticamente al registrar un nuevo trabajador' : 
                                           'Intenta ajustar los filtros para obtener más resultados'}
                                       </p>
-                                      <Link to="/fichas-empresa" className="btn btn-link mt-2">
-                                        Ir a gestión de fichas
-                                        </Link>
                                       {Object.keys(searchQuery).length > 1 || searchQuery.estado !== EstadoLaboral.ACTIVO ? (
                                         <Button variant="outline-primary" onClick={handleReset}>
                                           <i className="bi bi-arrow-clockwise me-2"></i>
@@ -449,18 +446,7 @@ export const GestionRemuneracionesPage: React.FC = () => {
                                         </Button>
                                       ) : null}
                                     </div>
-                                  ) : fichas.some(f => f.tipoContrato === 'Por Definir') ? (
-                                    <div className="text-center py-5">
-                                        <i className="bi bi-exclamation-triangle display-1 text-warning"></i>
-                                        <h5 className="mt-3">Hay fichas con tipo de contrato "Por Definir"</h5>
-                                        <p className="text-muted">
-                                        Para calcular correctamente las remuneraciones, primero debes definir el tipo de contrato en la ficha correspondiente.
-                                        </p>
-                                        <Link to="/fichas-empresa" className="btn btn-link mt-2">
-                                        Ir a gestión de fichas
-                                        </Link>
-                                    </div>
-                                    ) : (
+                                  ) : (
                                     <>
                                       <div className="d-flex justify-content-between align-items-center mb-3">
                                         <h6 className="mb-0">

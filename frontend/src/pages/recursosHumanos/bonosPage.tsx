@@ -130,6 +130,11 @@ export const BonosPage: React.FC = () => {
         setSearchNombre(e.target.value);
     };
 
+    console.log('bonos: ', bonos);
+    console.log('bonos es array? ', Array.isArray(bonos));
+    console.log("typeof bonos:", typeof bonos);
+    console.log('bonos length:', bonos.length);
+
     return (
         <Container fluid className="py-2">
             <Row>
