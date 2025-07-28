@@ -278,7 +278,8 @@ const MaintenanceRecordList: React.FC<Props> = ({
           <div className="d-flex flex-column gap-1">
             <div>
               <span className="fw-semibold text-muted">Grupo de maquinaria:</span>{" "}
-              <span className="ms-2">{recordToDelete?.maquinaria?.grupo ?? "N/A"}</span>
+              <span className="ms-2"><span className="ms-2">{recordToDelete?.maquinaria?.grupo ? formatEnumValue(recordToDelete.maquinaria.grupo) : "N/A"}</span>
+              </span>
             </div>
             <div>
               <span className="fw-semibold text-muted">Patente:</span>{" "}

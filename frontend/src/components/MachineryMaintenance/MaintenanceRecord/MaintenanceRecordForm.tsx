@@ -4,6 +4,7 @@ import { CreateMaintenanceRecordData, RazonMantencion } from '@/types/machinaryM
 import { userService } from '@/services/user.service';
 import { maquinariaService } from '@/services/maquinaria/maquinaria.service';
 import { Maquinaria } from '@/types/maquinaria.types';
+import { useToast } from '@/components/common/Toast';
 
 interface Props {
   initialData?: Partial<CreateMaintenanceRecordData>;
@@ -25,6 +26,8 @@ const MaintenanceRecordForm: React.FC<Props> = ({ initialData = {}, onSubmit, lo
   const [grupoSeleccionado, setGrupoSeleccionado] = useState('');
   const [patenteSeleccionada, setPatenteSeleccionada] = useState('');
   const [numeroChasisSelecionado, setnumeroChasisSelecionado] = useState('');
+  const { showError, showSuccess } = useToast();
+  
 
   useEffect(() => {
     async function cargarDatos() {
@@ -78,7 +81,7 @@ const MaintenanceRecordForm: React.FC<Props> = ({ initialData = {}, onSubmit, lo
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (form.descripcionEntrada.trim().length < 5) {
-      alert('La descripción debe tener al menos 5 caracteres.');
+      showError('La descripción debe tener al menos 5 caracteres.');
       return;
     }
 
@@ -90,7 +93,7 @@ const MaintenanceRecordForm: React.FC<Props> = ({ initialData = {}, onSubmit, lo
     );
 
     if (!maquinariaEncontrada) {
-      alert("Debe seleccionar una combinación válida de maquinaria.");
+      showError("Debe seleccionar una combinación válida de maquinaria.");
       return;
     }
 
