@@ -565,8 +565,11 @@ export async function updateTrabajadorService(id: number, data: any): Promise<Se
         let correoPersonalAnterior = trabajador.correoPersonal;
         let nuevoCorreoUsuario = trabajador.usuario.corporateEmail;
 
-        // IGUAL QUE EN REACTIVAR: Generar correo ANTES de actualizar datos
-        if (data.nombres || data.apellidoPaterno) {
+        // SOLO generar nuevo correo si realmente cambiaron nombres o apellidoPaterno
+        const nombresCambiaron = data.nombres && data.nombres !== trabajador.nombres;
+        const apellidoPaternoCambio = data.apellidoPaterno && data.apellidoPaterno !== trabajador.apellidoPaterno;
+        
+        if (nombresCambiaron || apellidoPaternoCambio) {
             // Usar los datos actualizados correctamente para evitar reutilización de correos
             const nombresActualizados = data.nombres || trabajador.nombres;
             const apellidoPaternoActualizado = data.apellidoPaterno || trabajador.apellidoPaterno;
@@ -613,7 +616,7 @@ export async function updateTrabajadorService(id: number, data: any): Promise<Se
             updated = true;
         }
 
-        // Solo generar nueva contraseña si el correo corporativo cambió
+        // Solo generar nueva contraseña y actualizar correo si realmente cambió
         if (nuevoCorreoUsuario !== correoUsuarioAnterior) {
             // Generar nueva contraseña y encriptarla
             const nuevaPassword = generateRandomPassword();
@@ -632,11 +635,11 @@ export async function updateTrabajadorService(id: number, data: any): Promise<Se
                 console.error("Error enviando correo de credenciales actualizadas:", emailError);
                 // No fallar la operación por el correo, pero registrar el error
             }
+            
+            // Actualizar el correo corporativo solo si cambió
+            trabajador.usuario.corporateEmail = nuevoCorreoUsuario;
+            updated = true;
         }
-        
-        // Actualizar el correo corporativo
-        trabajador.usuario.corporateEmail = nuevoCorreoUsuario;
-        updated = true;
 
         // Registrar cambios en historial laboral
         const cambios: string[] = [];
