@@ -30,10 +30,9 @@ export class CompraMaquinariaService {
     await queryRunner.connect()
     await queryRunner.startTransaction()
 
-    let padronUrl: string | undefined
+    let padronFilename: string | undefined
 
     try {
-      // Validar que el supplier existe y está activo si se proporciona
       if (data.supplierRut) {
         const supplier = await queryRunner.manager.findOne(Supplier, {
           where: { rut: data.supplierRut, isActive: true },
@@ -43,17 +42,14 @@ export class CompraMaquinariaService {
           throw new Error(`Proveedor con RUT ${data.supplierRut} no encontrado o inactivo`)
         }
 
-        // Actualizar datos con información del supplier
         data.proveedor = supplier.name
         data.supplierId = supplier.id
       }
 
-      // Verificar si existe una maquinaria con la misma patente (activa o inactiva)
       const maquinariaExistente = await queryRunner.manager.findOne(Maquinaria, {
         where: { patente: data.patente },
       })
 
-      // Verificar si existe una compra con la misma patente (activa o inactiva)
       const compraExistente = await queryRunner.manager.findOne(CompraMaquinaria, {
         where: { patente: data.patente },
       })
@@ -61,16 +57,13 @@ export class CompraMaquinariaService {
       let maquinariaGuardada: Maquinaria
       let compraGuardada: CompraMaquinaria
 
-      // Procesar archivo si existe
       if (file) {
         const uploadResult = await MaquinariaFileUploadService.uploadFile(file)
-        padronUrl = uploadResult.url
+        padronFilename = uploadResult.filename
       }
 
       if (maquinariaExistente && compraExistente) {
-        // Si existe una maquinaria y compra con la misma patente, reactivar y actualizar
         if (!maquinariaExistente.isActive || !compraExistente.isActive) {
-          // Reactivar y actualizar maquinaria
           await queryRunner.manager.update(
             Maquinaria,
             { id: maquinariaExistente.id },
@@ -86,12 +79,11 @@ export class CompraMaquinariaService {
               kilometrajeInicial: data.kilometrajeInicial || 0,
               kilometrajeActual: data.kilometrajeInicial || 0,
               estado: "disponible" as any,
-              padronUrl,
+              padronUrl: padronFilename,
               isActive: true,
             },
           )
 
-          // Reactivar y actualizar compra
           await queryRunner.manager.update(
             CompraMaquinaria,
             { id: compraExistente.id },
@@ -109,7 +101,7 @@ export class CompraMaquinariaService {
               supplierRut: data.supplierRut,
               proveedor: data.proveedor,
               observaciones: data.observaciones,
-              padronUrl,
+              padronUrl: padronFilename,
               isActive: true,
             },
           )
@@ -125,7 +117,6 @@ export class CompraMaquinariaService {
           throw new Error(`Ya existe una maquinaria activa con la patente ${data.patente}`)
         }
       } else {
-        // Verificar que no exista una maquinaria activa con la misma patente
         const maquinariaActiva = await queryRunner.manager.findOne(Maquinaria, {
           where: { patente: data.patente, isActive: true },
         })
@@ -134,7 +125,6 @@ export class CompraMaquinariaService {
           throw new Error(`Ya existe una maquinaria activa con la patente ${data.patente}`)
         }
 
-        // Verificar número de chasis único entre registros activos
         const chasisExistente = await queryRunner.manager.findOne(Maquinaria, {
           where: { numeroChasis: data.numeroChasis, isActive: true },
         })
@@ -143,7 +133,6 @@ export class CompraMaquinariaService {
           throw new Error(`Ya existe una maquinaria activa con el número de chasis ${data.numeroChasis}`)
         }
 
-        // Crear nueva maquinaria
         const nuevaMaquinaria = queryRunner.manager.create(Maquinaria, {
           patente: data.patente,
           grupo: data.grupo,
@@ -157,17 +146,16 @@ export class CompraMaquinariaService {
           kilometrajeInicial: data.kilometrajeInicial || 0,
           kilometrajeActual: data.kilometrajeInicial || 0,
           estado: "disponible" as any,
-          padronUrl,
+          padronUrl: padronFilename,
           isActive: true,
         })
 
         maquinariaGuardada = await queryRunner.manager.save(nuevaMaquinaria)
 
-        // Crear registro de compra
         const compraData: CreateCompraMaquinariaData = {
           ...data,
           maquinaria_id: maquinariaGuardada.id,
-          padronUrl,
+          padronUrl: padronFilename,
           isActive: true,
         }
 
@@ -180,13 +168,9 @@ export class CompraMaquinariaService {
     } catch (error) {
       await queryRunner.rollbackTransaction()
 
-      // Eliminar archivo subido si existe
-      if (file && padronUrl) {
+      if (file && padronFilename) {
         try {
-          const filename = padronUrl.split("/").pop()
-          if (filename) {
-            await MaquinariaFileUploadService.deleteFile(filename)
-          }
+          await MaquinariaFileUploadService.deleteFile(padronFilename)
         } catch (deleteError) {
           console.error("Error al eliminar archivo tras fallo de transacción:", deleteError)
         }
@@ -255,7 +239,7 @@ export class CompraMaquinariaService {
     await queryRunner.connect()
     await queryRunner.startTransaction()
 
-    let padronUrl: string | undefined
+    let padronFilename: string | undefined
 
     try {
       const compra = await queryRunner.manager.findOne(CompraMaquinaria, {
@@ -267,23 +251,16 @@ export class CompraMaquinariaService {
         throw new Error("Compra no encontrada o inactiva")
       }
 
-      // Procesar nuevo archivo si existe
       if (file) {
-        // Eliminar archivo anterior
         if (compra.padronUrl) {
-          const oldFilename = compra.padronUrl.split("/").pop()
-          if (oldFilename) {
-            await MaquinariaFileUploadService.deleteFile(oldFilename)
-          }
+          await MaquinariaFileUploadService.deleteFile(compra.padronUrl)
         }
 
-        // Subir nuevo archivo
         const uploadResult = await MaquinariaFileUploadService.uploadFile(file)
-        padronUrl = uploadResult.url
-        data.padronUrl = padronUrl
+        padronFilename = uploadResult.filename
+        data.padronUrl = padronFilename
       }
 
-      // Validar supplier si se proporciona
       if (data.supplierRut) {
         const supplier = await queryRunner.manager.findOne(Supplier, {
           where: { rut: data.supplierRut, isActive: true },
@@ -297,7 +274,6 @@ export class CompraMaquinariaService {
         data.supplierId = supplier.id
       }
 
-      // Actualizar maquinaria si existe relación
       if (compra.maquinaria_id) {
         const maquinariaUpdate: any = {}
         if (data.patente) maquinariaUpdate.patente = data.patente
@@ -307,14 +283,13 @@ export class CompraMaquinariaService {
         if (data.anio) maquinariaUpdate.año = data.anio
         if (data.valorCompra) maquinariaUpdate.valorCompra = data.valorCompra
         if (data.avaluoFiscal) maquinariaUpdate.avaluoFiscal = data.avaluoFiscal
-        if (padronUrl !== undefined) maquinariaUpdate.padronUrl = padronUrl
+        if (padronFilename !== undefined) maquinariaUpdate.padronUrl = padronFilename
 
         if (Object.keys(maquinariaUpdate).length > 0) {
           await queryRunner.manager.update(Maquinaria, { id: compra.maquinaria_id }, maquinariaUpdate)
         }
       }
 
-      // Actualizar compra
       Object.assign(compra, data)
       const compraActualizada = await queryRunner.manager.save(compra)
 
@@ -343,10 +318,8 @@ export class CompraMaquinariaService {
         throw new Error("Compra no encontrada o ya eliminada")
       }
 
-      // Soft delete de la compra
       await queryRunner.manager.update(CompraMaquinaria, { id }, { isActive: false })
 
-      // Soft delete de la maquinaria relacionada
       if (compra.maquinaria_id) {
         await queryRunner.manager.update(Maquinaria, { id: compra.maquinaria_id }, { isActive: false })
       }
@@ -375,7 +348,6 @@ export class CompraMaquinariaService {
         throw new Error("Compra no encontrada o ya activa")
       }
 
-      // Verificar que no exista otra maquinaria activa con la misma patente
       const maquinariaActiva = await queryRunner.manager.findOne(Maquinaria, {
         where: { patente: compra.patente, isActive: true },
       })
@@ -384,21 +356,58 @@ export class CompraMaquinariaService {
         throw new Error(`Ya existe una maquinaria activa con la patente ${compra.patente}`)
       }
 
-      // Restaurar compra
       await queryRunner.manager.update(CompraMaquinaria, { id }, { isActive: true })
-
-      // Restaurar maquinaria relacionada
       if (compra.maquinaria_id) {
         await queryRunner.manager.update(Maquinaria, { id: compra.maquinaria_id }, { isActive: true })
       }
-
       const compraRestaurada = await queryRunner.manager.findOne(CompraMaquinaria, {
+        where: { id },
+        relations: ["maquinaria", "supplier"],
+      })
+      await queryRunner.commitTransaction()
+      return compraRestaurada as CompraMaquinaria
+    } catch (error) {
+      await queryRunner.rollbackTransaction()
+      throw error
+    } finally {
+      await queryRunner.release()
+    }
+  }
+
+  async eliminarPadronCompra(id: number): Promise<CompraMaquinaria> {
+    const queryRunner = AppDataSource.createQueryRunner()
+    await queryRunner.connect()
+    await queryRunner.startTransaction()
+
+    try {
+      const compra = await queryRunner.manager.findOne(CompraMaquinaria, {
+        where: { id, isActive: true },
+        relations: ["maquinaria"],
+      })
+
+      if (!compra) {
+        throw new Error("Compra no encontrada o inactiva")
+      }
+
+      if (!compra.padronUrl) {
+        throw new Error("Esta compra no tiene padrón para eliminar")
+      }
+
+      await MaquinariaFileUploadService.deleteFile(compra.padronUrl)
+
+      await queryRunner.manager.update(CompraMaquinaria, { id }, { padronUrl: undefined })
+
+      if (compra.maquinaria_id) {
+        await queryRunner.manager.update(Maquinaria, { id: compra.maquinaria_id }, { padronUrl: undefined })
+      }
+
+      const compraActualizada = await queryRunner.manager.findOne(CompraMaquinaria, {
         where: { id },
         relations: ["maquinaria", "supplier"],
       })
 
       await queryRunner.commitTransaction()
-      return compraRestaurada as CompraMaquinaria
+      return compraActualizada as CompraMaquinaria
     } catch (error) {
       await queryRunner.rollbackTransaction()
       throw error

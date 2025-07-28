@@ -13,10 +13,6 @@ interface CompraDetalleModalProps {
 }
 
 export const CompraDetalleModal: React.FC<CompraDetalleModalProps> = ({ show, onHide, compra, onEliminarPadron }) => {
-  // Definir la URL base del API
-  const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000"
-
-  // Función helper para determinar si una compra está activa
   const isCompraActiva = (compra: CompraMaquinaria) => {
     return compra.isActive !== false
   }
@@ -59,7 +55,28 @@ export const CompraDetalleModal: React.FC<CompraDetalleModalProps> = ({ show, on
     }
   }
 
+  const getImageUrl = (filename?: string) => {
+    if (!filename) return "/placeholder.svg"
+
+    // Si ya es una URL completa, usarla tal como está
+    if (filename.startsWith("http://") || filename.startsWith("https://")) {
+      return filename
+    }
+
+    // Si empieza con /uploads/, construir URL completa
+    if (filename.startsWith("/uploads/")) {
+      const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:3000"
+      return `${baseUrl}${filename}`
+    }
+
+    // Si es solo el nombre del archivo, construir la URL completa
+    const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:3000"
+    return `${baseUrl}/uploads/maquinaria/images/${filename}`
+  }
+
   if (!compra) return null
+
+  const imageUrl = getImageUrl(compra.padronUrl)
 
   return (
     <Modal show={show} onHide={onHide} size="lg" centered className="compra-detalle-modal">
@@ -67,7 +84,6 @@ export const CompraDetalleModal: React.FC<CompraDetalleModalProps> = ({ show, on
         <Modal.Title>
           <i className="bi bi-eye me-2"></i>
           Detalles de Compra - {compra.patente}
-          {/* Mostrar estado en el título */}
           <div className="mt-1">
             {!isCompraActiva(compra) ? (
               <Badge bg="secondary">
@@ -84,7 +100,6 @@ export const CompraDetalleModal: React.FC<CompraDetalleModalProps> = ({ show, on
         </Modal.Title>
       </Modal.Header>
       <Modal.Body>
-        {/* Alerta para compras inactivas */}
         {!isCompraActiva(compra) && (
           <Alert variant="warning" className="mb-4">
             <i className="bi bi-exclamation-triangle me-2"></i>
@@ -93,7 +108,6 @@ export const CompraDetalleModal: React.FC<CompraDetalleModalProps> = ({ show, on
           </Alert>
         )}
 
-        {/* Padrón - Sección Principal */}
         <div className="mb-4">
           <h5>
             <i className="bi bi-file-earmark me-2"></i>
@@ -101,54 +115,40 @@ export const CompraDetalleModal: React.FC<CompraDetalleModalProps> = ({ show, on
           </h5>
           {compra.padronUrl ? (
             <div className="padron-preview">
-              {compra.padronFileType === "image" ? (
-                <div>
-                  <img
-                    src={`${API_BASE_URL}${compra.padronUrl}`}
-                    alt="Padrón"
-                    className="padron-image"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement
-                      target.style.display = "none"
-                      const errorDiv = target.nextElementSibling as HTMLElement
-                      if (errorDiv) errorDiv.classList.remove("d-none")
-                    }}
-                  />
-                  <Alert variant="danger" className="d-none">
-                    <i className="bi bi-exclamation-triangle me-2"></i>
-                    Error al cargar la imagen
-                  </Alert>
-                  <div className="mt-2">
-                    <small className="text-muted">
-                      {compra.padronOriginalName} • {formatFileSize(compra.padronFileSize)}
-                    </small>
-                  </div>
+              {/* ✅ CAMBIO CRÍTICO: Usar directamente compra.padronUrl sin concatenar */}
+              <div>
+                <img
+                  src={imageUrl || "/placeholder.svg"}
+                  alt="Padrón"
+                  className="padron-image"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement
+                    target.style.display = "none"
+                    const errorDiv = target.nextElementSibling as HTMLElement
+                    if (errorDiv) errorDiv.classList.remove("d-none")
+
+                    console.error("❌ Error cargando imagen:")
+                    console.error("   Filename original:", compra.padronUrl)
+                    console.error("   URL construida:", imageUrl)
+                    console.error("   Base URL:", import.meta.env.VITE_API_URL || "http://localhost:3000")
+                  }}
+                />
+                <Alert variant="danger" className="d-none">
+                  <i className="bi bi-exclamation-triangle me-2"></i>
+                  Error al cargar la imagen.
+                  <br />
+                  <small>
+                    Archivo: {compra.padronUrl}
+                    <br />
+                    URL: {imageUrl}
+                  </small>
+                </Alert>
+                <div className="mt-2">
+                  <small className="text-muted">
+                    {compra.padronOriginalName || "Archivo"} • {formatFileSize(compra.padronFileSize)}
+                  </small>
                 </div>
-              ) : (
-                <div className="pdf-preview">
-                  <div className="pdf-icon">
-                    <i className="bi bi-file-earmark-pdf"></i>
-                  </div>
-                  <h6>Documento PDF</h6>
-                  <div className="mt-2">
-                    <small className="text-muted">
-                      {compra.padronOriginalName} • {formatFileSize(compra.padronFileSize)}
-                    </small>
-                  </div>
-                  <div className="mt-3">
-                    <Button
-                      variant="primary"
-                      href={`${API_BASE_URL}${compra.padronUrl}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      <i className="bi bi-eye me-2"></i>
-                      Ver PDF
-                    </Button>
-                  </div>
-                </div>
-              )}
-              {/* Botón para eliminar padrón - solo si la compra está activa */}
+              </div>
               {onEliminarPadron && isCompraActiva(compra) && (
                 <div className="mt-3">
                   <Button variant="outline-danger" size="sm" onClick={handleEliminarPadron}>
@@ -168,7 +168,6 @@ export const CompraDetalleModal: React.FC<CompraDetalleModalProps> = ({ show, on
           )}
         </div>
 
-        {/* Información Básica */}
         <div className="mb-4">
           <h5>
             <i className="bi bi-info-circle me-2"></i>
@@ -216,7 +215,6 @@ export const CompraDetalleModal: React.FC<CompraDetalleModalProps> = ({ show, on
           </Row>
         </div>
 
-        {/* Información Financiera */}
         <div className="mb-4">
           <h5>
             <i className="bi bi-cash-coin me-2"></i>
@@ -238,7 +236,6 @@ export const CompraDetalleModal: React.FC<CompraDetalleModalProps> = ({ show, on
           </Row>
         </div>
 
-        {/* Información Técnica */}
         <div className="mb-4">
           <h5>
             <i className="bi bi-gear me-2"></i>
@@ -260,7 +257,6 @@ export const CompraDetalleModal: React.FC<CompraDetalleModalProps> = ({ show, on
           </Row>
         </div>
 
-        {/* Información Adicional */}
         <div className="mb-4">
           <h5>
             <i className="bi bi-building me-2"></i>

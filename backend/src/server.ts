@@ -1,7 +1,7 @@
 import "reflect-metadata"; // Import reflect-metadata for TypeORM decorators
 
 /* Import the required modules. */
-import express, { json, urlencoded, Application} from "express";
+import express, { json, urlencoded, Application } from "express";
 import cors from "cors";
 import morgan from "morgan";
 import cookieParser from "cookie-parser";
@@ -51,11 +51,11 @@ const SERVER_HOST = HOST || DEFAULT_HOST;
 function initializeAutomaticLicenseVerification(): void {
     // Programar la tarea para que se ejecute diariamente a las 00:01 en todos los entornos
     const cronSchedule = "1 0 * * *"; // Diario a las 00:01
-    
+
     cron.schedule(cronSchedule, async () => {
         try {
             const [resultado, error] = await verificarEstadosLicenciasService();
-            
+
             if (error) {
                 console.error("❌ Error al verificar estados de licencias:", error);
                 return;
@@ -64,13 +64,13 @@ function initializeAutomaticLicenseVerification(): void {
             console.error("❌ Error inesperado durante la verificación de licencias:", error);
         }
     });
-    
+
     // En desarrollo, también ejecutar inmediatamente para verificar que funciona
     if (isDevelopment) {
         setTimeout(async () => {
             try {
                 const [resultado, error] = await verificarEstadosLicenciasService();
-                
+
                 if (error) {
                     console.error("❌ Error en verificación inicial:", error);
                     return;
@@ -92,7 +92,7 @@ async function setupServer(): Promise<void> {
             methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
             allowedHeaders: ['Content-Type', 'Authorization', 'Accept']
         }));
-        
+
         app.use(urlencoded({
             extended: true,
             limit: "1mb"
@@ -136,10 +136,24 @@ async function setupServer(): Promise<void> {
         FileManagementService.ensureUploadDirectories();
         FileUploadService.initialize();
         if (isDevelopment) console.log("✅ Directorios de archivos inicializados");
-        
+
         // --- SERVIR ARCHIVOS ESTÁTICOS ---
         // Servir la carpeta 'uploads' que está en el directorio raíz del backend
-        app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
+        app.use('/uploads', express.static(path.join(process.cwd(), 'uploads'), {
+            setHeaders: (res, path) => {
+                if (path.endsWith('.png')) {
+                    res.setHeader('Content-Type', 'image/png');
+                } else if (path.endsWith('.jpg') || path.endsWith('.jpeg')) {
+                    res.setHeader('Content-Type', 'image/jpeg');
+                } else if (path.endsWith('.gif')) {
+                    res.setHeader('Content-Type', 'image/gif');
+                } else if (path.endsWith('.webp')) {
+                    res.setHeader('Content-Type', 'image/webp');
+                }
+                res.setHeader('Access-Control-Allow-Origin', '*');
+                res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+            }
+        }));
 
         // Configurar todas las rutas bajo /api
         app.use("/api", indexRoutes);
@@ -148,7 +162,7 @@ async function setupServer(): Promise<void> {
         server = app.listen(PORT, () => {
             console.log("✅ API started successfully.");
             console.log(`✅ Servidor iniciado en http://${SERVER_HOST}:${SERVER_PORT}/api`);
-            
+
             // Inicializar verificación automática de licencias vencidas
             initializeAutomaticLicenseVerification();
         });
@@ -215,94 +229,94 @@ async function setupTestServer(): Promise<{ app: Application; server: any }> {
 
 // Inicialización del servidor
 const startServer = async () => {
-  try {
-    console.log("\n🚀 Iniciando GPS 2025 API...\n");
-    
-    // Conectar a la base de datos
-    await initializeDatabase();
+    try {
+        console.log("\n🚀 Iniciando GPS 2025 API...\n");
 
-    // Configuración inicial
-    await initialSetup();
+        // Conectar a la base de datos
+        await initializeDatabase();
 
-    // Configurar el servidor
-    app.disable("x-powered-by");
+        // Configuración inicial
+        await initialSetup();
 
-    app.use(cors({
-      origin: true,
-      credentials: true,
-      methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'Authorization', 'Accept']
-    }));
-    
-    app.use(urlencoded({
-      extended: true,
-      limit: "1mb"
-    }));
+        // Configurar el servidor
+        app.disable("x-powered-by");
 
-    app.use(json({
-      limit: "1mb"
-    }));
+        app.use(cors({
+            origin: true,
+            credentials: true,
+            methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+            allowedHeaders: ['Content-Type', 'Authorization', 'Accept']
+        }));
 
-    app.use(cookieParser());
+        app.use(urlencoded({
+            extended: true,
+            limit: "1mb"
+        }));
 
-    // Solo usar morgan en desarrollo
-    if (isDevelopment) {
-      app.use(morgan("dev"));
+        app.use(json({
+            limit: "1mb"
+        }));
+
+        app.use(cookieParser());
+
+        // Solo usar morgan en desarrollo
+        if (isDevelopment) {
+            app.use(morgan("dev"));
+        }
+
+        app.use(session({
+            secret: cookieKey as string,
+            resave: false,
+            saveUninitialized: false,
+            cookie: {
+                secure: false,
+                httpOnly: true,
+                sameSite: "strict",
+            }
+        }));
+
+        app.use(passport.initialize());
+        passportJWTSetup();
+
+        // Middleware global para encoding UTF-8 en todas las respuestas JSON
+        app.use((req, res, next) => {
+            // No sobreescribir el Content-Type para descargas de archivos
+            if (!res.getHeader('Content-Disposition')) {
+                res.setHeader('Content-Type', 'application/json; charset=utf-8');
+            }
+            next();
+        });
+
+        // Inicializar directorios de archivos
+        FileManagementService.ensureUploadDirectories();
+        FileUploadService.initialize();
+        if (isDevelopment) console.log("✅ Directorios de archivos inicializados");
+
+        // --- SERVIR ARCHIVOS ESTÁTICOS ---
+        // Servir la carpeta 'uploads' que está en el directorio raíz del backend
+        app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
+
+        // Configurar todas las rutas bajo /api
+        app.use("/api", indexRoutes);
+        app.use("/api/users", userRoutes);
+
+        server = app.listen(PORT, () => {
+            console.log("✅ API started successfully.");
+            console.log(`✅ Servidor iniciado en http://${SERVER_HOST}:${SERVER_PORT}/api`);
+
+            // Inicializar verificación automática de licencias vencidas
+            initializeAutomaticLicenseVerification();
+        });
+
+    } catch (error) {
+        console.error("❌ Error al iniciar el servidor:", error);
+        process.exit(1);
     }
-
-    app.use(session({
-      secret: cookieKey as string,
-      resave: false,
-      saveUninitialized: false,
-      cookie: {
-        secure: false,
-        httpOnly: true,
-        sameSite: "strict",
-      }
-    }));
-
-    app.use(passport.initialize());
-    passportJWTSetup();
-
-    // Middleware global para encoding UTF-8 en todas las respuestas JSON
-    app.use((req, res, next) => {
-      // No sobreescribir el Content-Type para descargas de archivos
-      if (!res.getHeader('Content-Disposition')) {
-        res.setHeader('Content-Type', 'application/json; charset=utf-8');
-      }
-      next();
-    });
-
-    // Inicializar directorios de archivos
-    FileManagementService.ensureUploadDirectories();
-    FileUploadService.initialize();
-    if (isDevelopment) console.log("✅ Directorios de archivos inicializados");
-    
-    // --- SERVIR ARCHIVOS ESTÁTICOS ---
-    // Servir la carpeta 'uploads' que está en el directorio raíz del backend
-    app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
-
-    // Configurar todas las rutas bajo /api
-    app.use("/api", indexRoutes);
-    app.use("/api/users", userRoutes);
-
-    server = app.listen(PORT, () => {
-      console.log("✅ API started successfully.");
-      console.log(`✅ Servidor iniciado en http://${SERVER_HOST}:${SERVER_PORT}/api`);
-      
-      // Inicializar verificación automática de licencias vencidas
-      initializeAutomaticLicenseVerification();
-    });
-
-  } catch (error) {
-    console.error("❌ Error al iniciar el servidor:", error);
-    process.exit(1);
-  }
 };
 
 // Iniciar el servidor si no estamos en modo test
 if (!isTest) {
-  startServer();
+    startServer();
 } else {
-  console.log("⚠️ Detectado comando de test. El servidor NO se iniciará.");
+    console.log("⚠️ Detectado comando de test. El servidor NO se iniciará.");
 }

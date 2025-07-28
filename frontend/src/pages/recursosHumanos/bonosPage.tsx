@@ -9,6 +9,7 @@ import { CrearBonoModal } from '@/components/recursosHumanos/CrearBono.js';
 import { FiltrosBusquedaHeader } from '@/components/common/FiltrosBusquedaHeader';
 import { Toast, useToast } from '@/components/common/Toast';
 import { bonoService } from '../../services/recursosHumanos/bono.service';
+import { formatTipoBono, formatTemporalidad, formatMonto } from '../../utils/index';
 import "../../styles/pages/bonos.css";
 
 enum TipoBono {
@@ -129,38 +130,19 @@ export const BonosPage: React.FC = () => {
         setSearchNombre(e.target.value);
     };
 
-    console.log('bonos: ', bonos);
-    console.log('bonos es array? ', Array.isArray(bonos));
-    console.log("typeof bonos:", typeof bonos);
-    console.log('bonos length:', bonos.length);
-
     return (
         <Container fluid className="py-2">
-            <div className="main-content-formBono">
-                <div 
-                    className="text-center mb-5"
-                >
-                    <h1 
-                        className="fw-bold display-4"
-                        style={{ color: "#283349" }}
-                    >
-                        Bonos
-                    </h1>
-                </div>
-                
-            </div>
-            
             <Row>
                 <Col>
+                    {/* Encabezado de página */}
                     <Card className="shadow-sm mb-3">
-                        <Card.Header className="text-white" style={{ backgroundColor: "#283349", color: "white" }}>
-                            
-                            <div className="d-flex align-items-center justify-content-between" >
-                                <div className="d-flex align-items-center text-white">
-                                    <i className="bi bi-people-fill fs-4 me-3"></i>
+                        <Card.Header className="bg-gradient-primary text-white">
+                            <div className="d-flex align-items-center justify-content-between">
+                                <div className="d-flex align-items-center">
+                                    <i className="bi bi-gift fs-4 me-3"></i>
                                     <div>
-                                        <h3 className="mb-1 text-white">Gestión de Bonos</h3>
-                                        <p className="mb-0 opacity-75 text-white">
+                                        <h3 className="mb-1">Gestión de Bonos</h3>
+                                        <p className="mb-0 opacity-75">
                                             Administrar información de bonos del sistema
                                         </p>
                                     </div>
@@ -169,8 +151,7 @@ export const BonosPage: React.FC = () => {
                                     <Button 
                                         variant={showFilters ? "outline-light" : "light"}
                                         className="me-2"
-                                        onClick={() => setShowFilters(!showFilters)}                                      
-                                        style={{ backgroundColor: "#EDB65B" }}
+                                        onClick={() => setShowFilters(!showFilters)}
                                     >
                                         <i className={`bi bi-funnel${showFilters ? '-fill' : ''} me-2`}></i>
                                         {showFilters ? 'Ocultar' : 'Mostrar'} Filtros
@@ -178,9 +159,8 @@ export const BonosPage: React.FC = () => {
                                     <Button 
                                         variant="light"
                                         onClick={handleCreateClick}
-                                        style={{ backgroundColor: "#EDB65B" }}
                                     >
-                                        <i className="bi bi-person-plus-fill me-2"></i>
+                                        <i className="bi bi-gift me-2"></i>
                                         Crear Bono
                                     </Button>
                                 </div>
@@ -215,7 +195,7 @@ export const BonosPage: React.FC = () => {
                                     >
                                     <option value="">Seleccione una opción</option>
                                     {Object.values(TipoBono).map(tipoBono => (
-                                        <option key={tipoBono} value={tipoBono}>{tipoBono}</option>
+                                        <option key={tipoBono} value={tipoBono}>{tipoBono.charAt(0).toUpperCase() + tipoBono.slice(1)}</option>
                                     ))}
                                     </Form.Select>
                                 </Form.Group>
@@ -229,9 +209,9 @@ export const BonosPage: React.FC = () => {
                                     style={{ borderRadius: '8px' }}
                                     >
                                     <option value="">Seleccione una opción</option>
-                                    <option value={Temporalidad.permanente}>{Temporalidad.permanente}</option>
-                                    <option value={Temporalidad.recurrente}>{Temporalidad.recurrente}</option>
-                                    <option value={Temporalidad.puntual}>{Temporalidad.puntual}</option>
+                                    <option value={Temporalidad.permanente}>{Temporalidad.permanente.charAt(0).toUpperCase() + Temporalidad.permanente.slice(1)}</option>
+                                    <option value={Temporalidad.recurrente}>{Temporalidad.recurrente.charAt(0).toUpperCase() + Temporalidad.recurrente.slice(1)}</option>
+                                    <option value={Temporalidad.puntual}>{Temporalidad.puntual.charAt(0).toUpperCase() + Temporalidad.puntual.slice(1)}</option>
                                     </Form.Select>
                                 </Form.Group>
                                 </Col>
@@ -300,7 +280,7 @@ export const BonosPage: React.FC = () => {
                     {isLoading && (
                         <div className="text-center py-5">
                         <Spinner animation="border" variant="primary" />
-                        <p className="mt-3 text-muted">Cargando trabajadores...</p>
+                        <p className="mt-3 text-muted">Cargando bonos...</p>
                         </div>
                     )}
 
@@ -375,9 +355,9 @@ export const BonosPage: React.FC = () => {
                                                                         )}
                                                                     </div>
                                                                 </td>
-                                                                <td>{bono.monto}</td>
-                                                                <td>{bono.tipoBono}</td>
-                                                                <td>{bono.temporalidad}</td>
+                                                                <td>{formatMonto(bono.monto)}</td>
+                                                                <td>{formatTipoBono(bono.tipoBono)}</td>
+                                                                <td>{formatTemporalidad(bono.temporalidad)}</td>
                                                                 <td>{bono.imponible ? 'Sí' : 'No'}</td>
                                                                 <td>{bono.duracionMes || '-'}</td>
                                                                 <td>{bono.descripcion || '-'}</td>
@@ -524,12 +504,6 @@ export const BonosPage: React.FC = () => {
                     </Button>
                 </Modal.Footer>
             </Modal>
-
-            <div className="footer-bonos">
-                <p className="text-center text-muted">
-                    © 2025 Project GPS. Todos los derechos reservados.
-                </p>
-            </div>
         </Container>
     );
 };

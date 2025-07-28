@@ -29,7 +29,7 @@ export async function createBono(req: Request, res: Response): Promise<void> {
 
         // Para RRHH, pueden especificar cualquier trabajadorId
 
-        if (req.user.role !== 'RecursosHumanos' && req.user.role !== 'SuperAdministrador') {
+        if (req.user.role !== 'RecursosHumanos' && req.user.role !== 'Administrador' && req.user.role !== 'SuperAdministrador') {
             handleErrorClient(res, 400, "Trabajador no encontrado");
             return;
         }
@@ -76,8 +76,8 @@ export async function getAllBonos(req: Request, res: Response): Promise<void> {
             handleErrorClient(res, 401, "Usuario no autenticado");
             return;
         }
-        // Si no es RRHH, filtrar solo sus bonos
-        if (req.user.role !== 'RecursosHumanos' && req.user.role !== 'SuperAdministrador') {
+        // Si no es RRHH, Administrador o SuperAdministrador, filtrar solo sus bonos
+        if (req.user.role !== 'RecursosHumanos' && req.user.role !== 'Administrador' && req.user.role !== 'SuperAdministrador') {
                 handleErrorClient(res, 400, "Trabajador no encontrado en recursos humanos");
                 return;
         }
@@ -85,7 +85,16 @@ export async function getAllBonos(req: Request, res: Response): Promise<void> {
         // Verificar si se solicitan bonos inactivos
         const incluirInactivos = req.query.incluirInactivos === 'true';
 
-        const [resultado, error] = await getAllBonosService(incluirInactivos);
+        // Extraer parámetros de búsqueda
+        const queryParams = {
+            nombreBono: req.query.nombreBono as string,
+            tipoBono: req.query.tipoBono as string,
+            temporalidad: req.query.temporalidad as string,
+            imponible: req.query.imponible === 'true' ? true : req.query.imponible === 'false' ? false : undefined,
+            duracionMes: req.query.duracionMes as string
+        };
+
+        const [resultado, error] = await getAllBonosService(incluirInactivos, queryParams);
 
         if (error) {
             handleErrorClient(res, 404, error as string);
@@ -128,7 +137,7 @@ export async function getBonoById(req: Request, res: Response): Promise<void> {
         }
 
         // Verificar permisos: usuarios solo pueden ver sus propias bonos
-        if (req.user.role !== 'RecursosHumanos' && req.user.role !== 'SuperAdministrador') {
+        if (req.user.role !== 'RecursosHumanos' && req.user.role !== 'Administrador' && req.user.role !== 'SuperAdministrador') {
             handleErrorClient(res, 403, "No tiene permisos para ver este bono");
             return;
         }
@@ -175,7 +184,7 @@ export async function updateBono(req: Request, res: Response): Promise<void> {
             return;
         }
 
-        if (req.user.role !== 'RecursosHumanos' && req.user.role !== 'SuperAdministrador') {    
+        if (req.user.role !== 'RecursosHumanos' && req.user.role !== 'Administrador' && req.user.role !== 'SuperAdministrador') {    
             handleErrorClient(res, 403, "No tiene permisos para actualizar esta bono");
             return;
         }

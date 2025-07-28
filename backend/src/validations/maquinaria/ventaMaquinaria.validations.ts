@@ -44,7 +44,7 @@ export const registrarVentaValidation = [
     .withMessage("El valor de venta debe estar entre $1.000.000 y $5.000.000.000")
     .toFloat()
     .custom((value, { req }) => {
-      // Validar que el valor de venta no sea menor al 50% del valor de compra
+      // Validar que el valor de venta no sea menor al 10% del valor de compra
       const valorCompra = req.body.valorCompra
       if (valorCompra && value < valorCompra * 0.1) {
         throw new Error("El valor de venta no puede ser menor al 50% del valor de compra")

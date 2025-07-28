@@ -16,3 +16,17 @@ export function formatToLocalTime(date: string | number | Date): string{
         hourCycle: 'h24' // 24-hour format
     }).replace(',', ''); // Remove the comma from the date
 }
+
+/**
+ * Formats a given date to dd-mm-yyyy format.
+ * 
+ * @param date - The date to format. Can be a string, number (timestamp), or Date object.
+ * @returns A formatted string in the format `dd-mm-yyyy`.
+ */
+export function formatToLocalDate(date: string | number | Date): string {
+    const d = new Date(date);
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    return `${day}-${month}-${year}`;
+}

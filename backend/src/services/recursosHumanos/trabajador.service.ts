@@ -9,6 +9,7 @@ import { ILike, Like } from "typeorm";
 import { FindOptionsWhere } from "typeorm";
 import { User } from "../../entity/user.entity.js";
 import { HistorialLaboral } from "../../entity/recursosHumanos/historialLaboral.entity.js";
+import { AsignarBono } from "../../entity/recursosHumanos/Remuneraciones/asignarBono.entity.js";
 import { encryptPassword, comparePassword } from '../../utils/encrypt.js';
 import { sendCredentialsEmail } from '../email.service.js';
 import { userRole } from "../../../types.d.js";
@@ -237,6 +238,15 @@ export async function createTrabajadorService(trabajadorData: Partial<Trabajador
             return [null, "Ya existe un usuario con ese RUT"];
         }
 
+        // Verificar si ya existe un trabajador con el mismo correo personal (activos y desvinculados)
+        const existingTrabajadorWithEmail = await trabajadorRepo.findOne({
+            where: { correoPersonal: trabajadorData.correoPersonal }
+        });
+
+        if (existingTrabajadorWithEmail) {
+            return [null, "Ya existe un trabajador con ese correo personal"];
+        }
+
         // Crear el trabajador
         const trabajador = trabajadorRepo.create({
             ...trabajadorData,
@@ -390,7 +400,12 @@ export async function getTrabajadoresService(incluirInactivos: boolean = false, 
             queryBuilder.andWhere('trabajador.telefono ILIKE :telefono', { telefono: `%${filtros.telefono}%` });
         }
         if (filtros.correoPersonal) {
-            queryBuilder.andWhere('trabajador.correoPersonal ILIKE :correoPersonal', { correoPersonal: `%${filtros.correoPersonal}%` });
+            // Si se busca para validar unicidad, usar búsqueda exacta
+            if (filtros.exactMatch) {
+                queryBuilder.andWhere('trabajador.correoPersonal = :correoPersonal', { correoPersonal: filtros.correoPersonal });
+            } else {
+                queryBuilder.andWhere('trabajador.correoPersonal ILIKE :correoPersonal', { correoPersonal: `%${filtros.correoPersonal}%` });
+            }
         }
         if (filtros.numeroEmergencia) {
             queryBuilder.andWhere('trabajador.numeroEmergencia ILIKE :numeroEmergencia', { numeroEmergencia: `%${filtros.numeroEmergencia}%` });
@@ -569,6 +584,22 @@ export async function updateTrabajadorService(id: number, data: any): Promise<Se
             "numeroEmergencia", "direccion", "correoPersonal"
         ];
         
+        // Validar unicidad del correo personal si se está actualizando
+        if (data.correoPersonal && data.correoPersonal !== trabajador.correoPersonal) {
+            const existingTrabajadorWithEmail = await trabajadorRepo.findOne({
+                where: { 
+                    correoPersonal: data.correoPersonal,
+                    id: Not(id) // Excluir el trabajador actual
+                }
+            });
+
+            if (existingTrabajadorWithEmail) {
+                await queryRunner.rollbackTransaction();
+                await queryRunner.release();
+                return [null, "Ya existe un trabajador con ese correo personal"];
+            }
+        }
+        
         for (const campo of camposPermitidos) {
             if (data[campo] && data[campo] !== (trabajador as any)[campo]) {
                 (trabajador as any)[campo] = data[campo];
@@ -746,6 +777,20 @@ export async function reactivarTrabajadorService(
             return [null, "Formato de correo personal inválido"];
         }
 
+        // Validar unicidad del correo personal
+        const existingTrabajadorWithEmail = await trabajadorRepo.findOne({
+            where: { 
+                correoPersonal: datosLimpios.correoPersonal,
+                id: Not(trabajadorId) // Excluir el trabajador que se está reactivando
+            }
+        });
+
+        if (existingTrabajadorWithEmail) {
+            await queryRunner.rollbackTransaction();
+            await queryRunner.release();
+            return [null, "Ya existe un trabajador con ese correo personal"];
+        }
+
         // 4. Generar nuevo correo corporativo (NUNCA reutilizar anteriores)
         const primerNombre = datosLimpios.nombres.split(' ')[0].toLowerCase().normalize('NFD').replace(/[^a-zA-Z]/g, '');
         const apellidoPaterno = datosLimpios.apellidoPaterno.toLowerCase().normalize('NFD').replace(/[^a-zA-Z]/g, '');
@@ -781,12 +826,26 @@ export async function reactivarTrabajadorService(
         trabajador.fichaEmpresa.tipoContrato = "Por Definir";
         trabajador.fichaEmpresa.jornadaLaboral = "Por Definir";
         trabajador.fichaEmpresa.sueldoBase = 0;
-        trabajador.fichaEmpresa.fechaInicioContrato = new Date();
+        trabajador.fichaEmpresa.fechaInicioContrato = null; // Resetear a null para que aparezca "-"
         trabajador.fichaEmpresa.fechaFinContrato = null;
         trabajador.fichaEmpresa.motivoDesvinculacion = null;
         trabajador.fichaEmpresa.fechaInicioLicenciaPermiso = null;
         trabajador.fichaEmpresa.fechaFinLicenciaPermiso = null;
         trabajador.fichaEmpresa.motivoLicenciaPermiso = null;
+        trabajador.fichaEmpresa.afp = null; // Resetear AFP a null
+        trabajador.fichaEmpresa.previsionSalud = null; // Resetear Previsión Salud a null
+        trabajador.fichaEmpresa.seguroCesantia = null; // Resetear Seguro Cesantía a null
+        trabajador.fichaEmpresa.contratoURL = null; // Eliminar contrato anterior
+
+        // 8.1. Eliminar asignaciones de bonos existentes
+        const asignarBonoRepo = queryRunner.manager.getRepository(AsignarBono);
+        const asignacionesExistentes = await asignarBonoRepo.find({
+            where: { fichaEmpresa: { id: trabajador.fichaEmpresa.id } }
+        });
+        
+        if (asignacionesExistentes.length > 0) {
+            await asignarBonoRepo.remove(asignacionesExistentes);
+        }
 
         // 9. Registrar reactivación en historial laboral
         const historialReactivacion = historialRepo.create({

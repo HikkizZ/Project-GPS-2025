@@ -29,8 +29,8 @@ export const usePermissions = () => {
   // Permisos para mis licencias y permisos (todos los roles excepto SuperAdministrador)
   const canAccessMyLicenses = user && user.role !== "SuperAdministrador";
 
-  // Permisos para bonos (solo SuperAdministrador)
-  const canAccessBonos = hasRole(["SuperAdministrador"]);
+  // Permisos para bonos (SuperAdministrador y Administrador)
+  const canAccessBonos = hasRole(["SuperAdministrador", "Administrador"]);
 
   return {
     hasRole,

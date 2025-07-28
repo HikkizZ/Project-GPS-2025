@@ -30,7 +30,7 @@ export class ArriendoMaquinariaService {
 
       // Si existe un reporte en soft delete y el usuario es SuperAdministrador
       if (reporteExistente && reporteExistente.isActive === false && userRole === "SuperAdministrador") {
-        console.log(`🔄 SuperAdmin: Actualizando reporte soft-deleted ${reporteData.numeroReporte}`)
+        console.log(` SuperAdmin: Actualizando reporte soft-deleted ${reporteData.numeroReporte}`)
 
         // Limpiar y validar RUT del cliente
         const rutLimpio = limpiarRut(reporteData.rutCliente!)
@@ -362,7 +362,6 @@ export class ArriendoMaquinariaService {
     await queryRunner.startTransaction()
 
     try {
-      // MEJORA: Validar ID
       if (!id || id <= 0) {
         throw new Error("ID de reporte inválido")
       }
@@ -374,7 +373,6 @@ export class ArriendoMaquinariaService {
       if (!reporte) {
         throw new Error(`Reporte con ID ${id} no encontrado o ya está inactivo`)
       }
-
       // Hacer soft delete del reporte
       await queryRunner.manager.update(ArriendoMaquinaria, { id }, { isActive: false })
 
