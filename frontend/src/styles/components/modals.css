@@ -326,26 +326,26 @@
 .label {
   font-weight: 600;
   color: #495057;
-  font-size: 1rem;
+  font-size: 0.98rem;
 }
 .value {
   font-weight: 400;
   color: #222;
-  font-size: 1.08rem;
+  font-size: 1rem;
 }
 .value.money {
   color: #1ca97a;
-  font-weight: 700;
-  font-size: 1.15rem;
+  font-weight: 600;
+  font-size: 1.05rem;
 }
 .value.highlight {
   color: #1ca97a;
-  font-weight: 700;
-  font-size: 1.15rem;
+  font-weight: 600;
+  font-size: 1.05rem;
 }
 .modal-section {
-  padding: 1.5rem 1.5rem 1rem 1.5rem;
-  margin-bottom: 1.5rem;
+  padding: 1.1rem 1.1rem 0.7rem 1.1rem;
+  margin-bottom: 1.1rem;
   border: 1px solid #e9ecef;
   border-radius: 0.7rem;
   background: #f8f9fa;
@@ -354,9 +354,9 @@
 .modal-section-title {
   font-weight: 700;
   color: #4a4e69;
-  font-size: 1.18rem;
-  margin-bottom: 1.2rem;
-  padding-bottom: 0.5rem;
+  font-size: 1.08rem;
+  margin-bottom: 0.8rem;
+  padding-bottom: 0.3rem;
   border-bottom: 2px solid #e9ecef;
   display: flex;
   align-items: center;
