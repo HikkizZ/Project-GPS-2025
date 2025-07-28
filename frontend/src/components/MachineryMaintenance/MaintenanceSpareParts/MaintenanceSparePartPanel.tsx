@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Modal, Button, Form, Table, Spinner } from 'react-bootstrap';
 import { useSpareParts } from '@/hooks/MachinaryMaintenance/SparePart/useSpareParts';
 import { useMaintenanceSpareParts } from '@/hooks/MachinaryMaintenance/MaintenanceSparePart/useMaintenanceSpareParts';
@@ -39,8 +39,10 @@ const MaintenanceSparePartPanel: React.FC<Props> = ({ mantencionId, show, onHide
     const [selectedId, setSelectedId] = useState<number>(0);
 
     useEffect(() => {
-        if (mantencionId && show) reload();
+      if (!show || !mantencionId) return;
+      reload();
     }, [mantencionId, show]);
+    
 
             const handleEditClick = (item: MaintenanceSparePart) => {
                 setSelectedItem(item);
@@ -73,51 +75,72 @@ const MaintenanceSparePartPanel: React.FC<Props> = ({ mantencionId, show, onHide
                     }
                 }
                 
+            const handleClose = () => {
+              setSelectedId(0);
+              setCantidad(1);
+              setSelectedItem(null);
+              setShowEditModal(false);
+              onHide();      
+              reload();      
+            };
+
             const handleAgregar = async () => {
-
-                if (!selectedId || cantidad < 1) return;
-
-                const seleccionado = spareParts.find((s) => s.id === selectedId);
-                if (!seleccionado) return;
-
-                if (cantidad > seleccionado.stock) {
-                showError('Stock insuficiente', `Solo hay ${seleccionado.stock} unidades disponibles.`);
+              if (!selectedId || selectedId === 0) {
+                showError("Selección inválida", "Debes seleccionar un repuesto.");
                 return;
-                }
+              }
 
-                const yaExiste = repuestosUsados.some(r => r.repuesto.id === selectedId);
-                    if (yaExiste) {
-                    showError('Repuesto duplicado', 'Este repuesto ya fue registrado en esta mantención.');
-                    return;
-                }
-
-
-                const [data, error] = await create({
-                    repuestoId: selectedId,
-                    cantidadUtilizada: cantidad,
-                    mantencionId
-                });
-
-                if (error) {
-                    showError('Error', error);
+              if (cantidad <= 0) {
+                showError("Cantidad inválida", "La cantidad debe ser mayor que cero.");
                 return;
-            }
+              }
 
-                showSuccess('Repuesto registrado', 'Se agregó correctamente');
-                setCantidad(1);
-                setSelectedId(0);
-                reload();
-                reloadSpareParts();
-                resetCreate();
+              const seleccionado = spareParts.find((s) => s.id === selectedId);
+              if (!seleccionado) {
+                showError("Repuesto no encontrado", "El repuesto seleccionado no existe.");
+                return;
+              }
 
+              if (cantidad > seleccionado.stock) {
+                showError("Stock insuficiente", `Solo hay ${seleccionado.stock} unidades disponibles.`);
+                return;
+              }
+
+              const yaExiste = repuestosUsados.some(r => r.repuesto.id === selectedId);
+              if (yaExiste) {
+                showError("Repuesto duplicado", "Este repuesto ya fue registrado en esta mantención.");
+                return;
+              }
+
+              const [data, error] = await create({
+                repuestoId: selectedId,
+                cantidadUtilizada: cantidad,
+                mantencionId
+              });
+
+              if (error) {
+                showError("Error", error);
+                return;
+              }
+
+              showSuccess("Repuesto registrado", "Se agregó correctamente");
+              setCantidad(1);
+              setSelectedId(0);
+              reload();
+              reloadSpareParts();
+              resetCreate();
             };
 
 
+
   const repuestosFiltrados = spareParts;
-  const repuestosUsados = maintenanceSpareParts.filter((r) => r.mantencion?.id === mantencionId);
+  const repuestosUsados = useMemo(
+      () => maintenanceSpareParts.filter((r) => r.mantencion?.id === mantencionId),
+      [maintenanceSpareParts, mantencionId]
+  );
 
   return (
-    <Modal show={show} onHide={onHide} size="lg">
+    <Modal show={show} onHide={handleClose} size="lg">
       <Modal.Header closeButton>
         <Modal.Title>Repuestos Utilizados</Modal.Title>
       </Modal.Header>
@@ -138,16 +161,23 @@ const MaintenanceSparePartPanel: React.FC<Props> = ({ mantencionId, show, onHide
                 ))}
               </Form.Select>
             </Form.Group>
+                  <br></br>
+            <Form.Control
+              type="number"
+              value={cantidad === 0 ? "" : cantidad}
+              onChange={(e) => {
+                const value = e.target.value;
+                if (value === "") {
+                  setCantidad(0);
+                  return;
+                }
+                const parsed = Number(value);
+                if (!isNaN(parsed) && parsed >= 0) {
+                  setCantidad(parsed);
+                }
+              }}
+            />
 
-            <Form.Group className="mt-2">
-              <Form.Label>Cantidad</Form.Label>
-              <Form.Control
-                type="number"
-                min={1}
-                value={cantidad}
-                onChange={(e) => setCantidad(Number(e.target.value))}
-              />
-            </Form.Group>
 
             <Button className="mt-3" onClick={handleAgregar} disabled={creating}>
               {creating ? 'Agregando...' : 'Agregar'}
@@ -204,7 +234,10 @@ const MaintenanceSparePartPanel: React.FC<Props> = ({ mantencionId, show, onHide
       </Modal.Body>
         <EditMaintenanceSparePartModal
                 show={showEditModal}
-                onHide={() => setShowEditModal(false)}
+                onHide={() => {
+                  setShowEditModal(false);
+                  setSelectedItem(null);
+                }}
                 onSave={handleSaveEdit}
                 initialData={selectedItem}
                 stockDisponible={spareParts.find((s) => s.id === selectedItem?.repuesto?.id)?.stock ?? 0}
