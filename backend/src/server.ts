@@ -10,6 +10,7 @@ import passport from "passport";
 import { config } from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
+//test
 
 import indexRoutes from "./routes/index.routes.js";
 import { AppDataSource, initializeDatabase } from "./config/configDB.js";

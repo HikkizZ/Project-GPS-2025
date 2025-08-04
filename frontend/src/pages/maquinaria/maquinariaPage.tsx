@@ -47,7 +47,7 @@ export const MaquinariaPage: React.FC = () => {
       case "en_arriendo":
         return "primary"
       case "en_mantencion":
-        return "warning"
+        return "danger"
       case "vendida":
         return "secondary"
       default:
